@@ -3,284 +3,93 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>retr-oq — 1984 Mac desktop prototype</title>
-<link rel="stylesheet" href="./vendor/mac1984/system.css" />
+<title>retr-oq</title>
 <style>
-  /*
-   * retr-oq: a standalone retro desktop/window-manager experiment, split
-   * out of jandahl/oq (see README.md for why). This page proves the
-   * *container* -- a real fixed-size window on a real desktop, with its
-   * own internal scroll -- against the real vendored framework
-   * (vendor/mac1984/system.css, from npm's @sakun/system.css) instead of
-   * hand-rolled CSS.
-   *
-   * The first pass of this prototype hand-built pinstriped title bars,
-   * close boxes, and active/inactive chrome from scratch with layered
-   * background-image gradients. That turned out to be solving a problem
-   * this framework already solved: oq had accidentally vendored an
-   * unrelated same-named npm package (a PostCSS grid/utility framework,
-   * not a retro-Mac UI kit) for the whole life of the project so far.
-   * @sakun/system.css is the real one, and it ships .window,
-   * .title-bar / .inactive-title-bar, .window-pane, and working
-   * close/zoom buttons out of the box -- all of this file's job now is
-   * (a) fixing what the framework doesn't cover at all (making a
-   * .window float and drag as a fixed-position desktop object -- the
-   * framework's own docs only ever use .window inline, in normal page
-   * flow) and (b) demonstrating it.
-   *
-   * The framework's own `body` rule already paints the classic dithered
-   * grey Mac desktop pattern -- no custom background CSS needed here.
-   */
-  html, body {
+  :root {
+    --bg: #c0c0c0;
+    --ink: #000000;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 3rem 1.5rem;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, sans-serif;
+  }
+  main {
+    max-width: 36rem;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 1.1rem;
+    letter-spacing: 0.02em;
+    margin: 0 0 0.5rem;
+  }
+  p.lede {
+    margin: 0 0 2rem;
+    color: rgba(0, 0, 0, 0.65);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  ul.themes {
+    list-style: none;
     margin: 0;
     padding: 0;
-    height: 100%;
-    overflow: hidden; /* the DESKTOP never scrolls -- only windows do */
-  }
-  /* The framework doesn't set display:flex on .window itself (only
-   * flex-direction), so the column layout (title bar, separator, pane)
-   * has no effect until this is added. */
-  .window {
     display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
   }
-  /* Not part of the framework: floats a .window as a fixed-size,
-   * fixed-position object on the desktop instead of the inline, flows-
-   * with-the-page block the framework's own docs always use it as. */
-  .desktop-window {
-    position: absolute;
-    margin: 0 !important;
-    width: min(40rem, calc(100vw - 4rem));
-    height: min(30rem, calc(100vh - 6rem));
+  ul.themes li {
+    border: 1px solid var(--ink);
+    background: #ffffff;
+    box-shadow: 3px 3px 0 0 #000000;
   }
-  .desktop-window .window-pane {
-    flex: 1 1 auto;
-    min-height: 0; /* required for a flex child to actually be scrollable */
+  ul.themes a {
+    display: block;
+    padding: 0.9rem 1rem;
+    color: inherit;
+    text-decoration: none;
   }
-  .desktop-window.closed {
-    display: none;
+  ul.themes a:hover,
+  ul.themes a:focus-visible {
+    background: #000000;
+    color: #ffffff;
   }
-  /* The framework's static docs examples show an inactive title bar with
-   * no close/zoom buttons in the markup at all -- fine for a hand-written
-   * doc page, but this prototype keeps both buttons permanently in the
-   * DOM (so focus() below only has to toggle a class, not build/destroy
-   * elements) and relies on this rule to hide them instead. The framework
-   * itself has no equivalent rule (nothing needs one when the buttons are
-   * simply never written into inactive markup), so this is oq's own
-   * addition, not an upstream class. */
-  .inactive-title-bar .close,
-  .inactive-title-bar .resize {
-    display: none;
+  .theme-name {
+    display: block;
+    font-weight: bold;
+    font-size: 0.95rem;
   }
-  /* The framework has no grow-box/resize-handle component (its windows
-   * are sized via CSS, not user-resizable) -- the real 1984 Finder had
-   * one, so this is oq's own small addition, matching the framework's
-   * own black-on-white pixel-corner idiom rather than inventing a new
-   * visual language for it. */
-  .growbox {
-    position: absolute;
-    right: 0.3rem;
-    bottom: 0.3rem;
-    width: 0.6rem;
-    height: 0.6rem;
-    background: repeating-linear-gradient(
-      135deg,
-      #000000 0,
-      #000000 1px,
-      transparent 1px,
-      transparent 3px
-    );
-    border: 1px solid #000000;
-    pointer-events: none;
+  .theme-desc {
+    display: block;
+    font-size: 0.8rem;
+    margin-top: 0.15rem;
+    opacity: 0.75;
   }
-  .desktop-note {
-    position: fixed;
-    left: 1rem;
-    bottom: 1rem;
-    font-size: 0.75rem;
-    font-family: Geneva, ui-sans-serif, system-ui, sans-serif;
-    color: rgba(255, 255, 255, 0.75);
-    max-width: 20rem;
-  }
-  #reopen {
-    position: fixed;
-    left: 1rem;
-    top: 1rem;
-    display: none;
-  }
-  #reopen.visible { display: block; }
 </style>
 </head>
 <body>
-  <button type="button" class="btn" id="reopen">Reopen window</button>
-
-  <section class="window desktop-window" id="win0" style="top: 2rem; left: 2rem;">
-    <div class="inactive-title-bar" id="win0-titlebar">
-      <button type="button" aria-label="Close" class="close" id="win0-close"></button>
-      <h1 class="title">Background Window</h1>
-      <button type="button" aria-label="Zoom" class="resize"></button>
-    </div>
-    <div class="separator"></div>
-    <div class="window-pane">
-      <p>
-        This window sits behind Test Window and is INACTIVE: the framework's
-        own <code>.inactive-title-bar</code> class draws a plain bar with just
-        the centered title -- no pinstripes, no close/zoom buttons. Click
-        anywhere in it to bring it to front and make it active instead.
-      </p>
-    </div>
-    <div class="growbox"></div>
-  </section>
-
-  <section class="window desktop-window" id="win1" style="top: 4rem; left: 4rem;">
-    <div class="title-bar" id="win1-titlebar">
-      <button type="button" aria-label="Close" class="close" id="win1-close"></button>
-      <h1 class="title">Test Window</h1>
-      <button type="button" aria-label="Zoom" class="resize"></button>
-    </div>
-    <div class="separator"></div>
-    <div class="window-pane">
-      <p>
-        This window has a fixed size and position. Dragging it by the title
-        bar moves the whole frame; scrolling inside it only moves the
-        content below -- the frame itself, and the desktop around it, never
-        move.
-      </p>
-      <p>Scroll down inside this window to see the desktop stay put around it.</p>
-      <p>Card 1 — scroll me</p>
-      <p>Card 2</p>
-      <p>Card 3</p>
-      <p>Card 4</p>
-      <p>Card 5</p>
-      <p>Card 6</p>
-      <p>Card 7</p>
-      <p>Card 8</p>
-      <p>Card 9</p>
-      <p>Card 10</p>
-      <p>Card 11 — bottom of the scrollable content</p>
-    </div>
-    <div class="growbox"></div>
-  </section>
-
-  <p class="desktop-note">
-    retr-oq: a real fixed-size, fixed-position window on a real
-    full-viewport desktop, with its own internal scroll, built on the real
-    vendored framework (vendor/mac1984/system.css, from npm's
-    @sakun/system.css) instead of hand-rolled chrome. Drag a title bar;
-    click a window to make it active; scroll inside a window; close and
-    reopen it. See README.md for how this relates to jandahl/oq.
-  </p>
-
-<script>
-(() => {
-  "use strict";
-
-  /**
-   * Minimal drag primitive -- pointer events only, no dependency on the
-   * rest of the app. Mirrors the approach already used in
-   * docs/fun-themes-mac2-drag.js so porting this back into that module
-   * later is mechanical, not a rewrite.
-   */
-  function makeDraggable(handle, target) {
-    let activePointerId = null;
-    let startX = 0, startY = 0, origX = 0, origY = 0;
-
-    function onPointerDown(event) {
-      if (event.button !== 0) return;
-      if (activePointerId !== null) return;
-      if (event.target.closest("button, a, input, select, textarea")) return;
-      activePointerId = event.pointerId;
-      const rect = target.getBoundingClientRect();
-      const parentRect = target.offsetParent.getBoundingClientRect();
-      origX = rect.left - parentRect.left;
-      origY = rect.top - parentRect.top;
-      startX = event.clientX;
-      startY = event.clientY;
-      handle.setPointerCapture(event.pointerId);
-      event.preventDefault();
-    }
-
-    function onPointerMove(event) {
-      if (event.pointerId !== activePointerId) return;
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
-      target.style.left = `${origX + dx}px`;
-      target.style.top = `${origY + dy}px`;
-    }
-
-    function onPointerEnd(event) {
-      if (event.pointerId !== activePointerId) return;
-      activePointerId = null;
-      if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
-    }
-
-    function onLostPointerCapture() {
-      activePointerId = null;
-    }
-
-    handle.addEventListener("pointerdown", onPointerDown);
-    handle.addEventListener("pointermove", onPointerMove);
-    handle.addEventListener("pointerup", onPointerEnd);
-    handle.addEventListener("pointercancel", onPointerEnd);
-    handle.addEventListener("lostpointercapture", onLostPointerCapture);
-  }
-
-  const reopenBtn = document.getElementById("reopen");
-  const windows = Array.from(document.querySelectorAll(".desktop-window"));
-  let zTop = 10;
-
-  /**
-   * Swap which window is frontmost/active by swapping the framework's own
-   * .title-bar / .inactive-title-bar classes on each window's title bar
-   * element -- that class distinction is what actually draws (or doesn't
-   * draw) the pinstripes and close/zoom buttons, so this is the entire
-   * activation mechanism, not a separate visual layer on top of it.
-   */
-  function focus(win) {
-    const bar = win.querySelector(".title-bar, .inactive-title-bar");
-    if (bar.classList.contains("title-bar")) return; // already active
-    for (const w of windows) {
-      const b = w.querySelector(".title-bar, .inactive-title-bar");
-      if (w === win) {
-        b.classList.remove("inactive-title-bar");
-        b.classList.add("title-bar");
-      } else if (b.classList.contains("title-bar")) {
-        b.classList.remove("title-bar");
-        b.classList.add("inactive-title-bar");
-      }
-    }
-    zTop += 1;
-    win.style.zIndex = String(zTop);
-  }
-
-  for (const win of windows) {
-    const id = win.id;
-    const titlebar = document.getElementById(`${id}-titlebar`);
-    const closeBtn = document.getElementById(`${id}-close`);
-
-    makeDraggable(titlebar, win);
-    win.addEventListener("pointerdown", () => focus(win));
-
-    if (closeBtn) {
-      closeBtn.addEventListener("click", () => {
-        const wasActive = titlebar.classList.contains("title-bar");
-        win.classList.add("closed");
-        reopenBtn.classList.add("visible");
-        reopenBtn.dataset.target = id;
-        if (wasActive) {
-          const next = windows.find((w) => w !== win && !w.classList.contains("closed"));
-          if (next) focus(next);
-        }
-      });
-    }
-  }
-
-  reopenBtn.addEventListener("click", () => {
-    const target = document.getElementById(reopenBtn.dataset.target || "win1");
-    target.classList.remove("closed");
-    reopenBtn.classList.remove("visible");
-    focus(target);
-  });
-})();
-</script>
+  <main>
+    <h1>retr-oq</h1>
+    <p class="lede">
+      Retro desktop/window-manager prototypes — one per theme, each in its
+      own subdirectory with its own vendored framework under
+      <code>vendor/</code>. See <a href="https://github.com/jandahl/retr-oq">README</a>
+      for how this relates to <a href="https://github.com/jandahl/oq">jandahl/oq</a>.
+    </p>
+    <ul class="themes">
+      <li>
+        <a href="./mac1984/">
+          <span class="theme-name">1984 Mac (System 1)</span>
+          <span class="theme-desc">
+            Pinstriped title bars, draggable fixed-size windows, active/inactive
+            chrome — built on @sakun/system.css.
+          </span>
+        </a>
+      </li>
+    </ul>
+  </main>
 </body>
 </html>
