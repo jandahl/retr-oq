@@ -1,0 +1,709 @@
+/* Mac II adapter overlay for the "Fun Themes" experimental setting.
+ *
+ * system.css (docs/vendor/fun-themes/system.css) styles ITS OWN class/tag
+ * vocabulary (.btn, .window, .title-bar, bare <select>/<input>, ...), which
+ * oq's markup doesn't use, so loading it alone changes almost nothing
+ * visible -- oq's own classes (.icon-btn, .preset-card, .input-field, ...)
+ * win the cascade on specificity. This file is the "adapter pass" flagged
+ * in plans/fun-themes.md: it hand-maps oq's real selectors to a classic
+ * black-and-white System 7 look, using system.css's palette/border idiom
+ * (1-2px solid black borders, hard drop shadows, no border-radius, no
+ * color) rather than importing its rules wholesale.
+ *
+ * Authored by oq, not vendored -- there is no upstream to track, so this is
+ * a one-time hand-mapping job per plans/fun-themes.md's note on that.
+ *
+ * Everything here is scoped under body.oq-fun-theme-mac2 (set by
+ * docs/fun-themes.js) so it can never affect the app when the setting is
+ * off, and loaded/unloaded by fun-themes.js the same way as the vendored
+ * stylesheet and the focus-outline override.
+ */
+
+body.oq-fun-theme-mac2 {
+  --mac2-bg: #ffffff;
+  --mac2-desktop: #c0c0c0;
+  --mac2-ink: #000000;
+  --mac2-border: #000000;
+  --mac2-shadow: 2px 2px 0 0 #000000;
+  --mac2-font: Geneva, "Chicago", Tahoma, "Segoe UI", sans-serif;
+  /* A distinct mid-grey for "active/hover surface" tokens -- NOT --mac2-ink.
+   * oq pairs --kc-bg-tab-active with --kc-text (and some danger states with
+   * --kc-danger) for hover/selected rows it doesn't explicitly override
+   * here (e.g. [data-slot="command-item"]:hover). Since this theme also
+   * maps --kc-text/--kc-danger to black, reusing --mac2-ink for the
+   * background too would produce invisible black-on-black text. */
+  --mac2-surface-active: #999999;
+}
+
+/* The systemic fix, not a per-selector one: almost every color leak found
+ * while adapting this skin (tab strip, badges, checkboxes/sliders'
+ * accent-color, warning banners, Tornasuk's whole "faint" text hierarchy,
+ * ...) traces back to one of oq's own design tokens (--kc-accent, --kc-bg,
+ * --kc-warning, --kc-text-faint, ...), defined in docs/style.css's :root /
+ * [data-theme] blocks and consumed almost everywhere via var(--kc-*). A
+ * selector-by-selector chase never converges -- new views (Builder,
+ * Deconstruct, Tornasuk) keep surfacing more consumers. Redefining the
+ * tokens themselves at this higher-specificity scope (a plain class beats
+ * :root's pseudo-class specificity) cascades the fix to every current AND
+ * future consumer in one place, the same way flipping oq's own light/dark
+ * theme already does.
+ *
+ * This does NOT cover colors baked in as literal hex (not a var()) -- e.g.
+ * .card-valence/.card-archaic's per-variant backgrounds, or the inline
+ * --preset-border/--preset-text word-class colors dictionary.js sets per
+ * card. Those still need their own explicit override below, same as
+ * before, because there's no shared token to redefine.
+ */
+body.oq-fun-theme-mac2 {
+  --kc-bg: var(--mac2-desktop);
+  --kc-bg-card: var(--mac2-bg);
+  --kc-bg-input: var(--mac2-bg);
+  --kc-bg-input-focus: var(--mac2-bg);
+  --kc-bg-tab-active: var(--mac2-surface-active);
+  --kc-border: var(--mac2-border);
+  --kc-border-card: var(--mac2-border);
+  --kc-border-accent: var(--mac2-border);
+  --kc-text: var(--mac2-ink);
+  --kc-text-muted: #333333;
+  --kc-text-faint: #444444;
+  --kc-text-very-faint: #555555;
+  --kc-accent: var(--mac2-ink);
+  --kc-accent-hover: #333333;
+  --kc-accent-action: #333333;
+  --kc-danger: var(--mac2-ink);
+  --kc-danger-hover: #333333;
+  --kc-warning: var(--mac2-ink);
+  --kc-btn-primary: var(--mac2-desktop);
+  --kc-btn-primary-text: var(--mac2-ink);
+  --kc-relation-semantic: var(--mac2-ink);
+  --kc-relation-domain: var(--mac2-ink);
+  --kc-relation-gloss: var(--mac2-ink);
+  --kc-relation-word-class: var(--mac2-ink);
+  --kc-liquid-toast-rgb: 0, 0, 0;
+  --kc-liquid-border: rgba(0, 0, 0, 0.4);
+  --kc-liquid-nested-border: rgba(0, 0, 0, 0.3);
+}
+
+body.oq-fun-theme-mac2,
+body.oq-fun-theme-mac2 button,
+body.oq-fun-theme-mac2 input,
+body.oq-fun-theme-mac2 select {
+  font-family: var(--mac2-font) !important;
+}
+
+/* Bare <input type="checkbox">/type="radio"/type="range"> without oq's own
+ * classes (e.g. Tornasuk's "Search while typing") fall back to the
+ * browser's native accent color, which isn't routed through --kc-accent at
+ * all. */
+body.oq-fun-theme-mac2 input {
+  accent-color: var(--mac2-ink) !important;
+}
+
+/* Desktop: flat mid-grey, no gradients/accent color, no rounded corners
+ * anywhere -- System 7 had none. */
+body.oq-fun-theme-mac2 {
+  background: var(--mac2-desktop) !important;
+}
+body.oq-fun-theme-mac2 * {
+  border-radius: 0 !important;
+  box-shadow: none;
+  text-shadow: none !important;
+}
+
+/* App title bar: a thin pinstriped band holding a close box and a
+ * centered "OQ!" title -- not a full-height strip stuffed with the app's
+ * own logo and toolbar buttons. oq's big "OQ!" wordmark (.header-title) is
+ * the app's own content, duplicating what the title bar now shows, so
+ * it's hidden entirely rather than sitting in a plain area below the bar.
+ * The bar is two pseudo-elements on .page-header (which needs
+ * position: relative + top padding to make room for it) rather than new
+ * DOM nodes -- keeps this file CSS-only.
+ *
+ * .page-wrapper's base padding (2rem horizontally, tightening at smaller
+ * breakpoints -- see docs/style.css) insets .page-header from the window's
+ * actual border, so a bar sized to .page-header's own box falls short of
+ * the true window edges. Pinned to a fixed 1.5rem here (overriding every
+ * breakpoint) specifically so the -1.5rem counter-margin below is exact
+ * and the bar always reaches the real edges, not just .page-header's. */
+body.oq-fun-theme-mac2 .page-wrapper {
+  padding-left: 1.5rem !important;
+  padding-right: 1.5rem !important;
+}
+body.oq-fun-theme-mac2 .page-header {
+  position: relative;
+  margin: 0 -1.5rem !important;
+  padding: 2rem 0.75rem 0.35rem !important;
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  border-bottom: none !important;
+  /* Draggable via docs/fun-themes-mac2-drag.js -- cursor:move signals it.
+   * The drag handler itself ignores pointerdowns starting on a real
+   * interactive descendant, so this doesn't fight the toolbar/nav's own
+   * (already pointer) cursor. touch-action:none opts the handle out of
+   * native panning/zooming -- preventDefault() on pointer events alone
+   * doesn't reliably suppress those gestures, so without this a touch
+   * drag can scroll the page instead of moving the window. */
+  cursor: move;
+  touch-action: none;
+}
+body.oq-fun-theme-mac2 .page-header::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  height: 1.4rem;
+  background-repeat: no-repeat, no-repeat, repeat;
+  /* White square listed FIRST so it paints on TOP (background-image layers
+   * stack with the first entry uppermost); black square is 1px larger and
+   * positioned 1px earlier on every side, so it forms a visible ring
+   * behind/around the white one instead of being fully covered by it --
+   * a solid black square was the earlier bug: white was painted UNDER the
+   * black layer instead of over it. */
+  background-position: 8px center, 7px center, 0 0;
+  background-size: 10px 10px, 12px 12px, 100% 100%;
+  background-image:
+    /* Close box: a small hollow bordered square (white fill, black 1px
+     * outline), faked with two layered squares since a pseudo-element
+     * can't have its own nested/bordered element. */
+    linear-gradient(#ffffff, #ffffff),
+    linear-gradient(#000000, #000000),
+    repeating-linear-gradient(
+      to bottom,
+      #ffffff 0,
+      #ffffff 2px,
+      #000000 2px,
+      #000000 3px
+    );
+  border: 1px solid var(--mac2-border);
+}
+body.oq-fun-theme-mac2 .page-header::after {
+  content: "OQ!";
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 1.4rem;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: var(--mac2-ink);
+  /* No outline on the title label itself -- just a plain break in the
+   * stripe, unlike the close box (which does want the black border). */
+  background: var(--mac2-bg);
+}
+body.oq-fun-theme-mac2 .header-title {
+  display: none !important;
+}
+
+body.oq-fun-theme-mac2 .icon-toolbar {
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  border-top: none !important;
+}
+
+/* Detach the icon toolbar into its own floating tool-palette window beside
+ * the main window -- the classic Mac split between "content window" and
+ * "tool palette" (again, MacPaint's palette is the reference: its own
+ * small title-less striped bar, floating separately from the document).
+ * Only kicks in once there's real desktop room for a second window next
+ * to the centered 64rem main one (roughly 88rem+ of viewport); narrower
+ * viewports keep the toolbar inline in the header like every other theme
+ * -- a fixed-position palette would just overlap real content there. */
+@media (min-width: 88rem) {
+  /* Anchor via position: absolute on .icon-toolbar's nearest positioned
+   * ancestor, .page-header (position: relative, set above) -- NOT
+   * position: fixed measured against the viewport. .sticky-chrome (an
+   * ancestor) sets will-change: transform for scroll-perf reasons, which
+   * per spec makes IT the containing block for any fixed descendant
+   * instead of the viewport, throwing off any viewport-relative math.
+   * Anchoring to .page-header sidesteps that entirely and is more
+   * robust anyway: the palette sits at a fixed offset from the main
+   * window's edge regardless of centering/margin math.
+   *
+   * A larger gap (2.5rem, not 1rem) and a vertical offset that does NOT
+   * match the main window's own top edge (3rem, not 0) are both
+   * deliberate: sitting flush against the window at the same height read
+   * as "attached sidebar," not "separate floating window." Real Mac
+   * desktops stagger independent windows rather than docking them. */
+  body.oq-fun-theme-mac2 .icon-toolbar {
+    position: absolute;
+    top: 3rem;
+    left: calc(100% + 2.5rem);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.6rem 0.5rem 0.5rem;
+    gap: 0.5rem;
+    box-shadow: 4px 4px 0 0 #000000 !important;
+    z-index: 25;
+  }
+  body.oq-fun-theme-mac2 .icon-toolbar::before {
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    height: 1.4rem;
+    background: repeating-linear-gradient(
+      to bottom,
+      #ffffff 0,
+      #ffffff 2px,
+      #000000 2px,
+      #000000 3px
+    );
+    border: 1px solid var(--mac2-border);
+  }
+  /* A vertical divider between toolbar groups doesn't read right once the
+   * palette is a vertical column instead of a horizontal row. */
+  body.oq-fun-theme-mac2 .icon-toolbar .toolbar-divider {
+    display: none;
+  }
+}
+body.oq-fun-theme-mac2 .icon-btn {
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  box-shadow: var(--mac2-shadow) !important;
+  color: var(--mac2-ink) !important;
+}
+body.oq-fun-theme-mac2 .icon-btn:active {
+  box-shadow: none !important;
+  transform: translate(2px, 2px);
+}
+body.oq-fun-theme-mac2 .toolbar-divider {
+  background: var(--mac2-border) !important;
+}
+/* .chrome-surface (the sticky header/nav/toolbar band) blended oq's raw
+ * --kc-bg at a partial alpha (25% base app, still 60% after the first
+ * neutralize pass) behind a blur -- on a flat retro skin that reads as a
+ * straightforward bug, not a design choice: scrolled cards ghost through
+ * the "window title bar," which is exactly what a real Mac II title bar
+ * never does. Fully opaque now that the blur itself is also turned off
+ * below (backdrop-filter is a no-op without translucency to blur through,
+ * but leaving it on with an opaque background was still one confusing
+ * half-measure). */
+body.oq-fun-theme-mac2 .chrome-surface {
+  background: var(--mac2-bg) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* Footer -> window bottom: an opaque bar in the main window's own colors
+ * (not the translucent floating-pill look oq's own footer has), text
+ * pinned to the bottom-left instead of centered -- reads as the bottom
+ * edge of the window, not a separate overlay. */
+body.oq-fun-theme-mac2 .page-footer {
+  /* Base .page-footer sizes itself to min(64rem, calc(100% - 2rem)) --
+   * .page-wrapper (the "window") above is inset by a different amount
+   * (calc(100% - 3rem), set earlier in this file), so without matching
+   * this the footer renders wider than the window and pinned to the
+   * viewport edge instead of the window's own edge, breaking the
+   * window-chrome illusion. */
+  width: min(64rem, calc(100% - 3rem)) !important;
+  /* Base .page-footer is bottom: 0 -- flush with the true viewport edge,
+   * fine for oq's own floating-pill footer but wrong once it's meant to
+   * read as a window's own bottom edge: without this offset the window
+   * illusion breaks exactly at the bottom, with no desktop visible
+   * beneath it the way there is on every other side. env() keeps a
+   * notched/gestures-bar phone's safe area on top of this offset instead
+   * of being swallowed by it. */
+  bottom: calc(0.75rem + env(safe-area-inset-bottom)) !important;
+  text-align: left !important;
+  background: var(--mac2-bg) !important;
+  border-top: 1px solid var(--mac2-border) !important;
+  color: var(--mac2-ink) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* A small grow-box in the corner, same idiom as a real Mac window's
+ * resize handle -- purely decorative, matching the close box's
+ * hollow-square construction (layered gradients, no new DOM). */
+body.oq-fun-theme-mac2 .page-footer::after {
+  content: "";
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.4rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  background: repeating-linear-gradient(
+    135deg,
+    #000000 0,
+    #000000 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  border: 1px solid var(--mac2-border);
+}
+/* Liquid Ass's glass/blur effect (docs/liquid-ass.js) reads as anachronistic
+ * against a flat 1-bit retro look -- neutralize its visual output (not the
+ * underlying setting itself, which stays whatever the user picked) for
+ * every surface it touches while this theme is on. */
+body.oq-fun-theme-mac2 :is(
+  .sticky-chrome,
+  .preset-card,
+  dialog.modal-dialog,
+  #pwa-update-toast,
+  #just-updated-toast
+) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* The nested "pill" rule in docs/style.css (icon-btn/input-field/select-
+ * field/tab-strip/add-btn/... riding on top of one of the glass surfaces
+ * above) sets its own translucent rgba() background + a second, lighter
+ * backdrop-filter blur -- the surface-level neutralize block above doesn't
+ * reach these since they're separate elements, not the surface itself. */
+body.oq-fun-theme-mac2 :is(.sticky-chrome, .search-row, dialog.modal-dialog, .preset-card, #pwa-update-toast, #just-updated-toast)
+  :is(.icon-btn, .input-field, .select-field, .tab-strip, .add-btn, .look-preview-sticky, .look-save-section) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+/* .icon-btn--active/:hover/:focus-visible and .whats-new-badge/.filter-badge
+ * all pull var(--kc-accent) (oq's theme color) directly -- neutralize each
+ * explicitly rather than filtering the whole page, so a genuinely colored
+ * future skin isn't accidentally desaturated by this file. */
+body.oq-fun-theme-mac2 .icon-btn:hover,
+body.oq-fun-theme-mac2 .icon-btn:focus-visible,
+body.oq-fun-theme-mac2 .icon-btn--active,
+body.oq-fun-theme-mac2 .icon-btn--active:hover {
+  background: var(--mac2-bg) !important;
+  color: var(--mac2-ink) !important;
+  border-color: var(--mac2-border) !important;
+}
+body.oq-fun-theme-mac2 .whats-new-badge,
+body.oq-fun-theme-mac2 .filter-badge {
+  background: var(--mac2-ink) !important;
+  color: var(--mac2-bg) !important;
+}
+
+/* Tab strip (Dictionary/Word Builder/Deconstruct): oq's active tab pulls
+ * --kc-bg-tab-active, its own theme color. Give it the same black/white
+ * treatment as everything else instead. */
+body.oq-fun-theme-mac2 .tab-strip {
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+}
+body.oq-fun-theme-mac2 .tab-btn {
+  color: var(--mac2-ink) !important;
+}
+body.oq-fun-theme-mac2 .tab-btn--active {
+  background: var(--mac2-ink) !important;
+  color: var(--mac2-bg) !important;
+}
+
+/* Search field: sunken white box, the closest oq has to a system.css
+ * text-field target. */
+body.oq-fun-theme-mac2 .input-field,
+body.oq-fun-theme-mac2 .search-wrap {
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  color: var(--mac2-ink) !important;
+}
+body.oq-fun-theme-mac2 .search-clear {
+  border: 1px solid var(--mac2-border) !important;
+  background: var(--mac2-bg) !important;
+}
+/* Native <input type="search"> decorations (the built-in clear/results
+ * buttons some browsers render) are unstyled chrome from a much later era
+ * than Mac II -- and in some environments render as a stray colored blob
+ * with no icon asset. Turn them off; oq's own .search-clear button already
+ * covers the "clear" affordance. */
+body.oq-fun-theme-mac2 input[type="search"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+body.oq-fun-theme-mac2 input[type="search"]::-webkit-search-cancel-button,
+body.oq-fun-theme-mac2 input[type="search"]::-webkit-search-results-button,
+body.oq-fun-theme-mac2 input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: none !important;
+}
+
+/* Buttons: flat grey with a hard drop shadow, System-7-button style. */
+body.oq-fun-theme-mac2 .btn-primary,
+body.oq-fun-theme-mac2 .btn-secondary {
+  background: var(--mac2-desktop) !important;
+  border: 1px solid var(--mac2-border) !important;
+  box-shadow: var(--mac2-shadow) !important;
+  color: var(--mac2-ink) !important;
+}
+body.oq-fun-theme-mac2 .btn-primary:active,
+body.oq-fun-theme-mac2 .btn-secondary:active {
+  box-shadow: none !important;
+  transform: translate(2px, 2px);
+}
+
+/* Result cards: plain white "windows" with a hard-edged border and drop
+ * shadow instead of oq's colored left-border/hover-glow treatment. */
+body.oq-fun-theme-mac2 .preset-card {
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  border-left-width: 1px !important;
+  box-shadow: var(--mac2-shadow) !important;
+}
+/* oq's card text colors (.card-word, .card-gloss, .card-desc, ...) come
+ * from --kc-text/--kc-text-muted/--kc-text-faint, tuned for the app's own
+ * light/dark themes -- against this overlay's forced-white card background
+ * those can be unreadably light. Force plain black text on the card and its
+ * plain-text descendants, but NOT on .card-valence/.card-archaic/
+ * .card-gloss-language: those are self-contained colored pills (own
+ * background + white or --kc-bg text), and forcing black text on them
+ * without also fixing their background would make them illegible instead.
+ */
+body.oq-fun-theme-mac2 .preset-card {
+  color: var(--mac2-ink) !important;
+}
+body.oq-fun-theme-mac2 .preset-card :where(*):not(.card-valence, .card-archaic, .card-gloss-language) {
+  color: var(--mac2-ink) !important;
+}
+/* Give the pills their own black/white treatment instead, matching the
+ * rest of the Mac II palette. */
+body.oq-fun-theme-mac2 .card-valence,
+body.oq-fun-theme-mac2 .card-archaic {
+  background: var(--mac2-ink) !important;
+  color: var(--mac2-bg) !important;
+}
+body.oq-fun-theme-mac2 .card-gloss-language {
+  background: var(--mac2-bg) !important;
+  color: var(--mac2-ink) !important;
+  border-color: var(--mac2-border) !important;
+}
+/* .card-semantic/.card-domain read var(--preset-text)/var(--preset-border)
+ * with a --kc-text-muted/--kc-border fallback -- but dictionary.js bakes
+ * --preset-text/--preset-border in as an inline style per card (word-class
+ * color), which beats any stylesheet override of the custom property
+ * itself. Override the consuming properties directly instead, same as the
+ * pill fix above. */
+body.oq-fun-theme-mac2 .card-semantic,
+body.oq-fun-theme-mac2 .card-domain {
+  color: var(--mac2-ink) !important;
+  border-color: var(--mac2-border) !important;
+}
+
+/* Modals: same window treatment, dressed up as real desktop windows below. */
+body.oq-fun-theme-mac2 dialog.modal-dialog {
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  box-shadow: 4px 4px 0 0 #000000 !important;
+  color: var(--mac2-ink) !important;
+}
+
+/* ── Window chrome ────────────────────────────────────────────────────────
+ * The rest of this file re-skins oq's existing flat layout in Mac II's
+ * colors/borders; this section makes the main app and every modal actually
+ * read as desktop windows sitting on the grey desktop, not just re-colored
+ * panels: an inset margin so the desktop shows around them, a pinstriped
+ * title bar with a boxed title, and a real close box in the corner. No
+ * drag interaction -- purely visual chrome.
+ */
+
+/* Main app window: float it on the desktop with room to see the grey
+ * background around it, like every other window on a Mac II desktop. */
+body.oq-fun-theme-mac2 .page-wrapper {
+  /* Base .page-wrapper is width: 100% with a max-width: 64rem cap -- margin:
+   * auto only produces a visible inset once the viewport exceeds that cap.
+   * Subtract the margin from the width explicitly so the desktop shows
+   * around the window at every viewport size, not just wide ones. */
+  width: calc(100% - 3rem) !important;
+  margin: 1.5rem auto !important;
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  box-shadow: 4px 4px 0 0 #000000 !important;
+  padding-top: 0 !important;
+}
+body.oq-fun-theme-mac2 .sticky-chrome {
+  padding-top: 0 !important;
+}
+
+/* Close box: a small bordered square at the LEFT of the title bar, System
+ * 7's actual window-close idiom -- reuse oq's real .modal-header-actions
+ * group (which already bundles the close button) instead of adding a
+ * decorative, non-functional element. .modal-header is a two-child flex
+ * row (.modal-title, .modal-header-actions); reordering the actions group
+ * moves the whole cluster to the visual left, title text on the right. */
+body.oq-fun-theme-mac2 .modal-header {
+  background: repeating-linear-gradient(
+    to bottom,
+    #ffffff 0,
+    #ffffff 2px,
+    #000000 2px,
+    #000000 3px
+  ) !important;
+  border-bottom: 1px solid var(--mac2-border) !important;
+  align-items: center !important;
+}
+body.oq-fun-theme-mac2 .modal-header-actions {
+  order: -1;
+  margin-left: 0 !important;
+  margin-right: auto;
+}
+body.oq-fun-theme-mac2 .modal-title {
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  padding: 0 0.5rem !important;
+  color: var(--mac2-ink) !important;
+  font-weight: bold;
+}
+/* Border/background/shadow only -- NOT width/height. docs/style.css sizes
+ * .icon-btn (and its mobile override) to meet the 44px touch-target
+ * minimum; shrinking that for the Mac II look would be an accessibility
+ * regression, not just a period-appropriate detail. */
+body.oq-fun-theme-mac2 .modal-close,
+body.oq-fun-theme-mac2 .modal-header-actions .icon-btn {
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  box-shadow: var(--mac2-shadow) !important;
+  color: var(--mac2-ink) !important;
+}
+body.oq-fun-theme-mac2 .modal-close {
+  order: -1;
+}
+
+/* The command palette dialog has no .modal-header -- give its input row the
+ * same pinstriped title-bar treatment so it reads as a window too. */
+body.oq-fun-theme-mac2 .command-palette-input-wrap {
+  background: repeating-linear-gradient(
+    to bottom,
+    #ffffff 0,
+    #ffffff 2px,
+    #000000 2px,
+    #000000 3px
+  ) !important;
+  border-bottom: 1px solid var(--mac2-border) !important;
+}
+body.oq-fun-theme-mac2 .command-palette-input-wrap input {
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  padding: 0.15rem 0.4rem !important;
+}
+
+/* ── Desktop icons + multi-window (docs/fun-themes-mac2-windows.js) ────────
+ * Only at the same wide-viewport breakpoint as the floating tool-palette
+ * above: narrower viewports keep oq's normal tab strip and single-view
+ * layout, since there's no spare desktop space for icons or extra windows.
+ * docs/fun-themes-mac2-windows.js gates its own JS behavior on the same
+ * media query, so the two always agree on which mode is active.
+ */
+@media (min-width: 88rem) {
+  /* .view-switch (the <nav class="tab-strip view-switch">) becomes a
+   * vertical column of desktop icons along the real viewport's left edge,
+   * fixed relative to the screen rather than the app's own window -- oq's
+   * normal tab strip lives inside .page-header and scrolls/moves with the
+   * main window, but desktop icons are their own layer, independent of any
+   * window on top of them. */
+  body.oq-fun-theme-mac2 .view-switch {
+    position: fixed;
+    top: 2rem;
+    left: 1.5rem;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background: transparent !important;
+    border: none !important;
+    width: 4.5rem;
+  }
+  /* Scoped to .view-switch specifically (not a bare .tab-btn) -- that
+   * class is shared by settings-modal tabs, segmented controls, etc.,
+   * none of which should turn into desktop icons just because the
+   * viewport is wide. */
+  body.oq-fun-theme-mac2 .view-switch .tab-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.25rem !important;
+    text-align: center;
+    font-size: 0.65rem;
+    line-height: 1.1;
+    background: transparent !important;
+  }
+  /* A plain bordered square standing in for an icon glyph -- oq's nav
+   * links are text-only, and this skin doesn't ship per-view artwork. */
+  body.oq-fun-theme-mac2 .view-switch .tab-btn::before {
+    content: "";
+    width: 2rem;
+    height: 2rem;
+    background: var(--mac2-bg);
+    border: 1px solid var(--mac2-border);
+    box-shadow: var(--mac2-shadow);
+  }
+  body.oq-fun-theme-mac2 .view-switch .tab-btn--active {
+    color: var(--mac2-ink) !important;
+    background: transparent !important;
+  }
+  /* Selected icon's label gets the classic Mac Finder inverted-text
+   * highlight instead of the square itself changing -- the square is the
+   * icon, the label is what shows selection. */
+  body.oq-fun-theme-mac2 .view-switch .tab-btn--active::after {
+    content: "";
+  }
+}
+
+/* Each of Builder/Deconstruct/Tornasuk becomes its own floating window
+ * (docs/fun-themes-mac2-windows.js reparents the view-section to
+ * document.body and adds this class + a real .mac2-titlebar). Dictionary
+ * stays inside the main window -- see .page-wrapper/.page-header above --
+ * since it shares that window's header/search chrome already. */
+body.oq-fun-theme-mac2 .mac2-window {
+  position: fixed;
+  display: none;
+  width: min(40rem, calc(100vw - 4rem));
+  max-height: calc(100vh - 6rem);
+  overflow: auto;
+  background: var(--mac2-bg) !important;
+  border: 1px solid var(--mac2-border) !important;
+  box-shadow: 4px 4px 0 0 #000000 !important;
+  padding: 1.9rem 1rem 1rem !important;
+}
+/* router.js still toggles .hidden the normal way (see
+ * docs/fun-themes-mac2-windows.js's header comment) -- this override wins
+ * on specificity (0,2,0 vs 0,1,0) so a window the user has explicitly
+ * opened stays visible regardless of which view router.js currently
+ * considers "active". Closing the window (its close box) removes
+ * .mac2-window-open, and this rule stops applying, restoring the plain
+ * .hidden behavior underneath it. */
+body.oq-fun-theme-mac2 .mac2-window.mac2-window-open {
+  display: block !important;
+}
+body.oq-fun-theme-mac2 .mac2-titlebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.5rem;
+  background: repeating-linear-gradient(
+    to bottom,
+    #ffffff 0,
+    #ffffff 2px,
+    #000000 2px,
+    #000000 3px
+  );
+  border-bottom: 1px solid var(--mac2-border);
+  cursor: move;
+  touch-action: none;
+}
+body.oq-fun-theme-mac2 .mac2-closebox {
+  flex: none;
+  width: 0.7rem;
+  height: 0.7rem;
+  padding: 0;
+  background: #ffffff;
+  border: 1px solid #000000 !important;
+  cursor: pointer;
+}
+body.oq-fun-theme-mac2 .mac2-titlebar-label {
+  background: var(--mac2-bg);
+  padding: 0 0.5rem;
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  color: var(--mac2-ink);
+}
