@@ -38,27 +38,27 @@
    * framework's own docs only ever use .window inline, in normal page
    * flow) and (b) demonstrating it.
    *
-   * The real System 1 desktop pattern is a tight checkerboard dither --
-   * alternating single black/white pixels, 2x2 per repeat -- that reads as
-   * flat mid-grey from normal viewing distance. The framework's own `body`
-   * rule (still loaded from vendor/mac1984/system.css) instead draws
-   * mostly-white 22px tiles with a single 1px black slit in each, which
-   * reads as sparse dots on white, not the dense grey checker the real
-   * desktop used. Overridden here with an actual 2x2-px checkerboard
-   * (a repeating-conic-gradient split into four quadrants, tiled at twice
-   * the quadrant size so opposite corners match) on both `html` and
-   * `body` -- `body` because that's what's actually visible day to day,
-   * `html` too so a mobile overscroll/rubber-band bounce (or any moment
-   * body doesn't fully cover the visual viewport, e.g. the URL bar
+   * The real System 1 desktop pattern reads as light grey, not flat
+   * medium grey -- a sparse dither of single black pixels on a mostly
+   * white field (roughly 1 black pixel per 2x2 cell, ~25% coverage), not
+   * a 50/50 checkerboard (tried first here, but that's the Apple II's
+   * NTSC color-fringing dither trick, a different machine solving a
+   * different problem on different display hardware entirely -- nothing
+   * to do with the Mac's 1-bit desktop). An inline SVG data URI tile
+   * (2x2px, one black pixel, `shape-rendering="crispEdges"` so it isn't
+   * antialiased at this scale) gets an exact, un-blurred 25% pattern that
+   * a plain CSS gradient can't -- a gradient can shade a region but can't
+   * cleanly draw "exactly this one pixel of this 2x2 square." Set on both
+   * `html` and `body` -- `body` because that's what's actually visible day
+   * to day, `html` too so a mobile overscroll/rubber-band bounce (or any
+   * moment body doesn't fully cover the visual viewport, e.g. the URL bar
    * collapsing/expanding) can't reveal bare white underneath. */
   html,
   body {
-    background-image: repeating-conic-gradient(
-      #000000 0% 25%,
-      #ffffff 0% 50%
-    );
-    background-size: 4px 4px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2' shape-rendering='crispEdges'%3E%3Crect width='2' height='2' fill='%23ffffff'/%3E%3Crect width='1' height='1' fill='%23000000'/%3E%3C/svg%3E");
+    background-size: 2px 2px;
     background-attachment: fixed;
+    image-rendering: pixelated;
   }
   html, body {
     margin: 0;
@@ -310,18 +310,19 @@
     cursor: pointer;
     text-align: center;
   }
-  /* The SVG only paints its black rects -- everything else is transparent,
-   * not white -- so with the desktop's checkerboard now a fine, visible
-   * pattern (see the html/body rule above), that pattern showed straight
-   * through the icon's whitespace instead of sitting behind a normal
-   * opaque icon. background: #fff gives the icon's CSS box the solid
-   * backing real Finder icons have, the same job the old ::before white
-   * square used to do before it was replaced by this SVG. */
+  /* Real Finder icons sit directly on the desktop pattern with no white
+   * halo around the glyph itself -- only the LABEL underneath gets a
+   * white backing (so the text stays legible over the dither), not the
+   * icon artwork. The icon's own transparent whitespace is meant to show
+   * the desktop pattern through it, same as a real 1-bit icon mask would. */
   .desktop-icon .note-icon {
     width: 2rem;
     height: 2rem;
-    background: #ffffff;
     image-rendering: pixelated;
+  }
+  .desktop-icon span {
+    background: #ffffff;
+    padding: 0 0.15rem;
   }
   .desktop-icon:focus-visible {
     outline: 1px dotted #000000;
