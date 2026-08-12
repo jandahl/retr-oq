@@ -38,21 +38,27 @@
    * framework's own docs only ever use .window inline, in normal page
    * flow) and (b) demonstrating it.
    *
-   * The framework's own `body` rule paints the classic dithered grey Mac
-   * desktop pattern, but only on `body` -- on a mobile browser, an
-   * overscroll/rubber-band bounce (or any moment body doesn't fully cover
-   * the visual viewport, e.g. the URL bar collapsing/expanding) can reveal
-   * bare `html` underneath, which had no background of its own and fell
-   * back to plain white. Repeating the same three-layer gradient on `html`
-   * closes that gap, so the desktop pattern is what shows through in
-   * every case, not a flash of white. */
-  html {
-    background:
-      linear-gradient(90deg, #ffffff 21px, transparent 1%) 50%,
-      linear-gradient(#ffffff 21px, transparent 1%) 50%,
-      #000000;
+   * The real System 1 desktop pattern is a tight checkerboard dither --
+   * alternating single black/white pixels, 2x2 per repeat -- that reads as
+   * flat mid-grey from normal viewing distance. The framework's own `body`
+   * rule (still loaded from vendor/mac1984/system.css) instead draws
+   * mostly-white 22px tiles with a single 1px black slit in each, which
+   * reads as sparse dots on white, not the dense grey checker the real
+   * desktop used. Overridden here with an actual 2x2-px checkerboard
+   * (a repeating-conic-gradient split into four quadrants, tiled at twice
+   * the quadrant size so opposite corners match) on both `html` and
+   * `body` -- `body` because that's what's actually visible day to day,
+   * `html` too so a mobile overscroll/rubber-band bounce (or any moment
+   * body doesn't fully cover the visual viewport, e.g. the URL bar
+   * collapsing/expanding) can't reveal bare white underneath. */
+  html,
+  body {
+    background-image: repeating-conic-gradient(
+      #000000 0% 25%,
+      #ffffff 0% 50%
+    );
+    background-size: 4px 4px;
     background-attachment: fixed;
-    background-size: 22px 22px;
   }
   html, body {
     margin: 0;
@@ -304,9 +310,17 @@
     cursor: pointer;
     text-align: center;
   }
+  /* The SVG only paints its black rects -- everything else is transparent,
+   * not white -- so with the desktop's checkerboard now a fine, visible
+   * pattern (see the html/body rule above), that pattern showed straight
+   * through the icon's whitespace instead of sitting behind a normal
+   * opaque icon. background: #fff gives the icon's CSS box the solid
+   * backing real Finder icons have, the same job the old ::before white
+   * square used to do before it was replaced by this SVG. */
   .desktop-icon .note-icon {
     width: 2rem;
     height: 2rem;
+    background: #ffffff;
     image-rendering: pixelated;
   }
   .desktop-icon:focus-visible {
