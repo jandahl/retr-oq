@@ -3,6 +3,16 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Iterating fast on this prototype -- explicitly discourage caching so
+     every reload picks up the latest markup/CSS/JS instead of a stale
+     cached copy. Meta http-equiv tags are a browser-side-only fallback
+     (they can't stop an intermediate CDN/proxy the way a real
+     Cache-Control response header would), but this is a static host with
+     no server config of its own to set real headers from, so this is the
+     strongest lever available here. Revisit once the prototype stabilizes. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>retr-oq — 1984 Mac desktop prototype</title>
 <link rel="stylesheet" href="../vendor/mac1984/system.css" />
 <style>
@@ -176,16 +186,36 @@
     right: 0;
     z-index: 1000;
     border-bottom: 1px solid #000000;
-    /* The framework's .apple icon is a fixed 18x22px bitmap SVG -- it
-     * doesn't scale with font-size at all -- while menu-bar text is a
-     * bare `font-size: 1em`, unscaled from whatever the page's root size
-     * happens to be (system.css never sets one). Against a 22px-tall icon,
-     * default 16px text reads too small. 1.125rem (18px at the standard
-     * 16px root) is the framework's OWN "m" base unit from its design
-     * tokens -- the same size .window-pane content already uses -- so
-     * this ties the mismatch fix to a size the framework already
-     * considers "normal," not an arbitrary guess. */
-    font-size: 1.125rem;
+    /* Previously bumped to 1.125rem (18px) to match the apple icon's fixed
+     * 22px height -- that instead made the whole bar read as oversized
+     * next to everything else on the desktop (a real System 1 menu bar is
+     * about 20px tall total). 0.75rem (12px) matches Chicago 12's actual
+     * design size -- the framework's own menu/dropdown text already uses
+     * a bare 1em against a 16px root elsewhere, so this keeps the bar
+     * itself close to that, just explicit instead of inherited. The icon
+     * is scaled down to match below instead of the text being scaled up
+     * to match the icon. */
+    font-size: 0.75rem;
+  }
+  /* Shrink the item hit/visual padding to match the smaller bar -- the
+   * framework's own ul[role=menu-bar]>[role=menu-item] padding (6px 10px)
+   * was sized for the framework's own larger default text and, combined
+   * with the 22px-tall apple icon, is most of why the bar read as too
+   * tall. */
+  .desktop-menu-bar > [role="menu-item"] {
+    padding: 4px 8px;
+  }
+  /* The framework's .apple icon is a fixed 18x22px bitmap SVG with no
+   * background-size set, so it can't be resized by width/height alone
+   * (the image just gets clipped to whatever box you give it) --
+   * background-size: contain here is what makes shrinking it actually
+   * scale the artwork down instead of cropping it. Sized to sit closer to
+   * the 12px menu text, matching a real System 1 bar instead of towering
+   * over it. */
+  .desktop-menu-bar .apple {
+    width: 12px;
+    height: 15px;
+    background-size: contain;
   }
   /* Windows start below the bar instead of under it -- see the inline
    * `top` on each .desktop-window below, bumped up from the pre-menu-bar
@@ -205,6 +235,34 @@
   }
   .desktop-menu-bar [role="menu-item"].menu-open > [role="menu"] {
     display: block !important;
+  }
+  /* The framework highlights a top-level menu item purely via :hover and
+   * :focus/:focus-within CSS (background: #000). closeMenu() below already
+   * calls .blur() to drop the :focus half of that when a menu closes, but
+   * :hover isn't something JS can un-set -- on a touchscreen the browser
+   * keeps the last-tapped element in the :hover state until something else
+   * is tapped (there's no mouse to actually leave), so after tapping a menu
+   * closed, that item was left permanently painted as if still selected.
+   * Since .menu-open (below) is already this bar's real, JS-driven
+   * open/closed source of truth (see the comment on [role="menu"] above),
+   * hover/focus are switched off here with !important -- same pattern,
+   * same reason -- so only .menu-open can paint the highlight, on every
+   * input type consistently. */
+  .desktop-menu-bar > [role="menu-item"]:hover,
+  .desktop-menu-bar > [role="menu-item"]:focus,
+  .desktop-menu-bar > [role="menu-item"]:focus-within {
+    background: inherit !important;
+    color: inherit !important;
+  }
+  .desktop-menu-bar > [role="menu-item"].menu-open {
+    background: #000000 !important;
+    color: #ffffff !important;
+  }
+  /* Keyboard users still need a visible focus indicator now that plain
+   * :focus no longer paints one. */
+  .desktop-menu-bar > [role="menu-item"]:focus-visible {
+    outline: 1px dotted #000000;
+    outline-offset: -2px;
   }
 
   /* Desktop icon: the framework has no icon component (its own docs never
@@ -255,6 +313,13 @@
    * the later "chimes" sound (that's Mac II/System 6 era hardware) --
    * synthesized here with the Web Audio API rather than shipping an audio
    * file, so there's no asset to vendor or license. */
+  /* The real System 1 boot sequence was never a black screen -- it's the
+   * plain white/light-grey Mac display with black chrome, same as the
+   * desktop it leads into. This prototype's own boot screen used a black
+   * background (more "sci-fi terminal" than "1984 Macintosh"), which is
+   * what the fix below corrects -- colors flipped to match, and the
+   * placeholder ":)" swapped for an actual pixel-art rendering of the
+   * Happy Mac icon (Susan Kare's original startup glyph). */
   #boot-screen {
     position: fixed;
     inset: 0;
@@ -262,8 +327,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #000000;
-    color: #ffffff;
+    background: #ffffff;
+    color: #000000;
     font-family: Geneva, ui-sans-serif, system-ui, sans-serif;
     text-align: center;
   }
@@ -276,9 +341,9 @@
     align-items: center;
     gap: 0.75rem;
     background: none;
-    border: 1px solid #ffffff;
+    border: 1px solid #000000;
     padding: 1.5rem 2rem;
-    color: #ffffff;
+    color: #000000;
     font: inherit;
     font-size: 1rem;
     cursor: pointer;
@@ -297,8 +362,8 @@
   }
   #power-btn:hover,
   #power-btn:focus-visible {
-    background: #ffffff;
-    color: #000000;
+    background: #000000;
+    color: #ffffff;
   }
   #boot-sequence {
     display: none;
@@ -309,16 +374,16 @@
   #boot-sequence.visible {
     display: flex;
   }
+  /* Susan Kare's Happy Mac was a 32x32 1-bit glyph: a compact-Mac
+   * silhouette (rounded-top screen, flat base) with a plain smiling face
+   * on the screen -- not a generic box. Drawn here as a pixel grid of
+   * <rect>s (shape-rendering: crispEdges keeps every edge sharp instead of
+   * anti-aliased blur at this scale) rather than a smooth vector face, to
+   * actually read as that icon instead of a generic smiley. */
   #boot-sequence .happy-mac {
-    width: 3.5rem;
-    height: 3.5rem;
-    border: 3px solid #ffffff;
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: Chicago_12, Chicago, monospace;
-    font-size: 1.75rem;
+    width: 4rem;
+    height: 4rem;
+    image-rendering: pixelated;
   }
   #boot-sequence p {
     margin: 0;
@@ -334,7 +399,7 @@
       <span>Click to power on</span>
     </button>
     <div id="boot-sequence" hidden>
-      <div class="happy-mac" aria-hidden="true">:)</div>
+      <svg class="happy-mac" viewBox="0 0 16 16" shape-rendering="crispEdges" fill="#000000" role="img" aria-label="Happy Mac"><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="7" y="0" width="1" height="1"/><rect x="8" y="0" width="1" height="1"/><rect x="9" y="0" width="1" height="1"/><rect x="10" y="0" width="1" height="1"/><rect x="11" y="0" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/><rect x="13" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/><rect x="8" y="1" width="1" height="1"/><rect x="9" y="1" width="1" height="1"/><rect x="10" y="1" width="1" height="1"/><rect x="11" y="1" width="1" height="1"/><rect x="12" y="1" width="1" height="1"/><rect x="13" y="1" width="1" height="1"/><rect x="14" y="1" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="14" y="2" width="1" height="1"/><rect x="15" y="2" width="1" height="1"/><rect x="0" y="3" width="1" height="1"/><rect x="15" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="11" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/><rect x="15" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="11" y="5" width="1" height="1"/><rect x="12" y="5" width="1" height="1"/><rect x="15" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/><rect x="15" y="6" width="1" height="1"/><rect x="0" y="7" width="1" height="1"/><rect x="15" y="7" width="1" height="1"/><rect x="0" y="8" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="5" y="8" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/><rect x="15" y="8" width="1" height="1"/><rect x="0" y="9" width="1" height="1"/><rect x="5" y="9" width="1" height="1"/><rect x="6" y="9" width="1" height="1"/><rect x="9" y="9" width="1" height="1"/><rect x="10" y="9" width="1" height="1"/><rect x="15" y="9" width="1" height="1"/><rect x="0" y="10" width="1" height="1"/><rect x="6" y="10" width="1" height="1"/><rect x="7" y="10" width="1" height="1"/><rect x="8" y="10" width="1" height="1"/><rect x="9" y="10" width="1" height="1"/><rect x="15" y="10" width="1" height="1"/><rect x="0" y="11" width="1" height="1"/><rect x="15" y="11" width="1" height="1"/><rect x="0" y="12" width="1" height="1"/><rect x="1" y="12" width="1" height="1"/><rect x="14" y="12" width="1" height="1"/><rect x="15" y="12" width="1" height="1"/><rect x="1" y="13" width="1" height="1"/><rect x="2" y="13" width="1" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="4" y="13" width="1" height="1"/><rect x="5" y="13" width="1" height="1"/><rect x="6" y="13" width="1" height="1"/><rect x="7" y="13" width="1" height="1"/><rect x="8" y="13" width="1" height="1"/><rect x="9" y="13" width="1" height="1"/><rect x="10" y="13" width="1" height="1"/><rect x="11" y="13" width="1" height="1"/><rect x="12" y="13" width="1" height="1"/><rect x="13" y="13" width="1" height="1"/><rect x="14" y="13" width="1" height="1"/><rect x="2" y="14" width="1" height="1"/><rect x="3" y="14" width="1" height="1"/><rect x="4" y="14" width="1" height="1"/><rect x="5" y="14" width="1" height="1"/><rect x="6" y="14" width="1" height="1"/><rect x="7" y="14" width="1" height="1"/><rect x="8" y="14" width="1" height="1"/><rect x="9" y="14" width="1" height="1"/><rect x="10" y="14" width="1" height="1"/><rect x="11" y="14" width="1" height="1"/><rect x="12" y="14" width="1" height="1"/><rect x="13" y="14" width="1" height="1"/><rect x="4" y="15" width="1" height="1"/><rect x="5" y="15" width="1" height="1"/><rect x="6" y="15" width="1" height="1"/><rect x="7" y="15" width="1" height="1"/><rect x="8" y="15" width="1" height="1"/><rect x="9" y="15" width="1" height="1"/><rect x="10" y="15" width="1" height="1"/><rect x="11" y="15" width="1" height="1"/></svg>
       <p>Welcome to Macintosh.</p>
     </div>
   </div>
