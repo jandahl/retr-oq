@@ -76,6 +76,19 @@
    * one, so this is oq's own small addition, matching the framework's
    * own black-on-white pixel-corner idiom rather than inventing a new
    * visual language for it. */
+  .desktop-window {
+    /* Floor for the resize handle below -- small enough to still show a
+     * title bar, close/zoom boxes and a sliver of content, never smaller. */
+    min-width: 14rem;
+    min-height: 8rem;
+  }
+  /* Was a purely decorative corner (pointer-events: none) -- now the real
+   * resize handle, matching the real 1984 Finder's grow box. The
+   * framework has no resize interaction of its own (system.css is
+   * deliberately CSS-only, confirmed by unpacking the npm tarball -- its
+   * only JS is an unrelated docs-site dropdown script), so the drag math
+   * below is this prototype's own addition, mirroring makeDraggable but
+   * adjusting size instead of position. */
   .growbox {
     position: absolute;
     right: 0.3rem;
@@ -90,12 +103,21 @@
       transparent 3px
     );
     border: 1px solid #000000;
-    pointer-events: none;
+    cursor: nwse-resize;
+    touch-action: none;
   }
   .desktop-note {
     position: fixed;
     left: 1rem;
     bottom: 1rem;
+    /* On load, no window has an explicit z-index yet -- focus() (below)
+     * only assigns one the first time a window becomes active, so at
+     * page-load every window is still z-index:auto. This note sits later
+     * in the DOM than the windows with no z-index of its own, which
+     * without an explicit value here paints ON TOP of them by tree order.
+     * Pin it low, well under any window (the lowest gets 11, see zTop
+     * below), instead of accidentally floating above the whole desktop. */
+    z-index: 1;
     font-size: 0.75rem;
     font-family: Geneva, ui-sans-serif, system-ui, sans-serif;
     color: rgba(0, 0, 0, 0.6);
@@ -123,10 +145,36 @@
     right: 0;
     z-index: 1000;
     border-bottom: 1px solid #000000;
+    /* The framework's .apple icon is a fixed 18x22px bitmap SVG -- it
+     * doesn't scale with font-size at all -- while menu-bar text is a
+     * bare `font-size: 1em`, unscaled from whatever the page's root size
+     * happens to be (system.css never sets one). Against a 22px-tall icon,
+     * default 16px text reads too small. 1.125rem (18px at the standard
+     * 16px root) is the framework's OWN "m" base unit from its design
+     * tokens -- the same size .window-pane content already uses -- so
+     * this ties the mismatch fix to a size the framework already
+     * considers "normal," not an arbitrary guess. */
+    font-size: 1.125rem;
   }
   /* Windows start below the bar instead of under it -- see the inline
    * `top` on each .desktop-window below, bumped up from the pre-menu-bar
    * values to clear it. */
+
+  /* The framework shows a dropdown purely via :focus-within/:focus CSS
+   * (confirmed by unpacking the npm tarball -- no JS ships with it at
+   * all). That's flicker-prone (focus moving between a menu item and its
+   * own link children re-triggers the rule mid-interaction) and can't
+   * close on an outside click, since nothing un-focuses the bar just
+   * because you clicked elsewhere on the page. Both are fixed the same
+   * way: take over open/closed state entirely in JS via this class,
+   * `!important` so it wins outright over the framework's own
+   * (non-important) focus-based rule instead of merely adding to it. */
+  .desktop-menu-bar [role="menu"] {
+    display: none !important;
+  }
+  .desktop-menu-bar [role="menu-item"].menu-open > [role="menu"] {
+    display: block !important;
+  }
 
   /* Desktop icon: the framework has no icon component (its own docs never
    * put anything ON the desktop itself, only inside windows), so this is
@@ -165,9 +213,101 @@
     outline: 1px dotted #000000;
     outline-offset: 2px;
   }
+
+  /* Boot screen: gated behind a real click (not autoplayed) specifically
+   * so the startup beep can actually play -- browsers require a user
+   * gesture before any audio, and a click directly on this button is the
+   * simplest gesture that satisfies every major browser's policy (no
+   * setTimeout, no promise chain first -- the AudioContext is created
+   * synchronously inside the click handler itself, see the script below).
+   * The real 1984 128K Mac's startup sound was a single plain beep, not
+   * the later "chimes" sound (that's Mac II/System 6 era hardware) --
+   * synthesized here with the Web Audio API rather than shipping an audio
+   * file, so there's no asset to vendor or license. */
+  #boot-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000000;
+    color: #ffffff;
+    font-family: Geneva, ui-sans-serif, system-ui, sans-serif;
+    text-align: center;
+  }
+  #boot-screen.hidden {
+    display: none;
+  }
+  #power-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    background: none;
+    border: 1px solid #ffffff;
+    padding: 1.5rem 2rem;
+    color: #ffffff;
+    font: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  /* Without this, the [hidden] attribute set after clicking the button
+   * (see the script below) loses to #power-btn's own `display: flex`
+   * above -- same-specificity attribute selector, but ours comes later in
+   * the stylesheet, so the button stayed visible (just inert) instead of
+   * disappearing. */
+  #power-btn[hidden] {
+    display: none;
+  }
+  #power-btn .power-icon {
+    font-size: 2rem;
+    line-height: 1;
+  }
+  #power-btn:hover,
+  #power-btn:focus-visible {
+    background: #ffffff;
+    color: #000000;
+  }
+  #boot-sequence {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  #boot-sequence.visible {
+    display: flex;
+  }
+  #boot-sequence .happy-mac {
+    width: 3.5rem;
+    height: 3.5rem;
+    border: 3px solid #ffffff;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: Chicago_12, Chicago, monospace;
+    font-size: 1.75rem;
+  }
+  #boot-sequence p {
+    margin: 0;
+    font-family: Chicago_12, Chicago, Geneva, sans-serif;
+    font-size: 1.125rem;
+  }
 </style>
 </head>
 <body>
+  <div id="boot-screen">
+    <button type="button" id="power-btn">
+      <span class="power-icon" aria-hidden="true">⏻</span>
+      <span>Click to power on</span>
+    </button>
+    <div id="boot-sequence" hidden>
+      <div class="happy-mac" aria-hidden="true">:)</div>
+      <p>Welcome to Macintosh.</p>
+    </div>
+  </div>
+
   <ul role="menu-bar" class="desktop-menu-bar">
     <li role="menu-item" tabindex="0" aria-haspopup="true">
       <span role="img" class="apple" aria-label="Apple"></span>
@@ -366,6 +506,57 @@
     handle.addEventListener("lostpointercapture", onLostPointerCapture);
   }
 
+  /**
+   * Same pointer-capture shape as makeDraggable, adjusting the target's
+   * own width/height from its size at drag-start instead of its position.
+   * stopPropagation on pointerdown so grabbing the grow box doesn't also
+   * bubble up into the window's own pointerdown->focus() handler mid-drag
+   * (harmless either way, but keeps a resize from also being read as a
+   * bring-to-front click on every single move).
+   */
+  function makeResizable(handle, target, minWidth, minHeight) {
+    let activePointerId = null;
+    let startX = 0, startY = 0, startW = 0, startH = 0;
+
+    function onPointerDown(event) {
+      if (event.button !== 0) return;
+      if (activePointerId !== null) return;
+      activePointerId = event.pointerId;
+      const rect = target.getBoundingClientRect();
+      startW = rect.width;
+      startH = rect.height;
+      startX = event.clientX;
+      startY = event.clientY;
+      handle.setPointerCapture(event.pointerId);
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    function onPointerMove(event) {
+      if (event.pointerId !== activePointerId) return;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      target.style.width = `${Math.max(minWidth, startW + dx)}px`;
+      target.style.height = `${Math.max(minHeight, startH + dy)}px`;
+    }
+
+    function onPointerEnd(event) {
+      if (event.pointerId !== activePointerId) return;
+      activePointerId = null;
+      if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
+    }
+
+    function onLostPointerCapture() {
+      activePointerId = null;
+    }
+
+    handle.addEventListener("pointerdown", onPointerDown);
+    handle.addEventListener("pointermove", onPointerMove);
+    handle.addEventListener("pointerup", onPointerEnd);
+    handle.addEventListener("pointercancel", onPointerEnd);
+    handle.addEventListener("lostpointercapture", onLostPointerCapture);
+  }
+
   const reopenBtn = document.getElementById("reopen");
   const windows = Array.from(document.querySelectorAll(".desktop-window"));
   let zTop = 10;
@@ -402,6 +593,9 @@
     makeDraggable(titlebar, win);
     win.addEventListener("pointerdown", () => focus(win));
 
+    const growbox = win.querySelector(".growbox");
+    if (growbox) makeResizable(growbox, win, 224, 128); // 14rem/8rem floor, matching .desktop-window's CSS min-width/min-height
+
     if (closeBtn) {
       closeBtn.addEventListener("click", () => {
         const wasActive = titlebar.classList.contains("title-bar");
@@ -433,6 +627,112 @@
     win2.classList.remove("closed");
     focus(win2);
   });
+
+  // Menu bar: the framework shows/hides dropdowns purely via
+  // :focus-within/:focus CSS (see the CSS comment above .desktop-menu-bar
+  // [role="menu"]) -- flicker-prone and can't close on an outside click.
+  // This takes over open/closed state as a single source of truth instead
+  // of leaving it to focus, which the CSS above is set up to defer to
+  // entirely (.menu-open is the only thing that shows a dropdown now).
+  const menuBar = document.querySelector(".desktop-menu-bar");
+  const menuItems = Array.from(
+    menuBar.querySelectorAll(':scope > [role="menu-item"][aria-haspopup="true"]'),
+  );
+  let openMenuItem = null;
+
+  function closeMenu() {
+    if (!openMenuItem) return;
+    openMenuItem.classList.remove("menu-open");
+    openMenuItem.setAttribute("aria-expanded", "false");
+    openMenuItem.blur(); // drops the framework's own :focus-based highlight too
+    openMenuItem = null;
+  }
+
+  function openMenu(item) {
+    if (openMenuItem === item) return;
+    closeMenu();
+    item.classList.add("menu-open");
+    item.setAttribute("aria-expanded", "true");
+    openMenuItem = item;
+  }
+
+  for (const item of menuItems) {
+    item.setAttribute("aria-expanded", "false");
+    item.addEventListener("click", (event) => {
+      // A click that lands on a link inside the now-open dropdown is
+      // handled by that link's own listener below, not here -- toggling
+      // the top-level item on this same click would reopen what its own
+      // handler just closed.
+      if (event.target.closest('[role="menu"]')) return;
+      if (openMenuItem === item) closeMenu();
+      else openMenu(item);
+    });
+    // Real Mac menu bars open the menu you're pointing at once ANY menu
+    // is already open (drag across File/Edit/View without re-clicking
+    // each one) -- only kicks in once a menu is open, so idle hovering
+    // over the bar doesn't pop menus open unprompted.
+    item.addEventListener("pointerenter", () => {
+      if (openMenuItem && openMenuItem !== item) openMenu(item);
+    });
+    for (const link of item.querySelectorAll('[role="menu"] a')) {
+      link.addEventListener("click", (event) => {
+        event.preventDefault(); // every menu command here is a placeholder ("#")
+        closeMenu();
+      });
+    }
+  }
+
+  // Outside click (or tap) closes whatever's open -- pointerdown, not
+  // click, so it fires before focus moves and matches the same event type
+  // makeDraggable/makeResizable/window-focus already key off.
+  document.addEventListener("pointerdown", (event) => {
+    if (openMenuItem && !menuBar.contains(event.target)) closeMenu();
+  });
+
+  // Boot screen: gated behind an explicit click so the beep clears every
+  // major browser's autoplay-requires-a-user-gesture policy -- the
+  // AudioContext is created synchronously inside this click handler, not
+  // after an await/setTimeout, which is what actually satisfies it.
+  const bootScreen = document.getElementById("boot-screen");
+  const powerBtn = document.getElementById("power-btn");
+  const bootSequence = document.getElementById("boot-sequence");
+
+  function playBeep() {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContextClass();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      // A single plain square-wave beep -- the real 1984 128K Mac's
+      // startup sound, not the later multi-note "chimes" (that's Mac
+      // II/System 6 era hardware, out of scope the same way "Mac II" the
+      // theme name is not literally the 1987 Macintosh II).
+      osc.type = "square";
+      osc.frequency.value = 500;
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch {
+      // Web Audio unavailable or blocked -- boot proceeds silently rather
+      // than failing the whole sequence over a missing beep.
+    }
+  }
+
+  powerBtn.addEventListener(
+    "click",
+    () => {
+      playBeep();
+      powerBtn.hidden = true;
+      bootSequence.hidden = false;
+      bootSequence.classList.add("visible");
+      setTimeout(() => {
+        bootScreen.classList.add("hidden");
+      }, 1400);
+    },
+    { once: true },
+  );
 })();
 </script>
 </body>
