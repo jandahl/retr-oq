@@ -3,13 +3,17 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<!-- Iterating fast on this prototype -- explicitly discourage caching so
-     every reload picks up the latest markup/CSS/JS instead of a stale
-     cached copy. Meta http-equiv tags are a browser-side-only fallback
-     (they can't stop an intermediate CDN/proxy the way a real
-     Cache-Control response header would), but this is a static host with
-     no server config of its own to set real headers from, so this is the
-     strongest lever available here. Revisit once the prototype stabilizes. -->
+<!-- Iterating fast on this prototype -- these document the intent to
+     discourage caching, but don't overstate what they actually do: current
+     Chrome/Firefox/Safari ignore http-equiv Cache-Control/Pragma/Expires
+     for the top-level document's own HTTP caching (verified against
+     Chromium while reviewing this file -- these are legacy IE-era knobs,
+     not a working modern mechanism), and there's no server config on this
+     static host to set a real Cache-Control response header from either.
+     Left in as a harmless no-op / statement of intent rather than removed,
+     but don't rely on them -- a hard reload (or a cache-busting query
+     string on changed asset URLs) is the actual fix when a stale copy is
+     suspected. Revisit if this host ever gets real header control. -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
@@ -213,16 +217,28 @@
      * a bare 1em against a 16px root elsewhere, so this keeps the bar
      * itself close to that, just explicit instead of inherited. The icon
      * is scaled down to match below instead of the text being scaled up
-     * to match the icon. */
-    font-size: 0.75rem;
+     * to match the icon.
+     *
+     * !important because the framework's own `ul[role]{font-size:1em}`
+     * (specificity 0,1,1 -- a type selector plus an attribute selector)
+     * outranks a bare `.desktop-menu-bar` class (0,1,0) despite coming
+     * first in the stylesheet -- without it this rule silently loses the
+     * cascade and the bar stays at the framework's 16px, which is exactly
+     * the "too tall" bug this rule exists to fix. Caught by testing
+     * getComputedStyle after the fact, not by inspection -- specificity
+     * bugs like this one don't show up just from reading the CSS. */
+    font-size: 0.75rem !important;
   }
   /* Shrink the item hit/visual padding to match the smaller bar -- the
    * framework's own ul[role=menu-bar]>[role=menu-item] padding (6px 10px)
    * was sized for the framework's own larger default text and, combined
    * with the 22px-tall apple icon, is most of why the bar read as too
-   * tall. */
+   * tall. Also needs !important: that framework selector's specificity
+   * (0,2,1 -- an extra `ul` type selector) beats this rule's `.desktop-
+   * menu-bar > [role="menu-item"]` (0,2,0) the same way as the font-size
+   * rule above. */
   .desktop-menu-bar > [role="menu-item"] {
-    padding: 4px 8px;
+    padding: 4px 8px !important;
   }
   /* The framework's .apple icon is a fixed 18x22px bitmap SVG with no
    * background-size set, so it can't be resized by width/height alone
