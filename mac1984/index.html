@@ -38,9 +38,22 @@
    * framework's own docs only ever use .window inline, in normal page
    * flow) and (b) demonstrating it.
    *
-   * The framework's own `body` rule already paints the classic dithered
-   * grey Mac desktop pattern -- no custom background CSS needed here.
-   */
+   * The framework's own `body` rule paints the classic dithered grey Mac
+   * desktop pattern, but only on `body` -- on a mobile browser, an
+   * overscroll/rubber-band bounce (or any moment body doesn't fully cover
+   * the visual viewport, e.g. the URL bar collapsing/expanding) can reveal
+   * bare `html` underneath, which had no background of its own and fell
+   * back to plain white. Repeating the same three-layer gradient on `html`
+   * closes that gap, so the desktop pattern is what shows through in
+   * every case, not a flash of white. */
+  html {
+    background:
+      linear-gradient(90deg, #ffffff 21px, transparent 1%) 50%,
+      linear-gradient(#ffffff 21px, transparent 1%) 50%,
+      #000000;
+    background-attachment: fixed;
+    background-size: 22px 22px;
+  }
   html, body {
     margin: 0;
     padding: 0;
@@ -291,12 +304,10 @@
     cursor: pointer;
     text-align: center;
   }
-  .desktop-icon::before {
-    content: "";
+  .desktop-icon .note-icon {
     width: 2rem;
     height: 2rem;
-    background: #ffffff;
-    border: 1.5px solid #000000;
+    image-rendering: pixelated;
   }
   .desktop-icon:focus-visible {
     outline: 1px dotted #000000;
@@ -468,7 +479,10 @@
 
   <button type="button" class="btn" id="reopen">Reopen window</button>
 
-  <button type="button" class="desktop-icon" id="win2-icon">Notes</button>
+  <button type="button" class="desktop-icon" id="win2-icon">
+    <svg class="note-icon" viewBox="0 0 12 14" shape-rendering="crispEdges" fill="#000000" aria-hidden="true"><rect x="1" y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="9" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="8" y="3" width="1" height="1"/><rect x="10" y="3" width="1" height="1"/><rect x="1" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="7" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="1" y="6" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/><rect x="1" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/><rect x="5" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/><rect x="7" y="7" width="1" height="1"/><rect x="10" y="7" width="1" height="1"/><rect x="1" y="8" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="1" y="9" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="4" y="9" width="1" height="1"/><rect x="5" y="9" width="1" height="1"/><rect x="6" y="9" width="1" height="1"/><rect x="7" y="9" width="1" height="1"/><rect x="10" y="9" width="1" height="1"/><rect x="1" y="10" width="1" height="1"/><rect x="10" y="10" width="1" height="1"/><rect x="1" y="11" width="1" height="1"/><rect x="10" y="11" width="1" height="1"/><rect x="1" y="12" width="1" height="1"/><rect x="2" y="12" width="1" height="1"/><rect x="3" y="12" width="1" height="1"/><rect x="4" y="12" width="1" height="1"/><rect x="5" y="12" width="1" height="1"/><rect x="6" y="12" width="1" height="1"/><rect x="7" y="12" width="1" height="1"/><rect x="8" y="12" width="1" height="1"/><rect x="9" y="12" width="1" height="1"/><rect x="10" y="12" width="1" height="1"/></svg>
+    <span>Notes</span>
+  </button>
 
   <section class="window desktop-window" id="win0" style="top: 3rem; left: 2rem;">
     <div class="inactive-title-bar" id="win0-titlebar">
