@@ -48,7 +48,10 @@ looks like today.
   the original **1984 Macintosh 128K** (System 1.0) — not the 1987
   Macintosh II, not System 7. Internal scrolling that never moves the
   frame, draggable title bars, click-to-focus active/inactive chrome,
-  close/reopen. Open `mac1984/index.html` directly, no build step.
+  close/reopen, a desktop icon that opens a new window, and the Apple
+  menu bar pinned across the top (using the framework's real
+  `ul[role="menu-bar"]`/`.apple` components). Open `mac1984/index.html`
+  directly, no build step.
 - **`vendor/mac1984/`** — [`@sakun/system.css`](https://github.com/sakofchit/system.css)
   (MIT), vendored verbatim. The real retro-Mac CSS framework — not the
   same-named-but-unrelated `system.css` package that oq's first pass
@@ -58,6 +61,28 @@ looks like today.
 - **`oq-integration/`** — frozen copies of oq's Fun Themes glue code and
   project notes, for reference. Not wired to anything (see that
   directory's own README).
+
+## Prospective themes
+
+Shipped so far: **1984 Mac** (`mac1984/`, above). The rest of the original
+list, roughly in the order they'd be worth doing — each needs its own
+adapter work (the framework's class names/markup shape almost never match
+what a page's real markup uses, `mac1984/` is the template for that), and
+a license/bundle-size check at vendoring time since none of these have
+been vendored yet:
+
+| Theme | Framework | License (unverified until vendored) |
+| --- | --- | --- |
+| Windows 98 | [`98.css`](https://github.com/jdan/98.css) | MIT |
+| Windows XP | [`XP.css`](https://github.com/botoxparty/XP.css) | MIT |
+| Mac OS 8.1 | [`classic.css`](https://github.com/npjg/classic.css) | check upstream |
+| NES | [`NES.css`](https://github.com/nostalgic-css/NES.css) | MIT |
+| Windows 7 *(bonus, same family as 98.css/XP.css)* | [`7.css`](https://github.com/khang-nd/7.css) | MIT |
+| Modern macOS | [`Puppertino`](https://github.com/brayanjeshua/Puppertino) | check upstream |
+| Commodore 64 | [`bootstrap-c64`](https://github.com/JalaiAmitahl/bootstrap-c64) | check upstream |
+| DOS | [`Bootstra.386`](https://github.com/kristopolous/BOOTSTRA.386) | check upstream |
+| Norton Commander | *no drop-in CSS framework found* — closest is [`victorantos/NC`](https://github.com/victorantos/NC), a full JS file-manager clone, not a CSS library. Would likely need to be hand-built from the 8x16 DOS box-drawing look, closer to how `mac1984/`'s desktop icons/menu bar were added on top of `@sakun/system.css`. |
+| Windows 3.1 | *no drop-in CSS framework found* — closest is [`karol-kiersnowski/win31`](https://github.com/karol-kiersnowski/win31), a full simulator, not a CSS library. Same situation as Norton Commander. |
 
 ## License
 

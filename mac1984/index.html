@@ -98,22 +98,143 @@
     bottom: 1rem;
     font-size: 0.75rem;
     font-family: Geneva, ui-sans-serif, system-ui, sans-serif;
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(0, 0, 0, 0.6);
     max-width: 20rem;
   }
   #reopen {
     position: fixed;
     left: 1rem;
-    top: 1rem;
+    top: 3rem;
     display: none;
   }
   #reopen.visible { display: block; }
+
+  /* The menu bar "extends across the top of the screen" (Apple HI
+   * Guidelines, quoted in the framework's own docs) -- the framework's
+   * ul[role="menu-bar"] itself is just an inline flex row, so pinning it
+   * to the true top edge of the desktop (not just wherever it sits in
+   * document flow) is this prototype's own addition, same as floating
+   * .window as a desktop object was. z-index above every window so it's
+   * never covered, the same as a real Mac menu bar. */
+  .desktop-menu-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-bottom: 1px solid #000000;
+  }
+  /* Windows start below the bar instead of under it -- see the inline
+   * `top` on each .desktop-window below, bumped up from the pre-menu-bar
+   * values to clear it. */
+
+  /* Desktop icon: the framework has no icon component (its own docs never
+   * put anything ON the desktop itself, only inside windows), so this is
+   * entirely oq's own addition -- a bordered square standing in for an
+   * icon glyph plus a label below it, the same idiom already used for
+   * oq's own Fun Themes desktop icons (see oq-integration/). Real Finder
+   * icons open on double-click; this uses a single click/tap instead,
+   * simpler and more accessible for a prototype. */
+  .desktop-icon {
+    position: fixed;
+    top: 3rem;
+    right: 2rem;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    width: 4.5rem;
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    font-family: Chicago_12, Chicago, Geneva, ui-sans-serif, sans-serif;
+    font-size: 0.8rem;
+    color: #000000;
+    cursor: pointer;
+    text-align: center;
+  }
+  .desktop-icon::before {
+    content: "";
+    width: 2rem;
+    height: 2rem;
+    background: #ffffff;
+    border: 1.5px solid #000000;
+  }
+  .desktop-icon:focus-visible {
+    outline: 1px dotted #000000;
+    outline-offset: 2px;
+  }
 </style>
 </head>
 <body>
+  <ul role="menu-bar" class="desktop-menu-bar">
+    <li role="menu-item" tabindex="0" aria-haspopup="true">
+      <span role="img" class="apple" aria-label="Apple"></span>
+      <ul role="menu">
+        <li role="menu-item"><a href="#">About the Finder…</a></li>
+        <li role="menu-item" class="divider"><a href="#">Alarm Clock</a></li>
+        <li role="menu-item"><a href="#">Calculator</a></li>
+        <li role="menu-item"><a href="#">Control Panel</a></li>
+        <li role="menu-item"><a href="#">Key Caps</a></li>
+        <li role="menu-item"><a href="#">Note Pad</a></li>
+        <li role="menu-item"><a href="#">Puzzle</a></li>
+        <li role="menu-item"><a href="#">Scrapbook</a></li>
+      </ul>
+    </li>
+    <li role="menu-item" tabindex="0" aria-haspopup="true">
+      File
+      <ul role="menu">
+        <li role="menu-item"><a href="#">New Folder</a></li>
+        <li role="menu-item"><a href="#">Open</a></li>
+        <li role="menu-item"><a href="#">Print</a></li>
+        <li role="menu-item" class="divider"><a href="#">Close</a></li>
+        <li role="menu-item"><a href="#">Get Info</a></li>
+        <li role="menu-item"><a href="#">Duplicate</a></li>
+        <li role="menu-item"><a href="#">Put Back</a></li>
+        <li role="menu-item" class="divider"><a href="#">Eject</a></li>
+        <li role="menu-item"><a href="#">Erase Disk…</a></li>
+      </ul>
+    </li>
+    <li role="menu-item" tabindex="0" aria-haspopup="true">
+      Edit
+      <ul role="menu">
+        <li role="menu-item"><a href="#">Undo</a></li>
+        <li role="menu-item" class="divider"><a href="#">Cut</a></li>
+        <li role="menu-item"><a href="#">Copy</a></li>
+        <li role="menu-item"><a href="#">Paste</a></li>
+        <li role="menu-item"><a href="#">Clear</a></li>
+        <li role="menu-item" class="divider"><a href="#">Select All</a></li>
+        <li role="menu-item"><a href="#">Show Clipboard</a></li>
+      </ul>
+    </li>
+    <li role="menu-item" tabindex="0" aria-haspopup="true">
+      View
+      <ul role="menu">
+        <li role="menu-item"><a href="#">by Icon</a></li>
+        <li role="menu-item"><a href="#">by Name</a></li>
+        <li role="menu-item"><a href="#">by Date</a></li>
+        <li role="menu-item"><a href="#">by Size</a></li>
+        <li role="menu-item"><a href="#">by Kind</a></li>
+      </ul>
+    </li>
+    <li role="menu-item" tabindex="0" aria-haspopup="true">
+      Special
+      <ul role="menu">
+        <li role="menu-item"><a href="#">Clean Up</a></li>
+        <li role="menu-item"><a href="#">Empty Trash</a></li>
+        <li role="menu-item" class="divider"><a href="#">Set Startup</a></li>
+        <li role="menu-item"><a href="#">Restart</a></li>
+        <li role="menu-item"><a href="#">Shut Down</a></li>
+      </ul>
+    </li>
+  </ul>
+
   <button type="button" class="btn" id="reopen">Reopen window</button>
 
-  <section class="window desktop-window" id="win0" style="top: 2rem; left: 2rem;">
+  <button type="button" class="desktop-icon" id="win2-icon">Notes</button>
+
+  <section class="window desktop-window" id="win0" style="top: 3rem; left: 2rem;">
     <div class="inactive-title-bar" id="win0-titlebar">
       <button type="button" aria-label="Close" class="close" id="win0-close"></button>
       <h1 class="title">Background Window</h1>
@@ -131,7 +252,7 @@
     <div class="growbox"></div>
   </section>
 
-  <section class="window desktop-window" id="win1" style="top: 4rem; left: 4rem;">
+  <section class="window desktop-window" id="win1" style="top: 5rem; left: 4rem;">
     <div class="title-bar" id="win1-titlebar">
       <button type="button" aria-label="Close" class="close" id="win1-close"></button>
       <h1 class="title">Test Window</h1>
@@ -157,6 +278,27 @@
       <p>Card 9</p>
       <p>Card 10</p>
       <p>Card 11 — bottom of the scrollable content</p>
+    </div>
+    <div class="growbox"></div>
+  </section>
+
+  <!-- Opened by clicking the "Notes" desktop icon (#win2-icon), not
+       visible on load -- starts .closed the same way a closed window
+       does, so the icon-open path reuses the exact same open/close/focus
+       machinery as every other window instead of a separate one. -->
+  <section class="window desktop-window closed" id="win2" style="top: 6rem; left: 7rem;">
+    <div class="inactive-title-bar" id="win2-titlebar">
+      <button type="button" aria-label="Close" class="close" id="win2-close"></button>
+      <h1 class="title">Notes</h1>
+      <button type="button" aria-label="Zoom" class="resize"></button>
+    </div>
+    <div class="separator"></div>
+    <div class="window-pane">
+      <p>
+        This window opened from a desktop icon, not a window that was
+        already on screen -- click the "Notes" icon on the desktop (top
+        right) any time to reopen it after closing.
+      </p>
     </div>
     <div class="growbox"></div>
   </section>
@@ -279,6 +421,17 @@
     target.classList.remove("closed");
     reopenBtn.classList.remove("visible");
     focus(target);
+  });
+
+  // Desktop icon: win2 starts .closed (see its markup) and isn't part of
+  // the initial two-window demo -- this is the only extra wiring an icon
+  // needs, since it's already in `windows` (built above from every
+  // .desktop-window in the DOM, closed or not) and so already has drag,
+  // click-to-focus, and its close button wired up like any other window.
+  document.getElementById("win2-icon").addEventListener("click", () => {
+    const win2 = document.getElementById("win2");
+    win2.classList.remove("closed");
+    focus(win2);
   });
 })();
 </script>
