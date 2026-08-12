@@ -3,6 +3,20 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- Iterating fast on this prototype -- these document the intent to
+     discourage caching, but don't overstate what they actually do: current
+     Chrome/Firefox/Safari ignore http-equiv Cache-Control/Pragma/Expires
+     for the top-level document's own HTTP caching (verified against
+     Chromium while reviewing this file -- these are legacy IE-era knobs,
+     not a working modern mechanism), and there's no server config on this
+     static host to set a real Cache-Control response header from either.
+     Left in as a harmless no-op / statement of intent rather than removed,
+     but don't rely on them -- a hard reload (or a cache-busting query
+     string on changed asset URLs) is the actual fix when a stale copy is
+     suspected. Revisit if this host ever gets real header control. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>retr-oq — 1984 Mac desktop prototype</title>
 <link rel="stylesheet" href="../vendor/mac1984/system.css" />
 <style>
@@ -28,9 +42,28 @@
    * framework's own docs only ever use .window inline, in normal page
    * flow) and (b) demonstrating it.
    *
-   * The framework's own `body` rule already paints the classic dithered
-   * grey Mac desktop pattern -- no custom background CSS needed here.
-   */
+   * The real System 1 desktop pattern reads as light grey, not flat
+   * medium grey -- a sparse dither of single black pixels on a mostly
+   * white field (roughly 1 black pixel per 2x2 cell, ~25% coverage), not
+   * a 50/50 checkerboard (tried first here, but that's the Apple II's
+   * NTSC color-fringing dither trick, a different machine solving a
+   * different problem on different display hardware entirely -- nothing
+   * to do with the Mac's 1-bit desktop). An inline SVG data URI tile
+   * (2x2px, one black pixel, `shape-rendering="crispEdges"` so it isn't
+   * antialiased at this scale) gets an exact, un-blurred 25% pattern that
+   * a plain CSS gradient can't -- a gradient can shade a region but can't
+   * cleanly draw "exactly this one pixel of this 2x2 square." Set on both
+   * `html` and `body` -- `body` because that's what's actually visible day
+   * to day, `html` too so a mobile overscroll/rubber-band bounce (or any
+   * moment body doesn't fully cover the visual viewport, e.g. the URL bar
+   * collapsing/expanding) can't reveal bare white underneath. */
+  html,
+  body {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2' shape-rendering='crispEdges'%3E%3Crect width='2' height='2' fill='%23ffffff'/%3E%3Crect width='1' height='1' fill='%23000000'/%3E%3C/svg%3E");
+    background-size: 2px 2px;
+    background-attachment: fixed;
+    image-rendering: pixelated;
+  }
   html, body {
     margin: 0;
     padding: 0;
@@ -59,6 +92,25 @@
   .desktop-window.closed {
     display: none;
   }
+  /* Fixed-position desktop chrome that sits outside the .desktop-window
+   * flow (the note below, the desktop icon further down) uses small
+   * positive z-index values on the assumption that an unfocused window
+   * (z-index: auto) paints underneath them -- it doesn't. Per the CSS2.1
+   * stacking order, z-index:auto positioned boxes paint in the SAME step
+   * as z-index:0, but any *positive* z-index (however small) always paints
+   * above that step, regardless of DOM order. Without an explicit baseline
+   * here, every window sits under the note/icon until the moment it's
+   * first clicked (focus() below only assigns a z-index on activation) --
+   * on a small mobile viewport, where the note and the desktop icon end up
+   * close to the windows, that reliably shows fixed chrome painted on top
+   * of window content read as a real visual bug, not just an edge case.
+   * 10 is one below focus()'s first assigned value (11, see zTop below),
+   * so a freshly loaded window already outranks the note (1) and icon (5)
+   * without waiting for a click, while focus() can still raise it further.
+   */
+  .desktop-window {
+    z-index: 10;
+  }
   /* The framework's static docs examples show an inactive title bar with
    * no close/zoom buttons in the markup at all -- fine for a hand-written
    * doc page, but this prototype keeps both buttons permanently in the
@@ -70,6 +122,18 @@
   .inactive-title-bar .close,
   .inactive-title-bar .resize {
     display: none;
+  }
+  /* makeDraggable() below relies on pointerdown/pointermove/pointerup on
+   * the title bar -- on a touchscreen, the browser's default touch-action
+   * treats a finger-drag on the bar as a candidate pan/scroll gesture
+   * first, which can swallow or delay the pointer events makeDraggable
+   * needs, so dragging a window by its title bar is unreliable on mobile
+   * without this. The growbox already sets touch-action: none for the same
+   * reason (see below); the title bar needs the identical fix, it was just
+   * missed when this prototype was mobile-tested. */
+  .title-bar,
+  .inactive-title-bar {
+    touch-action: none;
   }
   /* The framework has no grow-box/resize-handle component (its windows
    * are sized via CSS, not user-resizable) -- the real 1984 Finder had
@@ -145,16 +209,48 @@
     right: 0;
     z-index: 1000;
     border-bottom: 1px solid #000000;
-    /* The framework's .apple icon is a fixed 18x22px bitmap SVG -- it
-     * doesn't scale with font-size at all -- while menu-bar text is a
-     * bare `font-size: 1em`, unscaled from whatever the page's root size
-     * happens to be (system.css never sets one). Against a 22px-tall icon,
-     * default 16px text reads too small. 1.125rem (18px at the standard
-     * 16px root) is the framework's OWN "m" base unit from its design
-     * tokens -- the same size .window-pane content already uses -- so
-     * this ties the mismatch fix to a size the framework already
-     * considers "normal," not an arbitrary guess. */
-    font-size: 1.125rem;
+    /* Previously bumped to 1.125rem (18px) to match the apple icon's fixed
+     * 22px height -- that instead made the whole bar read as oversized
+     * next to everything else on the desktop (a real System 1 menu bar is
+     * about 20px tall total). 0.75rem (12px) matches Chicago 12's actual
+     * design size -- the framework's own menu/dropdown text already uses
+     * a bare 1em against a 16px root elsewhere, so this keeps the bar
+     * itself close to that, just explicit instead of inherited. The icon
+     * is scaled down to match below instead of the text being scaled up
+     * to match the icon.
+     *
+     * !important because the framework's own `ul[role]{font-size:1em}`
+     * (specificity 0,1,1 -- a type selector plus an attribute selector)
+     * outranks a bare `.desktop-menu-bar` class (0,1,0) despite coming
+     * first in the stylesheet -- without it this rule silently loses the
+     * cascade and the bar stays at the framework's 16px, which is exactly
+     * the "too tall" bug this rule exists to fix. Caught by testing
+     * getComputedStyle after the fact, not by inspection -- specificity
+     * bugs like this one don't show up just from reading the CSS. */
+    font-size: 0.75rem !important;
+  }
+  /* Shrink the item hit/visual padding to match the smaller bar -- the
+   * framework's own ul[role=menu-bar]>[role=menu-item] padding (6px 10px)
+   * was sized for the framework's own larger default text and, combined
+   * with the 22px-tall apple icon, is most of why the bar read as too
+   * tall. Also needs !important: that framework selector's specificity
+   * (0,2,1 -- an extra `ul` type selector) beats this rule's `.desktop-
+   * menu-bar > [role="menu-item"]` (0,2,0) the same way as the font-size
+   * rule above. */
+  .desktop-menu-bar > [role="menu-item"] {
+    padding: 4px 8px !important;
+  }
+  /* The framework's .apple icon is a fixed 18x22px bitmap SVG with no
+   * background-size set, so it can't be resized by width/height alone
+   * (the image just gets clipped to whatever box you give it) --
+   * background-size: contain here is what makes shrinking it actually
+   * scale the artwork down instead of cropping it. Sized to sit closer to
+   * the 12px menu text, matching a real System 1 bar instead of towering
+   * over it. */
+  .desktop-menu-bar .apple {
+    width: 12px;
+    height: 15px;
+    background-size: contain;
   }
   /* Windows start below the bar instead of under it -- see the inline
    * `top` on each .desktop-window below, bumped up from the pre-menu-bar
@@ -174,6 +270,34 @@
   }
   .desktop-menu-bar [role="menu-item"].menu-open > [role="menu"] {
     display: block !important;
+  }
+  /* The framework highlights a top-level menu item purely via :hover and
+   * :focus/:focus-within CSS (background: #000). closeMenu() below already
+   * calls .blur() to drop the :focus half of that when a menu closes, but
+   * :hover isn't something JS can un-set -- on a touchscreen the browser
+   * keeps the last-tapped element in the :hover state until something else
+   * is tapped (there's no mouse to actually leave), so after tapping a menu
+   * closed, that item was left permanently painted as if still selected.
+   * Since .menu-open (below) is already this bar's real, JS-driven
+   * open/closed source of truth (see the comment on [role="menu"] above),
+   * hover/focus are switched off here with !important -- same pattern,
+   * same reason -- so only .menu-open can paint the highlight, on every
+   * input type consistently. */
+  .desktop-menu-bar > [role="menu-item"]:hover,
+  .desktop-menu-bar > [role="menu-item"]:focus,
+  .desktop-menu-bar > [role="menu-item"]:focus-within {
+    background: inherit !important;
+    color: inherit !important;
+  }
+  .desktop-menu-bar > [role="menu-item"].menu-open {
+    background: #000000 !important;
+    color: #ffffff !important;
+  }
+  /* Keyboard users still need a visible focus indicator now that plain
+   * :focus no longer paints one. */
+  .desktop-menu-bar > [role="menu-item"]:focus-visible {
+    outline: 1px dotted #000000;
+    outline-offset: -2px;
   }
 
   /* Desktop icon: the framework has no icon component (its own docs never
@@ -202,12 +326,19 @@
     cursor: pointer;
     text-align: center;
   }
-  .desktop-icon::before {
-    content: "";
+  /* Real Finder icons sit directly on the desktop pattern with no white
+   * halo around the glyph itself -- only the LABEL underneath gets a
+   * white backing (so the text stays legible over the dither), not the
+   * icon artwork. The icon's own transparent whitespace is meant to show
+   * the desktop pattern through it, same as a real 1-bit icon mask would. */
+  .desktop-icon .note-icon {
     width: 2rem;
     height: 2rem;
+    image-rendering: pixelated;
+  }
+  .desktop-icon span {
     background: #ffffff;
-    border: 1.5px solid #000000;
+    padding: 0 0.15rem;
   }
   .desktop-icon:focus-visible {
     outline: 1px dotted #000000;
@@ -224,6 +355,13 @@
    * the later "chimes" sound (that's Mac II/System 6 era hardware) --
    * synthesized here with the Web Audio API rather than shipping an audio
    * file, so there's no asset to vendor or license. */
+  /* The real System 1 boot sequence was never a black screen -- it's the
+   * plain white/light-grey Mac display with black chrome, same as the
+   * desktop it leads into. This prototype's own boot screen used a black
+   * background (more "sci-fi terminal" than "1984 Macintosh"), which is
+   * what the fix below corrects -- colors flipped to match, and the
+   * placeholder ":)" swapped for an actual pixel-art rendering of the
+   * Happy Mac icon (Susan Kare's original startup glyph). */
   #boot-screen {
     position: fixed;
     inset: 0;
@@ -231,8 +369,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #000000;
-    color: #ffffff;
+    background: #ffffff;
+    color: #000000;
     font-family: Geneva, ui-sans-serif, system-ui, sans-serif;
     text-align: center;
   }
@@ -245,9 +383,9 @@
     align-items: center;
     gap: 0.75rem;
     background: none;
-    border: 1px solid #ffffff;
+    border: 1px solid #000000;
     padding: 1.5rem 2rem;
-    color: #ffffff;
+    color: #000000;
     font: inherit;
     font-size: 1rem;
     cursor: pointer;
@@ -266,8 +404,8 @@
   }
   #power-btn:hover,
   #power-btn:focus-visible {
-    background: #ffffff;
-    color: #000000;
+    background: #000000;
+    color: #ffffff;
   }
   #boot-sequence {
     display: none;
@@ -278,16 +416,16 @@
   #boot-sequence.visible {
     display: flex;
   }
+  /* Susan Kare's Happy Mac was a 32x32 1-bit glyph: a compact-Mac
+   * silhouette (rounded-top screen, flat base) with a plain smiling face
+   * on the screen -- not a generic box. Drawn here as a pixel grid of
+   * <rect>s (shape-rendering: crispEdges keeps every edge sharp instead of
+   * anti-aliased blur at this scale) rather than a smooth vector face, to
+   * actually read as that icon instead of a generic smiley. */
   #boot-sequence .happy-mac {
-    width: 3.5rem;
-    height: 3.5rem;
-    border: 3px solid #ffffff;
-    border-radius: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: Chicago_12, Chicago, monospace;
-    font-size: 1.75rem;
+    width: 4rem;
+    height: 4rem;
+    image-rendering: pixelated;
   }
   #boot-sequence p {
     margin: 0;
@@ -303,7 +441,7 @@
       <span>Click to power on</span>
     </button>
     <div id="boot-sequence" hidden>
-      <div class="happy-mac" aria-hidden="true">:)</div>
+      <svg class="happy-mac" viewBox="0 0 16 16" shape-rendering="crispEdges" fill="#000000" role="img" aria-label="Happy Mac"><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="7" y="0" width="1" height="1"/><rect x="8" y="0" width="1" height="1"/><rect x="9" y="0" width="1" height="1"/><rect x="10" y="0" width="1" height="1"/><rect x="11" y="0" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/><rect x="13" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/><rect x="8" y="1" width="1" height="1"/><rect x="9" y="1" width="1" height="1"/><rect x="10" y="1" width="1" height="1"/><rect x="11" y="1" width="1" height="1"/><rect x="12" y="1" width="1" height="1"/><rect x="13" y="1" width="1" height="1"/><rect x="14" y="1" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="14" y="2" width="1" height="1"/><rect x="15" y="2" width="1" height="1"/><rect x="0" y="3" width="1" height="1"/><rect x="15" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="11" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/><rect x="15" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="11" y="5" width="1" height="1"/><rect x="12" y="5" width="1" height="1"/><rect x="15" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/><rect x="15" y="6" width="1" height="1"/><rect x="0" y="7" width="1" height="1"/><rect x="15" y="7" width="1" height="1"/><rect x="0" y="8" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="5" y="8" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/><rect x="15" y="8" width="1" height="1"/><rect x="0" y="9" width="1" height="1"/><rect x="5" y="9" width="1" height="1"/><rect x="6" y="9" width="1" height="1"/><rect x="9" y="9" width="1" height="1"/><rect x="10" y="9" width="1" height="1"/><rect x="15" y="9" width="1" height="1"/><rect x="0" y="10" width="1" height="1"/><rect x="6" y="10" width="1" height="1"/><rect x="7" y="10" width="1" height="1"/><rect x="8" y="10" width="1" height="1"/><rect x="9" y="10" width="1" height="1"/><rect x="15" y="10" width="1" height="1"/><rect x="0" y="11" width="1" height="1"/><rect x="15" y="11" width="1" height="1"/><rect x="0" y="12" width="1" height="1"/><rect x="1" y="12" width="1" height="1"/><rect x="14" y="12" width="1" height="1"/><rect x="15" y="12" width="1" height="1"/><rect x="1" y="13" width="1" height="1"/><rect x="2" y="13" width="1" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="4" y="13" width="1" height="1"/><rect x="5" y="13" width="1" height="1"/><rect x="6" y="13" width="1" height="1"/><rect x="7" y="13" width="1" height="1"/><rect x="8" y="13" width="1" height="1"/><rect x="9" y="13" width="1" height="1"/><rect x="10" y="13" width="1" height="1"/><rect x="11" y="13" width="1" height="1"/><rect x="12" y="13" width="1" height="1"/><rect x="13" y="13" width="1" height="1"/><rect x="14" y="13" width="1" height="1"/><rect x="2" y="14" width="1" height="1"/><rect x="3" y="14" width="1" height="1"/><rect x="4" y="14" width="1" height="1"/><rect x="5" y="14" width="1" height="1"/><rect x="6" y="14" width="1" height="1"/><rect x="7" y="14" width="1" height="1"/><rect x="8" y="14" width="1" height="1"/><rect x="9" y="14" width="1" height="1"/><rect x="10" y="14" width="1" height="1"/><rect x="11" y="14" width="1" height="1"/><rect x="12" y="14" width="1" height="1"/><rect x="13" y="14" width="1" height="1"/><rect x="4" y="15" width="1" height="1"/><rect x="5" y="15" width="1" height="1"/><rect x="6" y="15" width="1" height="1"/><rect x="7" y="15" width="1" height="1"/><rect x="8" y="15" width="1" height="1"/><rect x="9" y="15" width="1" height="1"/><rect x="10" y="15" width="1" height="1"/><rect x="11" y="15" width="1" height="1"/></svg>
       <p>Welcome to Macintosh.</p>
     </div>
   </div>
@@ -372,7 +510,10 @@
 
   <button type="button" class="btn" id="reopen">Reopen window</button>
 
-  <button type="button" class="desktop-icon" id="win2-icon">Notes</button>
+  <button type="button" class="desktop-icon" id="win2-icon">
+    <svg class="note-icon" viewBox="0 0 12 14" shape-rendering="crispEdges" fill="#000000" aria-hidden="true"><rect x="1" y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="9" y="2" width="1" height="1"/><rect x="1" y="3" width="1" height="1"/><rect x="8" y="3" width="1" height="1"/><rect x="10" y="3" width="1" height="1"/><rect x="1" y="4" width="1" height="1"/><rect x="10" y="4" width="1" height="1"/><rect x="1" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="5" y="5" width="1" height="1"/><rect x="6" y="5" width="1" height="1"/><rect x="7" y="5" width="1" height="1"/><rect x="10" y="5" width="1" height="1"/><rect x="1" y="6" width="1" height="1"/><rect x="10" y="6" width="1" height="1"/><rect x="1" y="7" width="1" height="1"/><rect x="3" y="7" width="1" height="1"/><rect x="4" y="7" width="1" height="1"/><rect x="5" y="7" width="1" height="1"/><rect x="6" y="7" width="1" height="1"/><rect x="7" y="7" width="1" height="1"/><rect x="10" y="7" width="1" height="1"/><rect x="1" y="8" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="1" y="9" width="1" height="1"/><rect x="3" y="9" width="1" height="1"/><rect x="4" y="9" width="1" height="1"/><rect x="5" y="9" width="1" height="1"/><rect x="6" y="9" width="1" height="1"/><rect x="7" y="9" width="1" height="1"/><rect x="10" y="9" width="1" height="1"/><rect x="1" y="10" width="1" height="1"/><rect x="10" y="10" width="1" height="1"/><rect x="1" y="11" width="1" height="1"/><rect x="10" y="11" width="1" height="1"/><rect x="1" y="12" width="1" height="1"/><rect x="2" y="12" width="1" height="1"/><rect x="3" y="12" width="1" height="1"/><rect x="4" y="12" width="1" height="1"/><rect x="5" y="12" width="1" height="1"/><rect x="6" y="12" width="1" height="1"/><rect x="7" y="12" width="1" height="1"/><rect x="8" y="12" width="1" height="1"/><rect x="9" y="12" width="1" height="1"/><rect x="10" y="12" width="1" height="1"/></svg>
+    <span>Notes</span>
+  </button>
 
   <section class="window desktop-window" id="win0" style="top: 3rem; left: 2rem;">
     <div class="inactive-title-bar" id="win0-titlebar">
