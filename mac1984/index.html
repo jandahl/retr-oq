@@ -59,6 +59,25 @@
   .desktop-window.closed {
     display: none;
   }
+  /* Fixed-position desktop chrome that sits outside the .desktop-window
+   * flow (the note below, the desktop icon further down) uses small
+   * positive z-index values on the assumption that an unfocused window
+   * (z-index: auto) paints underneath them -- it doesn't. Per the CSS2.1
+   * stacking order, z-index:auto positioned boxes paint in the SAME step
+   * as z-index:0, but any *positive* z-index (however small) always paints
+   * above that step, regardless of DOM order. Without an explicit baseline
+   * here, every window sits under the note/icon until the moment it's
+   * first clicked (focus() below only assigns a z-index on activation) --
+   * on a small mobile viewport, where the note and the desktop icon end up
+   * close to the windows, that reliably shows fixed chrome painted on top
+   * of window content read as a real visual bug, not just an edge case.
+   * 10 is one below focus()'s first assigned value (11, see zTop below),
+   * so a freshly loaded window already outranks the note (1) and icon (5)
+   * without waiting for a click, while focus() can still raise it further.
+   */
+  .desktop-window {
+    z-index: 10;
+  }
   /* The framework's static docs examples show an inactive title bar with
    * no close/zoom buttons in the markup at all -- fine for a hand-written
    * doc page, but this prototype keeps both buttons permanently in the
@@ -70,6 +89,18 @@
   .inactive-title-bar .close,
   .inactive-title-bar .resize {
     display: none;
+  }
+  /* makeDraggable() below relies on pointerdown/pointermove/pointerup on
+   * the title bar -- on a touchscreen, the browser's default touch-action
+   * treats a finger-drag on the bar as a candidate pan/scroll gesture
+   * first, which can swallow or delay the pointer events makeDraggable
+   * needs, so dragging a window by its title bar is unreliable on mobile
+   * without this. The growbox already sets touch-action: none for the same
+   * reason (see below); the title bar needs the identical fix, it was just
+   * missed when this prototype was mobile-tested. */
+  .title-bar,
+  .inactive-title-bar {
+    touch-action: none;
   }
   /* The framework has no grow-box/resize-handle component (its windows
    * are sized via CSS, not user-resizable) -- the real 1984 Finder had
