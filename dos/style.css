@@ -1,16 +1,23 @@
 /* retr-oq dos theme, built on the real vendored framework
    (vendor/dos/css/bootstrap.min.css, from kristopolous/BOOTSTRA.386 v4.4.1
    -- a DOS-EGA reskin of Bootstrap 4, real Px437 IBM EGA8 font included).
-   The framework already provides the DOS blue body background, the
-   .card/.card-header window-and-titlebar shape, and .close -- this file's
-   job is the same one mac1984/style.css has for @sakun/system.css: make
-   .card float as a fixed-size desktop object instead of an inline block,
-   and add what the framework doesn't cover (dragging, resizing, focus).
 
-   Unlike mac1984 (smooth pixel dragging -- a GUI convention), windows here
-   move and resize in whole character-cell steps only, matching the
-   framework's own 14px text-mode line-height. Text mode had no sub-cell
-   positions to move to. */
+   The home screen is a `dir` listing (#dos-dir in index.html), not a
+   desktop with icons -- DOS never had either a desktop or icons. DICT.EXE
+   is a full-screen takeover (#dict-app), not a floating window, because
+   DOS was single-tasking: a program took the whole screen, and exiting it
+   returned you to whatever launched it. See README's "Noted, not yet
+   built" section for the Batch Enhancer-style launcher this points toward.
+
+   The .dos-window/.card-header/.dos-growbox rules below are unused by the
+   current markup but kept deliberately -- overlapping draggable windows
+   ARE period-accurate for a single Turbo Vision-style app (Turbo Pascal
+   IDE, DOS Navigator), just not for launching separate top-level programs
+   the way icons are for a GUI. Real infra for whichever of BUILD.EXE/
+   DECON.EXE ends up wanting that, not dead code. Unlike mac1984 (smooth
+   pixel dragging -- a GUI convention), windows here move and resize in
+   whole character-cell steps only, matching the framework's own 14px
+   text-mode line-height. Text mode had no sub-cell positions to move to. */
 
 html, body {
   margin: 0;
@@ -23,8 +30,12 @@ html, body {
 .dos-window {
   position: absolute;
   z-index: 10;
-  min-width: 20em;
-  min-height: 6em;
+  /* No min-width/min-height here on purpose -- app.js owns the size floor
+     in actual measured character-cell units (cell.w * 20, cell.h * 6) for
+     both initial layout and resizing. An em-based floor here would drift
+     out of sync with that (em is tied to the 16px root font-size, not the
+     8x14px DOS font's real cell size), which is exactly what silently
+     overrode a narrower JS-clamped width during mobile testing. */
 }
 .dos-window.closed {
   display: none;
@@ -39,6 +50,12 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.card-header > span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .card-body {
@@ -61,4 +78,74 @@ html, body {
   line-height: 1;
   font-weight: bold;
   user-select: none;
+}
+
+/* The framework's body background (#000084, DOS blue) is right for a TUI
+   program like DICT.EXE below, which sets its own video mode/colors --
+   but the raw COMMAND.COM prompt this dir listing represents was always
+   black with light grey text, never blue. Covers the full viewport itself
+   rather than just tinting body, so it reads as the actual screen
+   contents, not a panel sitting on top of a blue one. */
+.dos-dir {
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  padding: 1em;
+  background: #000000;
+  color: #aaaaaa;
+  white-space: pre-wrap;
+  word-break: break-word; /* long lines wrap instead of overflowing a narrow viewport */
+}
+.dos-link {
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+.dos-link:hover,
+.dos-link:focus-visible {
+  background: #aaaaaa;
+  color: #000000;
+  outline: none;
+}
+.dos-cursor {
+  animation: dos-blink 1s steps(1) infinite;
+}
+@keyframes dos-blink {
+  50% { opacity: 0; }
+}
+
+.dos-app {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+.dos-app[hidden] {
+  display: none;
+}
+.dos-app-header {
+  flex: none;
+  padding: 0 1ch;
+  background: #aa00aa; /* matches .card-header's magenta, same DOS palette */
+  color: #ffffff;
+}
+.dos-app-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1em;
+}
+.dos-app-body .form-control {
+  max-width: 40em;
+}
+.dos-app-footer {
+  flex: none;
+  padding: 0 1ch;
+  background: #aaaaaa;
+  color: #000000;
 }

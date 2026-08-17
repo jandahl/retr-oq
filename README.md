@@ -75,6 +75,17 @@ steps only — text mode never had anything in between, so free pixel
 dragging on top of a text-mode skin would be a lie, not a period-accurate
 feel.
 
+**Noted, not yet built:** `dos/`'s overlapping draggable windows are
+period-accurate *inside* a single Turbo Vision-style app (Turbo Pascal
+IDE, DOS Navigator), but that's not how DOS itself launched separate
+programs — there was no desktop, no icons, and no persistent view
+underneath a running app (DOS was single-tasking; a program took the
+whole screen, and exiting it returned to whatever launched it). The
+authentic way to *get into* one of these window-based apps would be a
+Norton Utilities Batch Enhancer (`BE.EXE`)-style launcher: a boxed,
+numbered menu, keypress-to-select, full clear-and-redraw on launch —
+closer to a modal takeover than an icon grid. Not built yet.
+
 The rest of the original list, roughly in the order they'd be worth doing
 — each needs its own adapter work (the framework's class names/markup
 shape almost never match what a page's real markup uses, `mac1984/` and
