@@ -1,0 +1,243 @@
+/* retr-oq mac1984 theme: fixed-size draggable windows on a real desktop,
+   built on the vendored framework (../vendor/mac1984/system.css). This
+   file only covers what that framework doesn't: floating .window as a
+   desktop object, the menu bar, desktop icons, and the boot screen. */
+
+html,
+body {
+  /* exact 2x2px dither (1 black px per 4) matching the real System 1
+     desktop pattern; a CSS gradient can't draw a crisp single pixel */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2' shape-rendering='crispEdges'%3E%3Crect width='2' height='2' fill='%23ffffff'/%3E%3Crect width='1' height='1' fill='%23000000'/%3E%3C/svg%3E");
+  background-size: 2px 2px;
+  background-attachment: fixed;
+  image-rendering: pixelated;
+}
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* the desktop never scrolls -- only windows do */
+  overscroll-behavior: none; /* no page-level rubber-band */
+}
+
+.window {
+  display: flex; /* framework sets flex-direction but not display:flex */
+}
+.desktop-window {
+  position: absolute;
+  margin: 0 !important;
+  width: min(40rem, calc(100vw - 4rem));
+  height: min(30rem, calc(100vh - 6rem));
+  z-index: 10; /* outrank z-index:auto windows before any click focuses one */
+  min-width: 14rem;
+  min-height: 8rem;
+}
+.desktop-window .window-pane {
+  flex: 1 1 auto;
+  min-height: 0; /* required for a flex child to be scrollable */
+  overscroll-behavior: contain; /* stop scroll chaining into the desktop */
+}
+.desktop-window.closed {
+  display: none;
+}
+
+.inactive-title-bar .close,
+.inactive-title-bar .resize {
+  display: none;
+}
+.title-bar,
+.inactive-title-bar {
+  touch-action: none; /* without this, touch-dragging the title bar is unreliable */
+}
+.title-bar .title,
+.inactive-title-bar .title {
+  /* truncate instead of wrapping to a second line when the window is narrowed */
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.growbox {
+  position: absolute;
+  right: 0.3rem;
+  bottom: 0.3rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  background: repeating-linear-gradient(
+    135deg,
+    #000000 0,
+    #000000 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  border: 1px solid #000000;
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+.desktop-note {
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 1;
+  font-size: 0.75rem;
+  font-family: Geneva, ui-sans-serif, system-ui, sans-serif;
+  color: rgba(0, 0, 0, 0.6);
+  max-width: 20rem;
+}
+
+#reopen {
+  position: fixed;
+  left: 1rem;
+  top: 3rem;
+  display: none;
+}
+#reopen.visible { display: block; }
+
+.desktop-menu-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  border-bottom: 1px solid #000000;
+  /* !important: framework's ul[role]{font-size:1em} outranks this class
+     selector on specificity, so this would otherwise silently lose */
+  font-size: 0.75rem !important;
+}
+.desktop-menu-bar > [role="menu-item"] {
+  /* !important for the same specificity reason as font-size above */
+  padding: 4px 8px !important;
+}
+.desktop-menu-bar .apple {
+  width: 12px;
+  height: 15px;
+  background-size: contain; /* framework's icon has no background-size, so shrinking width/height alone would crop it */
+}
+
+/* Framework shows dropdowns via :focus-within/:focus CSS only, which
+   flickers and can't close on outside click. .menu-open (set in JS) is
+   the real source of truth; !important wins over the framework's rule. */
+.desktop-menu-bar [role="menu"] {
+  display: none !important;
+}
+.desktop-menu-bar [role="menu-item"].menu-open > [role="menu"] {
+  display: block !important;
+}
+/* Framework highlights via :hover, which can't self-clear on touch (no
+   mouse to leave with) -- disabled in favor of .menu-open exclusively. */
+.desktop-menu-bar > [role="menu-item"]:hover,
+.desktop-menu-bar > [role="menu-item"]:focus,
+.desktop-menu-bar > [role="menu-item"]:focus-within {
+  background: inherit !important;
+  color: inherit !important;
+}
+.desktop-menu-bar > [role="menu-item"].menu-open {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.desktop-menu-bar > [role="menu-item"]:focus-visible {
+  outline: 1px dotted #000000;
+  outline-offset: -2px;
+}
+
+.desktop-icons {
+  position: fixed;
+  top: 3rem;
+  right: 2rem;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 4.5rem;
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  font-family: Chicago_12, Chicago, Geneva, ui-sans-serif, sans-serif;
+  font-size: 0.8rem;
+  color: #000000;
+  cursor: pointer;
+  text-align: center;
+}
+.desktop-icon svg {
+  width: 2rem;
+  height: 2rem;
+  background: #ffffff; /* solid backing so the dither doesn't blend into the icon's edges */
+  image-rendering: pixelated;
+}
+.desktop-icon span {
+  background: #ffffff; /* label needs a solid backing to stay legible over the dither */
+  padding: 0 0.15rem;
+  overflow-wrap: break-word; /* "Deconstructor" is one unbroken word wider than the icon -- wrap it instead of overflowing */
+}
+.desktop-icon:focus-visible {
+  outline: 1px dotted #000000;
+  outline-offset: 2px;
+}
+
+#boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  color: #000000;
+  font-family: Geneva, ui-sans-serif, system-ui, sans-serif;
+  text-align: center;
+}
+#boot-screen.hidden {
+  display: none;
+}
+#power-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  background: none;
+  border: 1px solid #000000;
+  padding: 1.5rem 2rem;
+  color: #000000;
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+#power-btn[hidden] {
+  display: none; /* beats #power-btn's own display:flex, which is equal specificity but comes first */
+}
+#power-btn .power-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+#power-btn:hover,
+#power-btn:focus-visible {
+  background: #000000;
+  color: #ffffff;
+}
+#boot-sequence {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+#boot-sequence.visible {
+  display: flex;
+}
+#boot-sequence .happy-mac {
+  width: 4rem;
+  height: 4rem;
+  image-rendering: pixelated;
+}
+#boot-sequence p {
+  margin: 0;
+  font-family: Chicago_12, Chicago, Geneva, sans-serif;
+  font-size: 1.125rem;
+}
