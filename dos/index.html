@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>retr-oq — DOS desktop prototype</title>
 <link rel="stylesheet" href="../vendor/dos/css/bootstrap.min.css" />
-<link rel="stylesheet" href="style.css" />
+<!-- ?v= is real cache-busting, unlike the no-cache meta tags mac1984/
+     carries (those only ever addressed the HTML document itself, and only
+     nominally even there -- see mac1984/index.html's own comment on them).
+     A stale style.css/app.js served from a phone's cache while the HTML
+     loads fresh is exactly the failure mode that broke this page after
+     the last deploy: markup referencing classes/behavior a cached
+     stylesheet/script didn't have yet. Bump the number whenever either
+     file actually changes. -->
+<link rel="stylesheet" href="style.css?v=1" />
 </head>
 <body>
   <!-- DOS was single-tasking: no desktop, no icons, a program took the
@@ -57,6 +65,6 @@ B:\OQ&gt;<span class="dos-cursor">_</span></div>
     <div class="dos-app-footer">Esc=Exit to B:\OQ&gt;</div>
   </div>
 
-<script src="app.js"></script>
+<script src="app.js?v=1"></script>
 </body>
 </html>
