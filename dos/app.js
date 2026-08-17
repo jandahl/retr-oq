@@ -114,10 +114,23 @@
 
     // Snap each window's starting position/size to the grid too, so windows
     // begin life aligned the same way dragging/resizing keeps them aligned.
+    // Also clamp to whatever actually fits the viewport -- the markup's
+    // widths (e.g. 26em/28em) are fine on desktop but overflow a phone-width
+    // viewport outright, pushing the growbox and part of the title off
+    // screen with no way to reach either. Clamped size still snaps to the
+    // grid, just against a smaller ceiling. document.documentElement's
+    // clientWidth/clientHeight, not window.innerWidth/innerHeight -- the
+    // latter measured ~520 in mobile-emulation testing here even though the
+    // visual viewport was actually 375, an emulation quirk that would have
+    // silently defeated this clamp entirely.
+    const viewportWidth = document.documentElement.clientWidth;
+    const viewportHeight = document.documentElement.clientHeight;
     for (const win of windows) {
       const rect = win.getBoundingClientRect();
-      win.style.width = `${snap(rect.width, cell.w)}px`;
-      win.style.height = `${snap(rect.height, cell.h)}px`;
+      const maxWidth = Math.max(cell.w * 20, viewportWidth - rect.left - cell.w);
+      const maxHeight = Math.max(cell.h * 6, viewportHeight - rect.top - cell.h);
+      win.style.width = `${snap(Math.min(rect.width, maxWidth), cell.w)}px`;
+      win.style.height = `${snap(Math.min(rect.height, maxHeight), cell.h)}px`;
     }
 
     function focus(win) {

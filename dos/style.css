@@ -23,8 +23,12 @@ html, body {
 .dos-window {
   position: absolute;
   z-index: 10;
-  min-width: 20em;
-  min-height: 6em;
+  /* No min-width/min-height here on purpose -- app.js owns the size floor
+     in actual measured character-cell units (cell.w * 20, cell.h * 6) for
+     both initial layout and resizing. An em-based floor here would drift
+     out of sync with that (em is tied to the 16px root font-size, not the
+     8x14px DOS font's real cell size), which is exactly what silently
+     overrode a narrower JS-clamped width during mobile testing. */
 }
 .dos-window.closed {
   display: none;
@@ -39,6 +43,12 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.card-header > span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .card-body {
