@@ -157,4 +157,40 @@
 
     if (windows.length) focus(windows[windows.length - 1]);
   });
+
+  // DICT.EXE: a full-screen takeover of the dir listing, not a window --
+  // see the comment at the top of style.css for why. No font/cell
+  // measurement needed here, so this doesn't wait on document.fonts.ready
+  // like the window machinery above does.
+  const dirScreen = document.getElementById("dos-dir");
+  const dictApp = document.getElementById("dict-app");
+  const dictFilter = document.getElementById("dict-filter");
+  const dictRows = Array.from(document.querySelectorAll("#dict-table tbody tr"));
+
+  function launchDict() {
+    dirScreen.hidden = true;
+    dictApp.hidden = false;
+    dictFilter.value = "";
+    for (const row of dictRows) row.hidden = false;
+    dictFilter.focus();
+  }
+
+  function exitDict() {
+    dictApp.hidden = true;
+    dirScreen.hidden = false;
+  }
+
+  document.getElementById("launch-dict").addEventListener("click", launchDict);
+
+  dictFilter.addEventListener("input", () => {
+    const query = dictFilter.value.trim().toLowerCase();
+    for (const row of dictRows) {
+      const text = row.textContent.toLowerCase();
+      row.hidden = query !== "" && !text.includes(query);
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !dictApp.hidden) exitDict();
+  });
 })();

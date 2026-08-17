@@ -8,33 +8,53 @@
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="card dos-window" style="top: 3em; left: 2em; width: 26em;">
-    <div class="card-header">
-      <span>BACKGROUND.WIN</span>
-      <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    </div>
-    <div class="card-body">
-      <p>This window sits behind TEST.WIN. Click it to bring it to front.</p>
-    </div>
-    <div class="dos-growbox">&#9698;</div>
-  </div>
+  <!-- DOS was single-tasking: no desktop, no icons, a program took the
+       whole screen and exiting returned you to whatever launched it. This
+       is that -- a `dir` listing, the actual home screen, not a desktop
+       with icons on it. Only DICT.EXE is a real program below; BUILD.EXE
+       and DECON.EXE are listed (the directory doesn't lie) but plain text,
+       not buttons -- there is nothing to launch yet. -->
+  <div class="dos-dir" id="dos-dir">
+B:\OQ&gt;dir
 
-  <div class="card dos-window" style="top: 5em; left: 5em; width: 28em;">
-    <div class="card-header">
-      <span>TEST.WIN</span>
-      <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+ Volume in drive B is OQ
+ Directory of B:\OQ
+
+<button type="button" class="dos-link" id="launch-dict">DICT     EXE</button>        41,472  03-14-89   2:15p
+BUILD    EXE        38,912  03-14-89   2:15p
+DECON    EXE        35,328  03-14-89   2:15p
+        3 File(s)      115,712 bytes
+                     1,458,176 bytes free
+
+B:\OQ&gt;<span class="dos-cursor">_</span></div>
+
+  <!-- DICT.EXE: a full-screen takeover, not a floating window -- same
+       reasoning as dos-dir above. Esc returns to the dir listing, the same
+       way exiting a real DOS program dropped you back at the prompt. -->
+  <div class="dos-app" id="dict-app" hidden>
+    <div class="dos-app-header">B:\OQ\DICT.EXE</div>
+    <div class="dos-app-body">
+      <input type="text" class="form-control" id="dict-filter" placeholder="Filter..." autocomplete="off" />
+      <table class="table" id="dict-table">
+        <thead>
+          <tr><th>Lexeme</th><th>Translation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>aluu</td><td>hello</td></tr>
+          <tr><td>qujanaq</td><td>thank you</td></tr>
+          <tr><td>illu</td><td>house</td></tr>
+          <tr><td>qimmeq</td><td>dog</td></tr>
+          <tr><td>puisi</td><td>seal</td></tr>
+          <tr><td>nanoq</td><td>polar bear</td></tr>
+          <tr><td>qajaq</td><td>kayak</td></tr>
+          <tr><td>umiaq</td><td>boat (open, large)</td></tr>
+          <tr><td>nuna</td><td>land, country</td></tr>
+          <tr><td>imeq</td><td>water</td></tr>
+          <tr><td>inuk</td><td>person, human being</td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="card-body">
-      <p>Drag by the title bar; movement snaps to whole character cells,
-      not free pixels -- text mode never had anything in between.</p>
-      <p>Resize from the bottom-right corner, same snapping.</p>
-      <p>Line 1</p>
-      <p>Line 2</p>
-      <p>Line 3</p>
-      <p>Line 4</p>
-      <p>Line 5</p>
-    </div>
-    <div class="dos-growbox">&#9698;</div>
+    <div class="dos-app-footer">Esc=Exit to B:\OQ&gt;</div>
   </div>
 
 <script src="app.js"></script>
