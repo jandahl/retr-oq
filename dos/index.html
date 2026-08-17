@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>retr-oq — DOS desktop prototype</title>
+<link rel="stylesheet" href="../vendor/dos/css/bootstrap.min.css" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="card dos-window" style="top: 3em; left: 2em; width: 26em;">
+    <div class="card-header">
+      <span>BACKGROUND.WIN</span>
+      <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    </div>
+    <div class="card-body">
+      <p>This window sits behind TEST.WIN. Click it to bring it to front.</p>
+    </div>
+    <div class="dos-growbox">&#9698;</div>
+  </div>
+
+  <div class="card dos-window" style="top: 5em; left: 5em; width: 28em;">
+    <div class="card-header">
+      <span>TEST.WIN</span>
+      <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    </div>
+    <div class="card-body">
+      <p>Drag by the title bar; movement snaps to whole character cells,
+      not free pixels -- text mode never had anything in between.</p>
+      <p>Resize from the bottom-right corner, same snapping.</p>
+      <p>Line 1</p>
+      <p>Line 2</p>
+      <p>Line 3</p>
+      <p>Line 4</p>
+      <p>Line 5</p>
+    </div>
+    <div class="dos-growbox">&#9698;</div>
+  </div>
+
+<script src="app.js"></script>
+</body>
+</html>

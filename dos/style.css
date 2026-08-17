@@ -1,0 +1,64 @@
+/* retr-oq dos theme, built on the real vendored framework
+   (vendor/dos/css/bootstrap.min.css, from kristopolous/BOOTSTRA.386 v4.4.1
+   -- a DOS-EGA reskin of Bootstrap 4, real Px437 IBM EGA8 font included).
+   The framework already provides the DOS blue body background, the
+   .card/.card-header window-and-titlebar shape, and .close -- this file's
+   job is the same one mac1984/style.css has for @sakun/system.css: make
+   .card float as a fixed-size desktop object instead of an inline block,
+   and add what the framework doesn't cover (dragging, resizing, focus).
+
+   Unlike mac1984 (smooth pixel dragging -- a GUI convention), windows here
+   move and resize in whole character-cell steps only, matching the
+   framework's own 14px text-mode line-height. Text mode had no sub-cell
+   positions to move to. */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* the desktop never scrolls -- only windows do */
+  overscroll-behavior: none;
+}
+
+.dos-window {
+  position: absolute;
+  z-index: 10;
+  min-width: 20em;
+  min-height: 6em;
+}
+.dos-window.closed {
+  display: none;
+}
+.dos-window.active {
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.card-header {
+  cursor: default;
+  touch-action: none; /* reliable title-bar dragging on touch, same reasoning as mac1984 */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* The framework has no resize handle (Bootstrap cards are sized by CSS,
+   not user-resizable) -- this is this theme's own addition, same gap
+   mac1984's growbox fills for system.css. */
+.dos-growbox {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 1em;
+  height: 1em;
+  cursor: nwse-resize;
+  touch-action: none;
+  color: #fff;
+  line-height: 1;
+  font-weight: bold;
+  user-select: none;
+}

@@ -64,12 +64,22 @@ looks like today.
 
 ## Prospective themes
 
-Shipped so far: **1984 Mac** (`mac1984/`, above). The rest of the original
-list, roughly in the order they'd be worth doing — each needs its own
-adapter work (the framework's class names/markup shape almost never match
-what a page's real markup uses, `mac1984/` is the template for that), and
-a license/bundle-size check at vendoring time since none of these have
-been vendored yet:
+Shipped so far: **1984 Mac** (`mac1984/`) and **DOS** (`dos/`), both above.
+DOS is built on the real `kristopolous/BOOTSTRA.386` v4.4.1 (Apache 2.0,
+cloned from source — the only npm distribution of it is an unofficial
+third-party mirror, not something to vendor sight-unseen), which ships a
+genuine DOS-EGA reskin of Bootstrap 4 plus the real Px437 IBM EGA8 font,
+not a hand-rolled approximation. Unlike `mac1984/`'s smooth pixel dragging
+(a GUI convention), `dos/` windows move and resize in whole character-cell
+steps only — text mode never had anything in between, so free pixel
+dragging on top of a text-mode skin would be a lie, not a period-accurate
+feel.
+
+The rest of the original list, roughly in the order they'd be worth doing
+— each needs its own adapter work (the framework's class names/markup
+shape almost never match what a page's real markup uses, `mac1984/` and
+`dos/` are the templates for that), and a license/bundle-size check at
+vendoring time since none of these have been vendored yet:
 
 | Theme | Framework | License (unverified until vendored) |
 | --- | --- | --- |
@@ -80,7 +90,6 @@ been vendored yet:
 | Windows 7 *(bonus, same family as 98.css/XP.css)* | [`7.css`](https://github.com/khang-nd/7.css) | MIT |
 | Modern macOS | [`Puppertino`](https://github.com/brayanjeshua/Puppertino) | check upstream |
 | Commodore 64 | [`bootstrap-c64`](https://github.com/JalaiAmitahl/bootstrap-c64) | check upstream |
-| DOS | [`Bootstra.386`](https://github.com/kristopolous/BOOTSTRA.386) | check upstream |
 | Norton Commander | *no drop-in CSS framework found* — closest is [`victorantos/NC`](https://github.com/victorantos/NC), a full JS file-manager clone, not a CSS library. Would likely need to be hand-built from the 8x16 DOS box-drawing look, closer to how `mac1984/`'s desktop icons/menu bar were added on top of `@sakun/system.css`. |
 | Windows 3.1 | *no drop-in CSS framework found* — closest is [`karol-kiersnowski/win31`](https://github.com/karol-kiersnowski/win31), a full simulator, not a CSS library. Same situation as Norton Commander. |
 
