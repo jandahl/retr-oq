@@ -143,6 +143,14 @@ html, body {
 .dos-app-body .form-control {
   max-width: 40em;
 }
+.dos-app-status {
+  margin: 0.5em 0;
+}
+.dos-app-attribution {
+  margin: 1em 0 0;
+  font-size: 0.8em;
+  color: #7777aa; /* dim relative to the EGA grey body text, still legible on DOS blue */
+}
 /* A real <button>, not just a label -- Esc has no equivalent on a touch
    device, so this was previously the only way to exit DICT.EXE, and there
    was no way to tap it either since it was a plain div. Tapping it now

@@ -162,17 +162,78 @@
   // see the comment at the top of style.css for why. No font/cell
   // measurement needed here, so this doesn't wait on document.fonts.ready
   // like the window machinery above does.
+  //
+  // Data is the real Oqaasileriffik 2018 Chicago Kalaallisut-English
+  // dictionary (CC-BY-SA 4.0, attribution in index.html), fetched live from
+  // the same published JSON jandahl/oq itself fetches -- not oq's
+  // docs/public-api.js, which is an explicitly-unstable v0.x surface
+  // ("any commit may rename, reshape, or drop any export" per its own
+  // docs), not worth coupling a gag prototype to just for a filtered list.
+  // See docs/public-api.md / docs/SOURCES.md in jandahl/oq for both calls.
+  const DICT_SOURCE_URL = "https://jandahl.github.io/Oqaasileriffik-dicts/all_entries.json";
+  const MAX_RESULTS = 200; // 17,000+ entries -- never render all of them into the DOM at once
+
   const dirScreen = document.getElementById("dos-dir");
   const dictApp = document.getElementById("dict-app");
   const dictFilter = document.getElementById("dict-filter");
-  const dictRows = Array.from(document.querySelectorAll("#dict-table tbody tr"));
+  const dictStatus = document.getElementById("dict-status");
+  const dictTbody = document.getElementById("dict-tbody");
+
+  let dictEntries = null; // null until loaded; [] on a load that failed
+
+  async function loadDictData() {
+    if (dictEntries !== null) return; // already loaded (or already failed -- retry happens via re-launch)
+    dictStatus.textContent = "Loading DICT.DAT...";
+    try {
+      const res = await fetch(DICT_SOURCE_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      dictEntries = data.dictionary_entries.filter((e) => e.lexeme && e.gloss_en);
+      renderResults();
+    } catch (err) {
+      dictEntries = null; // stays retryable on next launch, not permanently failed
+      dictStatus.textContent = `Could not load DICT.DAT (${err.message}). Exit and relaunch to retry.`;
+    }
+  }
+
+  function renderResults() {
+    dictTbody.textContent = "";
+    if (dictEntries === null) return; // still loading or failed -- dictStatus already says so
+
+    const query = dictFilter.value.trim().toLowerCase();
+    if (query === "") {
+      dictStatus.textContent = `${dictEntries.length.toLocaleString()} entries loaded -- type to filter.`;
+      return;
+    }
+
+    const matches = dictEntries.filter(
+      (e) => e.lexeme.toLowerCase().includes(query) || e.gloss_en.toLowerCase().includes(query),
+    );
+    const shown = matches.slice(0, MAX_RESULTS);
+    for (const entry of shown) {
+      const row = document.createElement("tr");
+      const lexemeCell = document.createElement("td");
+      lexemeCell.textContent = entry.lexeme;
+      const glossCell = document.createElement("td");
+      glossCell.textContent = entry.gloss_en;
+      row.append(lexemeCell, glossCell);
+      dictTbody.appendChild(row);
+    }
+    dictStatus.textContent =
+      matches.length === 0
+        ? "No matches."
+        : matches.length > MAX_RESULTS
+          ? `Showing first ${MAX_RESULTS} of ${matches.length.toLocaleString()} matches.`
+          : `${matches.length.toLocaleString()} match${matches.length === 1 ? "" : "es"}.`;
+  }
 
   function launchDict() {
     dirScreen.hidden = true;
     dictApp.hidden = false;
     dictFilter.value = "";
-    for (const row of dictRows) row.hidden = false;
+    dictTbody.textContent = "";
     dictFilter.focus();
+    loadDictData();
   }
 
   function exitDict() {
@@ -182,14 +243,7 @@
 
   document.getElementById("launch-dict").addEventListener("click", launchDict);
   document.getElementById("dict-exit").addEventListener("click", exitDict);
-
-  dictFilter.addEventListener("input", () => {
-    const query = dictFilter.value.trim().toLowerCase();
-    for (const row of dictRows) {
-      const text = row.textContent.toLowerCase();
-      row.hidden = query !== "" && !text.includes(query);
-    }
-  });
+  dictFilter.addEventListener("input", renderResults);
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dictApp.hidden) exitDict();

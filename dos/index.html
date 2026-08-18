@@ -13,7 +13,7 @@
      the last deploy: markup referencing classes/behavior a cached
      stylesheet/script didn't have yet. Bump the number whenever either
      file actually changes. -->
-<link rel="stylesheet" href="style.css?v=2" />
+<link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <!-- DOS was single-tasking: no desktop, no icons, a program took the
@@ -43,28 +43,20 @@ B:\OQ&gt;<span class="dos-cursor">_</span></div>
     <div class="dos-app-header">B:\OQ\DICT.EXE</div>
     <div class="dos-app-body">
       <input type="text" class="form-control" id="dict-filter" placeholder="Filter..." autocomplete="off" />
+      <p class="dos-app-status" id="dict-status"></p>
       <table class="table" id="dict-table">
         <thead>
           <tr><th>Lexeme</th><th>Translation</th></tr>
         </thead>
-        <tbody>
-          <tr><td>aluu</td><td>hello</td></tr>
-          <tr><td>qujanaq</td><td>thank you</td></tr>
-          <tr><td>illu</td><td>house</td></tr>
-          <tr><td>qimmeq</td><td>dog</td></tr>
-          <tr><td>puisi</td><td>seal</td></tr>
-          <tr><td>nanoq</td><td>polar bear</td></tr>
-          <tr><td>qajaq</td><td>kayak</td></tr>
-          <tr><td>umiaq</td><td>boat (open, large)</td></tr>
-          <tr><td>nuna</td><td>land, country</td></tr>
-          <tr><td>imeq</td><td>water</td></tr>
-          <tr><td>inuk</td><td>person, human being</td></tr>
-        </tbody>
+        <tbody id="dict-tbody"></tbody>
       </table>
+      <!-- CC-BY-SA 4.0 requires this exact attribution wherever the data
+           is shown -- see docs/SOURCES.md in jandahl/oq. -->
+      <p class="dos-app-attribution">Oqaasileriffik (Greenlandic Language Secretariat), 2018 Chicago Kalaallisut&ndash;English Dictionary, CC-BY-SA 4.0</p>
     </div>
     <button type="button" class="dos-app-footer" id="dict-exit">Esc=Exit to B:\OQ&gt;</button>
   </div>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
