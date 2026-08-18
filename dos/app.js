@@ -181,6 +181,7 @@
   }
 
   document.getElementById("launch-dict").addEventListener("click", launchDict);
+  document.getElementById("dict-exit").addEventListener("click", exitDict);
 
   dictFilter.addEventListener("input", () => {
     const query = dictFilter.value.trim().toLowerCase();
