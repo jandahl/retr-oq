@@ -57,7 +57,7 @@
     mergeMorphemeSources,
     glossSummaryItems,
     findExactDictMatch,
-    buildWord,
+    computeMorphemeBreakdownRows,
     GRAMMAR_MORPHEMES_URL,
     SCHEMA_MAJOR_VERSION,
   } = api;
@@ -75,14 +75,6 @@
   // needing to remember to sanitize it.
   function toDosPunctuation(text) {
     return text.replace(/[–—]/g, "-").replace(/…/g, "...");
-  }
-
-  /** @returns {number} length of the longest common prefix of `a` and `b` */
-  function commonPrefixLen(a, b) {
-    const max = Math.min(a.length, b.length);
-    let i = 0;
-    while (i < max && a[i] === b[i]) i++;
-    return i;
   }
 
   // Grammarian only, not katersat too -- oq's own Deconstruct view merges
@@ -176,35 +168,11 @@
         // the last one with a real composed sense.
         const meaningItem = [...items].reverse().find((item) => item.gloss && !item.gloss.includes("___")) ?? items[items.length - 1];
 
-        // Column-aligned padding, the same idea as oq's own bullet-padded
-        // breakdown table (docs/morpheme-breakdown.js's
-        // appendPaddedSpelling()): each row's spelling is padded so it
-        // lines up under the actual position it occupies in the finished
-        // word, instead of every row just starting at the left margin. oq
-        // computes this by replaying the real build pipeline step by step
-        // and diffing consecutive surfaces (collectStepWords() +
-        // diffStepBoundary()) -- that internal machinery isn't on the
-        // public surface, but the same replay is doable with the public
-        // buildWord() alone: build the word after each successive prefix
-        // of the sequence, and the longest common prefix between one
-        // step's word and the next is exactly where this step's own
-        // contribution starts.
-        //
-        // Simplification, not full parity: real oq also diffs a common
-        // SUFFIX to precisely isolate truncated/reshaped letters when
-        // allomorphy changes an earlier boundary's spelling, with
-        // per-letter truncation coloring on top. This only diffs the
-        // common prefix and pads the rest of this row to the marker+text
-        // spelling's own length -- correct for the common case
-        // (concatenative, non-truncating joins, which is most of them),
-        // approximate when a later join truncates letters this row
-        // already claimed. Good enough for a column-aligned display;
-        // exact parity would need oq's own step-diffing exposed too.
-        let stepWord = "";
-        const stepWords = m.seq.map((item, i) => {
-          stepWord = buildWord(m.seq.slice(0, i + 1)).word;
-          return stepWord;
-        });
+        // Column-aligned padding via oq's own real algorithm (jandahl/oq#831),
+        // not the from-scratch prefix-diff approximation this file used to
+        // have, which was off by one/two columns in cases oq's own real
+        // step-replay logic already handled correctly.
+        const rows = computeMorphemeBreakdownRows(items, m.word, m.seq);
 
         return {
           word: m.word,
@@ -221,22 +189,14 @@
           // composed misrepresents that. Only the whole-word `meaning`
           // above should be filled in.
           //
-          // marker === "Ø" (not a string match against the joined line
-          // like the old glossSummary()-based version needed) -- a Ø
-          // (zero-morpheme) item's text is always empty
-          // (morpheme-meta.js: `marker = isRoot ? "" : !text ? "Ø" : ...`),
-          // filtered out for the same reason oq's own
-          // renderMorphemeBreakdown() drops these: a null ending carries
-          // no real bound-morpheme content of its own to show a row for.
-          breakdown: items
-            .map((item, i) => {
-              const spelling = `${item.marker}${item.text}`;
-              const before = i === 0 ? "" : stepWords[i - 1];
-              const leftPad = commonPrefixLen(before, stepWords[i]);
-              const rightPad = Math.max(0, m.word.length - leftPad - spelling.length);
-              return { marker: item.marker, text: item.text, gloss: toDosPunctuation(item.rawShortGloss), leftPad, rightPad };
-            })
-            .filter((_, i) => items[i].marker !== "Ø"),
+          // rows already drops Ø items itself (computeMorphemeBreakdownRows()).
+          breakdown: rows.map((row) => ({
+            marker: row.marker,
+            text: row.normalText + row.truncatedText,
+            gloss: toDosPunctuation(row.item.rawShortGloss),
+            leftPad: row.leftPad,
+            rightPad: row.rightPad,
+          })),
         };
       }),
       // .expected/.gloss_en specifically, not the whole object -- dictMatch
