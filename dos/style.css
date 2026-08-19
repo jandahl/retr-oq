@@ -220,6 +220,16 @@ html, body {
 .dos-app-toolbar .form-control {
   max-width: 40em;
 }
+/* DECON.EXE's own "Root first" toggle -- plain checkbox + label, no custom
+   chrome beyond what the framework already gives form controls elsewhere
+   in this theme. */
+.decon-order-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5ch;
+  margin: 0.5em 0 0;
+  cursor: pointer;
+}
 .dos-app-status {
   margin: 0.5em 0;
 }
