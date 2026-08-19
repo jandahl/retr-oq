@@ -1,6 +1,13 @@
 (() => {
   "use strict";
 
+  // Plain classic script, not type="module" -- these theme pages are meant
+  // to be opened straight off disk (README: "Open mac1984/index.html
+  // directly, no build step"), and file:// always fails a module's
+  // CORS-restricted fetch. shared/dict-source.js is a classic script too,
+  // loaded before this one in index.html, exposing window.OqDictSource.
+  const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
+
   // Measures the actual rendered size of one character cell in the DOS
   // font, so dragging/resizing can snap to real character-grid steps
   // instead of hardcoding pixel values that would drift if the font or
@@ -161,17 +168,72 @@
   // DICT.EXE: a full-screen takeover of the dir listing, not a window --
   // see the comment at the top of style.css for why. No font/cell
   // measurement needed here, so this doesn't wait on document.fonts.ready
-  // like the window machinery above does.
+  // like the window machinery above does. Fetch/cache/filter logic lives
+  // in shared/dict-source.js so any other theme can reuse it -- everything
+  // here is just DOS-flavored rendering on top of that.
+  const DEFAULT_ROWS = 50; // shown before any filtering -- a browsable sample, not a blank table
+  const MAX_FILTERED_ROWS = 200; // 17,000+ entries -- never render a full match set into the DOM
+
+  document.getElementById("dict-attribution").textContent = DICT_ATTRIBUTION;
+
   const dirScreen = document.getElementById("dos-dir");
   const dictApp = document.getElementById("dict-app");
   const dictFilter = document.getElementById("dict-filter");
-  const dictRows = Array.from(document.querySelectorAll("#dict-table tbody tr"));
+  const dictStatus = document.getElementById("dict-status");
+  const dictTbody = document.getElementById("dict-tbody");
 
-  function launchDict() {
+  let dictEntries = null; // null until a load succeeds
+
+  function renderRows(rows) {
+    dictTbody.textContent = "";
+    for (const entry of rows) {
+      const row = document.createElement("tr");
+      const lexemeCell = document.createElement("td");
+      lexemeCell.textContent = entry.lexeme;
+      const glossCell = document.createElement("td");
+      glossCell.textContent = entry.gloss_en;
+      row.append(lexemeCell, glossCell);
+      dictTbody.appendChild(row);
+    }
+  }
+
+  function renderResults() {
+    if (dictEntries === null) return; // still loading or failed -- dictStatus already says so
+
+    const query = dictFilter.value.trim();
+    if (query === "") {
+      renderRows(dictEntries.slice(0, DEFAULT_ROWS));
+      dictStatus.textContent = `${dictEntries.length.toLocaleString()} entries loaded -- showing first ${DEFAULT_ROWS}, type to filter.`;
+      return;
+    }
+
+    const matches = filterDictEntries(dictEntries, query);
+    renderRows(matches.slice(0, MAX_FILTERED_ROWS));
+    dictStatus.textContent =
+      matches.length === 0
+        ? "No matches."
+        : matches.length > MAX_FILTERED_ROWS
+          ? `Showing first ${MAX_FILTERED_ROWS} of ${matches.length.toLocaleString()} matches.`
+          : `${matches.length.toLocaleString()} match${matches.length === 1 ? "" : "es"}.`;
+  }
+
+  async function launchDict() {
     dirScreen.hidden = true;
     dictApp.hidden = false;
     dictFilter.value = "";
-    for (const row of dictRows) row.hidden = false;
+    dictTbody.textContent = "";
+
+    if (dictEntries === null) {
+      dictStatus.textContent = "Loading DICT.DAT...";
+      try {
+        dictEntries = await loadDictEntries();
+      } catch (err) {
+        dictStatus.textContent = `Could not load DICT.DAT (${err.message}). Exit and relaunch to retry.`;
+        dictFilter.focus();
+        return;
+      }
+    }
+    renderResults();
     dictFilter.focus();
   }
 
@@ -181,14 +243,8 @@
   }
 
   document.getElementById("launch-dict").addEventListener("click", launchDict);
-
-  dictFilter.addEventListener("input", () => {
-    const query = dictFilter.value.trim().toLowerCase();
-    for (const row of dictRows) {
-      const text = row.textContent.toLowerCase();
-      row.hidden = query !== "" && !text.includes(query);
-    }
-  });
+  document.getElementById("dict-exit").addEventListener("click", exitDict);
+  dictFilter.addEventListener("input", renderResults);
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dictApp.hidden) exitDict();
