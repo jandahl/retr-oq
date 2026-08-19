@@ -1,13 +1,18 @@
-// type="module" in index.html -- gives this its own top-level scope (no
-// IIFE wrapper needed) and strict mode automatically, and lets it import
-// the shared dictionary plumbing below.
-import { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } from "../shared/dict-source.js?v=1";
+(() => {
+  "use strict";
 
-// Measures the actual rendered size of one character cell in the DOS
-// font, so dragging/resizing can snap to real character-grid steps
-// instead of hardcoding pixel values that would drift if the font or
-// font-size ever changes.
-function measureCell() {
+  // Plain classic script, not type="module" -- these theme pages are meant
+  // to be opened straight off disk (README: "Open mac1984/index.html
+  // directly, no build step"), and file:// always fails a module's
+  // CORS-restricted fetch. shared/dict-source.js is a classic script too,
+  // loaded before this one in index.html, exposing window.OqDictSource.
+  const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
+
+  // Measures the actual rendered size of one character cell in the DOS
+  // font, so dragging/resizing can snap to real character-grid steps
+  // instead of hardcoding pixel values that would drift if the font or
+  // font-size ever changes.
+  function measureCell() {
     const probe = document.createElement("span");
     probe.style.position = "absolute";
     probe.style.visibility = "hidden";
@@ -244,3 +249,4 @@ function measureCell() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dictApp.hidden) exitDict();
   });
+})();
