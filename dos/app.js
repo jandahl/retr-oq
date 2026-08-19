@@ -255,14 +255,52 @@
     dirScreen.hidden = false;
   }
 
-  // Not addEventListener("click", launchDict) directly -- that would pass
-  // the click's PointerEvent as launchDict's initialFilter argument.
-  document.getElementById("launch-dict").addEventListener("click", () => launchDict());
-  document.getElementById("dict-exit").addEventListener("click", exitDict);
-  dictFilter.addEventListener("input", renderResults);
+  // window.OqRouter (shared/router.js) is the single source of truth for
+  // "which screen is open" -- launchDict()/exitDict() above stay plain UI
+  // functions with no URL knowledge of their own; every user-facing trigger
+  // (click, Esc, the DICT command below) goes through navigate() instead of
+  // calling them directly, and onChange's callback is what actually calls
+  // them. That makes a shared link (?screen=dict&filter=word) and the
+  // back/forward buttons drive exactly the same code path a click does,
+  // instead of being a separate boot-time special case that can drift out
+  // of sync with it.
+  window.OqRouter.onChange((params) => {
+    if (params.get("screen") === "dict") {
+      if (dictApp.hidden) {
+        launchDict(params.get("filter") || "");
+      } else if (dictFilter.value !== (params.get("filter") || "")) {
+        // Only reached via back/forward, not by this page's own typing --
+        // the input handler below updates the URL from dictFilter.value,
+        // so it can never disagree with what it just set.
+        dictFilter.value = params.get("filter") || "";
+        renderResults();
+      }
+    } else if (!dictApp.hidden) {
+      exitDict();
+    }
+  });
+
+  // Not addEventListener("click", () => navigate(...)) directly -- that
+  // would pass the click's PointerEvent through, same trap as launchDict
+  // used to have before the router owned this.
+  document.getElementById("launch-dict").addEventListener("click", () => {
+    window.OqRouter.navigate({ screen: "dict", filter: null });
+  });
+  document.getElementById("dict-exit").addEventListener("click", () => {
+    window.OqRouter.navigate({ screen: null, filter: null });
+  });
+  dictFilter.addEventListener("input", () => {
+    renderResults();
+    // replace: true -- every keystroke reshaping the same search shouldn't
+    // each get their own back-button stop, only the act of opening DICT.EXE
+    // and its final filter state should.
+    window.OqRouter.navigate({ filter: dictFilter.value || null }, { replace: true });
+  });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !dictApp.hidden) exitDict();
+    if (event.key === "Escape" && !dictApp.hidden) {
+      window.OqRouter.navigate({ screen: null, filter: null });
+    }
   });
 
   // Command line: DOS programs took switches ("/?", "/F:word"), not clicks
@@ -330,11 +368,11 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
       if (helpFlag) {
         printLine(DICT_HELP);
       } else if (filterArg) {
-        launchDict(filterArg.slice(3));
+        window.OqRouter.navigate({ screen: "dict", filter: filterArg.slice(3) || null });
       } else if (args.length > 0) {
         printLine(`Invalid switch - ${args[0]}`);
       } else {
-        launchDict();
+        window.OqRouter.navigate({ screen: "dict", filter: null });
       }
     } else if (cmd === "BUILD" || cmd === "BUILD.EXE" || cmd === "DECON" || cmd === "DECON.EXE") {
       printLine(`${cmd.replace(/\.EXE$/, "")}.EXE: not yet implemented`);
@@ -404,10 +442,28 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
   // CSS custom property lets both containers track it instead of the
   // layout viewport. Falls back to the static 100vh in style.css on
   // browsers without visualViewport support.
+  //
+  // window.innerHeight - visualViewport.height is NOT purely "keyboard
+  // height" -- on mobile Chrome in particular, visualViewport.height is
+  // routinely a bit shorter than innerHeight just from the browser's own
+  // address bar, with no keyboard involved at all. Applying that gap
+  // unconditionally is what caused the viewport to look "perpetually
+  // shrunk as if the keyboard were up": it always was, by a few dozen
+  // pixels, even at rest. Only treat the gap as a keyboard once it clears
+  // a threshold no mere browser-chrome jitter reaches, and otherwise clear
+  // the property entirely so CSS's own 100vh takes back over -- that's
+  // also what makes it snap back to full height once the keyboard actually
+  // closes, instead of settling on whatever the last "small" gap was.
+  const KEYBOARD_THRESHOLD_PX = 150;
   function syncAppHeight() {
     const vv = window.visualViewport;
-    const height = vv ? vv.height : window.innerHeight;
-    document.documentElement.style.setProperty("--app-height", `${height}px`);
+    if (!vv) return;
+    const gap = window.innerHeight - vv.height;
+    if (gap > KEYBOARD_THRESHOLD_PX) {
+      document.documentElement.style.setProperty("--app-height", `${vv.height}px`);
+    } else {
+      document.documentElement.style.removeProperty("--app-height");
+    }
   }
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", syncAppHeight);
