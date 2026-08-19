@@ -25,6 +25,18 @@ html, body {
   height: 100%;
   overflow: hidden; /* the desktop never scrolls -- only windows do */
   overscroll-behavior: none;
+  /* overflow:hidden alone doesn't actually stop the page from scrolling on
+     mobile: focusing #dos-cmd/#dict-filter (both inside their own
+     overflow:auto container already) makes iOS Safari in particular also
+     scroll the outer DOCUMENT to bring the focused input into view,
+     regardless of overflow:hidden here -- that's the "page scroll AND
+     viewport scroll, when those should be one and the same" the two-layer
+     scroll feel comes from. position:fixed removes the page from normal
+     flow entirely, so there's no document scroll position left for the
+     browser to shift in the first place; only .dos-dir/.dos-app's own
+     overflow:auto (a real, intentional, single scroll container) remains. */
+  position: fixed;
+  width: 100%;
   /* The framework's own body background is DOS-blue (#000084) -- right for
      DICT.EXE below (see .dos-app), wrong as the page's actual base color.
      Normally invisible either way, since .dos-dir/.dos-app are fixed and
