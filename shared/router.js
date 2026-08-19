@@ -58,7 +58,12 @@
       // change event below still fires, so in-page state stays consistent
       // even if the address bar itself can't be updated.
     }
-    window.dispatchEvent(new CustomEvent("oq-route-change", { detail: { params: getParams() } }));
+    // The already-merged `params`, not a fresh getParams() -- if
+    // pushState/replaceState above threw (sandboxed iframe, etc.),
+    // location.search never actually changed, and a fresh read would hand
+    // listeners the stale pre-update params instead of the ones this call
+    // was actually asked to apply.
+    window.dispatchEvent(new CustomEvent("oq-route-change", { detail: { params } }));
   }
 
   /**
