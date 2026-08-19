@@ -7,6 +7,7 @@
   // CORS-restricted fetch. shared/dict-source.js is a classic script too,
   // loaded before this one in index.html, exposing window.OqDictSource.
   const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
+  const { syllabify } = window.OqHyphenation;
 
   // Measures the actual rendered size of one character cell in the DOS
   // font, so dragging/resizing can snap to real character-grid steps
@@ -189,7 +190,15 @@
     for (const entry of rows) {
       const row = document.createElement("tr");
       const lexemeCell = document.createElement("td");
-      lexemeCell.textContent = entry.lexeme;
+      // syllabify() inserts soft hyphens at real Kalaallisut syllable
+      // boundaries (Oqaasileriffik's own rules) -- a long lexeme wraps at
+      // a linguistically correct point this way instead of wherever
+      // overflow-wrap:anywhere happens to run out of column width (see
+      // style.css's #dict-table td rule, still in place as a fallback for
+      // the rare segment that's still too wide even between two
+      // syllables). Only the lexeme, not the English gloss -- these rules
+      // are specific to Kalaallisut phonology, not applicable to English.
+      lexemeCell.textContent = syllabify(entry.lexeme);
       const glossCell = document.createElement("td");
       glossCell.textContent = entry.gloss_en;
       row.append(lexemeCell, glossCell);

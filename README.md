@@ -110,3 +110,11 @@ MIT (`LICENSE`) for this repo's own code. Each `vendor/<theme>/` carries
 its own license file from its actual upstream project (third-party code,
 kept separate on purpose) — `vendor/mac1984/LICENSE.txt` is
 `@sakun/system.css`'s own MIT license, copied verbatim.
+
+`shared/hyphenation.js` is the one file in this repo under a different
+license than the rest of its own code: MPL-2.0, not MIT. It's a
+classic-script port of `jandahl/oq`'s `docs/hyphenation.js` (Kalaallisut
+syllabification rules from Oqaasileriffik) — a Modification of MPL-2.0
+Covered Software carries the same license as the original. An unmodified
+copy of the upstream file lives at `vendor/oq-hyphenation/hyphenation.js`
+alongside its own `LICENSE.txt` for provenance.
