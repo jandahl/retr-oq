@@ -449,40 +449,36 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
   // being typed into) ends up hidden underneath the keyboard. window.
   // visualViewport reports the actual visible height; syncing that into a
   // CSS custom property lets both containers track it instead of the
-  // layout viewport. Falls back to the static 100vh in style.css on
-  // browsers without visualViewport support.
+  // layout viewport. Falls back to the static 100vh in style.css only
+  // before this first runs, or on browsers without visualViewport support.
   //
-  // window.innerHeight - visualViewport.height is NOT purely "keyboard
-  // height" -- on mobile Chrome in particular, visualViewport.height is
-  // routinely a bit shorter than innerHeight just from the browser's own
-  // address bar, with no keyboard involved at all. Applying that gap
-  // unconditionally is what caused the viewport to look "perpetually
-  // shrunk as if the keyboard were up": it always was, by a few dozen
-  // pixels, even at rest. Only treat the gap as a keyboard once it clears
-  // a threshold no mere browser-chrome jitter reaches, and otherwise clear
-  // the property entirely so CSS's own 100vh takes back over -- that's
-  // also what makes it snap back to full height once the keyboard actually
-  // closes, instead of settling on whatever the last "small" gap was.
-  const KEYBOARD_THRESHOLD_PX = 150;
+  // Always applied, unconditionally -- an earlier version only synced past
+  // a keyboard-sized threshold and cleared the property below it, falling
+  // back to plain 100vh for "no keyboard." That was wrong on its own
+  // terms: 100vh is the LAYOUT viewport's height, which on mobile routinely
+  // overcounts the true visible area (browser chrome -- address bar, tab
+  // strip -- covers part of it even with no keyboard up), and now that
+  // html/body are position:fixed with no scroll fallback of their own (see
+  // that rule's own comment), there's no way to reach whatever 100vh
+  // overcounted by -- which is exactly what made the footer disappear with
+  // the keyboard NOT present at all. visualViewport.height is already the
+  // true visible height regardless of *why* it's short of the layout
+  // viewport (keyboard, browser chrome, or both), so there's no threshold
+  // to get right here -- just always use it.
   function syncAppHeight() {
     const vv = window.visualViewport;
     if (!vv) return;
-    const gap = window.innerHeight - vv.height;
-    if (gap > KEYBOARD_THRESHOLD_PX) {
-      document.documentElement.style.setProperty("--app-height", `${vv.height}px`);
-      // Keyboard-open also has mobile Safari scroll the visual viewport
-      // down within the (unchanged) layout viewport to keep the focused
-      // input visible -- position:fixed follows the layout viewport, not
-      // the visual one, so without this offset the box's top ends up above
-      // the actually-visible area (forcing an internal scroll to reach
-      // content that never moved) and its bottom falls short of the real
-      // visible bottom by the same amount (a gap above the keyboard). See
-      // .dos-dir's own comment in style.css for the full picture.
-      document.documentElement.style.setProperty("--app-top", `${vv.offsetTop}px`);
-    } else {
-      document.documentElement.style.removeProperty("--app-height");
-      document.documentElement.style.removeProperty("--app-top");
-    }
+    document.documentElement.style.setProperty("--app-height", `${vv.height}px`);
+    // Mobile Safari also scrolls the visual viewport down within the
+    // (unchanged) layout viewport to keep a focused input in view --
+    // position:fixed follows the layout viewport, not the visual one, so
+    // without this offset the box's top ends up above the actually-visible
+    // area (forcing an internal scroll to reach content that never moved)
+    // and its bottom falls short of the real visible bottom by the same
+    // amount (a gap above the keyboard). See .dos-dir's own comment in
+    // style.css for the full picture. offsetTop is 0 at rest, so this is
+    // a no-op outside of that scroll.
+    document.documentElement.style.setProperty("--app-top", `${vv.offsetTop}px`);
   }
   if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", syncAppHeight);
