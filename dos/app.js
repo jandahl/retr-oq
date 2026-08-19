@@ -273,6 +273,39 @@
   /F:word   Launch straight into results filtered to "word"
   /?        Display this help`;
 
+  // DIR reprints the same listing the screen opened with -- a real DOS DIR
+  // is idempotent, running it again just redraws the same directory.
+  const DIR_LISTING = ` Volume in drive A is OQ
+ Directory of A:\\OQ
+
+DICT     EXE        41,472  03-14-89   2:15p
+BUILD    EXE        38,912  03-14-89   2:15p
+DECON    EXE        35,328  03-14-89   2:15p
+        3 File(s)      115,712 bytes
+                     1,458,176 bytes free`;
+
+  // The real MS-DOS command was VER (built into COMMAND.COM, not a
+  // standalone .EXE) -- VERSION.EXE was never a thing.
+  const VER_TEXT = "MS-DOS Version 5.00";
+
+  // FORMAT's classic scary confirmation prompt, kept harmless on purpose --
+  // there's no actual drive here to format, so it always "cancels" instead
+  // of pretending to do anything destructive.
+  const FORMAT_WARNING = `WARNING, ALL DATA ON NON-REMOVABLE DISK
+DRIVE A: WILL BE LOST!
+Proceed with Format (Y/N)?N
+Format terminated`;
+
+  // DOOM.EXE isn't in the DIR listing above (BUILD.EXE/DECON.EXE are the
+  // only "real" programs the directory admits to) -- typing it anyway is
+  // the whole joke, same as it always was on a real DOS box. It needed
+  // DOS/4GW's 32-bit protected-mode extender to run at all, which refused
+  // outright on anything below a 386.
+  const DOOM_ERROR = `DOS/4GW Protected Mode Run-time  Version 1.97
+Copyright (c) Rational Systems, Inc. 1990-1993
+
+DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
+
   const dosOutput = document.getElementById("dos-output");
   const dosCmd = document.getElementById("dos-cmd");
 
@@ -305,6 +338,16 @@
       }
     } else if (cmd === "BUILD" || cmd === "BUILD.EXE" || cmd === "DECON" || cmd === "DECON.EXE") {
       printLine(`${cmd.replace(/\.EXE$/, "")}.EXE: not yet implemented`);
+    } else if (cmd === "DIR" || cmd === "DIR.EXE") {
+      printLine(DIR_LISTING);
+    } else if (cmd === "VER" || cmd === "VER.EXE") {
+      printLine(VER_TEXT);
+    } else if (cmd === "DOSKEY" || cmd === "DOSKEY.EXE") {
+      printLine("DOSKEY installed.");
+    } else if (cmd === "FORMAT" || cmd === "FORMAT.EXE") {
+      printLine(FORMAT_WARNING);
+    } else if (cmd === "DOOM" || cmd === "DOOM.EXE") {
+      printLine(DOOM_ERROR);
     } else {
       printLine("Bad command or file name");
     }
@@ -312,7 +355,7 @@
 
   dosCmd.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
-    printLine(`B:\\OQ>${dosCmd.value}`);
+    printLine(`A:\\OQ>${dosCmd.value}`);
     runCommand(dosCmd.value);
     dosCmd.value = "";
   });
@@ -351,4 +394,24 @@
   }
   stepScrollOnWheel(dirScreen);
   stepScrollOnWheel(document.querySelector(".dos-app-results"));
+
+  // Mobile on-screen keyboards shrink the *visual* viewport but not the
+  // *layout* viewport -- 100vh/inset:0 stay pinned to the full layout size,
+  // so a fixed-height full-screen container like .dos-dir/.dos-app doesn't
+  // shrink when the keyboard opens, and its bottom (here, the prompt line
+  // being typed into) ends up hidden underneath the keyboard. window.
+  // visualViewport reports the actual visible height; syncing that into a
+  // CSS custom property lets both containers track it instead of the
+  // layout viewport. Falls back to the static 100vh in style.css on
+  // browsers without visualViewport support.
+  function syncAppHeight() {
+    const vv = window.visualViewport;
+    const height = vv ? vv.height : window.innerHeight;
+    document.documentElement.style.setProperty("--app-height", `${height}px`);
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", syncAppHeight);
+    window.visualViewport.addEventListener("scroll", syncAppHeight);
+  }
+  syncAppHeight();
 })();
