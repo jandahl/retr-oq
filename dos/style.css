@@ -88,7 +88,15 @@ html, body {
    contents, not a panel sitting on top of a blue one. */
 .dos-dir {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* height, not inset:0's implicit bottom:0 -- app.js sets --app-height from
+     window.visualViewport so this shrinks above the on-screen mobile
+     keyboard instead of running the full layout-viewport height underneath
+     it, which is what let the prompt line disappear behind the keyboard.
+     100vh is only the pre-JS fallback. */
+  height: var(--app-height, 100vh);
   overflow: auto;
   padding: 1em;
   background: #000000;
@@ -132,7 +140,10 @@ html, body {
 
 .dos-app {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100vh); /* see .dos-dir's comment above */
   z-index: 100;
   display: flex;
   flex-direction: column;

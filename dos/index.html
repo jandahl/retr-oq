@@ -13,7 +13,7 @@
      the last deploy: markup referencing classes/behavior a cached
      stylesheet/script didn't have yet. Bump the number whenever either
      file actually changes. -->
-<link rel="stylesheet" href="style.css?v=5" />
+<link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <!-- DOS was single-tasking: no desktop, no icons, a program took the
@@ -23,10 +23,10 @@
        and DECON.EXE are listed (the directory doesn't lie) but plain text,
        not buttons -- there is nothing to launch yet. -->
   <div class="dos-dir" id="dos-dir">
-    <div id="dos-output">B:\OQ&gt;dir
+    <div id="dos-output">A:\OQ&gt;dir
 
- Volume in drive B is OQ
- Directory of B:\OQ
+ Volume in drive A is OQ
+ Directory of A:\OQ
 
 <button type="button" class="dos-link" id="launch-dict">DICT     EXE</button>        41,472  03-14-89   2:15p
 BUILD    EXE        38,912  03-14-89   2:15p
@@ -39,19 +39,19 @@ DECON    EXE        35,328  03-14-89   2:15p
          "DICT /?" for a usage screen or "DICT /F:word" to launch straight
          into a filtered view is the actual DOS way to pass a program
          options, and clicking a filename never was. -->
-    <div class="dos-prompt-line">B:\OQ&gt;<input type="text" id="dos-cmd" class="dos-cmd-input" autocomplete="off" autocapitalize="off" spellcheck="false" /></div>
+    <div class="dos-prompt-line">A:\OQ&gt;<input type="text" id="dos-cmd" class="dos-cmd-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" /></div>
   </div>
 
   <!-- DICT.EXE: a full-screen takeover, not a floating window -- same
        reasoning as dos-dir above. Esc returns to the dir listing, the same
        way exiting a real DOS program dropped you back at the prompt. -->
   <div class="dos-app" id="dict-app" hidden>
-    <div class="dos-app-header">B:\OQ\DICT.EXE</div>
+    <div class="dos-app-header">A:\OQ\DICT.EXE</div>
     <!-- Filter + status never scroll -- only the row results underneath
          do, same as a real full-screen text-mode app kept its own title/
          input/column-header chrome fixed and scrolled just the data. -->
     <div class="dos-app-toolbar">
-      <input type="text" class="form-control" id="dict-filter" placeholder="Filter..." autocomplete="off" />
+      <input type="text" class="form-control" id="dict-filter" placeholder="Filter..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
       <p class="dos-app-status" id="dict-status"></p>
     </div>
     <!-- The only scrolling region in DICT.EXE. <thead> stays inside it
@@ -74,11 +74,11 @@ DECON    EXE        35,328  03-14-89   2:15p
          .dos-app-results on purpose -- attribution shouldn't scroll away
          with the rows any more than the exit footer below it does. -->
     <p class="dos-app-attribution" id="dict-attribution"></p>
-    <button type="button" class="dos-app-footer" id="dict-exit">Esc=Exit to B:\OQ&gt;</button>
+    <button type="button" class="dos-app-footer" id="dict-exit">Esc=Exit to A:\OQ&gt;</button>
   </div>
 
 <script src="../shared/dict-source.js?v=1"></script>
 <script src="../shared/hyphenation.js?v=1"></script>
-<script src="app.js?v=9"></script>
+<script src="app.js?v=10"></script>
 </body>
 </html>
