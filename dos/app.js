@@ -256,17 +256,149 @@
     dirScreen.hidden = false;
   }
 
+  // DECON.EXE: the inverse of DICT.EXE -- given a whole surface word, finds
+  // what built it (jandahl/oq's real analysis engine, consumed "properly"
+  // via shared/oq-analysis.js's actual ES module import) instead of looking
+  // up a single headword's meaning. Mutually exclusive with DICT.EXE, same
+  // as DICT.EXE is with the dir screen -- DOS was single-tasking, only one
+  // program owns the whole screen at a time (see the HTML comment on
+  // #decon-app).
+  const deconApp = document.getElementById("decon-app");
+  const deconWord = document.getElementById("decon-word");
+  const deconStatus = document.getElementById("decon-status");
+  const deconResults = document.getElementById("decon-results");
+
+  // window.OqAnalysis is set by shared/oq-analysis.js, a type="module"
+  // script -- deferred by the platform until after this classic script's
+  // own top-level code has already run, so it can be missing at the exact
+  // moment a deep link (?screen=decon&word=...) fires OqRouter's onChange
+  // immediately on registration below. oq-analysis.js dispatches
+  // "oq-analysis-ready" on window right after setting the global, so this
+  // just waits for whichever already happened.
+  function waitForOqAnalysis() {
+    if (window.OqAnalysis) return Promise.resolve(window.OqAnalysis);
+    return new Promise((resolve) => {
+      window.addEventListener("oq-analysis-ready", () => resolve(window.OqAnalysis), { once: true });
+    });
+  }
+
+  function renderDeconResults({ matches, dictMatch }) {
+    deconResults.textContent = "";
+    for (const match of matches) {
+      const card = document.createElement("div");
+      card.className = "decon-card";
+
+      const header = document.createElement("div");
+      const tag = document.createElement("span");
+      tag.className = match.approximate ? "decon-tag decon-tag--approximate" : "decon-tag";
+      tag.textContent = match.approximate ? "[~ APPROXIMATE]" : "[EXACT REBUILD]";
+      const word = document.createElement("span");
+      word.className = "decon-word";
+      word.textContent = ` ${match.word}`;
+      header.append(tag, word);
+      card.appendChild(header);
+
+      // The last gloss line already reads as the whole word's composed
+      // meaning (oq's own chain-glossing threads the running stem through
+      // each step) -- promoted here as a headline, same as oq's own
+      // Deconstruct view does, in addition to (not instead of) its own
+      // line in the breakdown below.
+      if (match.glossLines.length) {
+        const meaning = document.createElement("div");
+        meaning.className = "decon-meaning";
+        meaning.textContent = match.glossLines[match.glossLines.length - 1];
+        card.appendChild(meaning);
+      }
+
+      const breakdown = document.createElement("div");
+      breakdown.className = "decon-breakdown";
+      for (const line of match.glossLines) {
+        const row = document.createElement("div");
+        row.textContent = line;
+        breakdown.appendChild(row);
+      }
+      card.appendChild(breakdown);
+
+      deconResults.appendChild(card);
+    }
+
+    if (dictMatch) {
+      const dictNote = document.createElement("p");
+      dictNote.className = "decon-dict-match";
+      // dictMatch is oq's own NormalizedEntry shape (findExactDictMatch,
+      // via oq's DICT_SOURCES) -- its headword field is "expected", not
+      // "lexeme" like shared/dict-source.js's raw-JSON entries used by
+      // DICT.EXE elsewhere in this file. Different data path, different
+      // field name; don't conflate the two.
+      dictNote.textContent = `Found in the dictionary: ${dictMatch.expected} -- ${dictMatch.gloss_en}`;
+      deconResults.appendChild(dictNote);
+    }
+  }
+
+  // Cancels a still-running search when a newer one supersedes it -- an
+  // unparseable word can take real seconds against the full grammarian set
+  // (shared/oq-analysis.js's own comment), so without this every keystroke
+  // would pile up abandoned searches finishing out of order.
+  let deconSearchAbort = null;
+
+  async function searchDecon(word) {
+    if (deconSearchAbort) deconSearchAbort.abort();
+    const trimmed = word.trim();
+    deconResults.textContent = "";
+    if (trimmed === "") {
+      deconStatus.textContent = "Type a word, press Enter.";
+      return;
+    }
+    deconSearchAbort = new AbortController();
+    const { signal } = deconSearchAbort;
+    deconStatus.textContent = "Analyzing...";
+    try {
+      const analysis = await waitForOqAnalysis();
+      const result = await analysis.analyzeWord(trimmed, { signal });
+      if (signal.aborted) return; // a newer search already took over
+      renderDeconResults(result);
+      const found = result.matches.length || result.dictMatch;
+      deconStatus.textContent = found
+        ? `${result.evalCount.toLocaleString()} combinations tried in ${Math.round(result.elapsedMs)}ms.`
+        : `No parse found (${result.evalCount.toLocaleString()} combinations tried in ${Math.round(result.elapsedMs)}ms).`;
+    } catch (err) {
+      if (err.name === "AbortError") return; // superseded, not a real failure
+      deconStatus.textContent = `Could not analyze (${err.message}).`;
+    }
+  }
+
+  async function launchDecon(initialWord = "") {
+    dirScreen.hidden = true;
+    dictApp.hidden = true;
+    deconApp.hidden = false;
+    deconWord.value = initialWord;
+    deconResults.textContent = "";
+    deconStatus.textContent = "Type a word, press Enter.";
+    deconWord.focus();
+    if (initialWord.trim()) await searchDecon(initialWord);
+  }
+
+  function exitDecon() {
+    deconApp.hidden = true;
+    dirScreen.hidden = false;
+  }
+
   // window.OqRouter (shared/router.js) is the single source of truth for
-  // "which screen is open" -- launchDict()/exitDict() above stay plain UI
-  // functions with no URL knowledge of their own; every user-facing trigger
-  // (click, Esc, the DICT command below) goes through navigate() instead of
-  // calling them directly, and onChange's callback is what actually calls
-  // them. That makes a shared link (?screen=dict&filter=word) and the
-  // back/forward buttons drive exactly the same code path a click does,
-  // instead of being a separate boot-time special case that can drift out
-  // of sync with it.
+  // "which screen is open" -- launchDict()/exitDict()/launchDecon()/
+  // exitDecon() above stay plain UI functions with no URL knowledge of
+  // their own; every user-facing trigger (click, Esc, the DICT/DECON
+  // commands below) goes through navigate() instead of calling them
+  // directly, and this one onChange callback is what actually calls them.
+  // That makes a shared link (?screen=dict&filter=word or
+  // ?screen=decon&word=...) and the back/forward buttons drive exactly the
+  // same code path a click does, instead of being a separate boot-time
+  // special case that can drift out of sync with it. One listener for both
+  // apps, not two independent ones, so "switch straight from DICT.EXE to
+  // DECON.EXE" can't leave both visible at once.
   window.OqRouter.onChange((params) => {
-    if (params.get("screen") === "dict") {
+    const screen = params.get("screen");
+    if (screen === "dict") {
+      deconApp.hidden = true;
       if (dictApp.hidden) {
         launchDict(params.get("filter") || "");
       } else if (dictFilter.value !== (params.get("filter") || "")) {
@@ -276,8 +408,18 @@
         dictFilter.value = params.get("filter") || "";
         renderResults();
       }
-    } else if (!dictApp.hidden) {
-      exitDict();
+    } else if (screen === "decon") {
+      dictApp.hidden = true;
+      if (deconApp.hidden) {
+        launchDecon(params.get("word") || "");
+      } else if (deconWord.value !== (params.get("word") || "")) {
+        // Only reached via back/forward, same reasoning as dictFilter above.
+        deconWord.value = params.get("word") || "";
+        searchDecon(deconWord.value);
+      }
+    } else {
+      if (!dictApp.hidden) exitDict();
+      if (!deconApp.hidden) exitDecon();
     }
   });
 
@@ -298,9 +440,25 @@
     window.OqRouter.navigate({ filter: dictFilter.value || null }, { replace: true });
   });
 
+  document.getElementById("launch-decon").addEventListener("click", () => {
+    window.OqRouter.navigate({ screen: "decon", word: null });
+  });
+  document.getElementById("decon-exit").addEventListener("click", () => {
+    window.OqRouter.navigate({ screen: null, word: null });
+  });
+  // Enter, not "input" like dictFilter -- deconstructing a word runs a real
+  // (occasionally seconds-long) search, unlike dictFilter's instant local
+  // filter, so re-running it on every keystroke would be wasteful and would
+  // make the AbortController churn constantly.
+  deconWord.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+    searchDecon(deconWord.value);
+  });
+
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !dictApp.hidden) {
-      window.OqRouter.navigate({ screen: null, filter: null });
+    if (event.key === "Escape" && (!dictApp.hidden || !deconApp.hidden)) {
+      window.OqRouter.navigate({ screen: null, filter: null, word: null });
     }
   });
 
@@ -312,16 +470,26 @@
   /F:word   Launch straight into results filtered to "word"
   /?        Display this help`;
 
+  const DECON_HELP = `DECON.EXE [/W:word] [/?]
+
+  /W:word   Launch straight into a deconstruction of "word"
+  /?        Display this help`;
+
   // DIR reprints the same listing the screen opened with -- a real DOS DIR
-  // is idempotent, running it again just redraws the same directory.
+  // is idempotent, running it again just redraws the same directory. Keep
+  // this in sync with #dos-output's own initial markup in index.html --
+  // they drifted once already (DICT.DAT/DECON.DAT were added there without
+  // this constant following, so DIR printed a stale 3-file listing).
   const DIR_LISTING = ` Volume in drive A is OQ
  Directory of A:\\OQ
 
 DICT     EXE        41,472  03-14-89   2:15p
+DICT     DAT       892,928  03-14-89   2:15p
 BUILD    EXE        38,912  03-14-89   2:15p
 DECON    EXE        35,328  03-14-89   2:15p
-        3 File(s)      115,712 bytes
-                     1,458,176 bytes free`;
+DECON    DAT        77,824  03-14-89   2:15p
+        5 File(s)    1,086,464 bytes
+                       487,424 bytes free`;
 
   // The real MS-DOS command was VER (built into COMMAND.COM, not a
   // standalone .EXE) -- VERSION.EXE was never a thing.
@@ -382,7 +550,19 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
       } else {
         window.OqRouter.navigate({ screen: "dict", filter: null });
       }
-    } else if (cmd === "BUILD" || cmd === "BUILD.EXE" || cmd === "DECON" || cmd === "DECON.EXE") {
+    } else if (cmd === "DECON" || cmd === "DECON.EXE") {
+      const helpFlag = args.some((a) => a === "/?");
+      const wordArg = args.find((a) => /^\/W:/i.test(a));
+      if (helpFlag) {
+        printLine(DECON_HELP);
+      } else if (wordArg) {
+        window.OqRouter.navigate({ screen: "decon", word: wordArg.slice(3) || null });
+      } else if (args.length > 0) {
+        printLine(`Invalid switch - ${args[0]}`);
+      } else {
+        window.OqRouter.navigate({ screen: "decon", word: null });
+      }
+    } else if (cmd === "BUILD" || cmd === "BUILD.EXE") {
       printLine(`${cmd.replace(/\.EXE$/, "")}.EXE: not yet implemented`);
     } else if (cmd === "DIR" || cmd === "DIR.EXE") {
       printLine(DIR_LISTING);

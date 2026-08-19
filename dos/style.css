@@ -309,3 +309,48 @@ html, body {
   text-align: left;
   cursor: pointer;
 }
+
+/* DECON.EXE: one .decon-card per real match (usually one, sometimes more,
+   sometimes none) -- see dos/index.html's comment on #decon-results for
+   why these are built in JS rather than templated in markup. */
+.decon-card {
+  margin: 0 0 1.5em;
+  padding-bottom: 1em;
+  border-bottom: 1px dashed #7777aa; /* same dim tone as .dos-app-attribution, a real ASCII-rule feel without a heavier framework border */
+}
+.decon-card:last-child {
+  border-bottom: none;
+}
+/* [EXACT REBUILD] / [~ APPROXIMATE] -- bracketed rather than a pill, same
+   plain-text-tag convention as the rest of this theme (no rounded-corner
+   chrome the framework doesn't already provide). Distinct color so an
+   approximate result reads as "verified, but flagged" at a glance, same
+   as buildWord()'s own approximate flag elsewhere in oq. */
+.decon-tag {
+  font-weight: bold;
+}
+.decon-tag--approximate {
+  color: #ffff55; /* the framework's own bright-yellow EGA warning tone */
+}
+.decon-word {
+  font-weight: bold;
+}
+.decon-meaning {
+  margin: 0.5em 0;
+}
+/* One "marker+text — gloss" line per morpheme (shared/oq-analysis.js's own
+   comment explains why this isn't oq's fancier bullet-padded column
+   alignment -- that needs glossSummaryItems, which isn't on the public
+   surface). Indented like a sub-list, not a table -- there's no second
+   column to align now that each line is one already-joined string. */
+.decon-breakdown {
+  margin: 0 0 1em;
+  padding-left: 2ch;
+}
+.decon-breakdown div {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.decon-dict-match {
+  color: #7777aa; /* dim, same tone as .dos-app-attribution -- a cross-reference, not the headline result */
+}
