@@ -1,11 +1,13 @@
-(() => {
-  "use strict";
+// type="module" in index.html -- gives this its own top-level scope (no
+// IIFE wrapper needed) and strict mode automatically, and lets it import
+// the shared dictionary plumbing below.
+import { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } from "../shared/dict-source.js?v=1";
 
-  // Measures the actual rendered size of one character cell in the DOS
-  // font, so dragging/resizing can snap to real character-grid steps
-  // instead of hardcoding pixel values that would drift if the font or
-  // font-size ever changes.
-  function measureCell() {
+// Measures the actual rendered size of one character cell in the DOS
+// font, so dragging/resizing can snap to real character-grid steps
+// instead of hardcoding pixel values that would drift if the font or
+// font-size ever changes.
+function measureCell() {
     const probe = document.createElement("span");
     probe.style.position = "absolute";
     probe.style.visibility = "hidden";
@@ -161,17 +163,13 @@
   // DICT.EXE: a full-screen takeover of the dir listing, not a window --
   // see the comment at the top of style.css for why. No font/cell
   // measurement needed here, so this doesn't wait on document.fonts.ready
-  // like the window machinery above does.
-  //
-  // Data is the real Oqaasileriffik 2018 Chicago Kalaallisut-English
-  // dictionary (CC-BY-SA 4.0, attribution in index.html), fetched live from
-  // the same published JSON jandahl/oq itself fetches -- not oq's
-  // docs/public-api.js, which is an explicitly-unstable v0.x surface
-  // ("any commit may rename, reshape, or drop any export" per its own
-  // docs), not worth coupling a gag prototype to just for a filtered list.
-  // See docs/public-api.md / docs/SOURCES.md in jandahl/oq for both calls.
-  const DICT_SOURCE_URL = "https://jandahl.github.io/Oqaasileriffik-dicts/all_entries.json";
-  const MAX_RESULTS = 200; // 17,000+ entries -- never render all of them into the DOM at once
+  // like the window machinery above does. Fetch/cache/filter logic lives
+  // in shared/dict-source.js so any other theme can reuse it -- everything
+  // here is just DOS-flavored rendering on top of that.
+  const DEFAULT_ROWS = 50; // shown before any filtering -- a browsable sample, not a blank table
+  const MAX_FILTERED_ROWS = 200; // 17,000+ entries -- never render a full match set into the DOM
+
+  document.getElementById("dict-attribution").textContent = DICT_ATTRIBUTION;
 
   const dirScreen = document.getElementById("dos-dir");
   const dictApp = document.getElementById("dict-app");
@@ -179,38 +177,11 @@
   const dictStatus = document.getElementById("dict-status");
   const dictTbody = document.getElementById("dict-tbody");
 
-  let dictEntries = null; // null until loaded; [] on a load that failed
+  let dictEntries = null; // null until a load succeeds
 
-  async function loadDictData() {
-    if (dictEntries !== null) return; // already loaded (or already failed -- retry happens via re-launch)
-    dictStatus.textContent = "Loading DICT.DAT...";
-    try {
-      const res = await fetch(DICT_SOURCE_URL);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      dictEntries = data.dictionary_entries.filter((e) => e.lexeme && e.gloss_en);
-      renderResults();
-    } catch (err) {
-      dictEntries = null; // stays retryable on next launch, not permanently failed
-      dictStatus.textContent = `Could not load DICT.DAT (${err.message}). Exit and relaunch to retry.`;
-    }
-  }
-
-  function renderResults() {
+  function renderRows(rows) {
     dictTbody.textContent = "";
-    if (dictEntries === null) return; // still loading or failed -- dictStatus already says so
-
-    const query = dictFilter.value.trim().toLowerCase();
-    if (query === "") {
-      dictStatus.textContent = `${dictEntries.length.toLocaleString()} entries loaded -- type to filter.`;
-      return;
-    }
-
-    const matches = dictEntries.filter(
-      (e) => e.lexeme.toLowerCase().includes(query) || e.gloss_en.toLowerCase().includes(query),
-    );
-    const shown = matches.slice(0, MAX_RESULTS);
-    for (const entry of shown) {
+    for (const entry of rows) {
       const row = document.createElement("tr");
       const lexemeCell = document.createElement("td");
       lexemeCell.textContent = entry.lexeme;
@@ -219,21 +190,46 @@
       row.append(lexemeCell, glossCell);
       dictTbody.appendChild(row);
     }
+  }
+
+  function renderResults() {
+    if (dictEntries === null) return; // still loading or failed -- dictStatus already says so
+
+    const query = dictFilter.value.trim();
+    if (query === "") {
+      renderRows(dictEntries.slice(0, DEFAULT_ROWS));
+      dictStatus.textContent = `${dictEntries.length.toLocaleString()} entries loaded -- showing first ${DEFAULT_ROWS}, type to filter.`;
+      return;
+    }
+
+    const matches = filterDictEntries(dictEntries, query);
+    renderRows(matches.slice(0, MAX_FILTERED_ROWS));
     dictStatus.textContent =
       matches.length === 0
         ? "No matches."
-        : matches.length > MAX_RESULTS
-          ? `Showing first ${MAX_RESULTS} of ${matches.length.toLocaleString()} matches.`
+        : matches.length > MAX_FILTERED_ROWS
+          ? `Showing first ${MAX_FILTERED_ROWS} of ${matches.length.toLocaleString()} matches.`
           : `${matches.length.toLocaleString()} match${matches.length === 1 ? "" : "es"}.`;
   }
 
-  function launchDict() {
+  async function launchDict() {
     dirScreen.hidden = true;
     dictApp.hidden = false;
     dictFilter.value = "";
     dictTbody.textContent = "";
+
+    if (dictEntries === null) {
+      dictStatus.textContent = "Loading DICT.DAT...";
+      try {
+        dictEntries = await loadDictEntries();
+      } catch (err) {
+        dictStatus.textContent = `Could not load DICT.DAT (${err.message}). Exit and relaunch to retry.`;
+        dictFilter.focus();
+        return;
+      }
+    }
+    renderResults();
     dictFilter.focus();
-    loadDictData();
   }
 
   function exitDict() {
@@ -248,4 +244,3 @@
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dictApp.hidden) exitDict();
   });
-})();
