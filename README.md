@@ -50,8 +50,9 @@ looks like today.
   frame, draggable title bars, click-to-focus active/inactive chrome,
   close/reopen, a desktop icon that opens a new window, and the Apple
   menu bar pinned across the top (using the framework's real
-  `ul[role="menu-bar"]`/`.apple` components). Open `mac1984/index.html`
-  directly, no build step.
+  `ul[role="menu-bar"]`/`.apple` components). Serve `mac1984/index.html`
+  as-is, no build step — not meant to be opened via `file://`, just no
+  bundler/transpiler needed before it's servable.
 - **`vendor/mac1984/`** — [`@sakun/system.css`](https://github.com/sakofchit/system.css)
   (MIT), vendored verbatim. The real retro-Mac CSS framework — not the
   same-named-but-unrelated `system.css` package that oq's first pass

@@ -13,10 +13,10 @@
 // vendor/oq-hyphenation/hyphenation.js for provenance). This file is a
 // Modification of that Covered Software (same algorithm, adapted from an
 // ES module `export` to the classic-script window-global pattern every
-// other shared/*.js and theme app.js in this repo uses, for the same
-// file:// CORS reason documented in dos/app.js) -- the code carries MPL-2.0
-// because it's derived from oq's code, not because the underlying rules
-// themselves are anyone's to license.
+// other shared/*.js and theme app.js in this repo currently uses -- see
+// CLAUDE.md; today's convention, not a file:// requirement) -- the code
+// carries MPL-2.0 because it's derived from oq's code, not because the
+// underlying rules themselves are anyone's to license.
 //
 // See jandahl/oq's docs/HYPHENATION.md for the full rule specification,
 // worked examples, and a 28-case test suite (docs/test-hyphenation.js)

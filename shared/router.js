@@ -1,17 +1,15 @@
-// Tiny, theme-agnostic URL router -- classic script, not type="module" (see
-// dos/app.js's own comment on why: file:// always fails a module's
-// CORS-restricted fetch, and every theme here is meant to open straight off
-// disk with no build step).
+// Tiny, theme-agnostic URL router -- classic script, not type="module",
+// matching today's convention across this repo's theme files (see
+// CLAUDE.md; not a file:// requirement -- this repo targets http(s)
+// hosting).
 //
 // Deliberately query-string based, not real path segments like jandahl/oq's
-// docs/router.js (which this is modeled on): these theme pages are static
-// files with no server-side rewrite rule behind them, opened either as
-// dos/index.html directly off disk or as a GitHub Pages static file --
+// docs/router.js (which this is modeled on): these are static files served
+// from GitHub Pages with no server-side rewrite rule behind them --
 // "dos/dict/" resolving to anything meaningful needs a server that oq has
 // (a real app host) and this repo doesn't (plain static hosting). A query
-// string round-trips through both file:// and GitHub Pages identically, so
-// "share a link that opens to the same state" always works regardless of
-// how the page was reached.
+// string needs no such rule, so "share a link that opens to the same
+// state" always works.
 //
 // Each theme's app.js owns what its own params mean (dos/app.js uses
 // "screen"/"filter" for DICT.EXE's open/closed state and filter text) --

@@ -8,20 +8,32 @@ otherwise take a full session of discovery to relearn.
 
 Static, no-build-step retro desktop/UI prototypes, one theme per top-level
 directory (`mac1984/`, `dos/`), each built on a real vendored CSS framework
-under `vendor/<theme>/`. Deployed as-is via GitHub Pages and meant to also
-work opened directly via `file://` — see README.md for the full "why this
-repo exists" story and the theme roadmap. This file is about *how to work
-in the code*, not what it's for.
+under `vendor/<theme>/`. Deployed as-is via GitHub Pages — see README.md
+for the full "why this repo exists" story and the theme roadmap. This file
+is about *how to work in the code*, not what it's for.
+
+**Not a `file://` target.** An earlier session in this repo's history read
+README's "open directly, no build step" as "must also work double-clicked
+off local disk," verified that `type="module"` really does break under
+`file://`, and then wrote that reading into a hard rule here — without it
+ever actually being asked for. It wasn't: this repo targets `http(s)`
+hosting (GitHub Pages, any static/dev server), not `file://`. If you find
+old comments in `dos/`/`shared/` justifying classic-script-only via
+`file://` compatibility, that reasoning no longer holds — don't treat it as
+a constraint, and feel free to correct a comment you're already touching
+for other reasons. Existing files still happen to be classic scripts
+sharing state via `window.<Namespace>` globals (`window.OqDictSource`,
+`window.OqHyphenation`, `window.OqRouter`) — that's just today's
+convention, not a rule to defend. Nothing stops a new file from being a
+real ES module if there's a reason to (e.g. actually consuming
+`jandahl/oq`'s `docs/public-api.js`, which is only importable as one).
 
 ## Hard rules
 
-- **No `type="module"` scripts, ever.** `file://` always fails a module's
-  CORS-restricted fetch, silently breaking the entire page (verified: it
-  killed window drag/resize *and* DICT.EXE, not just the one import).
-  Every `.js` file here is a classic script, sharing state via
-  `window.<Namespace>` globals set by an IIFE (`window.OqDictSource`,
-  `window.OqHyphenation`, `window.OqRouter`). Load order in `<script>` tags
-  matters and is deliberate — check what a new script depends on before
+- **Load order in `<script>` tags is deliberate.** The classic-script
+  files here share state via `window.<Namespace>` globals instead of
+  imports, so a script that reads `window.OqDictSource` etc. has to load
+  after the script that sets it. Check what a new script depends on before
   reordering.
 - **Cache-bust every change.** `dos/index.html` and `mac1984/index.html`
   load their own CSS/JS with a `?v=N` query string. Bump the number for
@@ -83,8 +95,9 @@ in the code*, not what it's for.
 - **Shareable URLs**: `window.OqRouter` (`shared/router.js`) is the single
   source of truth for DICT.EXE's open/closed/filter state, via
   `?screen=dict&filter=word` in the query string (not path segments —
-  these are static files with no server-side rewrite, so a query string is
-  what survives both `file://` and GitHub Pages identically). Every
+  these are static files served from GitHub Pages with no server-side
+  rewrite rule, so a real path like `dos/dict/` has nothing to resolve it
+  to a route; a query string needs no such rule). Every
   user-facing trigger (click, Esc, the `DICT` command) calls
   `OqRouter.navigate(...)`; a single `onChange` listener is what actually
   calls `launchDict()`/`exitDict()`. **Never call `launchDict()`/
@@ -154,7 +167,6 @@ sandbox — simulate it by overriding `window.visualViewport.height`/
 `resize` event on `visualViewport`, then reading the resulting
 `--app-height`/`--app-top` custom properties.
 
-Always test against a live `python3 -m http.server`, **and** sanity-check
-`file://dos/index.html` directly at least once after touching script
-loading/module boundaries — that's the failure mode a local server can't
-catch.
+Test against a live `python3 -m http.server` (or equivalent) — this repo
+targets `http(s)` hosting, not `file://`, so there's no need to
+additionally sanity-check the bare file path.
