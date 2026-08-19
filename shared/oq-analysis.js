@@ -177,10 +177,14 @@
         return {
           word: m.word,
           approximate: m.approximate,
-          // shortGloss (filled, single-sense), not gloss (raw, scholarly,
-          // potentially multi-sense) -- oq's own Deconstruct/Word Builder
-          // UI renders shortGloss for exactly this reason (jandahl/oq#824).
-          meaning: meaningItem ? toDosPunctuation(meaningItem.shortGloss) : "",
+          // gloss (filled, fully composed), not shortGloss -- shortGloss is
+          // each item's own compact, per-row contribution ("statement - I"
+          // for a mood ending in isolation); gloss is the running-composed
+          // sense threaded through fillStemSlot() as each step builds on
+          // the last ("to have a(n) dog" -> "I have a dog"), matching
+          // exactly what oq's own Deconstruct view promotes as the headline
+          // (docs/deconstruct.js's renderMatchCard: `last.gloss`).
+          meaning: meaningItem ? toDosPunctuation(meaningItem.gloss) : "",
           // rawShortGloss for the per-morpheme rows, not shortGloss --
           // deliberately UNFILLED ("someone looks for ___", not "someone
           // looks for birthday"): the per-morpheme breakdown is showing
