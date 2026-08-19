@@ -25,6 +25,16 @@ html, body {
   height: 100%;
   overflow: hidden; /* the desktop never scrolls -- only windows do */
   overscroll-behavior: none;
+  /* The framework's own body background is DOS-blue (#000084) -- right for
+     DICT.EXE below (see .dos-app), wrong as the page's actual base color.
+     Normally invisible either way, since .dos-dir/.dos-app are fixed and
+     cover the full viewport -- but their height now tracks
+     window.visualViewport (--app-height) so they can shrink above an
+     on-screen mobile keyboard, and when they do, whatever's behind them
+     shows in the gap. That gap should read as the black dos-dir screen,
+     not a strip of leftover blue, so it's pinned black here and .dos-app
+     below carries its own explicit blue instead of relying on this. */
+  background: #000000;
 }
 
 .dos-window {
@@ -147,6 +157,11 @@ html, body {
   z-index: 100;
   display: flex;
   flex-direction: column;
+  /* Explicit now that html/body's own default is pinned black above --
+     DICT.EXE is the one screen that actually wants the framework's
+     DOS-blue, so it carries that color itself instead of leaning on body's
+     background showing through. */
+  background: #000084;
 }
 .dos-app[hidden] {
   display: none;
@@ -229,7 +244,16 @@ html, body {
   padding: 0 1ch;
   background: #aaaaaa;
   color: #000000;
-  font: inherit;
+  /* The framework applies `button,input,...{font:...!important}` -- an
+     !important always wins over a plain declaration regardless of
+     selector specificity or source order, so the `font: inherit` this
+     used to have was silently a no-op, not actually inheriting from the
+     surrounding text. It happened to compute to the same 16px/DOS/14px
+     values as the rest of the page, but only by coincidence -- matched
+     here explicitly (and with !important of its own) so it stays correct
+     regardless of what the framework's rule says. */
+  font: 400 16px DOS, monospace !important;
+  line-height: 14px !important;
   text-align: left;
   cursor: pointer;
 }
