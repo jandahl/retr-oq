@@ -129,8 +129,19 @@
         // available here to render oq's own bullet-padded column-aligned
         // breakdown. One "marker+text — gloss" line per morpheme instead
         // -- a real simplification, not a bug, and worth revisiting if
-        // glossSummaryItems ever joins the public surface too.
-        glossLines: glossSummary(m.seq),
+        // glossSummaryItems ever joins the public surface too (jandahl/oq
+        // issue TBD -- glossSummary's sense-selection also visibly lags
+        // glossSummaryItems' own composition quality, a second, separate
+        // gap from the missing column alignment).
+        //
+        // A Ø (zero-morpheme) item's marker is the literal string "Ø" with
+        // an empty text (morpheme-meta.js: `marker = isRoot ? "" : !text ?
+        // "Ø" : ...`), so glossSummary()'s join renders it as exactly
+        // "Ø — <gloss>" -- filtered out here for the same reason oq's own
+        // renderMorphemeBreakdown() drops these from its breakdown table:
+        // a null ending carries no real bound-morpheme content of its own
+        // to show a row for.
+        glossLines: glossSummary(m.seq).filter((line) => !line.startsWith("Ø — ")),
       })),
       dictMatch,
       elapsedMs,

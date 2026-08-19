@@ -298,15 +298,21 @@
       header.append(tag, word);
       card.appendChild(header);
 
-      // The last gloss line already reads as the whole word's composed
-      // meaning (oq's own chain-glossing threads the running stem through
-      // each step) -- promoted here as a headline, same as oq's own
-      // Deconstruct view does, in addition to (not instead of) its own
-      // line in the breakdown below.
-      if (match.glossLines.length) {
+      // The last gloss line usually already reads as the whole word's
+      // composed meaning (oq's own chain-glossing threads the running stem
+      // through each step) -- promoted here as a headline, same as oq's
+      // own Deconstruct view does, in addition to (not instead of) its own
+      // line in the breakdown below. Not always truly the last one though:
+      // a word-closing item derived through a category shift can have an
+      // honestly-unfilled "___" template gloss (no verb/noun phrase to
+      // compose forward onto -- oq's renderMatchCard has the identical
+      // walk-backward for the identical reason). Skip back past any
+      // remaining unfilled line to the last one with a real composed sense.
+      const meaningLine = [...match.glossLines].reverse().find((line) => !line.includes("___")) ?? match.glossLines[match.glossLines.length - 1];
+      if (meaningLine) {
         const meaning = document.createElement("div");
         meaning.className = "decon-meaning";
-        meaning.textContent = match.glossLines[match.glossLines.length - 1];
+        meaning.textContent = meaningLine;
         card.appendChild(meaning);
       }
 
