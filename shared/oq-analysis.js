@@ -57,9 +57,29 @@
     mergeMorphemeSources,
     glossSummaryItems,
     findExactDictMatch,
+    buildWord,
     GRAMMAR_MORPHEMES_URL,
     SCHEMA_MAJOR_VERSION,
   } = api;
+
+  // oq's own gloss text can contain a real em/en dash (e.g. a mood-label
+  // phrase like "exclamation — he/she/it") -- real DOS text mode never
+  // had either (CP437 has no em/en dash glyph at all), so any oq-sourced
+  // text rendered on a DOS screen needs this, not just this file's own
+  // formatting. Applied at the source here rather than in each theme's
+  // own rendering code, so every consumer of this module gets
+  // DOS-safe text for free instead of needing to remember to sanitize it.
+  function toDosDash(text) {
+    return text.replace(/[–—]/g, "-");
+  }
+
+  /** @returns {number} length of the longest common prefix of `a` and `b` */
+  function commonPrefixLen(a, b) {
+    const max = Math.min(a.length, b.length);
+    let i = 0;
+    while (i < max && a[i] === b[i]) i++;
+    return i;
+  }
 
   // Grammarian only, not katersat too -- oq's own Deconstruct view merges
   // both (docs/deconstruct.js's MORPHEME_SOURCES), but grammarian alone is
@@ -115,7 +135,7 @@
    *   query: string,
    *   matches: Array<{
    *     word: string, approximate: boolean, meaning: string,
-   *     breakdown: Array<{ marker: string, text: string, gloss: string }>,
+   *     breakdown: Array<{ marker: string, text: string, gloss: string, leftPad: number, rightPad: number }>,
    *   }>,
    *   dictMatch: any | null,
    *   elapsedMs: number,
@@ -151,13 +171,44 @@
         // it. Skip back past any item whose `gloss` is still unfilled to
         // the last one with a real composed sense.
         const meaningItem = [...items].reverse().find((item) => item.gloss && !item.gloss.includes("___")) ?? items[items.length - 1];
+
+        // Column-aligned padding, the same idea as oq's own bullet-padded
+        // breakdown table (docs/morpheme-breakdown.js's
+        // appendPaddedSpelling()): each row's spelling is padded so it
+        // lines up under the actual position it occupies in the finished
+        // word, instead of every row just starting at the left margin. oq
+        // computes this by replaying the real build pipeline step by step
+        // and diffing consecutive surfaces (collectStepWords() +
+        // diffStepBoundary()) -- that internal machinery isn't on the
+        // public surface, but the same replay is doable with the public
+        // buildWord() alone: build the word after each successive prefix
+        // of the sequence, and the longest common prefix between one
+        // step's word and the next is exactly where this step's own
+        // contribution starts.
+        //
+        // Simplification, not full parity: real oq also diffs a common
+        // SUFFIX to precisely isolate truncated/reshaped letters when
+        // allomorphy changes an earlier boundary's spelling, with
+        // per-letter truncation coloring on top. This only diffs the
+        // common prefix and pads the rest of this row to the marker+text
+        // spelling's own length -- correct for the common case
+        // (concatenative, non-truncating joins, which is most of them),
+        // approximate when a later join truncates letters this row
+        // already claimed. Good enough for a column-aligned display;
+        // exact parity would need oq's own step-diffing exposed too.
+        let stepWord = "";
+        const stepWords = m.seq.map((item, i) => {
+          stepWord = buildWord(m.seq.slice(0, i + 1)).word;
+          return stepWord;
+        });
+
         return {
           word: m.word,
           approximate: m.approximate,
           // shortGloss (filled, single-sense), not gloss (raw, scholarly,
           // potentially multi-sense) -- oq's own Deconstruct/Word Builder
           // UI renders shortGloss for exactly this reason (jandahl/oq#824).
-          meaning: meaningItem ? meaningItem.shortGloss : "",
+          meaning: meaningItem ? toDosDash(meaningItem.shortGloss) : "",
           // rawShortGloss for the per-morpheme rows, not shortGloss --
           // deliberately UNFILLED ("someone looks for ___", not "someone
           // looks for birthday"): the per-morpheme breakdown is showing
@@ -174,11 +225,20 @@
           // renderMorphemeBreakdown() drops these: a null ending carries
           // no real bound-morpheme content of its own to show a row for.
           breakdown: items
-            .filter((item) => item.marker !== "Ø")
-            .map((item) => ({ marker: item.marker, text: item.text, gloss: item.rawShortGloss })),
+            .map((item, i) => {
+              const spelling = `${item.marker}${item.text}`;
+              const before = i === 0 ? "" : stepWords[i - 1];
+              const leftPad = commonPrefixLen(before, stepWords[i]);
+              const rightPad = Math.max(0, m.word.length - leftPad - spelling.length);
+              return { marker: item.marker, text: item.text, gloss: toDosDash(item.rawShortGloss), leftPad, rightPad };
+            })
+            .filter((_, i) => items[i].marker !== "Ø"),
         };
       }),
-      dictMatch,
+      // .expected/.gloss_en specifically, not the whole object -- dictMatch
+      // is oq's own NormalizedEntry shape (see dos/app.js's own comment on
+      // it), only these two fields ever reach a DOS screen.
+      dictMatch: dictMatch ? { ...dictMatch, expected: toDosDash(dictMatch.expected), gloss_en: toDosDash(dictMatch.gloss_en) } : null,
       elapsedMs,
       evalCount,
     };

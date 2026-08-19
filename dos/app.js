@@ -338,9 +338,16 @@
       const breakdown = document.createElement("div");
       breakdown.className = "decon-breakdown";
       const rows = deconRootFirst.checked ? match.breakdown : [...match.breakdown].reverse();
-      for (const { marker, text, gloss } of rows) {
+      for (const { marker, text, gloss, leftPad, rightPad } of rows) {
         const row = document.createElement("div");
-        row.textContent = `${marker}${text} — ${gloss}`;
+        // "."-padded on both sides so this morpheme's spelling lines up
+        // under its actual position in the whole word, same idea as oq's
+        // own bullet-padded breakdown column (shared/oq-analysis.js's own
+        // comment explains how leftPad/rightPad are computed). A plain
+        // ASCII "-" separator before the gloss, not an em dash -- real DOS
+        // text mode never had one; "-" is what period software actually
+        // used.
+        row.textContent = `${".".repeat(leftPad)}${marker}${text}${".".repeat(rightPad)} - ${gloss}`;
         breakdown.appendChild(row);
       }
       card.appendChild(breakdown);
@@ -508,9 +515,23 @@
   // filter, so re-running it on every keystroke would be wasteful and would
   // make the AbortController churn constantly.
   deconWord.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown") {
+      // Field-to-field navigation, the way a real DOS TUI form used
+      // Up/Down between fields -- on top of, not instead of, normal Tab
+      // order (deconRootFirst is still just a real, natively focusable
+      // <input type="checkbox">, see index.html's own comment on it).
+      event.preventDefault();
+      deconRootFirst.focus();
+      return;
+    }
     if (event.key !== "Enter") return;
     window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
     searchDecon(deconWord.value);
+  });
+  deconRootFirst.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowUp") return;
+    event.preventDefault();
+    deconWord.focus();
   });
 
   document.addEventListener("keydown", (event) => {
