@@ -267,6 +267,28 @@
   const deconWord = document.getElementById("decon-word");
   const deconStatus = document.getElementById("decon-status");
   const deconResults = document.getElementById("decon-results");
+  const deconRootFirst = document.getElementById("decon-root-first");
+
+  // Persisted across sessions (a real setting, like oq's own "Reverse
+  // morpheme order" toggle), independent of the router state below -- the
+  // router param is what makes a shared link reproduce the exact order the
+  // sender saw; localStorage is what a plain revisit (no explicit order in
+  // the URL) falls back to. Router wins when both are present, same
+  // precedent as everything else DECON.EXE's URL already owns.
+  const ROOT_FIRST_STORAGE_KEY = "retr-oq:decon-root-first";
+  function getStoredRootFirst() {
+    const stored = localStorage.getItem(ROOT_FIRST_STORAGE_KEY);
+    return stored === null ? true : stored === "1";
+  }
+  function setStoredRootFirst(value) {
+    localStorage.setItem(ROOT_FIRST_STORAGE_KEY, value ? "1" : "0");
+  }
+  // Read once at load, synchronously -- window.OqRouter (a classic script)
+  // is already loaded by this point, unlike window.OqAnalysis.
+  {
+    const initialOrder = window.OqRouter.getParams().get("order");
+    deconRootFirst.checked = initialOrder ? initialOrder !== "final" : getStoredRootFirst();
+  }
 
   // window.OqAnalysis is set by shared/oq-analysis.js, a type="module"
   // script -- deferred by the platform until after this classic script's
@@ -281,6 +303,10 @@
       window.addEventListener("oq-analysis-ready", () => resolve(window.OqAnalysis), { once: true });
     });
   }
+
+  // Cached so toggling "Root first" can re-render the existing results in
+  // the new order without re-running the search itself.
+  let lastAnalysis = null;
 
   function renderDeconResults({ matches, dictMatch }) {
     deconResults.textContent = "";
@@ -298,29 +324,23 @@
       header.append(tag, word);
       card.appendChild(header);
 
-      // The last gloss line usually already reads as the whole word's
-      // composed meaning (oq's own chain-glossing threads the running stem
-      // through each step) -- promoted here as a headline, same as oq's
-      // own Deconstruct view does, in addition to (not instead of) its own
-      // line in the breakdown below. Not always truly the last one though:
-      // a word-closing item derived through a category shift can have an
-      // honestly-unfilled "___" template gloss (no verb/noun phrase to
-      // compose forward onto -- oq's renderMatchCard has the identical
-      // walk-backward for the identical reason). Skip back past any
-      // remaining unfilled line to the last one with a real composed sense.
-      const meaningLine = [...match.glossLines].reverse().find((line) => !line.includes("___")) ?? match.glossLines[match.glossLines.length - 1];
-      if (meaningLine) {
+      // match.meaning is already the whole word's own composed sense
+      // (shared/oq-analysis.js's own comment explains the walk-backward
+      // that picks it) -- promoted here as a headline, same as oq's own
+      // Deconstruct view does.
+      if (match.meaning) {
         const meaning = document.createElement("div");
         meaning.className = "decon-meaning";
-        meaning.textContent = meaningLine;
+        meaning.textContent = match.meaning;
         card.appendChild(meaning);
       }
 
       const breakdown = document.createElement("div");
       breakdown.className = "decon-breakdown";
-      for (const line of match.glossLines) {
+      const rows = deconRootFirst.checked ? match.breakdown : [...match.breakdown].reverse();
+      for (const { marker, text, gloss } of rows) {
         const row = document.createElement("div");
-        row.textContent = line;
+        row.textContent = `${marker}${text} — ${gloss}`;
         breakdown.appendChild(row);
       }
       card.appendChild(breakdown);
@@ -341,6 +361,16 @@
     }
   }
 
+  deconRootFirst.addEventListener("change", () => {
+    setStoredRootFirst(deconRootFirst.checked);
+    if (lastAnalysis) renderDeconResults(lastAnalysis); // re-render existing results in the new order, no new search
+    // replace: true -- same reasoning as dictFilter's own navigate() call:
+    // an in-place display refinement, not a new "screen" to visit via
+    // back/forward. null (omit from the URL) for the default (root first),
+    // so a plain, un-toggled link stays exactly as short as it is today.
+    window.OqRouter.navigate({ order: deconRootFirst.checked ? null : "final" }, { replace: true });
+  });
+
   // Cancels a still-running search when a newer one supersedes it -- an
   // unparseable word can take real seconds against the full grammarian set
   // (shared/oq-analysis.js's own comment), so without this every keystroke
@@ -351,6 +381,7 @@
     if (deconSearchAbort) deconSearchAbort.abort();
     const trimmed = word.trim();
     deconResults.textContent = "";
+    lastAnalysis = null;
     if (trimmed === "") {
       deconStatus.textContent = "Type a word, press Enter.";
       return;
@@ -362,6 +393,7 @@
       const analysis = await waitForOqAnalysis();
       const result = await analysis.analyzeWord(trimmed, { signal });
       if (signal.aborted) return; // a newer search already took over
+      lastAnalysis = result;
       renderDeconResults(result);
       const found = result.matches.length || result.dictMatch;
       deconStatus.textContent = found
@@ -387,6 +419,7 @@
     deconApp.hidden = false;
     deconWord.value = initialWord;
     deconResults.textContent = "";
+    lastAnalysis = null;
     deconStatus.textContent = "Type a word, press Enter.";
     deconWord.focus();
     if (initialWord.trim()) await searchDecon(initialWord);
@@ -425,6 +458,15 @@
       }
     } else if (screen === "decon") {
       dictApp.hidden = true;
+      const orderParam = params.get("order");
+      const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
+      // Only reached via back/forward or a pasted link -- the checkbox's
+      // own "change" handler already updated both the router and the
+      // display itself, so it can never disagree with what it just set.
+      if (deconRootFirst.checked !== rootFirst) {
+        deconRootFirst.checked = rootFirst;
+        if (lastAnalysis) renderDeconResults(lastAnalysis);
+      }
       if (deconApp.hidden) {
         launchDecon(params.get("word") || "");
       } else if (deconWord.value !== (params.get("word") || "")) {

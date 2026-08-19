@@ -55,7 +55,7 @@
     API_VERSION,
     analyzeWordAsync,
     mergeMorphemeSources,
-    glossSummary,
+    glossSummaryItems,
     findExactDictMatch,
     GRAMMAR_MORPHEMES_URL,
     SCHEMA_MAJOR_VERSION,
@@ -113,7 +113,10 @@
    * @param {{ signal?: AbortSignal }} [opts]
    * @returns {Promise<{
    *   query: string,
-   *   matches: Array<{ word: string, approximate: boolean, glossLines: string[] }>,
+   *   matches: Array<{
+   *     word: string, approximate: boolean, meaning: string,
+   *     breakdown: Array<{ marker: string, text: string, gloss: string }>,
+   *   }>,
    *   dictMatch: any | null,
    *   elapsedMs: number,
    *   evalCount: number,
@@ -126,30 +129,55 @@
     ]);
     return {
       query,
-      matches: matches.map((m) => ({
-        word: m.word,
-        approximate: m.approximate,
-        // glossSummary(), not glossSummaryItems() -- only the
-        // string-joining wrapper is on the public surface (public-api.js
-        // re-exports glossSummary but not glossSummaryItems from
-        // morpheme-meta.js), so there's no per-item surface-position data
-        // available here to render oq's own bullet-padded column-aligned
-        // breakdown. One "marker+text — gloss" line per morpheme instead
-        // -- a real simplification, not a bug, and worth revisiting if
-        // glossSummaryItems ever joins the public surface too (jandahl/oq
-        // issue TBD -- glossSummary's sense-selection also visibly lags
-        // glossSummaryItems' own composition quality, a second, separate
-        // gap from the missing column alignment).
-        //
-        // A Ø (zero-morpheme) item's marker is the literal string "Ø" with
-        // an empty text (morpheme-meta.js: `marker = isRoot ? "" : !text ?
-        // "Ø" : ...`), so glossSummary()'s join renders it as exactly
-        // "Ø — <gloss>" -- filtered out here for the same reason oq's own
-        // renderMorphemeBreakdown() drops these from its breakdown table:
-        // a null ending carries no real bound-morpheme content of its own
-        // to show a row for.
-        glossLines: glossSummary(m.seq).filter((line) => !line.startsWith("Ø — ")),
-      })),
+      matches: matches.map((m) => {
+        const items = glossSummaryItems(m.seq);
+        // The last item's shortGloss usually already reads as the whole
+        // word's composed meaning (oq's own chain-glossing threads the
+        // running stem through each step) -- but not always the truly last
+        // one: a word-closing item derived through a category shift (or a
+        // trailing Ø ending -- jandahl/oq#592 lets analyzeWord return the
+        // explicit zero-ending chain as its own distinct match, alongside
+        // the bare root) can have an honestly-unfilled template with
+        // nothing to compose forward onto. Checked against the raw
+        // scholarly `gloss` field specifically -- exactly what oq's own
+        // renderMatchCard checks for the identical reason -- NOT
+        // shortGloss/rawShortGloss: a Ø item's OWN gloss has no preceding
+        // stem to thread through in the first place, so its shortGloss/
+        // rawShortGloss can read as a plain, blank-free "one (basic
+        // form)"-style phrase (nothing looks "unfilled" about it) even
+        // though the exact same item's `gloss` still literally reads "one
+        // ___ (the basic form: ...)" -- checking the wrong field here
+        // would make the walk stop AT the Ø item instead of skipping past
+        // it. Skip back past any item whose `gloss` is still unfilled to
+        // the last one with a real composed sense.
+        const meaningItem = [...items].reverse().find((item) => item.gloss && !item.gloss.includes("___")) ?? items[items.length - 1];
+        return {
+          word: m.word,
+          approximate: m.approximate,
+          // shortGloss (filled, single-sense), not gloss (raw, scholarly,
+          // potentially multi-sense) -- oq's own Deconstruct/Word Builder
+          // UI renders shortGloss for exactly this reason (jandahl/oq#824).
+          meaning: meaningItem ? meaningItem.shortGloss : "",
+          // rawShortGloss for the per-morpheme rows, not shortGloss --
+          // deliberately UNFILLED ("someone looks for ___", not "someone
+          // looks for birthday"): the per-morpheme breakdown is showing
+          // what EACH morpheme contributes in isolation, and filling the
+          // blank in with a value that only exists once the whole chain is
+          // composed misrepresents that. Only the whole-word `meaning`
+          // above should be filled in.
+          //
+          // marker === "Ø" (not a string match against the joined line
+          // like the old glossSummary()-based version needed) -- a Ø
+          // (zero-morpheme) item's text is always empty
+          // (morpheme-meta.js: `marker = isRoot ? "" : !text ? "Ø" : ...`),
+          // filtered out for the same reason oq's own
+          // renderMorphemeBreakdown() drops these: a null ending carries
+          // no real bound-morpheme content of its own to show a row for.
+          breakdown: items
+            .filter((item) => item.marker !== "Ø")
+            .map((item) => ({ marker: item.marker, text: item.text, gloss: item.rawShortGloss })),
+        };
+      }),
       dictMatch,
       elapsedMs,
       evalCount,
