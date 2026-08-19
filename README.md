@@ -61,6 +61,18 @@ looks like today.
 - **`oq-integration/`** — frozen copies of oq's Fun Themes glue code and
   project notes, for reference. Not wired to anything (see that
   directory's own README).
+- **`dos/`** — a real DOS `COMMAND.COM`-style prompt (`dos/index.html`'s
+  `#dos-dir`, a black-background/light-grey-text `dir` listing, not a
+  desktop with icons) with a working command line and a full-screen
+  DICT.EXE program. See `CLAUDE.md` for the conventions this theme runs
+  on (character-grid movement, mobile keyboard/viewport handling, the
+  command shims below) before editing it.
+- **`shared/`** — theme-agnostic code any prototype can reuse:
+  `dict-source.js` (fetch/cache/filter the live Oqaasileriffik dictionary
+  data), `hyphenation.js` (real Kalaallisut syllabification, MPL-2.0 —
+  see License below), and `router.js` (a tiny query-string router for
+  shareable-state URLs, e.g. `dos/index.html?screen=dict&filter=word`
+  opens straight into DICT.EXE pre-filtered).
 
 ## Prospective themes
 
@@ -74,6 +86,19 @@ not a hand-rolled approximation. Unlike `mac1984/`'s smooth pixel dragging
 steps only — text mode never had anything in between, so free pixel
 dragging on top of a text-mode skin would be a lie, not a period-accurate
 feel.
+
+`dos/` also has a working command line at the `A:\OQ>` prompt: `DICT`
+(launches DICT.EXE, with real DOS-style `/?` and `/F:word` switches),
+`DIR`, `CLS`, `VER`, `DOSKEY`, `FORMAT` (harmless — there's no real drive
+behind it), and a `DOOM` Easter egg (not listed in `DIR`'s own output)
+that prints the real DOS/4GW pre-386 protected-mode fatal error DOOM
+actually gave on anything below a 386. DICT.EXE's own state (open/closed,
+current filter) round-trips through the URL via `shared/router.js`, so
+`dos/index.html?screen=dict&filter=nuna` is a real shareable link, not
+just a starting point. Text entry has autocorrect/autocapitalize/
+spellcheck off throughout, and the full-screen `.dos-dir`/`.dos-app`
+takeovers track `window.visualViewport` so the mobile on-screen keyboard
+shrinks them instead of covering the prompt.
 
 **Noted, not yet built:** `dos/`'s overlapping draggable windows are
 period-accurate *inside* a single Turbo Vision-style app (Turbo Pascal
