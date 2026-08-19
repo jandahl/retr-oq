@@ -110,7 +110,21 @@ html, body {
    contents, not a panel sitting on top of a blue one. */
 .dos-dir {
   position: fixed;
-  top: 0;
+  /* top, not the literal 0 this used to be -- position:fixed anchors to the
+     LAYOUT viewport's origin, not the visual one, but when the on-screen
+     keyboard opens, mobile Safari scrolls the visual viewport down within
+     that same layout viewport to keep the focused input in view
+     (visualViewport.offsetTop > 0) without moving the layout viewport
+     itself. A fixed element pinned to literal top:0 doesn't follow that
+     scroll: its top edge ends up above the actually-visible area (the part
+     that scrolled past requires an internal scroll to reach, even though
+     nothing below it changed) and, since its height is set to the visual
+     viewport's height starting from the wrong origin, its bottom edge
+     lands short of the real visible bottom by exactly that offset -- a gap
+     between it and the keyboard. app.js syncs --app-top to
+     visualViewport.offsetTop so this tracks the same scroll the browser
+     already applied instead of fighting it. */
+  top: var(--app-top, 0);
   left: 0;
   right: 0;
   /* height, not inset:0's implicit bottom:0 -- app.js sets --app-height from
@@ -162,7 +176,7 @@ html, body {
 
 .dos-app {
   position: fixed;
-  top: 0;
+  top: var(--app-top, 0); /* see .dos-dir's comment above */
   left: 0;
   right: 0;
   height: var(--app-height, 100vh); /* see .dos-dir's comment above */

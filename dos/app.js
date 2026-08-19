@@ -470,8 +470,18 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
     const gap = window.innerHeight - vv.height;
     if (gap > KEYBOARD_THRESHOLD_PX) {
       document.documentElement.style.setProperty("--app-height", `${vv.height}px`);
+      // Keyboard-open also has mobile Safari scroll the visual viewport
+      // down within the (unchanged) layout viewport to keep the focused
+      // input visible -- position:fixed follows the layout viewport, not
+      // the visual one, so without this offset the box's top ends up above
+      // the actually-visible area (forcing an internal scroll to reach
+      // content that never moved) and its bottom falls short of the real
+      // visible bottom by the same amount (a gap above the keyboard). See
+      // .dos-dir's own comment in style.css for the full picture.
+      document.documentElement.style.setProperty("--app-top", `${vv.offsetTop}px`);
     } else {
       document.documentElement.style.removeProperty("--app-height");
+      document.documentElement.style.removeProperty("--app-top");
     }
   }
   if (window.visualViewport) {
