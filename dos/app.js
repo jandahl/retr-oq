@@ -296,6 +296,16 @@ DRIVE A: WILL BE LOST!
 Proceed with Format (Y/N)?N
 Format terminated`;
 
+  // DOOM.EXE isn't in the DIR listing above (BUILD.EXE/DECON.EXE are the
+  // only "real" programs the directory admits to) -- typing it anyway is
+  // the whole joke, same as it always was on a real DOS box. It needed
+  // DOS/4GW's 32-bit protected-mode extender to run at all, which refused
+  // outright on anything below a 386.
+  const DOOM_ERROR = `DOS/4GW Protected Mode Run-time  Version 1.97
+Copyright (c) Rational Systems, Inc. 1990-1993
+
+DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
+
   const dosOutput = document.getElementById("dos-output");
   const dosCmd = document.getElementById("dos-cmd");
 
@@ -336,6 +346,8 @@ Format terminated`;
       printLine("DOSKEY installed.");
     } else if (cmd === "FORMAT" || cmd === "FORMAT.EXE") {
       printLine(FORMAT_WARNING);
+    } else if (cmd === "DOOM" || cmd === "DOOM.EXE") {
+      printLine(DOOM_ERROR);
     } else {
       printLine("Bad command or file name");
     }
