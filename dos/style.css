@@ -285,26 +285,25 @@ html, body {
   padding: 0 1ch;
   background: #aaaaaa;
   color: #000000;
-  /* The framework applies `button,input,...{font:...!important}` -- an
-     !important always wins over a plain declaration regardless of
-     selector specificity or source order, so the `font: inherit` this
-     used to have was silently a no-op, not actually inheriting from the
-     surrounding text. It happened to compute to the same 16px/DOS/14px
-     values as the rest of the page, but only by coincidence -- matched
-     here explicitly (and with !important of its own) so it stays correct
-     regardless of what the framework's rule says. */
-  font: 400 16px DOS, monospace !important;
-  line-height: 14px !important;
-  /* Matching the computed font values above turned out not to be enough
-     on its own -- the framework keeps every <button> on native
-     `-webkit-appearance: button` (see .dos-link's comment for the full
-     explanation), and WebKit can keep rendering a natively-appearanced
-     button's text with the platform's own font metrics regardless of
-     what font-family/size CSS declares on top, which is exactly what
-     still read as "smaller than the rest" on a real phone even though
-     getComputedStyle already agreed with the rest of the page. Turning
-     appearance off is what actually hands rendering control to this
-     rule. */
+  /* Two earlier attempts at getting this button's text to actually match
+     the rest of the page live in this repo's history, both now
+     unnecessary and removed:
+     1. `font: inherit` was a silent no-op -- the framework's own
+        `button,input,...{font:...!important}` beats any plain
+        declaration regardless of specificity. Fought that by matching its
+        16px/DOS/14px values explicitly, with !important of our own.
+     2. That still wasn't enough on real mobile Safari: the framework
+        keeps every <button> on native -webkit-appearance:button (see
+        .dos-link's comment), and WebKit can render a natively-appearanced
+        button's text with the platform's own metrics regardless of what
+        font CSS declares on top, !important or not.
+     -webkit-appearance:none below fixes the actual root cause (#2) --
+     once the browser is actually respecting our CSS font declarations
+     instead of its own platform rendering, the framework's own forced
+     16px/DOS/14px (#1's target) already matches the rest of the page on
+     its own, making explicitly re-declaring it redundant. Back to plain
+     `font: inherit`, same as .dos-link. */
+  font: inherit;
   -webkit-appearance: none;
   appearance: none;
   text-align: left;
