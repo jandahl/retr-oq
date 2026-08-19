@@ -24,11 +24,10 @@
 // which exist here yet. Noted as a possible future addition, not built.
 //
 // A plain classic script attaching one namespaced global (window.OqDictSource),
-// not an ES module -- these theme pages are meant to be opened straight off
-// disk (see README: "Open mac1984/index.html directly, no build step"), and
-// a module's import is fetched as CORS-restricted, which file:// always
-// fails; a classic <script src> has no such restriction. Load this script
-// tag before the theme's own app.js and read off window.OqDictSource.
+// not an ES module -- today's convention across this repo's theme files
+// (not a file:// requirement -- this repo targets http(s) hosting, see
+// CLAUDE.md). Load this script tag before the theme's own app.js and read
+// off window.OqDictSource.
 (() => {
   "use strict";
 

@@ -1,11 +1,12 @@
 (() => {
   "use strict";
 
-  // Plain classic script, not type="module" -- these theme pages are meant
-  // to be opened straight off disk (README: "Open mac1984/index.html
-  // directly, no build step"), and file:// always fails a module's
-  // CORS-restricted fetch. shared/dict-source.js is a classic script too,
-  // loaded before this one in index.html, exposing window.OqDictSource.
+  // Plain classic script, not type="module" -- today's convention across
+  // this repo's theme files, sharing state via window.<Namespace> globals
+  // instead of imports (not a file:// requirement -- this repo targets
+  // http(s) hosting, see CLAUDE.md). shared/dict-source.js is a classic
+  // script too, loaded before this one in index.html, exposing
+  // window.OqDictSource.
   const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
   const { syllabify } = window.OqHyphenation;
 
