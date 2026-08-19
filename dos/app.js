@@ -368,6 +368,14 @@
   }
 
   async function launchDecon(initialWord = "") {
+    // Abort unconditionally, not just when searchDecon() below runs (which
+    // it only does for a non-empty initialWord) -- otherwise reopening
+    // DECON.EXE with no word after leaving a previous search in flight
+    // (e.g. Esc pressed before a slow analysis resolved) leaves that old
+    // AbortController's signal never aborted. It would later resolve,
+    // pass its own `if (signal.aborted) return`, and silently overwrite
+    // this fresh, just-reset UI with a stale, unrelated result.
+    if (deconSearchAbort) deconSearchAbort.abort();
     dirScreen.hidden = true;
     dictApp.hidden = true;
     deconApp.hidden = false;
@@ -379,6 +387,7 @@
   }
 
   function exitDecon() {
+    if (deconSearchAbort) deconSearchAbort.abort(); // same reasoning as launchDecon above
     deconApp.hidden = true;
     dirScreen.hidden = false;
   }
@@ -621,7 +630,12 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
     );
   }
   stepScrollOnWheel(dirScreen);
-  stepScrollOnWheel(document.querySelector(".dos-app-results"));
+  // querySelectorAll, not querySelector -- .dos-app-results is shared by
+  // both DICT.EXE's and DECON.EXE's results panes now, and querySelector
+  // would only ever find the first (DICT.EXE's), silently leaving
+  // DECON.EXE's results on native smooth/momentum wheel scrolling instead
+  // of this theme's character-grid stepping.
+  document.querySelectorAll(".dos-app-results").forEach(stepScrollOnWheel);
 
   // Mobile on-screen keyboards shrink the *visual* viewport but not the
   // *layout* viewport -- 100vh/inset:0 stay pinned to the full layout size,
