@@ -62,15 +62,19 @@
     SCHEMA_MAJOR_VERSION,
   } = api;
 
-  // oq's own gloss text can contain a real em/en dash (e.g. a mood-label
-  // phrase like "exclamation — he/she/it") -- real DOS text mode never
-  // had either (CP437 has no em/en dash glyph at all), so any oq-sourced
-  // text rendered on a DOS screen needs this, not just this file's own
-  // formatting. Applied at the source here rather than in each theme's
-  // own rendering code, so every consumer of this module gets
-  // DOS-safe text for free instead of needing to remember to sanitize it.
-  function toDosDash(text) {
-    return text.replace(/[–—]/g, "-");
+  // oq's own gloss text can contain real single-glyph Unicode punctuation
+  // CP437 never had: an em/en dash (e.g. a mood-label phrase like
+  // "exclamation — he/she/it") and a single "…" ellipsis character (e.g.
+  // "that … he/she/it"). A dash has no period-accurate substitute other
+  // than a plain "-" (real DOS software just used one), but "…" isn't
+  // being dropped, only transposed to what it always actually was under
+  // the hood on a real DOS box: three separate "." characters, not one
+  // glyph -- CP437 has no dedicated ellipsis code point either. Applied at
+  // the source here rather than in each theme's own rendering code, so
+  // every consumer of this module gets DOS-safe text for free instead of
+  // needing to remember to sanitize it.
+  function toDosPunctuation(text) {
+    return text.replace(/[–—]/g, "-").replace(/…/g, "...");
   }
 
   /** @returns {number} length of the longest common prefix of `a` and `b` */
@@ -208,7 +212,7 @@
           // shortGloss (filled, single-sense), not gloss (raw, scholarly,
           // potentially multi-sense) -- oq's own Deconstruct/Word Builder
           // UI renders shortGloss for exactly this reason (jandahl/oq#824).
-          meaning: meaningItem ? toDosDash(meaningItem.shortGloss) : "",
+          meaning: meaningItem ? toDosPunctuation(meaningItem.shortGloss) : "",
           // rawShortGloss for the per-morpheme rows, not shortGloss --
           // deliberately UNFILLED ("someone looks for ___", not "someone
           // looks for birthday"): the per-morpheme breakdown is showing
@@ -230,7 +234,7 @@
               const before = i === 0 ? "" : stepWords[i - 1];
               const leftPad = commonPrefixLen(before, stepWords[i]);
               const rightPad = Math.max(0, m.word.length - leftPad - spelling.length);
-              return { marker: item.marker, text: item.text, gloss: toDosDash(item.rawShortGloss), leftPad, rightPad };
+              return { marker: item.marker, text: item.text, gloss: toDosPunctuation(item.rawShortGloss), leftPad, rightPad };
             })
             .filter((_, i) => items[i].marker !== "Ø"),
         };
@@ -238,7 +242,7 @@
       // .expected/.gloss_en specifically, not the whole object -- dictMatch
       // is oq's own NormalizedEntry shape (see dos/app.js's own comment on
       // it), only these two fields ever reach a DOS screen.
-      dictMatch: dictMatch ? { ...dictMatch, expected: toDosDash(dictMatch.expected), gloss_en: toDosDash(dictMatch.gloss_en) } : null,
+      dictMatch: dictMatch ? { ...dictMatch, expected: toDosPunctuation(dictMatch.expected), gloss_en: toDosPunctuation(dictMatch.gloss_en) } : null,
       elapsedMs,
       evalCount,
     };
