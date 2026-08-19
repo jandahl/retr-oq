@@ -141,6 +141,21 @@ html, body {
   word-break: break-word; /* long lines wrap instead of overflowing a narrow viewport */
 }
 .dos-link {
+  /* -webkit-appearance: none -- the vendored framework keeps every <button>
+     on native `-webkit-appearance: button` (its own button{} rule, checked
+     directly in vendor/dos/css/bootstrap.min.css), i.e. real platform
+     button chrome, not a flattened reset. Font-related declarations on a
+     natively-appearanced button aren't guaranteed to actually apply on
+     every engine/platform -- WebKit in particular can keep rendering a
+     native button's text with system font metrics regardless of a custom
+     font-family/size set on top, which reads as "this text is smaller/
+     different" even though getComputedStyle reports the values you set
+     (that's exactly what made this look fixed in desktop testing while
+     still visibly wrong on a real phone -- see .dos-app-footer below,
+     which had the identical bug). Turning appearance off is what actually
+     hands full rendering control to our CSS instead of the platform's. */
+  -webkit-appearance: none;
+  appearance: none;
   background: none;
   border: none;
   color: inherit;
@@ -280,6 +295,18 @@ html, body {
      regardless of what the framework's rule says. */
   font: 400 16px DOS, monospace !important;
   line-height: 14px !important;
+  /* Matching the computed font values above turned out not to be enough
+     on its own -- the framework keeps every <button> on native
+     `-webkit-appearance: button` (see .dos-link's comment for the full
+     explanation), and WebKit can keep rendering a natively-appearanced
+     button's text with the platform's own font metrics regardless of
+     what font-family/size CSS declares on top, which is exactly what
+     still read as "smaller than the rest" on a real phone even though
+     getComputedStyle already agreed with the rest of the page. Turning
+     appearance off is what actually hands rendering control to this
+     rule. */
+  -webkit-appearance: none;
+  appearance: none;
   text-align: left;
   cursor: pointer;
 }
