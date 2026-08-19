@@ -356,6 +356,13 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
     dirScreen.scrollTop = dirScreen.scrollHeight;
   }
 
+  // CLS: wipes the scrollback, not just what's currently visible -- a real
+  // CLS cleared the whole screen buffer, not just the portion on screen.
+  function clearScreen() {
+    dosOutput.textContent = "";
+    dirScreen.scrollTop = 0;
+  }
+
   function runCommand(line) {
     const trimmed = line.trim();
     if (trimmed === "") return;
@@ -378,6 +385,8 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
       printLine(`${cmd.replace(/\.EXE$/, "")}.EXE: not yet implemented`);
     } else if (cmd === "DIR" || cmd === "DIR.EXE") {
       printLine(DIR_LISTING);
+    } else if (cmd === "CLS" || cmd === "CLS.EXE") {
+      clearScreen();
     } else if (cmd === "VER" || cmd === "VER.EXE") {
       printLine(VER_TEXT);
     } else if (cmd === "DOSKEY" || cmd === "DOSKEY.EXE") {
