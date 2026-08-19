@@ -2,18 +2,23 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 //
-// Ported from jandahl/oq's docs/hyphenation.js (MPL-2.0) -- an unmodified
-// copy of that file lives at vendor/oq-hyphenation/hyphenation.js for
-// provenance/licensing reference. This is a Modification of that Covered
-// Software under MPL-2.0 terms (same algorithm, adapted from an ES module
-// `export` to the classic-script window-global pattern every other
-// shared/*.js and theme app.js in this repo uses, for the same file://
-// CORS reason documented in dos/app.js), so it carries the same license
-// rather than this repo's usual MIT.
+// To be precise about what's actually MPL-licensed here: the Kalaallisut
+// syllabification RULES below (long vowels never split, ng is one
+// phoneme, etc.) are linguistic facts published by Oqaasileriffik at
+// https://oqaasileriffik.gl/da/vaerktoejer/orddeling-ved-ny-linje/ -- facts
+// and rules about a language aren't copyrightable, and that page states no
+// license of its own regardless. What IS under MPL-2.0 is the CODE: this
+// is a port of jandahl/oq's docs/hyphenation.js, a specific copyrightable
+// expression of those rules (an unmodified copy lives at
+// vendor/oq-hyphenation/hyphenation.js for provenance). This file is a
+// Modification of that Covered Software (same algorithm, adapted from an
+// ES module `export` to the classic-script window-global pattern every
+// other shared/*.js and theme app.js in this repo uses, for the same
+// file:// CORS reason documented in dos/app.js) -- the code carries MPL-2.0
+// because it's derived from oq's code, not because the underlying rules
+// themselves are anyone's to license.
 //
-// Kalaallisut (Greenlandic) syllabification for word-splitting at line
-// breaks. Rules from Oqaasileriffik: https://oqaasileriffik.gl/da/vaerktoejer/orddeling-ved-ny-linje/
-// See jandahl/oq's docs/HYPHENATION.md for the full specification,
+// See jandahl/oq's docs/HYPHENATION.md for the full rule specification,
 // worked examples, and a 28-case test suite (docs/test-hyphenation.js)
 // this port was checked against (all 28 pass unmodified).
 //

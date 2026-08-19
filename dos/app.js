@@ -278,6 +278,11 @@
 
   function printLine(text) {
     dosOutput.appendChild(document.createTextNode(`\n${text}`));
+    // Without this, the always-focused prompt input can end up below the
+    // visible viewport after a few commands (or one that prints several
+    // lines, like DICT /?) -- the user keeps typing into a field they can
+    // no longer see.
+    dirScreen.scrollTop = dirScreen.scrollHeight;
   }
 
   function runCommand(line) {
@@ -329,6 +334,15 @@
     el.addEventListener(
       "wheel",
       (event) => {
+        // Ctrl/Cmd+wheel is the browser's native page-zoom gesture -- let
+        // it through untouched instead of hijacking it into a scroll.
+        if (event.ctrlKey || event.metaKey) return;
+        // deltaY === 0 means a purely horizontal gesture (Shift+wheel, a
+        // two-finger horizontal trackpad swipe) -- there's nothing here to
+        // step vertically for, and `deltaY > 0 ? … : …` would otherwise
+        // treat exactly-0 as "scroll up" and move the container on a
+        // gesture the user never made vertically.
+        if (event.deltaY === 0) return;
         event.preventDefault();
         el.scrollTop += event.deltaY > 0 ? ROW_HEIGHT : -ROW_HEIGHT;
       },
