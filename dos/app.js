@@ -217,10 +217,14 @@
           : `${matches.length.toLocaleString()} match${matches.length === 1 ? "" : "es"}.`;
   }
 
-  async function launchDict() {
+  // initialFilter: "DICT /F:word" at the command line (see the prompt
+  // handling below) jumps straight to a filtered view instead of the
+  // default browsable list -- the actual DOS way to pass a program an
+  // argument, unlike clicking a filename, which never took arguments.
+  async function launchDict(initialFilter = "") {
     dirScreen.hidden = true;
     dictApp.hidden = false;
-    dictFilter.value = "";
+    dictFilter.value = initialFilter;
     dictTbody.textContent = "";
 
     if (dictEntries === null) {
@@ -242,11 +246,86 @@
     dirScreen.hidden = false;
   }
 
-  document.getElementById("launch-dict").addEventListener("click", launchDict);
+  // Not addEventListener("click", launchDict) directly -- that would pass
+  // the click's PointerEvent as launchDict's initialFilter argument.
+  document.getElementById("launch-dict").addEventListener("click", () => launchDict());
   document.getElementById("dict-exit").addEventListener("click", exitDict);
   dictFilter.addEventListener("input", renderResults);
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dictApp.hidden) exitDict();
   });
+
+  // Command line: DOS programs took switches ("/?", "/F:word"), not clicks
+  // -- the DICT.EXE filename above is still clickable (equivalent to typing
+  // "DICT" with no switches), but this is the only way to pass one.
+  const DICT_HELP = `DICT.EXE [/F:word] [/?]
+
+  /F:word   Launch straight into results filtered to "word"
+  /?        Display this help`;
+
+  const dosOutput = document.getElementById("dos-output");
+  const dosCmd = document.getElementById("dos-cmd");
+
+  function printLine(text) {
+    dosOutput.appendChild(document.createTextNode(`\n${text}`));
+  }
+
+  function runCommand(line) {
+    const trimmed = line.trim();
+    if (trimmed === "") return;
+    const [rawCmd, ...args] = trimmed.split(/\s+/);
+    const cmd = rawCmd.toUpperCase();
+
+    if (cmd === "DICT" || cmd === "DICT.EXE") {
+      const helpFlag = args.some((a) => a === "/?");
+      const filterArg = args.find((a) => /^\/F:/i.test(a));
+      if (helpFlag) {
+        printLine(DICT_HELP);
+      } else if (filterArg) {
+        launchDict(filterArg.slice(3));
+      } else if (args.length > 0) {
+        printLine(`Invalid switch - ${args[0]}`);
+      } else {
+        launchDict();
+      }
+    } else if (cmd === "BUILD" || cmd === "BUILD.EXE" || cmd === "DECON" || cmd === "DECON.EXE") {
+      printLine(`${cmd.replace(/\.EXE$/, "")}.EXE: not yet implemented`);
+    } else {
+      printLine("Bad command or file name");
+    }
+  }
+
+  dosCmd.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    printLine(`B:\\OQ>${dosCmd.value}`);
+    runCommand(dosCmd.value);
+    dosCmd.value = "";
+  });
+
+  document.getElementById("dos-dir").addEventListener("click", () => dosCmd.focus());
+  dosCmd.focus();
+
+  // Text mode scrolled a whole character row at a time, an instant jump --
+  // never the smooth, eased-momentum scrolling a modern trackpad/mouse
+  // wheel produces by default. Intercepting wheel input and stepping
+  // scrollTop by exactly one row (no CSS transition, no browser-native
+  // easing) is the only way to actually get that back; overscroll-behavior
+  // (used elsewhere in this file) only stops scroll chaining, it doesn't
+  // touch how a single container's own scroll feels. Deliberately wheel
+  // only, not touch -- hijacking touchmove to force the same stepped feel
+  // would fight native mobile scrolling far more than it's worth here.
+  const ROW_HEIGHT = parseFloat(getComputedStyle(document.body).lineHeight) || 14;
+  function stepScrollOnWheel(el) {
+    el.addEventListener(
+      "wheel",
+      (event) => {
+        event.preventDefault();
+        el.scrollTop += event.deltaY > 0 ? ROW_HEIGHT : -ROW_HEIGHT;
+      },
+      { passive: false },
+    );
+  }
+  stepScrollOnWheel(dirScreen);
+  stepScrollOnWheel(document.querySelector(".dos-app-results"));
 })();

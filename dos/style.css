@@ -110,11 +110,24 @@ html, body {
   color: #000000;
   outline: none;
 }
-.dos-cursor {
-  animation: dos-blink 1s steps(1) infinite;
+.dos-prompt-line {
+  display: flex;
 }
-@keyframes dos-blink {
-  50% { opacity: 0; }
+/* Styled to disappear into the surrounding text -- same font/color, no
+   border/background/outline -- so it reads as "the prompt", not "a form
+   field on the prompt". The browser's own native caret already blinks,
+   which is all the old .dos-cursor span (removed) was faking by hand. */
+.dos-cmd-input {
+  flex: 1 1 auto;
+  min-width: 1ch;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  caret-color: #aaaaaa;
 }
 
 .dos-app {
@@ -133,21 +146,63 @@ html, body {
   background: #aa00aa; /* matches .card-header's magenta, same DOS palette */
   color: #ffffff;
 }
-.dos-app-body {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 1em;
+.dos-app-toolbar {
+  flex: none;
+  padding: 1em 1em 0;
 }
-.dos-app-body .form-control {
+.dos-app-toolbar .form-control {
   max-width: 40em;
 }
 .dos-app-status {
   margin: 0.5em 0;
 }
+
+/* The only scrollable region in DICT.EXE -- see the HTML comment on
+   .dos-app-results for why <thead> lives inside it rather than in the
+   fixed toolbar above. overflow-x hidden as a hard backstop: even with
+   table-layout:fixed and the word-break below, nothing should ever be
+   able to push this wider than the app and force a sideways scrollbar --
+   a long token that somehow still doesn't wrap gets clipped by this
+   instead of blowing out the layout. */
+.dos-app-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 0 1em;
+}
+/* table-layout:fixed makes the column split a fixed 60/40 percentage the
+   browser commits to up front, instead of the default "auto" layout that
+   sizes each column to fit its widest cell's content -- which is exactly
+   what let one long lexeme (e.g. "akiitsunik isumakkeerinninneq") blow
+   the Lexeme column out wide enough to break the whole table's width.
+   overflow-wrap: anywhere is the actual wrap fix once the column has a
+   committed width: normal word-wrapping only breaks at spaces/hyphens, so
+   a single long unbroken token still overflows its cell without it. */
+#dict-table {
+  table-layout: fixed;
+  width: 100%;
+}
+#dict-table th:first-child,
+#dict-table td:first-child {
+  width: 60%;
+}
+#dict-table td {
+  overflow-wrap: anywhere;
+}
+/* Column headers stay visible while only the rows beneath scroll --
+   needs an opaque background matching the app's own backdrop, or rows
+   scrolling underneath would show through a transparent sticky header. */
+#dict-table thead th {
+  position: sticky;
+  top: 0;
+  background: #000084; /* the framework's own DOS-blue body background (confirmed via getComputedStyle) */
+}
+
 .dos-app-attribution {
-  margin: 1em 0 0;
+  flex: none;
+  margin: 1em 1em 0;
   font-size: 0.8em;
   color: #7777aa; /* dim relative to the EGA grey body text, still legible on DOS blue */
 }

@@ -13,7 +13,7 @@
      the last deploy: markup referencing classes/behavior a cached
      stylesheet/script didn't have yet. Bump the number whenever either
      file actually changes. -->
-<link rel="stylesheet" href="style.css?v=3" />
+<link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <!-- DOS was single-tasking: no desktop, no icons, a program took the
@@ -23,7 +23,7 @@
        and DECON.EXE are listed (the directory doesn't lie) but plain text,
        not buttons -- there is nothing to launch yet. -->
   <div class="dos-dir" id="dos-dir">
-B:\OQ&gt;dir
+    <div id="dos-output">B:\OQ&gt;dir
 
  Volume in drive B is OQ
  Directory of B:\OQ
@@ -33,33 +33,51 @@ BUILD    EXE        38,912  03-14-89   2:15p
 DECON    EXE        35,328  03-14-89   2:15p
         3 File(s)      115,712 bytes
                      1,458,176 bytes free
-
-B:\OQ&gt;<span class="dos-cursor">_</span></div>
+</div>
+    <!-- A real command line, not just a clickable filename -- DICT.EXE
+         still launches on click too (see launch-dict above), but typing
+         "DICT /?" for a usage screen or "DICT /F:word" to launch straight
+         into a filtered view is the actual DOS way to pass a program
+         options, and clicking a filename never was. -->
+    <div class="dos-prompt-line">B:\OQ&gt;<input type="text" id="dos-cmd" class="dos-cmd-input" autocomplete="off" autocapitalize="off" spellcheck="false" /></div>
+  </div>
 
   <!-- DICT.EXE: a full-screen takeover, not a floating window -- same
        reasoning as dos-dir above. Esc returns to the dir listing, the same
        way exiting a real DOS program dropped you back at the prompt. -->
   <div class="dos-app" id="dict-app" hidden>
     <div class="dos-app-header">B:\OQ\DICT.EXE</div>
-    <div class="dos-app-body">
+    <!-- Filter + status never scroll -- only the row results underneath
+         do, same as a real full-screen text-mode app kept its own title/
+         input/column-header chrome fixed and scrolled just the data. -->
+    <div class="dos-app-toolbar">
       <input type="text" class="form-control" id="dict-filter" placeholder="Filter..." autocomplete="off" />
       <p class="dos-app-status" id="dict-status"></p>
+    </div>
+    <!-- The only scrolling region in DICT.EXE. <thead> stays inside it
+         (not hoisted out to the toolbar above) because position:sticky
+         pins relative to ITS OWN nearest scrolling ancestor -- sticky only
+         works if the header and the rows it's pinned over share one
+         scroll container. -->
+    <div class="dos-app-results">
       <table class="table" id="dict-table">
         <thead>
           <tr><th>Lexeme</th><th>Translation</th></tr>
         </thead>
         <tbody id="dict-tbody"></tbody>
       </table>
-      <!-- Filled in by app.js from shared/dict-source.js's DICT_ATTRIBUTION
-           -- CC-BY-SA 4.0 requires this exact string wherever the data is
-           shown (see docs/SOURCES.md in jandahl/oq); kept in one place
-           there instead of copied into every consuming theme's markup. -->
-      <p class="dos-app-attribution" id="dict-attribution"></p>
     </div>
+    <!-- Filled in by app.js from shared/dict-source.js's DICT_ATTRIBUTION
+         -- CC-BY-SA 4.0 requires this exact string wherever the data is
+         shown (see docs/SOURCES.md in jandahl/oq); kept in one place there
+         instead of copied into every consuming theme's markup. Outside
+         .dos-app-results on purpose -- attribution shouldn't scroll away
+         with the rows any more than the exit footer below it does. -->
+    <p class="dos-app-attribution" id="dict-attribution"></p>
     <button type="button" class="dos-app-footer" id="dict-exit">Esc=Exit to B:\OQ&gt;</button>
   </div>
 
 <script src="../shared/dict-source.js?v=1"></script>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
