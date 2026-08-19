@@ -8,8 +8,7 @@
 // directly (browser ES module or Node)"). This repo targets http(s)
 // hosting, not file://, so that's not a constraint here.
 //
-// Imported straight from oq's own live production deployment
-// (oq.spacepope.dk, tracks its master branch) rather than vendored --
+// Imported straight from a real oq deployment rather than vendored --
 // public-api.js's whole point is to be a stable, versioned import
 // boundary; vendoring a copy would defeat that and silently drift stale.
 // jandahl/oq#819 is exactly this repo finding a real gap in that surface
@@ -17,10 +16,18 @@
 // fixed upstream (oq#821, API_VERSION 0.3.0) -- this file is what actually
 // consuming the fixed surface looks like.
 //
+// TEMPORARY: pointed at oq.dicknog.dk (oq's develop-branch preview), not
+// oq.spacepope.dk (its production deployment, which normally tracks
+// master) -- jandahl/oq#825 (the glossSummaryItems fix behind oq#824) is
+// merged to develop but still in CI, not yet promoted to production. Point
+// this back at oq.spacepope.dk once that promotion happens; nothing else
+// in this file needs to change, since both deployments serve the exact
+// same public-api.js contract at that point.
+//
 // Dynamic import(), not a static top-level `import` -- a static import
-// that fails (network error, CORS, oq.spacepope.dk 404ing/reshaping) would
-// throw before ANY of this module's own code runs, including a top-level
-// try/catch, which would leave window.OqAnalysis unset and
+// that fails (network error, CORS, the target host 404ing/reshaping)
+// would throw before ANY of this module's own code runs, including a
+// top-level try/catch, which would leave window.OqAnalysis unset and
 // "oq-analysis-ready" never dispatched -- dos/app.js's waitForOqAnalysis()
 // would then hang forever with no error surfaced, since nothing ever
 // settles the promise it's awaiting. Wrapping the whole thing in an async
@@ -29,7 +36,7 @@
 (async () => {
   let api;
   try {
-    api = await import("https://oq.spacepope.dk/public-api.js");
+    api = await import("https://oq.dicknog.dk/public-api.js");
   } catch (err) {
     // window.OqAnalysis.analyzeWord still exists and is still a function
     // that returns a rejected Promise -- callers (dos/app.js's
@@ -129,8 +136,19 @@
         // available here to render oq's own bullet-padded column-aligned
         // breakdown. One "marker+text — gloss" line per morpheme instead
         // -- a real simplification, not a bug, and worth revisiting if
-        // glossSummaryItems ever joins the public surface too.
-        glossLines: glossSummary(m.seq),
+        // glossSummaryItems ever joins the public surface too (jandahl/oq
+        // issue TBD -- glossSummary's sense-selection also visibly lags
+        // glossSummaryItems' own composition quality, a second, separate
+        // gap from the missing column alignment).
+        //
+        // A Ø (zero-morpheme) item's marker is the literal string "Ø" with
+        // an empty text (morpheme-meta.js: `marker = isRoot ? "" : !text ?
+        // "Ø" : ...`), so glossSummary()'s join renders it as exactly
+        // "Ø — <gloss>" -- filtered out here for the same reason oq's own
+        // renderMorphemeBreakdown() drops these from its breakdown table:
+        // a null ending carries no real bound-morpheme content of its own
+        // to show a row for.
+        glossLines: glossSummary(m.seq).filter((line) => !line.startsWith("Ø — ")),
       })),
       dictMatch,
       elapsedMs,
