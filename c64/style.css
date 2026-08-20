@@ -147,6 +147,12 @@ html, body {
   color: var(--c64-lightblue);
   font-family: "C64 Pro Mono", ui-monospace, "Courier New", monospace;
   font-size: 16px;
+  /* Explicit, not left to inherit -- app.js's stepScrollOnWheel measures
+     each scroll container's own real computed line-height (see its own
+     comment); without this, .c64-app-results (DICT.EXE's results pane)
+     would resolve to the unset default "normal" and silently fall back to
+     a hardcoded guess instead of a real measurement. */
+  line-height: 1.25;
 }
 .c64-app[hidden] {
   display: none;

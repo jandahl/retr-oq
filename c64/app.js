@@ -145,8 +145,12 @@
     printLine("SEARCHING FOR DICT");
     printLine("LOADING");
     printLine("READY.");
-    printLine("RUN");
-    flickerThenRun(() => window.OqRouter.navigate({ screen: "dict", filter: null }));
+    // loadedProgram set here (not just implied by the transcript above) so
+    // a bare RUN typed afterward -- the natural next move after watching
+    // DICT load and launch this way -- relaunches it instead of hitting
+    // the real ?SYNTAX ERROR an empty program buffer gives.
+    loadedProgram = "DICT";
+    runProgram(loadedProgram);
   });
 
   // Command line: real BASIC/KERNAL two-step idiom -- LOAD"NAME",8[,1] to
@@ -187,6 +191,20 @@
     if (trimmed === "") return;
     const upper = trimmed.toUpperCase(); // real BASIC auto-uppercased typed input outside quotes; simplest to just uppercase the whole line, same idea as dos/app.js's cmd.toUpperCase()
 
+    // LOAD"$",8 is the real way to read the directory into BASIC's own
+    // variable buffer (LIST then prints it back) -- checked before the
+    // general LOAD match below so it can't be treated as an unknown
+    // program name and wrongly clear loadedProgram.
+    if (upper === 'LOAD"$",8' || upper === "LIST") {
+      printLine("SEARCHING FOR $");
+      printLine("LOADING");
+      printLine("READY.");
+      printLine("LIST");
+      printLine("");
+      printLine(DIR_LISTING);
+      return;
+    }
+
     const loadMatch = upper.match(/^LOAD\s*"([^"]*)"\s*,\s*8(?:\s*,\s*1)?$/);
     if (loadMatch) {
       const name = loadMatch[1];
@@ -211,16 +229,6 @@
       return;
     }
 
-    // LOAD"$",8 (or the bare filename form) followed by LIST is the real
-    // way to read the directory back onto the screen -- same idempotent
-    // "DIR reprints the same listing" idea as dos/app.js's own DIR command.
-    if (upper === 'LOAD"$",8' || upper === "LIST") {
-      printLine("LIST");
-      printLine("");
-      printLine(DIR_LISTING);
-      return;
-    }
-
     printLine("?SYNTAX ERROR");
   }
 
@@ -238,15 +246,26 @@
   // stepScrollOnWheel -- text mode scrolled a whole row at a time, never a
   // smooth trackpad glide. See that file's own comment for the full
   // reasoning; reapplied here rather than reinvented.
-  const ROW_HEIGHT = parseFloat(getComputedStyle(document.body).lineHeight) || 20;
+  //
+  // Measured per-element from ITS OWN computed line-height, unlike
+  // dos/app.js's single body-wide measurement -- dos/'s vendored framework
+  // sets a real line-height on body itself, but c64/style.css doesn't (only
+  // .c64-screen/.c64-app set one, and .c64-app-results doesn't even inherit
+  // .c64-screen's), so reading body's here would resolve to "normal" (NaN
+  // once parsed) and silently always fall back to one hardcoded literal,
+  // wrong for any element whose real row height differs from it.
+  function rowHeight(el) {
+    return parseFloat(getComputedStyle(el).lineHeight) || 20;
+  }
   function stepScrollOnWheel(el) {
+    const step = rowHeight(el);
     el.addEventListener(
       "wheel",
       (event) => {
         if (event.ctrlKey || event.metaKey) return;
         if (event.deltaY === 0) return;
         event.preventDefault();
-        el.scrollTop += event.deltaY > 0 ? ROW_HEIGHT : -ROW_HEIGHT;
+        el.scrollTop += event.deltaY > 0 ? step : -step;
       },
       { passive: false },
     );
