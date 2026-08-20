@@ -68,6 +68,11 @@ looks like today.
   DICT.EXE program. See `CLAUDE.md` for the conventions this theme runs
   on (character-grid movement, mobile keyboard/viewport handling, the
   command shims below) before editing it.
+- **`c64/`** — a Commodore 64 `LOAD"$",8` disk listing (`c64/index.html`'s
+  `#c64-dir`, light-blue-on-blue, 40 columns) with a real `LOAD"NAME",8`
+  → `RUN` command line, a border-color-cycling loading-screen flicker, and
+  the same DICT full-screen program as `dos/`. No `vendor/c64/` — see
+  "Prospective themes" below for why.
 - **`shared/`** — theme-agnostic code any prototype can reuse:
   `dict-source.js` (fetch/cache/filter the live Oqaasileriffik dictionary
   data), `hyphenation.js` (real Kalaallisut syllabification, MPL-2.0 —
@@ -77,7 +82,27 @@ looks like today.
 
 ## Prospective themes
 
-Shipped so far: **1984 Mac** (`mac1984/`) and **DOS** (`dos/`), both above.
+Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`), and
+**Commodore 64** (`c64/`), all above. `c64/` is a deliberate exception to
+the "vendor a real framework" pattern the other two follow: the candidate
+named below (`bootstrap-c64`) ships no `LICENSE` file at all, which fails
+this repo's own vendoring bar, and what it does have is a thin
+jQuery+Bootstrap skin with no disk-list/loading-screen pieces anyway.
+`c64/style.css` is hand-written from scratch instead — a real C64 screen is
+mostly just a monospace grid, a 16-color palette, and a border, not much of
+a framework to begin with. It also has no vendored PETSCII font yet
+(`vendor/c64/` doesn't exist): the real font, C64 Pro Mono
+([style64.org](https://style64.org/c64-truetype)), only licenses
+`@font-face` embedding, not the redistribute-the-file-plus-its-LICENSE
+pattern `vendor/mac1984/` and `vendor/dos/` use — adding it needs its own
+note file explaining that narrower grant, follow-up work not done yet.
+`c64/`'s command line follows the real two-step BASIC/KERNAL idiom —
+`LOAD"DICT",8` reports success but does nothing on its own; `RUN` is what
+actually starts whatever was last loaded, with the genuine
+`?SYNTAX ERROR`/`?FILE NOT FOUND ERROR` messages BASIC gave for the wrong
+one alone or an unknown name. `LOAD"$",8` + `LIST` reprints the disk
+directory, same idempotent idea as `dos/`'s own `DIR`.
+
 DOS is built on the real `kristopolous/BOOTSTRA.386` v4.4.1 (Apache 2.0,
 cloned from source — the only npm distribution of it is an unofficial
 third-party mirror, not something to vendor sight-unseen), which ships a
@@ -126,7 +151,6 @@ vendoring time since none of these have been vendored yet:
 | NES | [`NES.css`](https://github.com/nostalgic-css/NES.css) | MIT |
 | Windows 7 *(bonus, same family as 98.css/XP.css)* | [`7.css`](https://github.com/khang-nd/7.css) | MIT |
 | Modern macOS | [`Puppertino`](https://github.com/brayanjeshua/Puppertino) | check upstream |
-| Commodore 64 | [`bootstrap-c64`](https://github.com/JalaiAmitahl/bootstrap-c64) | check upstream |
 | Norton Commander | *no drop-in CSS framework found* — closest is [`victorantos/NC`](https://github.com/victorantos/NC), a full JS file-manager clone, not a CSS library. Would likely need to be hand-built from the 8x16 DOS box-drawing look, closer to how `mac1984/`'s desktop icons/menu bar were added on top of `@sakun/system.css`. |
 | Windows 3.1 | *no drop-in CSS framework found* — closest is [`karol-kiersnowski/win31`](https://github.com/karol-kiersnowski/win31), a full simulator, not a CSS library. Same situation as Norton Commander. |
 

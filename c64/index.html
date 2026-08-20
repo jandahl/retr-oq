@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>retr-oq — C64 desktop prototype</title>
+<!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
+     -- bump the number for style.css/app.js whenever either actually changes. -->
+<link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body>
+  <!-- The C64 booted straight into BASIC, no desktop, no icons -- same
+       single-tasking reasoning dos/'s #dos-dir comment gives, just a
+       different real screen: this is what LOAD"$",8 + LIST actually
+       printed, not a DOS `dir`. 40 columns, not DOS's 80 -- the real C64
+       screen width, which is why the layout/column choices below differ
+       from dos/'s at every turn. -->
+  <div class="c64-screen" id="c64-dir">
+    <div id="c64-output">READY.
+LOAD"$",8
+SEARCHING FOR $
+LOADING
+READY.
+LIST
+
+0 "OQ DISK       " 09 2A
+<button type="button" class="c64-link" id="launch-dict">1   "DICT"</button>            PRG
+<span class="c64-dim">1   "DICT DAT"</span>        SEQ
+<span class="c64-dim">1   "BUILD"</span>            PRG
+2   "RUN"                  PRG
+664 BLOCKS FREE.
+</div>
+    <!-- A real command line, same role as dos/'s #dos-cmd -- LOAD"NAME",8,1
+         then RUN is the actual two-step C64 idiom (see app.js's runCommand),
+         not a single launch command the way DOS's DICT was. -->
+    <div class="c64-prompt-line">READY.
+<input type="text" id="c64-cmd" class="c64-cmd-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" /></div>
+  </div>
+
+  <!-- DICT.PRG: a full-screen takeover, not a floating window -- same
+       single-tasking reasoning as #c64-dir above. Esc / the exit line
+       returns to the dir listing. -->
+  <div class="c64-app" id="dict-app" hidden>
+    <div class="c64-app-header">DICT</div>
+    <div class="c64-app-toolbar">
+      <input type="text" id="dict-filter" class="c64-input" placeholder="FILTER..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+      <p class="c64-app-status" id="dict-status"></p>
+    </div>
+    <div class="c64-app-results">
+      <table id="dict-table">
+        <thead>
+          <tr><th>LEXEME</th><th>TRANSLATION</th></tr>
+        </thead>
+        <tbody id="dict-tbody"></tbody>
+      </table>
+    </div>
+    <!-- Filled in by app.js from shared/dict-source.js's DICT_ATTRIBUTION,
+         same reasoning as dos/index.html's identical block. -->
+    <p class="c64-app-attribution" id="dict-attribution"></p>
+    <button type="button" class="c64-app-footer" id="dict-exit">RUN/STOP=EXIT TO READY.</button>
+  </div>
+
+  <!-- The RUN loading-screen flicker (issue #27 piece 2): a transient
+       full-screen takeover of its own, not folded into #c64-dir, since a
+       real LOAD/RUN blanked the screen to a solid border-cycling color
+       while it worked -- there was no listing visible underneath. -->
+  <div class="c64-loading" id="c64-loading" hidden aria-hidden="true"></div>
+
+<script src="../shared/dict-source.js?v=1"></script>
+<script src="../shared/hyphenation.js?v=1"></script>
+<script src="../shared/router.js?v=1"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
