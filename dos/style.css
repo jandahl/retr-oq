@@ -387,6 +387,14 @@ html, body {
   white-space: pre-wrap;
   word-break: break-word;
 }
+/* Letters a row's own declared spelling shows but the NEXT boundary
+   actually drops/replaces (e.g. -qaq's own final "q" before -vunga) --
+   same distinction oq's own UI draws with its ".result-gloss-truncated"
+   (var(--kc-danger), a red tone there); bright-red is the real EGA
+   "danger" counterpart to .decon-tag--approximate's bright-yellow above. */
+.decon-truncated {
+  color: #ff5555;
+}
 .decon-dict-match {
   color: #7777aa; /* dim, same tone as .dos-app-attribution -- a cross-reference, not the headline result */
 }
