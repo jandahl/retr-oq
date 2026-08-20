@@ -338,7 +338,7 @@
       const breakdown = document.createElement("div");
       breakdown.className = "decon-breakdown";
       const rows = deconRootFirst.checked ? match.breakdown : [...match.breakdown].reverse();
-      for (const { marker, normalText, truncatedText, gloss, leftPad, rightPad } of rows) {
+      for (const { marker, text, changedRanges, gloss, leftPad, rightPad } of rows) {
         const row = document.createElement("div");
         // "."-padded on both sides so this morpheme's spelling lines up
         // under its actual position in the whole word, same idea as oq's
@@ -347,18 +347,25 @@
         // ASCII "-" separator before the gloss, not an em dash -- real DOS
         // text mode never had one; "-" is what period software actually
         // used.
-        row.appendChild(document.createTextNode(`${".".repeat(leftPad)}${marker}${normalText}`));
-        if (truncatedText) {
-          // Letters this row's own declared spelling shows but the NEXT
-          // boundary actually drops/replaces (e.g. -qaq's own final "q"
-          // before -vunga) -- colored rather than silently blending into
-          // the rest of the spelling, same distinction oq's own UI draws
-          // with .result-gloss-truncated.
-          const truncated = document.createElement("span");
-          truncated.className = "decon-truncated";
-          truncated.textContent = truncatedText;
-          row.appendChild(truncated);
+        row.appendChild(document.createTextNode(`${".".repeat(leftPad)}${marker}`));
+        // changedRanges (jandahl/oq#833) are indices into `text` alone
+        // (marker excluded) marking letters that differ from this row's
+        // plain citation spelling -- either the row's own TRAILING letters
+        // the next boundary drops/replaces (-qaq's own final "q" before
+        // -vunga) or its own LEADING letters an allomorph pick changes
+        // (-vunga's own "v" resolving to "p"). Sliced and colored rather
+        // than blending into the rest of the spelling, same distinction
+        // oq's own UI draws with .result-gloss-truncated.
+        let cursor = 0;
+        for (const { start, end } of changedRanges) {
+          if (start > cursor) row.appendChild(document.createTextNode(text.slice(cursor, start)));
+          const changed = document.createElement("span");
+          changed.className = "decon-truncated";
+          changed.textContent = text.slice(start, end);
+          row.appendChild(changed);
+          cursor = end;
         }
+        if (cursor < text.length) row.appendChild(document.createTextNode(text.slice(cursor)));
         row.appendChild(document.createTextNode(`${".".repeat(rightPad)} - ${gloss}`));
         breakdown.appendChild(row);
       }

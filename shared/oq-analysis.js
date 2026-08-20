@@ -194,16 +194,18 @@
           // above should be filled in.
           //
           // rows already drops Ø items itself (computeMorphemeBreakdownRows()).
-          // normalText/truncatedText kept separate (not flattened into one
-          // "text" string) so a caller can style the truncated tail
-          // differently -- letters this row's own declared spelling shows
-          // but the NEXT boundary actually replaces/drops (e.g. the second
-          // "q" in "-qaq" before "-vunga" truncates it) -- same distinction
-          // oq's own UI draws with its ".result-gloss-truncated" color.
+          // text + changedRanges kept as-is (not flattened/pre-sliced) so a
+          // caller can style just the changed letters differently --
+          // jandahl/oq#833 generalized this to cover BOTH a row's own
+          // TRAILING letters the next boundary replaces/drops (e.g. -qaq's
+          // own final "q" before -vunga) AND its own LEADING letters an
+          // allomorph pick changes (e.g. -vunga's own "v" resolving to "p")
+          // -- same distinction oq's own UI draws with its
+          // ".result-gloss-truncated" color, just no longer trailing-only.
           breakdown: rows.map((row) => ({
             marker: row.marker,
-            normalText: row.normalText,
-            truncatedText: row.truncatedText,
+            text: row.text,
+            changedRanges: row.changedRanges,
             gloss: toDosPunctuation(row.item.rawShortGloss),
             leftPad: row.leftPad,
             rightPad: row.rightPad,
