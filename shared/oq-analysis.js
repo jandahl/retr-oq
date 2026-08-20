@@ -194,9 +194,16 @@
           // above should be filled in.
           //
           // rows already drops Ø items itself (computeMorphemeBreakdownRows()).
+          // normalText/truncatedText kept separate (not flattened into one
+          // "text" string) so a caller can style the truncated tail
+          // differently -- letters this row's own declared spelling shows
+          // but the NEXT boundary actually replaces/drops (e.g. the second
+          // "q" in "-qaq" before "-vunga" truncates it) -- same distinction
+          // oq's own UI draws with its ".result-gloss-truncated" color.
           breakdown: rows.map((row) => ({
             marker: row.marker,
-            text: row.normalText + row.truncatedText,
+            normalText: row.normalText,
+            truncatedText: row.truncatedText,
             gloss: toDosPunctuation(row.item.rawShortGloss),
             leftPad: row.leftPad,
             rightPad: row.rightPad,

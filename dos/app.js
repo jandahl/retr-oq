@@ -338,7 +338,7 @@
       const breakdown = document.createElement("div");
       breakdown.className = "decon-breakdown";
       const rows = deconRootFirst.checked ? match.breakdown : [...match.breakdown].reverse();
-      for (const { marker, text, gloss, leftPad, rightPad } of rows) {
+      for (const { marker, normalText, truncatedText, gloss, leftPad, rightPad } of rows) {
         const row = document.createElement("div");
         // "."-padded on both sides so this morpheme's spelling lines up
         // under its actual position in the whole word, same idea as oq's
@@ -347,7 +347,19 @@
         // ASCII "-" separator before the gloss, not an em dash -- real DOS
         // text mode never had one; "-" is what period software actually
         // used.
-        row.textContent = `${".".repeat(leftPad)}${marker}${text}${".".repeat(rightPad)} - ${gloss}`;
+        row.appendChild(document.createTextNode(`${".".repeat(leftPad)}${marker}${normalText}`));
+        if (truncatedText) {
+          // Letters this row's own declared spelling shows but the NEXT
+          // boundary actually drops/replaces (e.g. -qaq's own final "q"
+          // before -vunga) -- colored rather than silently blending into
+          // the rest of the spelling, same distinction oq's own UI draws
+          // with .result-gloss-truncated.
+          const truncated = document.createElement("span");
+          truncated.className = "decon-truncated";
+          truncated.textContent = truncatedText;
+          row.appendChild(truncated);
+        }
+        row.appendChild(document.createTextNode(`${".".repeat(rightPad)} - ${gloss}`));
         breakdown.appendChild(row);
       }
       card.appendChild(breakdown);
