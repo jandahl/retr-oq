@@ -1,0 +1,260 @@
+/* retr-oq c64 theme. Unlike mac1984/ (vendor/mac1984/@sakun/system.css) and
+   dos/ (vendor/dos/, kristopolous/BOOTSTRA.386), this theme has no vendored
+   framework -- see issue #27's own writeup for why: the candidate
+   (bootstrap-c64) ships no LICENSE file at all, which fails this repo's own
+   vendoring bar (every vendor/<theme>/ needs a verbatim upstream LICENSE,
+   same as vendor/mac1984/LICENSE.txt), and what CSS/JS it does have is a
+   thin jQuery+Bootstrap skin with no disk-list/loading-screen pieces
+   anyway. This is a small, from-scratch stylesheet instead -- a real
+   C64 screen is just a monospace grid, a 16-color palette, and a border,
+   not much of a "framework" to begin with.
+
+   Real C64 screen conventions this theme tries to get right (same
+   "period-accurate over convenient" bar dos/'s CLAUDE.md holds elsewhere):
+   light-blue-on-blue as the *default* screen colors (border + background =
+   blue, text = light blue -- arguably even more iconic than DOS's black),
+   and 40 columns, not DOS's 80. That column count is why #c64-dir uses
+   `white-space: pre` from day one instead of learning it the hard way DOS
+   did (#26) -- a 40-column fixed-width disk listing wraps on a narrow phone
+   screen exactly as easily as an 80-column one did.
+
+   No PETSCII webfont is vendored yet -- vendor/c64/ doesn't exist. The
+   real font (C64 Pro Mono, style64.org) only licenses @font-face embedding,
+   not the usual "vendor the file + copy its LICENSE verbatim" pattern this
+   repo uses elsewhere, so it needs a conscious decision (a note file
+   instead of a LICENSE.txt) before it's added -- follow-up work, not done
+   here. The monospace fallback stack below is deliberately plain until
+   then; nothing about the layout/JS depends on the real font metrics the
+   way dos/'s measureCell()-driven dragging does. */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* same reasoning as dos/style.css -- see that file's comment */
+  overscroll-behavior: none;
+  position: fixed;
+  width: 100%;
+  background: #35289c; /* the real C64 default screen blue, so any gap around a shrunk .c64-screen reads as more screen, not a foreign color */
+}
+
+:root {
+  --c64-blue: #35289c; /* default screen background */
+  --c64-lightblue: #7c70da; /* default screen text + border */
+  --c64-white: #ffffff;
+  --c64-black: #000000;
+}
+
+/* The real C64 16-color palette, in BASIC's own POKE 646/53280/53281 color
+   numbers 0-15 order -- used by #c64-loading's border-cycling animation
+   below (the loading flicker was VIC-II stepping through these as fast as
+   the disk drive could feed it, not a smooth gradient). */
+.c64-palette-cycle {
+  animation: c64-border-cycle 1.4s steps(16) infinite;
+}
+@keyframes c64-border-cycle {
+  0%   { background: #000000; } /* black */
+  6.25%  { background: #ffffff; } /* white */
+  12.5%  { background: #883932; } /* red */
+  18.75% { background: #67b6bd; } /* cyan */
+  25%  { background: #8b3f96; } /* purple */
+  31.25% { background: #55a049; } /* green */
+  37.5%  { background: #40318d; } /* blue */
+  43.75% { background: #bfce72; } /* yellow */
+  50%  { background: #8b5429; } /* orange */
+  56.25% { background: #574200; } /* brown */
+  62.5%  { background: #b86962; } /* light red */
+  68.75% { background: #505050; } /* dark grey */
+  75%  { background: #787878; } /* grey */
+  81.25% { background: #94e089; } /* light green */
+  87.5%  { background: #7c70da; } /* light blue */
+  93.75% { background: #a3a3a3; } /* light grey */
+  100% { background: #000000; }
+}
+
+.c64-screen {
+  position: fixed;
+  top: var(--app-top, 0); /* same visualViewport-tracking reasoning as dos/style.css's .dos-dir */
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100vh);
+  overflow: auto;
+  padding: 1em;
+  background: var(--c64-blue);
+  color: var(--c64-lightblue);
+  font-family: "C64 Pro Mono", ui-monospace, "Courier New", monospace;
+  font-size: 16px;
+  line-height: 1.25;
+  /* pre, not pre-wrap -- same reasoning as dos/style.css's .dos-dir: a real
+     40-column disk listing's fixed-width columns never mid-line-wrapped.
+     overflow: auto above already makes both axes scrollable as needed. */
+  white-space: pre;
+  max-width: 40ch;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.c64-dim {
+  /* BUILD/DICT DAT aren't launchable (same "the directory doesn't lie, but
+     there's nothing to run yet" idea as dos/index.html's BUILD.EXE) --
+     dimmed relative to the light-blue default text so they read as present
+     but inert, without a whole second color needing its own explanation. */
+  opacity: 0.6;
+}
+
+.c64-link {
+  -webkit-appearance: none; /* same reasoning as dos/style.css's .dos-link */
+  appearance: none;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+.c64-link:hover,
+.c64-link:focus-visible {
+  background: var(--c64-lightblue);
+  color: var(--c64-blue);
+  outline: none;
+}
+
+.c64-prompt-line {
+  display: flex;
+  flex-direction: column;
+}
+.c64-cmd-input {
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  caret-color: var(--c64-lightblue);
+}
+
+.c64-app {
+  position: fixed;
+  top: var(--app-top, 0);
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100vh);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: var(--c64-blue);
+  color: var(--c64-lightblue);
+  font-family: "C64 Pro Mono", ui-monospace, "Courier New", monospace;
+  font-size: 16px;
+  /* Explicit, not left to inherit -- app.js's stepScrollOnWheel measures
+     each scroll container's own real computed line-height (see its own
+     comment); without this, .c64-app-results (DICT.EXE's results pane)
+     would resolve to the unset default "normal" and silently fall back to
+     a hardcoded guess instead of a real measurement. */
+  line-height: 1.25;
+}
+.c64-app[hidden] {
+  display: none;
+}
+.c64-app-header {
+  flex: none;
+  padding: 0 1ch;
+  background: var(--c64-lightblue);
+  color: var(--c64-blue);
+}
+.c64-app-toolbar {
+  flex: none;
+  padding: 1em 1em 0;
+}
+.c64-input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: var(--c64-blue);
+  color: var(--c64-lightblue);
+  border: 1px solid var(--c64-lightblue);
+  font: inherit;
+  padding: 0.25em 0.5em;
+  max-width: 40ch;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+}
+.c64-input:focus-visible {
+  outline: 1px solid var(--c64-white);
+}
+.c64-app-status {
+  margin: 0.5em 0;
+}
+
+.c64-app-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 0 1em;
+}
+#dict-table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+#dict-table th,
+#dict-table td {
+  text-align: left;
+  padding: 0.1em 0.5em 0.1em 0;
+}
+#dict-table th:first-child,
+#dict-table td:first-child {
+  width: 60%;
+}
+#dict-table td {
+  overflow-wrap: anywhere;
+}
+#dict-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--c64-blue);
+  color: var(--c64-white);
+}
+
+.c64-app-attribution {
+  flex: none;
+  margin: 1em 1em 0;
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+.c64-app-footer {
+  flex: none;
+  display: block;
+  width: 100%;
+  border: none;
+  padding: 0.4em 1ch;
+  background: var(--c64-lightblue);
+  color: var(--c64-blue);
+  font: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The RUN loading flicker (issue #27 piece 2) -- a real LOAD/RUN blanked
+   the whole screen to the border color while the drive worked; there was
+   no listing or prompt visible underneath, hence its own full-screen
+   element rather than an overlay on #c64-dir. app.js adds/removes
+   .c64-palette-cycle to actually animate it and swaps in the "READY."/RUN
+   text afterward via #c64-dir's own output, not this element -- this is
+   only ever the blank flicker itself. */
+.c64-loading {
+  position: fixed;
+  top: var(--app-top, 0);
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100vh);
+  z-index: 200;
+}
+.c64-loading[hidden] {
+  display: none;
+}
