@@ -137,8 +137,15 @@ html, body {
   padding: 1em;
   background: #000000;
   color: #aaaaaa;
-  white-space: pre-wrap;
-  word-break: break-word; /* long lines wrap instead of overflowing a narrow viewport */
+  /* pre, not pre-wrap -- a real 80-column DOS screen never mid-line-wrapped
+     a `dir` listing's fixed-width columns; wrapping (the old rule here)
+     broke each entry's own filename/size/date alignment across two visual
+     lines on a narrow phone (reported live), which reads as broken far
+     more than a fixed-width block needing a horizontal swipe to read in
+     full does. overflow: auto above already makes BOTH axes scrollable as
+     needed, so this just lets the horizontal one actually kick in instead
+     of forcing a wrap that never existed on the real hardware. */
+  white-space: pre;
 }
 .dos-link {
   /* -webkit-appearance: none -- the vendored framework keeps every <button>
