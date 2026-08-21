@@ -143,9 +143,33 @@ landed in `master` once both show "merged".
 
 ## Testing
 
-No test framework/CI is wired up for this repo (see README.md's "why this
-repo exists" — deliberately decoupled from oq's CI). Verification is
-Playwright, run ad hoc:
+`win98/` has a real, checked-in Playwright/pytest suite under `tests/`
+(`tests/test_win98.py`, with shared server/browser fixtures in
+`tests/conftest.py`), wired into GitHub Actions
+(`.github/workflows/win98-tests.yml`) on every push/PR that touches
+`win98/`, `vendor/win98/`, or `tests/` itself. This is a deliberate,
+narrow reversal of an earlier version of this section, which said no test
+framework/CI was wired up at all, "deliberately decoupled from oq's CI"
+(see README.md's "why this repo exists"). That reasoning about *oq's own*
+CI hasn't changed — this repo still can't break oq's dictionary, search,
+or PWA install, and still doesn't run oq's lint/typecheck/1084-test/
+Playwright/whats-new/precache-coverage suite on every push regardless of
+triviality. What changed is narrower: once a theme's own bugs (like
+win98's touch-hit-testing and stacking-order regressions) got expensive
+enough to keep rediscovering by hand, codifying the checks that already
+existed as ad hoc scripts was worth it for that one theme specifically.
+
+Run it locally the same way CI does:
+
+```bash
+pip install -r tests/requirements.txt
+playwright install chromium   # skip if PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 already points at a system Chromium (see conftest.py's _SANDBOX_CHROMIUM)
+python3 -m pytest tests/ -v
+```
+
+`mac1984/`, `dos/`, and `c64/` have no `tests/test_<theme>.py` yet and
+aren't part of the CI workflow above (see that file's own comment on
+scoping) -- verification for those is still Playwright run ad hoc:
 
 ```bash
 python3 -m http.server 9091 &          # serve the repo root
@@ -160,12 +184,18 @@ with sync_playwright() as p:
 EOF
 ```
 
-Mobile keyboard/viewport behavior can't be driven for real from this
-sandbox — simulate it by overriding `window.visualViewport.height`/
-`offsetTop` with `Object.defineProperty` (see git history of
-`dos/app.js`'s viewport-fix commits for worked examples) and firing a
-`resize` event on `visualViewport`, then reading the resulting
-`--app-height`/`--app-top` custom properties.
+If you're adding a `tests/test_<theme>.py` for one of these, reuse
+`tests/conftest.py`'s `base_url`/`browser`/`page`/`touch_page` fixtures
+rather than hand-rolling a new `http.server` + `sync_playwright()` block,
+and widen `.github/workflows/win98-tests.yml`'s trigger paths (or add a
+sibling workflow) to cover it.
+
+Mobile keyboard/viewport behavior can't be driven for real from a
+sandbox or a CI runner — simulate it by overriding
+`window.visualViewport.height`/`offsetTop` with `Object.defineProperty`
+(see git history of `dos/app.js`'s viewport-fix commits for worked
+examples) and firing a `resize` event on `visualViewport`, then reading
+the resulting `--app-height`/`--app-top` custom properties.
 
 Test against a live `python3 -m http.server` (or equivalent) — this repo
 targets `http(s)` hosting, not `file://`, so there's no need to

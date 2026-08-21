@@ -87,6 +87,12 @@ looks like today.
   and a live-updating taskbar clock. Pure window-manager chrome for this
   first pass — no functional app inside a window yet, deliberately left
   for a follow-up (see issue #29).
+- **`tests/`** — `win98/`'s own Playwright/pytest regression suite
+  (`test_win98.py`, shared fixtures in `conftest.py`), wired into GitHub
+  Actions on every push/PR touching `win98/` — see `CLAUDE.md`'s Testing
+  section for how to run it locally and how this fits the "no CI" framing
+  above (that's about staying out of *oq's* CI, not about this repo never
+  having any of its own).
 
 ## Prospective themes
 
