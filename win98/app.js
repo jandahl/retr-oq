@@ -222,16 +222,17 @@
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "taskbar-window-button";
-    // Same glyph as this window's own desktop icon (win98/index.html's
-    // data-icon), left of the title -- a real Win98 taskbar button always
-    // carries the app's own small icon inside the same rectangle as its
-    // title, not just plain text.
+    // Same icon art as this window's own desktop icon (win98/index.html's
+    // data-icon names a shared .icon-<name> class defined in style.css,
+    // rendered as a real SVG background rather than an emoji glyph -- see
+    // that file's own comment on why), left of the title -- a real Win98
+    // taskbar button always carries the app's own small icon inside the
+    // same rectangle as its title, not just plain text.
     const icon = win.dataset.icon;
     if (icon) {
       const iconEl = document.createElement("span");
-      iconEl.className = "taskbar-window-icon";
+      iconEl.className = `taskbar-window-icon icon-${icon}`;
       iconEl.setAttribute("aria-hidden", "true");
-      iconEl.textContent = icon;
       btn.appendChild(iconEl);
     }
     const labelEl = document.createElement("span");
