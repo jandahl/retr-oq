@@ -1,0 +1,425 @@
+/* Windows 98 desktop prototype -- layered on top of vendor/win98/98.css
+   (jdan/98.css), which supplies the window/title-bar/button chrome. This
+   file only adds what 98.css doesn't: the desktop surface, desktop icons,
+   the taskbar + Start menu, and the resize-handle hitboxes the drag/resize
+   machinery in app.js hooks into. */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* the desktop itself never scrolls -- windows do, internally, same convention as mac1984/ and dos/ */
+}
+
+body {
+  font-family: "Pixelated MS Sans Serif", Arial, sans-serif;
+}
+
+.desktop {
+  position: fixed;
+  inset: 0;
+  bottom: 32px; /* leaves room for the fixed taskbar below */
+  /* The real Windows 98 default desktop -- solid teal, no wallpaper image. */
+  background: #008080;
+  overflow: hidden;
+}
+
+/* ---------- Desktop icons ---------- */
+
+.desktop-icons {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  z-index: 1;
+}
+
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 5.5rem;
+  /* Desktop icons are real <button> elements (for native focus/keyboard
+     support), but 98.css's own `button` reset styles every one of them as
+     a beveled, silver, min-75px-wide 3D button by default -- background,
+     box-shadow, min-width/min-height, padding, and even color:transparent
+     (its own pixel-font text-shadow trick). Every one of those needs an
+     explicit override here, or a desktop icon renders as a visible button
+     square instead of a plain icon-and-label sitting on the desktop. */
+  min-width: 0;
+  min-height: 0;
+  background: transparent;
+  box-shadow: none;
+  border: 1px dotted transparent;
+  color: #ffffff;
+  text-shadow: none;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.desktop-icon:active {
+  /* 98.css's own button:active swaps the bevel direction (box-shadow) and
+     nudges the text-shadow -- both no-ops here since box-shadow/
+     text-shadow are already reset above, but padding:0 on :active would
+     otherwise still apply and shift the icon by a pixel on press. */
+  padding: 0.25rem;
+}
+
+.desktop-icon:hover,
+.desktop-icon:focus-visible {
+  border-color: #ffffff;
+  outline: none;
+}
+
+.desktop-icon:active,
+.desktop-icon.selected {
+  background: rgba(0, 0, 128, 0.4);
+  border-color: #ffffff;
+}
+
+.desktop-icon-glyph {
+  font-size: 2rem;
+  line-height: 1;
+  /* The real desktop icons render 32x32 with a hard drop shadow --
+     text-shadow is the closest a plain emoji glyph gets without vendoring
+     actual icon art. */
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+}
+
+.desktop-icon-label {
+  font-size: 11px;
+  text-align: center;
+  /* Real Win98 icon labels: white text on a transparent navy highlight
+     when selected, plain white with a 1px black shadow otherwise -- close
+     enough here is a shadow so it reads on the teal background. */
+  text-shadow: 1px 1px 0 #000000;
+}
+
+.desktop-icon.selected .desktop-icon-label {
+  background: #000080;
+  text-shadow: none;
+}
+
+/* ---------- Windows ---------- */
+
+.win98-window {
+  position: absolute;
+  min-width: 200px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  /* Baseline only -- app.js overwrites this with each window's own real
+     stacking order via an inline style at setup and on every focus().
+     Still needed here as a safety net: a window element with no inline
+     z-index yet (e.g. before app.js has run at all) would otherwise sit
+     at z-index:auto, the same stacking level as ordinary content -- BELOW
+     .desktop-icons' own explicit z-index: 1 above. That's exactly the
+     "icon in front of a background window" bug this repo already shipped
+     once; keep both the JS fix and this CSS floor, since either one alone
+     regressing shouldn't bring the bug back on its own. */
+  z-index: 10;
+}
+
+.win98-window.maximized {
+  /* !important: overrides the inline top/left/width/height style.* drag and
+     resize write directly to the element -- maximize needs to beat those
+     without app.js having to remember and re-apply every inline value. */
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.win98-window.minimized {
+  display: none;
+}
+
+.win98-window-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.win98-window .title-bar {
+  cursor: default;
+  user-select: none;
+  touch-action: none;
+}
+
+.win98-window .title-bar-controls button {
+  cursor: pointer;
+}
+
+/* Resize handles: thin invisible strips along each edge/corner, laid over
+   the window's own border. Corners sit above the edges in the DOM/paint
+   order so an 8px-square corner hitbox always wins over the overlapping
+   edge strips beneath it. */
+.win98-resize-handle {
+  position: absolute;
+  z-index: 1;
+}
+
+.win98-resize-n, .win98-resize-s {
+  left: 6px;
+  right: 6px;
+  height: 6px;
+  cursor: ns-resize;
+}
+.win98-resize-n { top: -3px; }
+.win98-resize-s { bottom: -3px; }
+
+.win98-resize-e, .win98-resize-w {
+  top: 6px;
+  bottom: 6px;
+  width: 6px;
+  cursor: ew-resize;
+}
+.win98-resize-e { right: -3px; }
+.win98-resize-w { left: -3px; }
+
+.win98-resize-ne, .win98-resize-nw, .win98-resize-se, .win98-resize-sw {
+  width: 10px;
+  height: 10px;
+  z-index: 2;
+}
+.win98-resize-ne { top: -3px; right: -3px; cursor: nesw-resize; }
+.win98-resize-nw { top: -3px; left: -3px; cursor: nwse-resize; }
+.win98-resize-se { bottom: -3px; right: -3px; cursor: nwse-resize; }
+.win98-resize-sw { bottom: -3px; left: -3px; cursor: nesw-resize; }
+
+.win98-window.maximized .win98-resize-handle {
+  display: none; /* nothing to resize while maximized */
+}
+
+/* Touch: the 6-10px hitboxes above are fine for a mouse pointer's
+   pixel-accurate aim, but far under any real touch-target guideline
+   (~44px) -- a finger dragging from a window edge would miss them
+   constantly. (pointer: coarse) is true for touchscreens and false for a
+   mouse/trackpad, including on a touch-capable laptop with a mouse
+   attached, so this only kicks in where it's actually needed. Scaled up
+   ~5x from the mouse sizing (6px -> 30px edges, 10px -> 50px corners)
+   rather than a fixed 44px, so the corner-over-edge stacking order above
+   keeps the same proportions instead of the corner shrinking relative to
+   the edges it overlaps. */
+@media (pointer: coarse) {
+  .win98-resize-n, .win98-resize-s {
+    left: 30px;
+    right: 30px;
+    height: 30px;
+  }
+  .win98-resize-n { top: -15px; }
+  .win98-resize-s { bottom: -15px; }
+
+  .win98-resize-e, .win98-resize-w {
+    top: 30px;
+    bottom: 30px;
+    width: 30px;
+  }
+  .win98-resize-e { right: -15px; }
+  .win98-resize-w { left: -15px; }
+
+  .win98-resize-ne, .win98-resize-nw, .win98-resize-se, .win98-resize-sw {
+    width: 50px;
+    height: 50px;
+  }
+  .win98-resize-ne { top: -25px; right: -25px; }
+  .win98-resize-nw { top: -25px; left: -25px; }
+  .win98-resize-se { bottom: -25px; right: -25px; }
+  .win98-resize-sw { bottom: -25px; left: -25px; }
+}
+
+/* ---------- Taskbar ---------- */
+
+.taskbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px;
+  background: silver;
+  box-shadow: inset 0 1px #dfdfdf;
+  z-index: 1000;
+}
+
+.start-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  font-weight: bold;
+  padding: 0 8px 0 4px;
+}
+
+.start-button[aria-expanded="true"] {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
+.start-flag {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  /* A 2x2 four-color flag, the closest a CSS-only glyph gets to the real
+     Windows logo without vendoring bitmap/vector icon art. */
+  background:
+    linear-gradient(#f25022, #f25022) 0 0 / 47% 47% no-repeat,
+    linear-gradient(#7fba00, #7fba00) 53% 0 / 47% 47% no-repeat,
+    linear-gradient(#00a4ef, #00a4ef) 0 53% / 47% 47% no-repeat,
+    linear-gradient(#ffb900, #ffb900) 53% 53% / 47% 47% no-repeat;
+}
+
+.taskbar-separator {
+  width: 2px;
+  align-self: stretch;
+  box-shadow: inset -1px 0 #fff, inset 1px 0 grey;
+}
+
+.taskbar-windows {
+  flex: 1;
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.taskbar-window-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  max-width: 160px;
+  padding: 0 6px;
+  font-size: 11px;
+  text-align: left;
+}
+
+/* text-overflow:ellipsis only truncates a single run of inline text, not
+   a flex container's children as a group -- with the icon as a sibling
+   node the label needs its own overflow/ellipsis box, sized down to
+   whatever room the fixed-size icon leaves it via min-width: 0 (flex
+   items default to min-width: auto, which would keep the label at its
+   full intrinsic width and blow out the button's own max-width instead
+   of actually truncating). */
+.taskbar-window-icon {
+  flex: 0 0 auto;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.taskbar-window-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.taskbar-window-button.active {
+  box-shadow: inset -1px -1px #fff, inset 1px 1px #0a0a0a, inset -2px -2px #dfdfdf, inset 2px 2px grey;
+}
+
+.taskbar-tray {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  box-shadow: inset -1px -1px #fff, inset 1px 1px grey, inset -2px -2px #dfdfdf, inset 2px 2px #0a0a0a;
+}
+
+.taskbar-clock {
+  font-size: 11px;
+}
+
+/* ---------- Start menu ---------- */
+
+.start-menu {
+  position: fixed;
+  left: 3px;
+  bottom: 35px;
+  z-index: 1001;
+  margin: 0;
+  padding: 3px;
+  list-style: none;
+  min-width: 12rem;
+  background: silver;
+  box-shadow: inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px grey, inset 2px 2px #fff;
+}
+
+.start-menu[hidden] {
+  display: none;
+}
+
+.start-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.start-menu-item:hover,
+.start-menu-item:focus-visible {
+  background: navy;
+  color: #ffffff;
+  outline: none;
+}
+
+.start-menu-item--disabled {
+  color: grey;
+  cursor: default;
+}
+
+.start-menu-item--disabled:hover {
+  background: none;
+  color: grey;
+}
+
+.start-menu-icon {
+  font-size: 1rem;
+}
+
+.start-menu-divider {
+  height: 1px;
+  margin: 3px 2px;
+  box-shadow: inset 0 -1px #fff, inset 0 1px grey;
+}
+
+/* ---------- Shut Down dialog ---------- */
+
+.win98-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  bottom: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1002;
+}
+
+.win98-dialog-overlay[hidden] {
+  display: none;
+}
+
+.win98-dialog {
+  position: static;
+  width: 20rem;
+}
+
+.win98-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
