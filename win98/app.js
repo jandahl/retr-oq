@@ -11,6 +11,38 @@
   const windows = Array.from(document.querySelectorAll(".win98-window"));
   let zTop = 10;
 
+  const MIN_WIN_WIDTH = 200;
+  const MIN_WIN_HEIGHT = 120;
+
+  // The markup's starting top/left/width/height (index.html's inline
+  // styles) are sized for a desktop viewport and overflow outright on a
+  // phone-width screen -- same class of bug dos/app.js's own viewport
+  // clamp exists to fix, just pixel-based here instead of character-grid
+  // based. Without this a window's own title-bar buttons (close/minimize/
+  // maximize) can end up entirely off-screen with no way to reach them,
+  // since dragging only works from a titlebar that's at least partly
+  // visible and tappable. Clamped against `desktop`'s own box, not
+  // window.innerWidth/innerHeight -- .desktop already excludes the fixed
+  // taskbar's height (see style.css's `bottom: 32px`), so clamping
+  // against it keeps a window's bottom edge above the taskbar too.
+  function clampToViewport(win) {
+    if (win.classList.contains("maximized")) return; // fills the viewport by its own CSS rule, nothing to clamp
+    const deskRect = desktop.getBoundingClientRect();
+    const rect = win.getBoundingClientRect();
+
+    const width = Math.min(rect.width, Math.max(MIN_WIN_WIDTH, deskRect.width));
+    const height = Math.min(rect.height, Math.max(MIN_WIN_HEIGHT, deskRect.height));
+    if (width !== rect.width) win.style.width = `${width}px`;
+    if (height !== rect.height) win.style.height = `${height}px`;
+
+    const maxLeft = Math.max(0, deskRect.width - width);
+    const maxTop = Math.max(0, deskRect.height - height);
+    const left = Math.min(Math.max(0, rect.left - deskRect.left), maxLeft);
+    const top = Math.min(Math.max(0, rect.top - deskRect.top), maxTop);
+    win.style.left = `${left}px`;
+    win.style.top = `${top}px`;
+  }
+
   // Per-window state, keyed by element -- the pre-maximize rect so
   // "restore" can put a window back exactly where it was, and this
   // window's own taskbar button.
@@ -231,11 +263,20 @@
     });
 
     for (const handle of win.querySelectorAll(".win98-resize-handle")) {
-      makeResizable(handle, win, handle.dataset.dir, 200, 120);
+      makeResizable(handle, win, handle.dataset.dir, MIN_WIN_WIDTH, MIN_WIN_HEIGHT);
     }
   }
 
+  for (const win of windows) clampToViewport(win);
   if (windows.length) focus(windows[0]);
+
+  // Re-clamp on viewport changes -- a phone rotated from portrait to
+  // landscape (or back) can otherwise leave a window that fit a moment
+  // ago suddenly overflowing again, same reasoning as the initial clamp
+  // above.
+  window.addEventListener("resize", () => {
+    for (const win of windows) clampToViewport(win);
+  });
 
   // Desktop icons and Start-menu items both open the same window by
   // #id, via a shared data-open attribute -- one lookup, two triggers.

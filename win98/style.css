@@ -169,6 +169,43 @@ body {
   display: none; /* nothing to resize while maximized */
 }
 
+/* Touch: the 6-10px hitboxes above are fine for a mouse pointer's
+   pixel-accurate aim, but far under any real touch-target guideline
+   (~44px) -- a finger dragging from a window edge would miss them
+   constantly. (pointer: coarse) is true for touchscreens and false for a
+   mouse/trackpad, including on a touch-capable laptop with a mouse
+   attached, so this only kicks in where it's actually needed. Scaled up
+   ~5x from the mouse sizing (6px -> 30px edges, 10px -> 50px corners)
+   rather than a fixed 44px, so the corner-over-edge stacking order above
+   keeps the same proportions instead of the corner shrinking relative to
+   the edges it overlaps. */
+@media (pointer: coarse) {
+  .win98-resize-n, .win98-resize-s {
+    left: 30px;
+    right: 30px;
+    height: 30px;
+  }
+  .win98-resize-n { top: -15px; }
+  .win98-resize-s { bottom: -15px; }
+
+  .win98-resize-e, .win98-resize-w {
+    top: 30px;
+    bottom: 30px;
+    width: 30px;
+  }
+  .win98-resize-e { right: -15px; }
+  .win98-resize-w { left: -15px; }
+
+  .win98-resize-ne, .win98-resize-nw, .win98-resize-se, .win98-resize-sw {
+    width: 50px;
+    height: 50px;
+  }
+  .win98-resize-ne { top: -25px; right: -25px; }
+  .win98-resize-nw { top: -25px; left: -25px; }
+  .win98-resize-se { bottom: -25px; right: -25px; }
+  .win98-resize-sw { bottom: -25px; left: -25px; }
+}
+
 /* ---------- Taskbar ---------- */
 
 .taskbar {
