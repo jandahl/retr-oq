@@ -46,10 +46,29 @@ body {
   align-items: center;
   gap: 0.25rem;
   width: 5.5rem;
+  /* Desktop icons are real <button> elements (for native focus/keyboard
+     support), but 98.css's own `button` reset styles every one of them as
+     a beveled, silver, min-75px-wide 3D button by default -- background,
+     box-shadow, min-width/min-height, padding, and even color:transparent
+     (its own pixel-font text-shadow trick). Every one of those needs an
+     explicit override here, or a desktop icon renders as a visible button
+     square instead of a plain icon-and-label sitting on the desktop. */
+  min-width: 0;
+  min-height: 0;
   background: transparent;
+  box-shadow: none;
   border: 1px dotted transparent;
   color: #ffffff;
+  text-shadow: none;
   cursor: pointer;
+  padding: 0.25rem;
+}
+
+.desktop-icon:active {
+  /* 98.css's own button:active swaps the bevel direction (box-shadow) and
+     nudges the text-shadow -- both no-ops here since box-shadow/
+     text-shadow are already reset above, but padding:0 on :active would
+     otherwise still apply and shift the icon by a pixel on press. */
   padding: 0.25rem;
 }
 
