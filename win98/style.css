@@ -8,6 +8,37 @@
   box-sizing: border-box;
 }
 
+/* Icon art, as inline data-URI SVGs rather than Unicode emoji -- an emoji
+   glyph's color rendering depends entirely on the platform having a color
+   emoji font installed (Noto Color Emoji, Apple Color Emoji, etc). Plenty
+   of real browsers don't (most Linux Chromium installs, some Android
+   WebViews), and silently fall back to a plain monochrome/outline glyph
+   instead -- exactly the "icons are black only" bug this was shipped
+   with. Real SVG art renders identically everywhere. Same reasoning
+   mac1984/'s own hand-drawn pixel icons already follow, just in color
+   here since the real Win98 desktop's icons were themselves in color
+   (unlike the 1-bit black-and-white original Mac). One custom property
+   per icon, shared by .desktop-icon-glyph, .taskbar-window-icon, and
+   .start-menu-icon below via a shared class name (icon-<name>) so the
+   same art appears in all three places an app can show up. */
+:root {
+  --icon-computer: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2212%22%20height%3D%229%22%20fill%3D%22%23c0c0c0%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%227%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%228%22%20height%3D%225%22%20fill%3D%22%231084d0%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%2211%22%20width%3D%224%22%20height%3D%222%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%221%22%20fill%3D%22%23808080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-about: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%223%22%20y%3D%221%22%20width%3D%229%22%20height%3D%2214%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Cpolygon%20points%3D%229%2C1%2012%2C4%209%2C4%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%226%22%20width%3D%225%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%228%22%20width%3D%225%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%2210%22%20width%3D%223%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-recyclebin: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%221%22%20width%3D%224%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%225%22%20width%3D%228%22%20height%3D%2210%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%228%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%2210%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-oq: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Cpath%20d%3D%22M1%203%20L8%202%20L8%2013%20L1%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Cpath%20d%3D%22M15%203%20L8%202%20L8%2013%20L15%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%2211%22%20fill%3D%22%23800000%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%229%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-programs: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%221%22%20y%3D%224%22%20width%3D%226%22%20height%3D%222%22%20fill%3D%22%23ffcc00%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%221%22%20y%3D%226%22%20width%3D%2214%22%20height%3D%228%22%20fill%3D%22%23ffcc00%22%20stroke%3D%22%23000000%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-settings: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%226%22%20y%3D%221%22%20width%3D%224%22%20height%3D%223%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%2212%22%20width%3D%224%22%20height%3D%223%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%221%22%20y%3D%226%22%20width%3D%223%22%20height%3D%224%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%2212%22%20y%3D%226%22%20width%3D%223%22%20height%3D%224%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%228%22%20height%3D%228%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-shutdown: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%227%22%20fill%3D%22%23c00000%22%2F%3E%20%3Cpath%20d%3D%22M4%205%20A6%206%200%201%200%2012%205%22%20fill%3D%22none%22%20stroke%3D%22%23c00000%22%20stroke-width%3D%222%22%2F%3E%20%3C%2Fsvg%3E");
+}
+
+.icon-computer { background-image: var(--icon-computer); }
+.icon-about { background-image: var(--icon-about); }
+.icon-recyclebin { background-image: var(--icon-recyclebin); }
+.icon-oq { background-image: var(--icon-oq); }
+.icon-programs { background-image: var(--icon-programs); }
+.icon-settings { background-image: var(--icon-settings); }
+.icon-shutdown { background-image: var(--icon-shutdown); }
+
 html, body {
   margin: 0;
   padding: 0;
@@ -46,6 +77,14 @@ body {
   align-items: center;
   gap: 0.25rem;
   width: 5.5rem;
+  /* WebKit's own default tap feedback -- a translucent grey rectangle
+     drawn over the whole hit area on touch -- is separate from any CSS
+     :active state and isn't suppressed by resetting box-shadow/background
+     above. Left on, it flashes exactly the "still a button square" look
+     this file otherwise goes out of its way to remove, every single tap.
+     The dotted outline in :hover/:focus-visible below is this theme's own
+     deliberate feedback instead. */
+  -webkit-tap-highlight-color: transparent;
   /* Desktop icons are real <button> elements (for native focus/keyboard
      support), but 98.css's own `button` reset styles every one of them as
      a beveled, silver, min-75px-wide 3D button by default -- background,
@@ -85,12 +124,16 @@ body {
 }
 
 .desktop-icon-glyph {
-  font-size: 2rem;
-  line-height: 1;
-  /* The real desktop icons render 32x32 with a hard drop shadow --
-     text-shadow is the closest a plain emoji glyph gets without vendoring
-     actual icon art. */
-  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.6);
+  width: 32px;
+  height: 32px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  /* The real desktop icons render 32x32 with a hard drop shadow -- a
+     drop-shadow filter (not text-shadow, since this renders the icon's
+     background-image, not text) is the closest this gets without a
+     separate shadow asset per icon. */
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.6));
 }
 
 .desktop-icon-label {
@@ -153,8 +196,23 @@ body {
   touch-action: none;
 }
 
+.win98-window .title-bar-controls {
+  /* Above every resize-handle z-index below (1 for edges, 2 for corners)
+     -- the NE corner handle in particular, once scaled up for touch (see
+     the (pointer: coarse) block below), fully overlaps this button
+     cluster (top-right of the title bar), and without an explicit
+     z-index here the unpositioned title bar loses that hit-test to the
+     positioned handle sitting on top of it. That silently swallowed taps
+     on minimize/maximize/close on touch devices -- the buttons looked
+     fine but didn't respond, since the resize handle intercepted the
+     pointer event before it ever reached them. */
+  position: relative;
+  z-index: 3;
+}
+
 .win98-window .title-bar-controls button {
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Resize handles: thin invisible strips along each edge/corner, laid over
@@ -259,6 +317,7 @@ body {
   height: 24px;
   font-weight: bold;
   padding: 0 8px 0 4px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .start-button[aria-expanded="true"] {
@@ -301,6 +360,7 @@ body {
   padding: 0 6px;
   font-size: 11px;
   text-align: left;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* text-overflow:ellipsis only truncates a single run of inline text, not
@@ -312,8 +372,11 @@ body {
    of actually truncating). */
 .taskbar-window-icon {
   flex: 0 0 auto;
-  font-size: 12px;
-  line-height: 1;
+  width: 14px;
+  height: 14px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
 }
 
 .taskbar-window-label {
@@ -367,6 +430,7 @@ body {
   font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .start-menu-item:hover,
@@ -387,7 +451,12 @@ body {
 }
 
 .start-menu-icon {
-  font-size: 1rem;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
 }
 
 .start-menu-divider {
