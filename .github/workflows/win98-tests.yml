@@ -1,0 +1,40 @@
+name: win98 tests
+
+# Scoped to win98/ and its own test suite for now -- this repo has no
+# shared build step or dependency graph between themes (see CLAUDE.md's
+# "no real build step" rule), so there's nothing else for a change to
+# mac1984/ or dos/ to break here. Widen the trigger paths (and the test
+# suite itself) if/when another theme gets its own tests/test_<theme>.py.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "win98/**"
+      - "vendor/win98/**"
+      - "tests/**"
+      - ".github/workflows/win98-tests.yml"
+  pull_request:
+    paths:
+      - "win98/**"
+      - "vendor/win98/**"
+      - "tests/**"
+      - ".github/workflows/win98-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: pip install -r tests/requirements.txt
+
+      - name: Install Playwright's Chromium
+        run: playwright install --with-deps chromium
+
+      - name: Run win98 test suite
+        run: python3 -m pytest tests/ -v
