@@ -19,6 +19,10 @@
        once the window manager itself is solid. -->
   <div class="desktop" id="desktop">
     <div class="desktop-icons">
+      <button type="button" class="desktop-icon" data-open="win-oq">
+        <span class="desktop-icon-glyph" aria-hidden="true">📖</span>
+        <span class="desktop-icon-label">OQ</span>
+      </button>
       <button type="button" class="desktop-icon" data-open="win-computer">
         <span class="desktop-icon-glyph" aria-hidden="true">🖥️</span>
         <span class="desktop-icon-label">My Computer</span>
@@ -32,6 +36,34 @@
         <span class="desktop-icon-label">Recycle Bin</span>
       </button>
     </div>
+
+    <section class="window win98-window" id="win-oq" data-icon="📖" style="top: 2.5rem; left: 4rem; width: 26rem; height: 16rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">OQ</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win98-window-body">
+        <p>
+          A Kalaallisut dictionary lookup would live in this window --
+          <code>dos/</code>'s DICT.EXE is the working template for it -- but
+          it isn't wired up yet. This is chrome only, same as the other
+          windows here, waiting on a follow-up once the window manager
+          itself is solid (see issue #29's own "not in scope" note).
+        </p>
+      </div>
+      <div class="win98-resize-handle win98-resize-n" data-dir="n"></div>
+      <div class="win98-resize-handle win98-resize-s" data-dir="s"></div>
+      <div class="win98-resize-handle win98-resize-e" data-dir="e"></div>
+      <div class="win98-resize-handle win98-resize-w" data-dir="w"></div>
+      <div class="win98-resize-handle win98-resize-ne" data-dir="ne"></div>
+      <div class="win98-resize-handle win98-resize-nw" data-dir="nw"></div>
+      <div class="win98-resize-handle win98-resize-se" data-dir="se"></div>
+      <div class="win98-resize-handle win98-resize-sw" data-dir="sw"></div>
+    </section>
 
     <section class="window win98-window" id="win-about" data-icon="📄" style="top: 3rem; left: 3rem; width: 26rem; height: 16rem;">
       <div class="title-bar">
@@ -123,6 +155,9 @@
   </footer>
 
   <ul role="menu" class="start-menu" id="start-menu" hidden>
+    <li role="menu-item" class="start-menu-item" data-open="win-oq">
+      <span class="start-menu-icon" aria-hidden="true">📖</span> OQ
+    </li>
     <li role="menu-item" class="start-menu-item" data-open="win-computer">
       <span class="start-menu-icon" aria-hidden="true">🖥️</span> My Computer
     </li>
