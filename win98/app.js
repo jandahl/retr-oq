@@ -222,7 +222,22 @@
     const btn = document.createElement("button");
     btn.type = "button";
     btn.className = "taskbar-window-button";
-    btn.textContent = label;
+    // Same glyph as this window's own desktop icon (win98/index.html's
+    // data-icon), left of the title -- a real Win98 taskbar button always
+    // carries the app's own small icon inside the same rectangle as its
+    // title, not just plain text.
+    const icon = win.dataset.icon;
+    if (icon) {
+      const iconEl = document.createElement("span");
+      iconEl.className = "taskbar-window-icon";
+      iconEl.setAttribute("aria-hidden", "true");
+      iconEl.textContent = icon;
+      btn.appendChild(iconEl);
+    }
+    const labelEl = document.createElement("span");
+    labelEl.className = "taskbar-window-label";
+    labelEl.textContent = label;
+    btn.appendChild(labelEl);
     btn.addEventListener("click", () => {
       if (win.classList.contains("minimized")) {
         openWindow(win);

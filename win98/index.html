@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 98 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/win98/98.css" />
-<link rel="stylesheet" href="style.css?v=2" />
+<link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <!-- Pure window-manager chrome for this first pass -- taskbar, Start
@@ -33,7 +33,7 @@
       </button>
     </div>
 
-    <section class="window win98-window" id="win-about" style="top: 3rem; left: 3rem; width: 26rem; height: 16rem;">
+    <section class="window win98-window" id="win-about" data-icon="📄" style="top: 3rem; left: 3rem; width: 26rem; height: 16rem;">
       <div class="title-bar">
         <div class="title-bar-text">About retr-oq</div>
         <div class="title-bar-controls">
@@ -62,7 +62,7 @@
       <div class="win98-resize-handle win98-resize-sw" data-dir="sw"></div>
     </section>
 
-    <section class="window win98-window" id="win-computer" style="top: 5rem; left: 6rem; width: 24rem; height: 14rem;">
+    <section class="window win98-window" id="win-computer" data-icon="🖥️" style="top: 5rem; left: 6rem; width: 24rem; height: 14rem;">
       <div class="title-bar">
         <div class="title-bar-text">My Computer</div>
         <div class="title-bar-controls">
@@ -86,7 +86,7 @@
       <div class="win98-resize-handle win98-resize-sw" data-dir="sw"></div>
     </section>
 
-    <section class="window win98-window" id="win-recyclebin" style="top: 8rem; left: 9rem; width: 22rem; height: 12rem;">
+    <section class="window win98-window" id="win-recyclebin" data-icon="🗑️" style="top: 8rem; left: 9rem; width: 22rem; height: 12rem;">
       <div class="title-bar">
         <div class="title-bar-text">Recycle Bin</div>
         <div class="title-bar-controls">
@@ -159,6 +159,6 @@
     </section>
   </div>
 
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

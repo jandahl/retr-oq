@@ -272,6 +272,24 @@ body {
   padding: 0 6px;
   font-size: 11px;
   text-align: left;
+}
+
+/* text-overflow:ellipsis only truncates a single run of inline text, not
+   a flex container's children as a group -- with the icon as a sibling
+   node the label needs its own overflow/ellipsis box, sized down to
+   whatever room the fixed-size icon leaves it via min-width: 0 (flex
+   items default to min-width: auto, which would keep the label at its
+   full intrinsic width and blow out the button's own max-width instead
+   of actually truncating). */
+.taskbar-window-icon {
+  flex: 0 0 auto;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.taskbar-window-label {
+  flex: 1 1 auto;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
