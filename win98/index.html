@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>retr-oq — Windows 98 desktop prototype</title>
+<link rel="stylesheet" href="../vendor/win98/98.css" />
+<link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body>
+  <!-- Pure window-manager chrome for this first pass -- taskbar, Start
+       menu, and genuinely resizable-from-any-edge windows with real
+       minimize/maximize/close. No functional app inside a window yet (see
+       issue #29's "not required, but worth deciding on purpose" section);
+       DICT.EXE-equivalent content is deliberately left for a follow-up PR
+       once the window manager itself is solid. -->
+  <div class="desktop" id="desktop">
+    <div class="desktop-icons">
+      <button type="button" class="desktop-icon" data-open="win-computer">
+        <span class="desktop-icon-glyph" aria-hidden="true">🖥️</span>
+        <span class="desktop-icon-label">My Computer</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-about">
+        <span class="desktop-icon-glyph" aria-hidden="true">📄</span>
+        <span class="desktop-icon-label">About retr-oq</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-recyclebin">
+        <span class="desktop-icon-glyph" aria-hidden="true">🗑️</span>
+        <span class="desktop-icon-label">Recycle Bin</span>
+      </button>
+    </div>
+
+    <section class="window win98-window" id="win-about" style="top: 3rem; left: 3rem; width: 26rem; height: 16rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">About retr-oq</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win98-window-body">
+        <p>
+          This is a prototype Windows 98 desktop -- a taskbar with a real
+          Start menu, and windows you can drag by the title bar and resize
+          from any edge or corner, minimize down to a taskbar button, and
+          maximize to fill the screen.
+        </p>
+        <p>No functional app lives inside a window yet -- that's deliberately
+          left for a follow-up once the window manager itself is solid.</p>
+      </div>
+      <div class="win98-resize-handle win98-resize-n" data-dir="n"></div>
+      <div class="win98-resize-handle win98-resize-s" data-dir="s"></div>
+      <div class="win98-resize-handle win98-resize-e" data-dir="e"></div>
+      <div class="win98-resize-handle win98-resize-w" data-dir="w"></div>
+      <div class="win98-resize-handle win98-resize-ne" data-dir="ne"></div>
+      <div class="win98-resize-handle win98-resize-nw" data-dir="nw"></div>
+      <div class="win98-resize-handle win98-resize-se" data-dir="se"></div>
+      <div class="win98-resize-handle win98-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win98-window" id="win-computer" style="top: 5rem; left: 6rem; width: 24rem; height: 14rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">My Computer</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win98-window-body">
+        <p>Nothing to browse yet -- there's no real file system behind this
+          window, just window-manager chrome (see issue #29's "not in
+          scope" section).</p>
+      </div>
+      <div class="win98-resize-handle win98-resize-n" data-dir="n"></div>
+      <div class="win98-resize-handle win98-resize-s" data-dir="s"></div>
+      <div class="win98-resize-handle win98-resize-e" data-dir="e"></div>
+      <div class="win98-resize-handle win98-resize-w" data-dir="w"></div>
+      <div class="win98-resize-handle win98-resize-ne" data-dir="ne"></div>
+      <div class="win98-resize-handle win98-resize-nw" data-dir="nw"></div>
+      <div class="win98-resize-handle win98-resize-se" data-dir="se"></div>
+      <div class="win98-resize-handle win98-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win98-window" id="win-recyclebin" style="top: 8rem; left: 9rem; width: 22rem; height: 12rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">Recycle Bin</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win98-window-body">
+        <p>The Recycle Bin is empty.</p>
+      </div>
+      <div class="win98-resize-handle win98-resize-n" data-dir="n"></div>
+      <div class="win98-resize-handle win98-resize-s" data-dir="s"></div>
+      <div class="win98-resize-handle win98-resize-e" data-dir="e"></div>
+      <div class="win98-resize-handle win98-resize-w" data-dir="w"></div>
+      <div class="win98-resize-handle win98-resize-ne" data-dir="ne"></div>
+      <div class="win98-resize-handle win98-resize-nw" data-dir="nw"></div>
+      <div class="win98-resize-handle win98-resize-se" data-dir="se"></div>
+      <div class="win98-resize-handle win98-resize-sw" data-dir="sw"></div>
+    </section>
+  </div>
+
+  <footer class="taskbar" id="taskbar">
+    <button type="button" class="start-button" id="start-button" aria-haspopup="true" aria-expanded="false">
+      <span class="start-flag" aria-hidden="true"></span>
+      <span>Start</span>
+    </button>
+    <div class="taskbar-separator"></div>
+    <div class="taskbar-windows" id="taskbar-windows"></div>
+    <div class="taskbar-separator"></div>
+    <div class="taskbar-tray">
+      <span class="taskbar-clock" id="taskbar-clock">12:00 PM</span>
+    </div>
+  </footer>
+
+  <ul role="menu" class="start-menu" id="start-menu" hidden>
+    <li role="menu-item" class="start-menu-item" data-open="win-computer">
+      <span class="start-menu-icon" aria-hidden="true">🖥️</span> My Computer
+    </li>
+    <li role="menu-item" class="start-menu-item" data-open="win-about">
+      <span class="start-menu-icon" aria-hidden="true">📄</span> About retr-oq
+    </li>
+    <li role="menu-item" class="start-menu-item" data-open="win-recyclebin">
+      <span class="start-menu-icon" aria-hidden="true">🗑️</span> Recycle Bin
+    </li>
+    <li class="start-menu-divider"></li>
+    <li role="menu-item" class="start-menu-item start-menu-item--disabled">
+      <span class="start-menu-icon" aria-hidden="true">📁</span> Programs
+    </li>
+    <li role="menu-item" class="start-menu-item start-menu-item--disabled">
+      <span class="start-menu-icon" aria-hidden="true">⚙️</span> Settings
+    </li>
+    <li class="start-menu-divider"></li>
+    <li role="menu-item" class="start-menu-item" id="start-menu-shutdown">
+      <span class="start-menu-icon" aria-hidden="true">⏻</span> Shut Down…
+    </li>
+  </ul>
+
+  <div class="win98-dialog-overlay" id="shutdown-overlay" hidden>
+    <section class="window win98-dialog">
+      <div class="title-bar">
+        <div class="title-bar-text">Shut Down Windows</div>
+      </div>
+      <div class="window-body win98-window-body">
+        <p>This is a prototype -- there's nothing to actually shut down.</p>
+        <div class="win98-dialog-actions">
+          <button type="button" id="shutdown-ok">OK</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="app.js?v=1"></script>
+</body>
+</html>

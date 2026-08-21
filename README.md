@@ -79,11 +79,20 @@ looks like today.
   see License below), and `router.js` (a tiny query-string router for
   shareable-state URLs, e.g. `dos/index.html?screen=dict&filter=word`
   opens straight into DICT.EXE pre-filtered).
+- **`win98/`** — a Windows 98 desktop (`win98/index.html`'s `#desktop`):
+  a taskbar with a real Start menu, desktop icons that open windows on
+  click, and windows that drag by the title bar and resize from any edge
+  or corner (not just the bottom-right growbox `mac1984/`/`dos/` have),
+  with real minimize/maximize/close via the title bar's own button trio
+  and a live-updating taskbar clock. Pure window-manager chrome for this
+  first pass — no functional app inside a window yet, deliberately left
+  for a follow-up (see issue #29).
 
 ## Prospective themes
 
-Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`), and
-**Commodore 64** (`c64/`), all above. `c64/` is a deliberate exception to
+Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`),
+**Commodore 64** (`c64/`), and **Windows 98** (`win98/`), all above.
+`c64/` is a deliberate exception to
 the "vendor a real framework" pattern the other two follow: the candidate
 named below (`bootstrap-c64`) ships no `LICENSE` file at all, which fails
 this repo's own vendoring bar, and what it does have is a thin
@@ -137,6 +146,17 @@ Norton Utilities Batch Enhancer (`BE.EXE`)-style launcher: a boxed,
 numbered menu, keypress-to-select, full clear-and-redraw on launch —
 closer to a modal takeover than an icon grid. Not built yet.
 
+`win98/` is built on the real [`jdan/98.css`](https://github.com/jdan/98.css)
+v0.1.21 (MIT), vendored as its published `dist/98.css` build rather than
+its raw `style.css` source — the source relies on a `svg-load()` build-time
+function (from the framework's own `build.js`/PostCSS pipeline) to inline
+its icon SVGs, and this repo takes "no real build step" (see the Hard
+rules above) as a constraint on itself too, not just its own theme code.
+The published dist build already has every icon inlined as a `data:` URI,
+so it drops in as a plain `<link>` the same as any other vendored
+stylesheet; only the two woff/woff2 font files stayed external, copied
+into `vendor/win98/fonts/` alongside it.
+
 The rest of the original list, roughly in the order they'd be worth doing
 — each needs its own adapter work (the framework's class names/markup
 shape almost never match what a page's real markup uses, `mac1984/` and
@@ -145,7 +165,6 @@ vendoring time since none of these have been vendored yet:
 
 | Theme | Framework | License (unverified until vendored) |
 | --- | --- | --- |
-| Windows 98 | [`98.css`](https://github.com/jdan/98.css) | MIT |
 | Windows XP | [`XP.css`](https://github.com/botoxparty/XP.css) | MIT |
 | Mac OS 8.1 | [`classic.css`](https://github.com/npjg/classic.css) | check upstream |
 | NES | [`NES.css`](https://github.com/nostalgic-css/NES.css) | MIT |
@@ -159,7 +178,9 @@ vendoring time since none of these have been vendored yet:
 MIT (`LICENSE`) for this repo's own code. Each `vendor/<theme>/` carries
 its own license file from its actual upstream project (third-party code,
 kept separate on purpose) — `vendor/mac1984/LICENSE.txt` is
-`@sakun/system.css`'s own MIT license, copied verbatim.
+`@sakun/system.css`'s own MIT license, copied verbatim, and
+`vendor/win98/LICENSE` is `jdan/98.css`'s own MIT license, likewise
+copied verbatim.
 
 `shared/hyphenation.js` is the one file in this repo under a different
 license than the rest of its own code: MPL-2.0, not MIT. To be precise
