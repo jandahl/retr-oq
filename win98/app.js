@@ -54,7 +54,9 @@
     win.style.zIndex = String(zTop);
     for (const w of windows) {
       const s = state.get(w);
-      if (s) s.taskbarButton.classList.toggle("active", w === win);
+      // A closed window has no taskbar button at all (see closeWindow) --
+      // skip it rather than toggling .active on a null element.
+      if (s && s.taskbarButton) s.taskbarButton.classList.toggle("active", w === win);
     }
   }
 
@@ -63,6 +65,10 @@
   }
 
   function openWindow(win) {
+    // Closing removes this window's taskbar button entirely (see
+    // closeWindow) -- reopening it, from a desktop icon or the Start menu,
+    // needs to rebuild one before it can be focused/highlighted there.
+    if (!state.get(win).taskbarButton) taskbarButtonFor(win);
     win.classList.remove("minimized");
     focus(win);
   }
@@ -100,12 +106,17 @@
   }
 
   function closeWindow(win) {
+    // Real Win98 behavior: closing a window removes it from the taskbar
+    // entirely, not just minimizes it -- the taskbar only ever shows
+    // currently-running windows. Reusing .minimized for "hidden" is still
+    // fine visually (there's no real content to lose here, see
+    // index.html's own scope note), but the taskbar button itself has to
+    // go too; openWindow() rebuilds a fresh one on next launch.
     const s = state.get(win);
-    win.classList.add("minimized"); // no real content to lose here, so "close" just parks it -- see index.html's own scope note
+    win.classList.add("minimized");
     win.classList.remove("maximized");
     s.taskbarButton.remove();
     s.taskbarButton = null;
-    taskbarButtonFor(win); // rebuild a fresh, unpressed button so reopening from the desktop icon still has one to click
   }
 
   // Drag/resize both use pointer capture the same way mac1984/app.js and

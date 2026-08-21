@@ -223,14 +223,34 @@ def test_window_minimize_and_restore_via_taskbar(page, base_url):
     assert page.evaluate("getComputedStyle(document.getElementById('win-about')).display") != "none"
 
 
-def test_window_close_rebuilds_a_fresh_taskbar_button(page, base_url):
+def test_window_close_removes_its_taskbar_button(page, base_url):
+    # Regression test: closing a window used to just re-minimize it and
+    # rebuild an identical taskbar button in place, so a closed window's
+    # button never actually left the taskbar -- not real Win98 behavior,
+    # where the taskbar only ever shows currently-running windows.
     goto_win98(page, base_url)
     before_count = len(page.query_selector_all(".taskbar-window-button"))
     page.click("#win-about .win-close")
     page.wait_for_timeout(100)
     after_count = len(page.query_selector_all(".taskbar-window-button"))
-    assert after_count == before_count  # closing parks the window, doesn't remove its taskbar entry
+    assert after_count == before_count - 1
+    assert page.query_selector(".taskbar-window-button:has-text('About retr-oq')") is None
     assert "minimized" in page.eval_on_selector("#win-about", "el => el.className")
+
+
+def test_reopening_a_closed_window_rebuilds_its_taskbar_button(page, base_url):
+    goto_win98(page, base_url)
+    before_count = len(page.query_selector_all(".taskbar-window-button"))
+    page.click("#win-about .win-close")
+    page.wait_for_timeout(100)
+    page.click(".desktop-icon[data-open='win-about']")
+    page.wait_for_timeout(100)
+    after_count = len(page.query_selector_all(".taskbar-window-button"))
+    assert after_count == before_count
+    btn = page.query_selector(".taskbar-window-button:has-text('About retr-oq')")
+    assert btn is not None
+    assert "active" in btn.get_attribute("class")
+    assert "minimized" not in page.eval_on_selector("#win-about", "el => el.className")
 
 
 def test_tap_highlight_color_suppressed(page, base_url):
