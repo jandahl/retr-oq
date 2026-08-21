@@ -115,6 +115,16 @@ body {
   min-height: 120px;
   display: flex;
   flex-direction: column;
+  /* Baseline only -- app.js overwrites this with each window's own real
+     stacking order via an inline style at setup and on every focus().
+     Still needed here as a safety net: a window element with no inline
+     z-index yet (e.g. before app.js has run at all) would otherwise sit
+     at z-index:auto, the same stacking level as ordinary content -- BELOW
+     .desktop-icons' own explicit z-index: 1 above. That's exactly the
+     "icon in front of a background window" bug this repo already shipped
+     once; keep both the JS fix and this CSS floor, since either one alone
+     regressing shouldn't bring the bug back on its own. */
+  z-index: 10;
 }
 
 .win98-window.maximized {

@@ -283,7 +283,21 @@
   }
 
   for (const win of windows) clampToViewport(win);
-  if (windows.length) focus(windows[0]);
+
+  // Every window needs its own explicit z-index from the start, not just
+  // whichever one ends up focused -- a window left at the default
+  // z-index:auto paints at the same stacking level as ordinary in-flow
+  // content, which is BELOW .desktop-icons' own explicit z-index: 1 (see
+  // style.css). Without this, any window that had never yet been clicked/
+  // focused would render behind the desktop icons -- an impossible state
+  // on a real desktop, where icons always sit under every window. Stacked
+  // in DOM order here, then focus() below both raises the last one
+  // in front of that stack and gets its taskbar button highlighted.
+  for (const win of windows) {
+    zTop += 1;
+    win.style.zIndex = String(zTop);
+  }
+  if (windows.length) focus(windows[windows.length - 1]);
 
   // Re-clamp on viewport changes -- a phone rotated from portrait to
   // landscape (or back) can otherwise leave a window that fit a moment
