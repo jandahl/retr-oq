@@ -567,16 +567,21 @@ body {
    A real built-in Windows 98 color scheme (Display Properties >
    Appearance > Scheme), reachable only via the desktop's right-click
    Properties item above -- see that markup's own comment on why it's not
-   listed anywhere more obvious. Recolors the chrome most people actually
-   picture when they picture it -- desktop, taskbar, title bars, window/
-   dialog frames -- red and yellow; deliberately not chasing down every
-   single 98.css-baked color (button bevels, scrollbars, the title-bar-
-   control icons) since a handful of those are baked into the vendored
-   dist build as literal hex values with no custom property to hook, and
-   chasing all of them down would be effort spent on a joke far past the
-   point it's still funny. */
+   listed anywhere more obvious. Checked against a real screenshot, not
+   guessed: the desktop itself is yellow, not red -- only title bars (and,
+   by the same logic, this theme's own taskbar) go red with white text.
+   Window/dialog *content* -- Control Panel's icon grid, a dialog's own
+   fields and buttons -- stays completely untouched, normal silver/white,
+   in that same reference. An earlier version of this got both of those
+   backwards (red desktop, and red bleeding into every window/dialog body
+   because the override targeted the shared `.window` class instead of
+   just `.title-bar`), which is what made static text unreadable instead
+   of just "loud". Deliberately not chasing down every single other
+   98.css-baked color (button bevels, scrollbars, the title-bar-control
+   icons) -- some are baked into the vendored dist build as literal hex
+   with no custom property to hook, and it's a joke, not a full reskin. */
 body.hotdog-stand .desktop {
-  background: #ff0000;
+  background: #ffff00;
 }
 
 body.hotdog-stand .taskbar {
@@ -592,14 +597,9 @@ body.hotdog-stand .taskbar-tray {
   background: #ff0000;
 }
 
-body.hotdog-stand .start-menu,
-body.hotdog-stand .window {
-  background: #ff0000;
-}
-
-body.hotdog-stand .start-menu-item:hover,
-body.hotdog-stand .start-menu-item:focus-visible {
-  background: #000000;
+body.hotdog-stand .taskbar-clock,
+body.hotdog-stand .taskbar-window-label {
+  color: #ffffff;
 }
 
 body.hotdog-stand .title-bar {
@@ -607,5 +607,5 @@ body.hotdog-stand .title-bar {
 }
 
 body.hotdog-stand .title-bar-text {
-  color: #ffff00;
+  color: #ffffff;
 }
