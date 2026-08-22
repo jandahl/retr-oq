@@ -516,3 +516,105 @@ def test_oq_row_click_selects_with_theme_highlight(page, base_url):
     rows[1].click()
     assert "highlighted" in rows[1].get_attribute("class")
     assert "highlighted" not in rows[0].get_attribute("class")
+
+
+# ---------- Hot Dog Stand (the hidden color scheme) ----------
+
+
+def test_desktop_right_click_shows_only_properties_item(page, base_url):
+    goto_win98(page, base_url)
+    assert page.get_attribute("#desktop-context-menu", "hidden") is not None
+    page.click("#desktop", button="right", position={"x": 400, "y": 300})
+    page.wait_for_timeout(100)
+    assert page.get_attribute("#desktop-context-menu", "hidden") is None
+    items = page.query_selector_all("#desktop-context-menu .start-menu-item")
+    assert len(items) == 1
+    assert "Properties" in items[0].text_content()
+
+
+def test_desktop_right_click_on_icon_does_not_show_context_menu(page, base_url):
+    # Real Windows gives an icon its own (different) context menu -- this
+    # theme doesn't build one, but it shouldn't show the *desktop's* menu
+    # over an icon either, which would be wrong either way.
+    goto_win98(page, base_url)
+    icon = page.query_selector(".desktop-icon[data-open='win-about']")
+    box = icon.bounding_box()
+    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2, button="right")
+    page.wait_for_timeout(100)
+    assert page.get_attribute("#desktop-context-menu", "hidden") is not None
+
+
+def test_desktop_context_menu_closes_on_outside_click_and_escape(page, base_url):
+    goto_win98(page, base_url)
+    page.click("#desktop", button="right", position={"x": 400, "y": 300})
+    page.wait_for_timeout(100)
+    page.mouse.click(700, 500)
+    page.wait_for_timeout(100)
+    assert page.get_attribute("#desktop-context-menu", "hidden") is not None
+
+    page.click("#desktop", button="right", position={"x": 400, "y": 300})
+    page.wait_for_timeout(100)
+    page.keyboard.press("Escape")
+    page.wait_for_timeout(100)
+    assert page.get_attribute("#desktop-context-menu", "hidden") is not None
+
+
+def open_display_properties(page):
+    page.click("#desktop", button="right", position={"x": 400, "y": 300})
+    page.click("#desktop-context-properties")
+    page.wait_for_timeout(100)
+
+
+def test_properties_opens_display_properties_defaulting_to_standard(page, base_url):
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    assert page.get_attribute("#display-props-overlay", "hidden") is None
+    assert page.get_attribute("#desktop-context-menu", "hidden") is not None  # clicking the item also closes the menu
+    assert page.eval_on_selector("#scheme-select", "el => el.value") == "standard"
+    assert "hotdog-stand" not in (page.get_attribute("body", "class") or "")
+
+
+def test_selecting_hot_dog_stand_and_ok_applies_and_persists_scheme(page, base_url):
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-ok")
+    page.wait_for_timeout(100)
+    assert page.get_attribute("#display-props-overlay", "hidden") is not None
+    assert "hotdog-stand" in page.get_attribute("body", "class")
+    # Recognizable chrome actually turns red/yellow, not just the class name.
+    assert page.evaluate("getComputedStyle(document.querySelector('.desktop')).backgroundColor") == "rgb(255, 0, 0)"
+
+    # Persists across a reload, same as a real OS remembering your scheme.
+    page.reload()
+    page.wait_for_timeout(300)
+    assert "hotdog-stand" in page.get_attribute("body", "class")
+
+
+def test_apply_applies_without_closing_dialog(page, base_url):
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-apply")
+    page.wait_for_timeout(100)
+    assert "hotdog-stand" in page.get_attribute("body", "class")
+    assert page.get_attribute("#display-props-overlay", "hidden") is None  # still open
+
+
+def test_cancel_reverts_scheme_without_persisting(page, base_url):
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-apply")  # apply the change first, like a visitor previewing it
+    page.wait_for_timeout(100)
+    assert "hotdog-stand" in page.get_attribute("body", "class")
+
+    page.click("#display-props-cancel")
+    page.wait_for_timeout(100)
+    assert page.get_attribute("#display-props-overlay", "hidden") is not None
+    assert "hotdog-stand" not in (page.get_attribute("body", "class") or "")
+
+    # Reloading confirms Cancel never persisted the previewed change.
+    page.reload()
+    page.wait_for_timeout(300)
+    assert "hotdog-stand" not in (page.get_attribute("body", "class") or "")
