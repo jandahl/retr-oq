@@ -2,9 +2,12 @@
   "use strict";
 
   // Plain classic script, matching today's convention across this repo's
-  // theme files (see CLAUDE.md) -- no window.<Namespace> dependency needed
-  // yet since this theme hosts no functional app inside a window (see
-  // index.html's own comment on that deliberate scope choice).
+  // theme files (see CLAUDE.md) -- shares state with shared/dict-source.js
+  // and shared/hyphenation.js via window.<Namespace> globals rather than
+  // imports, so index.html has to load both before this file (see its own
+  // comment on load order).
+  const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
+  const { syllabify } = window.OqHyphenation;
 
   const desktop = document.getElementById("desktop");
   const taskbarWindows = document.getElementById("taskbar-windows");
@@ -71,6 +74,12 @@
     if (!state.get(win).taskbarButton) taskbarButtonFor(win);
     win.classList.remove("minimized");
     focus(win);
+    // OQ! lazy-loads the dictionary on first open rather than at page
+    // load, same idea as dos/'s DICT.EXE -- every trigger that can open a
+    // window (desktop icon, Start menu, taskbar restore) already funnels
+    // through this one function, so hooking it here covers all of them
+    // without each trigger needing its own OQ!-specific special case.
+    if (win.id === "win-oq") startOqLoad();
   }
 
   function toggleMinimize(win) {
@@ -319,28 +328,44 @@
     for (const win of windows) clampToViewport(win);
   });
 
-  // Desktop icons and Start-menu items both open the same window by
-  // #id, via a shared data-open attribute -- one lookup, two triggers.
-  function bindOpenTriggers(selector) {
-    for (const el of document.querySelectorAll(selector)) {
-      el.addEventListener("click", () => {
-        const target = document.getElementById(el.dataset.open);
-        if (target) openWindow(target);
-      });
-    }
+  // Start-menu items open their window on a single click -- a menu-item
+  // convention, same as any real Windows Start menu, regardless of
+  // pointer type.
+  for (const el of document.querySelectorAll(".start-menu-item[data-open]")) {
+    el.addEventListener("click", () => {
+      const target = document.getElementById(el.dataset.open);
+      if (target) openWindow(target);
+    });
   }
-  bindOpenTriggers(".desktop-icon[data-open]");
-  bindOpenTriggers(".start-menu-item[data-open]");
 
-  // Desktop icon single-select-on-click, matching the rest of a real
-  // desktop's selection feel (click elsewhere on the desktop clears it).
+  // Desktop icons: single-select-on-click always (matching the rest of a
+  // real desktop's selection feel -- click elsewhere on the desktop clears
+  // it), but *opening* forks on pointer type. A real Windows desktop opens
+  // an icon on double-click; a touchscreen has no reliable double-tap
+  // (and no hover to preview "selected" first), so touch keeps the
+  // single-tap-opens behavior this theme shipped with initially.
+  // (pointer: coarse) is evaluated once at load, same reasoning as the
+  // resize-handle touch-target sizing in style.css -- true for
+  // touchscreens, false for a mouse/trackpad including a touch-capable
+  // laptop with a mouse attached.
+  const opensOnSingleClick = window.matchMedia("(pointer: coarse)").matches;
   let selectedIcon = null;
-  for (const icon of document.querySelectorAll(".desktop-icon")) {
+  for (const icon of document.querySelectorAll(".desktop-icon[data-open]")) {
     icon.addEventListener("click", () => {
       if (selectedIcon) selectedIcon.classList.remove("selected");
       icon.classList.add("selected");
       selectedIcon = icon;
+      if (opensOnSingleClick) {
+        const target = document.getElementById(icon.dataset.open);
+        if (target) openWindow(target);
+      }
     });
+    if (!opensOnSingleClick) {
+      icon.addEventListener("dblclick", () => {
+        const target = document.getElementById(icon.dataset.open);
+        if (target) openWindow(target);
+      });
+    }
   }
   desktop.addEventListener("pointerdown", (event) => {
     if (event.target === desktop && selectedIcon) {
@@ -384,7 +409,11 @@
     shutdownOverlay.hidden = false;
   });
   document.getElementById("shutdown-ok").addEventListener("click", () => {
-    shutdownOverlay.hidden = true;
+    // "Shut down" sends the visitor back to the theme picker, not just
+    // closing the dialog -- a relative "../" (not the absolute GitHub
+    // Pages URL) so this keeps working when served from a fork or a local
+    // http.server, same as every other cross-file reference in this repo.
+    window.location.href = "../";
   });
 
   // ---------- Taskbar clock ----------
@@ -403,4 +432,73 @@
   }
   updateClock();
   setInterval(updateClock, 1000);
+
+  // ---------- OQ! (Kalaallisut dictionary lookup) ----------
+  // Same fetch/cache/filter/hyphenate pipeline as dos/'s DICT.EXE, reused
+  // via shared/dict-source.js and shared/hyphenation.js rather than
+  // reimplemented -- only the rendering below is win98-flavored (a plain
+  // scrollable table in a window instead of a full-screen text-mode
+  // takeover).
+  const OQ_DEFAULT_ROWS = 50; // shown before any filtering -- a browsable sample, not a blank table
+  const OQ_MAX_FILTERED_ROWS = 200; // 17,000+ entries -- never render a full match set into the DOM
+
+  const oqFilter = document.getElementById("oq-filter");
+  const oqStatus = document.getElementById("oq-status");
+  const oqTbody = document.getElementById("oq-tbody");
+  document.getElementById("oq-attribution").textContent = DICT_ATTRIBUTION;
+
+  let oqEntries = null; // null until a load succeeds
+  let oqLoadStarted = false; // guards against re-fetching every time the window is reopened
+
+  function renderOqRows(rows) {
+    oqTbody.textContent = "";
+    for (const entry of rows) {
+      const row = document.createElement("tr");
+      const lexemeCell = document.createElement("td");
+      // syllabify() inserts soft hyphens at real Kalaallisut syllable
+      // boundaries -- see dos/app.js's own comment on why this matters
+      // more than generic overflow-wrap for this specific language.
+      lexemeCell.textContent = syllabify(entry.lexeme);
+      const glossCell = document.createElement("td");
+      glossCell.textContent = entry.gloss_en;
+      row.append(lexemeCell, glossCell);
+      oqTbody.appendChild(row);
+    }
+  }
+
+  function renderOqResults() {
+    if (oqEntries === null) return; // still loading or failed -- oqStatus already says so
+
+    const query = oqFilter.value.trim();
+    if (query === "") {
+      renderOqRows(oqEntries.slice(0, OQ_DEFAULT_ROWS));
+      oqStatus.textContent = `${oqEntries.length.toLocaleString()} entries loaded -- showing first ${OQ_DEFAULT_ROWS}, type to filter.`;
+      return;
+    }
+
+    const matches = filterDictEntries(oqEntries, query);
+    renderOqRows(matches.slice(0, OQ_MAX_FILTERED_ROWS));
+    oqStatus.textContent =
+      matches.length === 0
+        ? "No matches."
+        : matches.length > OQ_MAX_FILTERED_ROWS
+          ? `Showing first ${OQ_MAX_FILTERED_ROWS} of ${matches.length.toLocaleString()} matches.`
+          : `${matches.length.toLocaleString()} match${matches.length === 1 ? "" : "es"}.`;
+  }
+
+  async function startOqLoad() {
+    if (oqLoadStarted) return;
+    oqLoadStarted = true;
+    oqStatus.textContent = "Loading dictionary...";
+    try {
+      oqEntries = await loadDictEntries();
+    } catch (err) {
+      oqStatus.textContent = `Could not load dictionary (${err.message}). Close and reopen OQ! to retry.`;
+      oqLoadStarted = false; // let a retry actually re-fetch instead of silently no-op'ing forever
+      return;
+    }
+    renderOqResults();
+  }
+
+  oqFilter.addEventListener("input", renderOqResults);
 })();
