@@ -95,12 +95,16 @@ looks like today.
   DICT.EXE does, with clickable/tappable result rows highlighted in
   98.css's own real selection color (navy/white); My Computer/About
   retr-oq/Recycle Bin stay chrome-only on purpose, same as `mac1984/`'s own
-  icons with no window content behind them. Right-clicking the bare
-  desktop opens a real Properties item -- the only way to reach a Display
-  Properties dialog with a genuine, if famously ugly, built-in Windows 98
-  color scheme (**Hot Dog Stand**, ketchup red and mustard yellow)
-  deliberately not listed anywhere else, same idea as `dos/`'s undocumented
-  `DOOM` command below. The Start button's flag is the real Greenlandic
+  icons with no window content behind them. A real Settings window
+  (Start menu > Settings) holds one working applet, Display, opening a
+  Display Properties dialog -- also reachable by right-clicking the bare
+  desktop for its own Properties item, mouse-only since there's no real
+  right-click gesture on touch; Settings is the touch-reachable path to
+  the same dialog. Its Scheme dropdown includes a genuine, if famously
+  ugly, built-in Windows 98 color scheme (**Hot Dog Stand**, ketchup red
+  and mustard yellow) deliberately not listed anywhere more obvious than
+  that dropdown, same idea as `dos/`'s undocumented `DOOM` command below.
+  The Start button's flag is the real Greenlandic
   flag, not a Windows-logo stand-in. Shut Down sends the
   visitor back to this repo's own theme picker (`../`).
 - **`tests/`** — `win98/`'s own Playwright/pytest regression suite

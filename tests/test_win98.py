@@ -618,6 +618,61 @@ def test_hot_dog_stand_leaves_window_content_untouched(page, base_url):
     assert results_bg not in ("rgb(255, 0, 0)", "rgb(255, 255, 0)")
 
 
+# ---------- Settings window (the touch-reachable path to Display Properties) ----------
+
+
+def test_settings_start_menu_item_is_enabled_and_opens_window(page, base_url):
+    # Regression/intent test: Settings used to be a decorative, disabled
+    # Start-menu item (start-menu-item--disabled, no data-open) -- the
+    # only path to Display Properties was the desktop's right-click menu,
+    # unreachable on touch. Settings is now real.
+    goto_win98(page, base_url)
+    item = page.query_selector(".start-menu-item[data-open='win-settings']")
+    assert item is not None
+    assert "start-menu-item--disabled" not in item.get_attribute("class")
+    page.click("#start-button")
+    page.click(".start-menu-item[data-open='win-settings']")
+    page.wait_for_timeout(150)
+    assert "minimized" not in page.eval_on_selector("#win-settings", "el => el.className")
+
+
+def test_settings_window_has_working_display_icon(page, base_url):
+    goto_win98(page, base_url)
+    page.click("#start-button")
+    page.click(".start-menu-item[data-open='win-settings']")
+    page.wait_for_timeout(150)
+    icon = page.query_selector("#settings-display-icon")
+    assert icon is not None
+    bg = page.evaluate(
+        "getComputedStyle(document.querySelector('#settings-display-icon .control-panel-icon-glyph')).backgroundImage"
+    )
+    assert bg.startswith('url("data:image/svg+xml')
+
+    # This is the actual point: opening Display Properties via a normal
+    # click inside a normal window works identically on touch, unlike the
+    # desktop's right-click-only Properties item.
+    icon.click()
+    page.wait_for_timeout(100)
+    assert page.get_attribute("#display-props-overlay", "hidden") is None
+    assert page.eval_on_selector("#scheme-select", "el => el.value") == "standard"
+
+
+def test_touch_can_reach_display_properties_via_settings(touch_page, base_url):
+    goto_win98(touch_page, base_url)
+    touch_page.click("#start-button")
+    touch_page.click(".start-menu-item[data-open='win-settings']")
+    touch_page.wait_for_timeout(150)
+    icon = touch_page.query_selector("#settings-display-icon")
+    box = icon.bounding_box()
+    touch_page.touchscreen.tap(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    touch_page.wait_for_timeout(150)
+    assert touch_page.get_attribute("#display-props-overlay", "hidden") is None
+    touch_page.select_option("#scheme-select", "hotdog")
+    touch_page.click("#display-props-ok")
+    touch_page.wait_for_timeout(100)
+    assert "hotdog-stand" in touch_page.get_attribute("body", "class")
+
+
 def test_apply_applies_without_closing_dialog(page, base_url):
     goto_win98(page, base_url)
     open_display_properties(page)

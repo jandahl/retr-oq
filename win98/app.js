@@ -494,12 +494,22 @@
   // same way a real OS remembers your chosen scheme across reboots.
   applyScheme(getStoredScheme());
 
-  document.getElementById("desktop-context-properties").addEventListener("click", () => {
-    closeDesktopContextMenu();
+  function openDisplayProperties() {
     schemeBeforeDialog = getStoredScheme();
     schemeSelect.value = schemeBeforeDialog;
     displayPropsOverlay.hidden = false;
+  }
+
+  // Two triggers reach the same dialog: the desktop's right-click
+  // Properties item (mouse-only -- there's no real right-click gesture on
+  // touch), and Display in the Settings window below (works identically
+  // on touch and mouse alike, since it's a normal click target inside a
+  // normal window, not a context-menu gesture).
+  document.getElementById("desktop-context-properties").addEventListener("click", () => {
+    closeDesktopContextMenu();
+    openDisplayProperties();
   });
+  document.getElementById("settings-display-icon").addEventListener("click", openDisplayProperties);
   document.getElementById("display-props-apply").addEventListener("click", () => {
     applyScheme(schemeSelect.value);
   });

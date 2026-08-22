@@ -29,6 +29,11 @@
   --icon-programs: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%221%22%20y%3D%224%22%20width%3D%226%22%20height%3D%222%22%20fill%3D%22%23ffcc00%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%221%22%20y%3D%226%22%20width%3D%2214%22%20height%3D%228%22%20fill%3D%22%23ffcc00%22%20stroke%3D%22%23000000%22%2F%3E%20%3C%2Fsvg%3E");
   --icon-settings: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%226%22%20y%3D%221%22%20width%3D%224%22%20height%3D%223%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%2212%22%20width%3D%224%22%20height%3D%223%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%221%22%20y%3D%226%22%20width%3D%223%22%20height%3D%224%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%2212%22%20y%3D%226%22%20width%3D%223%22%20height%3D%224%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%228%22%20height%3D%228%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
   --icon-shutdown: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%227%22%20fill%3D%22%23c00000%22%2F%3E%20%3Cpath%20d%3D%22M4%205%20A6%206%200%201%200%2012%205%22%20fill%3D%22none%22%20stroke%3D%22%23c00000%22%20stroke-width%3D%222%22%2F%3E%20%3C%2Fsvg%3E");
+  /* A monitor (same shape/colors as --icon-computer) plus a small color
+     wheel corner, distinguishing it from My Computer's plain monitor --
+     this is the icon for the Display applet specifically, not the
+     machine as a whole. */
+  --icon-display: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%2211%22%20height%3D%228%22%20fill%3D%22%23c0c0c0%22%2F%3E%20%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%229%22%20height%3D%226%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%227%22%20height%3D%224%22%20fill%3D%22%231084d0%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%229%22%20width%3D%224%22%20height%3D%222%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%222%22%20y%3D%2211%22%20width%3D%228%22%20height%3D%221%22%20fill%3D%22%23808080%22%2F%3E%20%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%223.5%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%20stroke-width%3D%220.6%22%2F%3E%20%3Cpath%20d%3D%22M12%208.5%20A3.5%203.5%200%200%201%2012%2015.5%20Z%22%20fill%3D%22%23c00000%22%2F%3E%20%3Cpath%20d%3D%22M8.7%2010.2%20A3.5%203.5%200%200%200%208.7%2013.8%20Z%22%20fill%3D%22%23ffcc00%22%2F%3E%20%3C%2Fsvg%3E");
   /* The Start button's own flag -- deliberately the real Greenlandic flag
      (white/red bands, an off-center circle with the colors swapped inside
      it, same construction as the real flag), not a Windows-logo stand-in
@@ -44,6 +49,7 @@
 .icon-programs { background-image: var(--icon-programs); }
 .icon-settings { background-image: var(--icon-settings); }
 .icon-shutdown { background-image: var(--icon-shutdown); }
+.icon-display { background-image: var(--icon-display); }
 
 html, body {
   margin: 0;
@@ -176,6 +182,57 @@ body {
 .desktop-icon.selected .desktop-icon-label {
   background: #000080;
   text-shadow: none;
+}
+
+/* ---------- Control Panel icon grid (inside the Settings window) ----------
+   Same "real <button>, strip 98.css's own chrome" approach as .desktop-icon
+   above, but on a normal silver window body instead of the teal desktop --
+   dark text, no white-on-teal shadow, and single click opens (this is the
+   window a touch visitor is specifically meant to reach Display Properties
+   through, so it shouldn't need the desktop-icon's double-click-on-mouse/
+   single-tap-on-touch fork at all). */
+.control-panel-icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.control-panel-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 4.5rem;
+  min-width: 0;
+  min-height: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  color: #000000;
+  text-shadow: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.control-panel-icon-glyph {
+  width: 32px;
+  height: 32px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.control-panel-icon-label {
+  font-size: 11px;
+  text-align: center;
+}
+
+.control-panel-icon:focus-visible .control-panel-icon-label {
+  outline: 1px dotted #000000;
+  outline-offset: 1px;
 }
 
 /* ---------- Windows ---------- */

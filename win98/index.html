@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 98 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/win98/98.css" />
-<link rel="stylesheet" href="style.css?v=9" />
+<link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
   <!-- Taskbar, Start menu, and genuinely resizable-from-any-edge windows
@@ -146,6 +146,37 @@
       <div class="win98-resize-handle win98-resize-se" data-dir="se"></div>
       <div class="win98-resize-handle win98-resize-sw" data-dir="sw"></div>
     </section>
+
+    <section class="window win98-window" id="win-settings" data-icon="settings" style="top: 4rem; left: 5rem; width: 22rem; height: 12rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">Settings</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win98-window-body">
+        <p>
+          Only Display is wired up here -- the rest of a real Control
+          Panel (Fonts, Mouse, Keyboard, and so on) isn't built.
+        </p>
+        <div class="control-panel-icons">
+          <button type="button" class="control-panel-icon" id="settings-display-icon">
+            <span class="control-panel-icon-glyph icon-display" aria-hidden="true"></span>
+            <span class="control-panel-icon-label">Display</span>
+          </button>
+        </div>
+      </div>
+      <div class="win98-resize-handle win98-resize-n" data-dir="n"></div>
+      <div class="win98-resize-handle win98-resize-s" data-dir="s"></div>
+      <div class="win98-resize-handle win98-resize-e" data-dir="e"></div>
+      <div class="win98-resize-handle win98-resize-w" data-dir="w"></div>
+      <div class="win98-resize-handle win98-resize-ne" data-dir="ne"></div>
+      <div class="win98-resize-handle win98-resize-nw" data-dir="nw"></div>
+      <div class="win98-resize-handle win98-resize-se" data-dir="se"></div>
+      <div class="win98-resize-handle win98-resize-sw" data-dir="sw"></div>
+    </section>
   </div>
 
   <footer class="taskbar" id="taskbar">
@@ -178,7 +209,7 @@
     <li role="menu-item" class="start-menu-item start-menu-item--disabled">
       <span class="start-menu-icon icon-programs" aria-hidden="true"></span> Programs
     </li>
-    <li role="menu-item" class="start-menu-item start-menu-item--disabled">
+    <li role="menu-item" class="start-menu-item" data-open="win-settings">
       <span class="start-menu-icon icon-settings" aria-hidden="true"></span> Settings
     </li>
     <li class="start-menu-divider"></li>
@@ -244,6 +275,6 @@
        synchronously, so both have to load and run before app.js does. -->
   <script src="../shared/dict-source.js"></script>
   <script src="../shared/hyphenation.js"></script>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
