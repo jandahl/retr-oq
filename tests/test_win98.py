@@ -619,13 +619,19 @@ def test_hot_dog_stand_recolors_start_button_and_taskbar_buttons(page, base_url)
     )
 
 
-def test_hot_dog_stand_leaves_window_content_untouched(page, base_url):
-    # Regression test: an earlier version of this scheme recolored the
-    # shared `.window` class red, which bled into every window/dialog's
-    # own content area too (static text, table results) since those don't
-    # set their own background -- not what a real screenshot of this
-    # scheme shows. Only the desktop and title bars should change; a
-    # window's own body content stays its normal color.
+def test_hot_dog_stand_tints_backdrop_but_not_interactive_controls(page, base_url):
+    # A window's own backdrop (empty space, static paragraph text) is
+    # deliberately tinted yellow under this scheme -- same idea as the
+    # desktop's own black-on-yellow icon labels, so it actually
+    # participates instead of sitting out as an unrecolored, boring patch
+    # of grey ("lots of gray in the apps"). This isn't the same as the
+    # bug an earlier version had (that one made the backdrop RED with no
+    # explicit background of its own children, bleeding under text and
+    # making it unreadable, "white bg color seems wrong") -- yellow keeps
+    # black text legible on purpose. What genuinely stays untouched is any
+    # control that already carries its own explicit white background
+    # regardless of scheme (an edit field, a results table) -- checked
+    # here via OQ!'s own filter input and results table.
     mock_dict_source(page)
     goto_win98(page, base_url)
     open_display_properties(page)
@@ -639,9 +645,11 @@ def test_hot_dog_stand_leaves_window_content_untouched(page, base_url):
     body_bg = page.evaluate(
         "getComputedStyle(document.querySelector('#win-oq .win98-window-body')).backgroundColor"
     )
-    assert body_bg not in ("rgb(255, 0, 0)", "rgb(255, 255, 0)")
+    assert body_bg == "rgb(255, 255, 0)"
+    filter_bg = page.evaluate("getComputedStyle(document.querySelector('#oq-filter')).backgroundColor")
+    assert filter_bg == "rgb(255, 255, 255)"
     results_bg = page.evaluate("getComputedStyle(document.querySelector('.oq-results-panel table')).backgroundColor")
-    assert results_bg not in ("rgb(255, 0, 0)", "rgb(255, 255, 0)")
+    assert results_bg == "rgb(255, 255, 255)"
 
 
 # ---------- Settings window (the touch-reachable path to Display Properties) ----------
