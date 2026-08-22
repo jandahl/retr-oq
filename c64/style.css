@@ -291,8 +291,11 @@ html, body {
 }
 
 .c64-app-attribution {
-  flex: none;
-  margin: 1em 1em 0;
+  /* No horizontal margin -- .c64-app-results (its new parent) already has
+     1em of its own padding on both sides; this only needs top/bottom
+     spacing now that it scrolls with the results instead of sitting in
+     its own fixed flex row above the footer. */
+  margin: 1.5em 0 1em;
   opacity: 0.7; /* dimmed, not shrunk -- one font-size system, see .c64-screen's own comment */
 }
 .c64-app-attribution a {
