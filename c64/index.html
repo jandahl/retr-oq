@@ -6,7 +6,7 @@
 <title>retr-oq — C64 desktop prototype</title>
 <!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
-<link rel="stylesheet" href="style.css?v=1" />
+<link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <!-- The C64 booted straight into BASIC, no desktop, no icons -- same
@@ -16,7 +16,11 @@
        screen width, which is why the layout/column choices below differ
        from dos/'s at every turn. -->
   <div class="c64-screen" id="c64-dir">
-    <div id="c64-output">READY.
+    <div id="c64-output">    **** COMMODORE 64 BASIC V2 ****
+
+ 64K RAM SYSTEM  38911 BASIC BYTES FREE
+
+READY.
 LOAD"$",8
 SEARCHING FOR $
 LOADING
@@ -24,7 +28,7 @@ READY.
 LIST
 
 0 "OQ DISK       " 09 2A
-<button type="button" class="c64-link" id="launch-dict">1   "DICT"</button>            PRG
+<button type="button" class="c64-link" data-load="DICT">1   "DICT"</button>            PRG
 <span class="c64-dim">1   "DICT DAT"</span>        SEQ
 <span class="c64-dim">1   "BUILD"</span>            PRG
 2   "RUN"                  PRG
@@ -69,6 +73,6 @@ LIST
 <script src="../shared/dict-source.js?v=1"></script>
 <script src="../shared/hyphenation.js?v=1"></script>
 <script src="../shared/router.js?v=1"></script>
-<script src="app.js?v=1"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

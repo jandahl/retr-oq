@@ -18,14 +18,29 @@
    did (#26) -- a 40-column fixed-width disk listing wraps on a narrow phone
    screen exactly as easily as an 80-column one did.
 
-   No PETSCII webfont is vendored yet -- vendor/c64/ doesn't exist. The
-   real font (C64 Pro Mono, style64.org) only licenses @font-face embedding,
-   not the usual "vendor the file + copy its LICENSE verbatim" pattern this
-   repo uses elsewhere, so it needs a conscious decision (a note file
-   instead of a LICENSE.txt) before it's added -- follow-up work, not done
-   here. The monospace fallback stack below is deliberately plain until
-   then; nothing about the layout/JS depends on the real font metrics the
-   way dos/'s measureCell()-driven dragging does. */
+   The real font (C64 Pro Mono, style64.org) IS vendored, at
+   vendor/c64/fonts/ -- turns out style64.org ships a real license.txt in
+   their distribution zip after all (not just a license page, which is what
+   an earlier pass here concluded from second-hand searches without ever
+   getting a hand on the actual zip), so it fits this repo's normal
+   vendor/<theme>/LICENSE.txt pattern exactly, same as vendor/mac1984/. Their
+   license permits unmodified, same-filename @font-face embedding (see
+   vendor/c64/LICENSE.txt), which @font-face below does -- only .woff2/.woff
+   are vendored, not every format in the zip (.eot/.otf/.ttf), since nothing
+   in this repo's supported-browser range needs them. Falls back to plain
+   monospace if the font fails to load; nothing about the layout/JS depends
+   on the real font metrics the way dos/'s measureCell()-driven dragging
+   does. */
+
+@font-face {
+  font-family: "C64 Pro Mono";
+  src:
+    url("../vendor/c64/fonts/C64_Pro_Mono-STYLE.woff2") format("woff2"),
+    url("../vendor/c64/fonts/C64_Pro_Mono-STYLE.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 html, body {
   margin: 0;
@@ -35,7 +50,13 @@ html, body {
   overscroll-behavior: none;
   position: fixed;
   width: 100%;
-  background: #35289c; /* the real C64 default screen blue, so any gap around a shrunk .c64-screen reads as more screen, not a foreign color */
+  /* The real C64's border (POKE 53280) and screen background (POKE 53281)
+     are two DIFFERENT default colors, not one -- light blue border, blue
+     background. body is the border layer here: .c64-screen/.c64-app/
+     #c64-loading are inset from the viewport edge (see --c64-border below)
+     so this shows through as a permanently-visible frame, the one thing a
+     real C64 display never went without. */
+  background: #7c70da;
 }
 
 :root {
@@ -43,6 +64,7 @@ html, body {
   --c64-lightblue: #7c70da; /* default screen text + border */
   --c64-white: #ffffff;
   --c64-black: #000000;
+  --c64-border: 1.5em; /* border thickness, in the same font-relative unit as everything else here */
 }
 
 /* The real C64 16-color palette, in BASIC's own POKE 646/53280/53281 color
@@ -74,16 +96,22 @@ html, body {
 
 .c64-screen {
   position: fixed;
-  top: var(--app-top, 0); /* same visualViewport-tracking reasoning as dos/style.css's .dos-dir */
-  left: 0;
-  right: 0;
-  height: var(--app-height, 100vh);
+  /* Inset by --c64-border on all four sides so body's lightblue shows
+     through as the permanent screen frame -- see body's own comment above. */
+  top: calc(var(--app-top, 0px) + var(--c64-border)); /* same visualViewport-tracking reasoning as dos/style.css's .dos-dir */
+  left: var(--c64-border);
+  right: var(--c64-border);
+  height: calc(var(--app-height, 100vh) - 2 * var(--c64-border));
   overflow: auto;
   padding: 1em;
   background: var(--c64-blue);
   color: var(--c64-lightblue);
   font-family: "C64 Pro Mono", ui-monospace, "Courier New", monospace;
-  font-size: 16px;
+  /* One font-size system, same as a real C64's single hardware character
+     size -- every screen (.c64-screen, .c64-app, and anything inside them,
+     .c64-app-attribution included) shares this one value; nothing here
+     sets its own smaller font-size. */
+  font-size: 20px;
   line-height: 1.25;
   /* pre, not pre-wrap -- same reasoning as dos/style.css's .dos-dir: a real
      40-column disk listing's fixed-width columns never mid-line-wrapped.
@@ -132,21 +160,26 @@ html, body {
   color: inherit;
   font: inherit;
   caret-color: var(--c64-lightblue);
+  /* Visual backup for the real uppercasing app.js's forceUppercase() does
+     to the input's actual value (needed there so the echoed history line
+     reads uppercase too) -- a real C64 keyboard had no lowercase typing
+     mode by default. */
+  text-transform: uppercase;
 }
 
 .c64-app {
   position: fixed;
-  top: var(--app-top, 0);
-  left: 0;
-  right: 0;
-  height: var(--app-height, 100vh);
+  top: calc(var(--app-top, 0px) + var(--c64-border));
+  left: var(--c64-border);
+  right: var(--c64-border);
+  height: calc(var(--app-height, 100vh) - 2 * var(--c64-border));
   z-index: 100;
   display: flex;
   flex-direction: column;
   background: var(--c64-blue);
   color: var(--c64-lightblue);
   font-family: "C64 Pro Mono", ui-monospace, "Courier New", monospace;
-  font-size: 16px;
+  font-size: 20px;
   /* Explicit, not left to inherit -- app.js's stepScrollOnWheel measures
      each scroll container's own real computed line-height (see its own
      comment); without this, .c64-app-results (DICT.EXE's results pane)
@@ -168,20 +201,23 @@ html, body {
   padding: 1em 1em 0;
 }
 .c64-input {
+  /* No boxed/framed text field -- a real C64 input line was just text on
+     the screen with a blinking cursor, never a bordered widget (that
+     bordered look was the uncanny-valley tell this theme originally had). */
   -webkit-appearance: none;
   appearance: none;
-  background: var(--c64-blue);
+  background: none;
   color: var(--c64-lightblue);
-  border: 1px solid var(--c64-lightblue);
+  border: none;
   font: inherit;
-  padding: 0.25em 0.5em;
+  padding: 0;
+  margin: 0;
   max-width: 40ch;
   width: 100%;
   box-sizing: border-box;
   outline: none;
-}
-.c64-input:focus-visible {
-  outline: 1px solid var(--c64-white);
+  caret-color: var(--c64-lightblue);
+  text-transform: uppercase; /* same reasoning as .c64-cmd-input's -- visual only, filterDictEntries() already matches case-insensitively */
 }
 .c64-app-status {
   margin: 0.5em 0;
@@ -222,8 +258,7 @@ html, body {
 .c64-app-attribution {
   flex: none;
   margin: 1em 1em 0;
-  font-size: 0.8em;
-  opacity: 0.7;
+  opacity: 0.7; /* dimmed, not shrunk -- one font-size system, see .c64-screen's own comment */
 }
 .c64-app-footer {
   flex: none;

@@ -13,12 +13,21 @@
   const dictTbody = document.getElementById("dict-tbody");
   const loadingScreen = document.getElementById("c64-loading");
 
-  document.getElementById("dict-attribution").textContent = DICT_ATTRIBUTION;
+  document.getElementById("dict-attribution").textContent = petsciiSafe(DICT_ATTRIBUTION);
 
   const DEFAULT_ROWS = 50; // shown before any filtering -- a browsable sample, not a blank table
   const MAX_FILTERED_ROWS = 200; // same ceiling as dos/app.js, same reasoning: 17,000+ entries, never render a full match set
 
   let dictEntries = null; // null until a load succeeds
+
+  // The real C64 character set (PETSCII) has no en dash, em dash, or
+  // ellipsis -- the upstream dictionary data has all three (see
+  // shared/dict-source.js's DICT_ATTRIBUTION). Applied here, not upstream,
+  // so dos/mac1984 keep the real Unicode punctuation; only c64/ needs the
+  // period-accurate downgrade.
+  function petsciiSafe(text) {
+    return text.replace(/–/g, "-").replace(/—/g, "--").replace(/…/g, "...");
+  }
 
   function renderRows(rows) {
     dictTbody.textContent = "";
@@ -28,9 +37,9 @@
       // syllabify() -- same reasoning as dos/app.js's identical call: real
       // Kalaallisut syllable boundaries, not wherever overflow-wrap:anywhere
       // happens to break.
-      lexemeCell.textContent = syllabify(entry.lexeme);
+      lexemeCell.textContent = petsciiSafe(syllabify(entry.lexeme));
       const glossCell = document.createElement("td");
-      glossCell.textContent = entry.gloss_en;
+      glossCell.textContent = petsciiSafe(entry.gloss_en);
       row.append(lexemeCell, glossCell);
       dictTbody.appendChild(row);
     }
@@ -135,35 +144,31 @@
     });
   }
 
-  // Clicking "1 DICT" in the directory is the mouse equivalent of typing
-  // LOAD"DICT",8,1 then RUN -- same idea as dos/index.html's clickable
-  // filename, but the C64 idiom is genuinely two commands, not one, so the
-  // click plays the same flicker the command line does rather than jumping
-  // straight to the app.
-  document.getElementById("launch-dict").addEventListener("click", () => {
-    printLine('LOAD"DICT",8,1');
-    printLine("SEARCHING FOR DICT");
-    printLine("LOADING");
-    printLine("READY.");
-    // loadedProgram set here (not just implied by the transcript above) so
-    // a bare RUN typed afterward -- the natural next move after watching
-    // DICT load and launch this way -- relaunches it instead of hitting
-    // the real ?SYNTAX ERROR an empty program buffer gives.
-    loadedProgram = "DICT";
-    runProgram(loadedProgram);
-  });
-
   // Command line: real BASIC/KERNAL two-step idiom -- LOAD"NAME",8[,1] to
   // read a program off "disk", RUN to actually start whatever was last
   // loaded. Neither command takes effect alone: LOAD only ever reports
   // success, RUN with nothing loaded is the real ?SYNTAX ERROR a bare RUN
   // gave when BASIC's own program buffer was empty.
-  const DIR_LISTING = `0 "OQ DISK       " 09 2A
-1   "DICT"                 PRG
-1   "DICT DAT"             SEQ
-1   "BUILD"                PRG
-2   "RUN"                  PRG
-664 BLOCKS FREE.`;
+  //
+  // Built as DOM nodes, not a plain template-literal string, so a LIST
+  // reprint stays clickable -- see the delegated #c64-output click listener
+  // below, same as the initial listing markup in index.html.
+  function printDirListing() {
+    printLine('0 "OQ DISK       " 09 2A');
+    const dictLine = document.createElement("div");
+    const dictLink = document.createElement("button");
+    dictLink.type = "button";
+    dictLink.className = "c64-link";
+    dictLink.dataset.load = "DICT";
+    dictLink.textContent = '1   "DICT"';
+    dictLine.append(dictLink, document.createTextNode("            PRG"));
+    c64Output.appendChild(document.createTextNode("\n"));
+    c64Output.appendChild(dictLine);
+    printLine('1   "DICT DAT"             SEQ');
+    printLine('1   "BUILD"                PRG');
+    printLine('2   "RUN"                  PRG');
+    printLine("664 BLOCKS FREE.");
+  }
 
   let loadedProgram = null; // null until a LOAD succeeds -- what a bare RUN would start
 
@@ -174,6 +179,30 @@
     c64Output.appendChild(document.createTextNode(`\n${text}`));
     dirScreen.scrollTop = dirScreen.scrollHeight;
   }
+
+  // Clicking "1 DICT" in the directory (the initial listing in index.html,
+  // or a LIST reprint from printDirListing() above) is the mouse
+  // equivalent of typing LOAD"DICT",8,1 then RUN -- same idea as
+  // dos/index.html's clickable filename, but the C64 idiom is genuinely two
+  // commands, not one, so the click plays the same flicker the command line
+  // does rather than jumping straight to the app. Delegated on #c64-output
+  // (rather than bound to a single fixed id) so it keeps working no matter
+  // how many times the listing has been reprinted.
+  c64Output.addEventListener("click", (event) => {
+    const link = event.target.closest(".c64-link[data-load]");
+    if (!link) return;
+    const name = link.dataset.load;
+    printLine(`LOAD"${name}",8,1`);
+    printLine(`SEARCHING FOR ${name}`);
+    printLine("LOADING");
+    printLine("READY.");
+    // loadedProgram set here (not just implied by the transcript above) so
+    // a bare RUN typed afterward -- the natural next move after watching
+    // a program load and launch this way -- relaunches it instead of
+    // hitting the real ?SYNTAX ERROR an empty program buffer gives.
+    loadedProgram = name;
+    runProgram(loadedProgram);
+  });
 
   function runProgram(name) {
     if (name === "DICT") {
@@ -201,7 +230,7 @@
       printLine("READY.");
       printLine("LIST");
       printLine("");
-      printLine(DIR_LISTING);
+      printDirListing();
       return;
     }
 
@@ -232,6 +261,26 @@
     printLine("?SYNTAX ERROR");
   }
 
+  // Real BASIC had no lowercase mode by default -- typed input showed
+  // uppercase as it was typed, not just after Enter uppercased it for
+  // matching (runCommand() already does that separately). Forced here
+  // rather than left to CSS text-transform so the *echoed* history line
+  // below also reads uppercase, not just the live input box.
+  function forceUppercase(input) {
+    input.addEventListener("input", () => {
+      const { selectionStart, selectionEnd } = input;
+      input.value = input.value.toUpperCase();
+      input.setSelectionRange(selectionStart, selectionEnd);
+    });
+  }
+  forceUppercase(c64Cmd);
+  // dict-filter's own uppercase look comes from style.css's
+  // text-transform:uppercase instead of this same JS trick -- it doesn't
+  // need an uppercased *value* the way the command echo below does
+  // (filterDictEntries() already matches case-insensitively), and forcing
+  // the value here would race the existing "input" listener below that
+  // reads dictFilter.value into the shareable URL.
+
   c64Cmd.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
     printLine(c64Cmd.value);
@@ -257,14 +306,31 @@
   function rowHeight(el) {
     return parseFloat(getComputedStyle(el).lineHeight) || 20;
   }
+  // A real mechanical wheel has detents -- one click, one line, no matter
+  // how fast you spin it. A trackpad has none: a single two-finger swipe
+  // fires a burst of many "wheel" events in quick succession. Stepping by
+  // a full row on every one of those events still moved a whole row per
+  // event, but the burst was frequent enough to *look* like a smooth
+  // glide -- the exact "smooth scrolling" bug report this throttle exists
+  // to fix. Coalescing the burst down to one step per
+  // WHEEL_STEP_INTERVAL_MS (same value and reasoning as dos/app.js's
+  // identical throttle) makes a fast swipe visibly hop row by row instead.
+  const WHEEL_STEP_INTERVAL_MS = 60;
   function stepScrollOnWheel(el) {
     const step = rowHeight(el);
+    let lastStepAt = 0;
     el.addEventListener(
       "wheel",
       (event) => {
         if (event.ctrlKey || event.metaKey) return;
         if (event.deltaY === 0) return;
+        // preventDefault on every event in the burst, even throttled-away
+        // ones -- otherwise the swallowed events fall through to native
+        // scrolling and reintroduce the exact smoothness being suppressed.
         event.preventDefault();
+        const now = performance.now();
+        if (now - lastStepAt < WHEEL_STEP_INTERVAL_MS) return;
+        lastStepAt = now;
         el.scrollTop += event.deltaY > 0 ? step : -step;
       },
       { passive: false },
