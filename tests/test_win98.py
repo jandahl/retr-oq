@@ -593,6 +593,32 @@ def test_selecting_hot_dog_stand_and_ok_applies_and_persists_scheme(page, base_u
     assert "hotdog-stand" in page.get_attribute("body", "class")
 
 
+def test_hot_dog_stand_recolors_start_button_and_taskbar_buttons(page, base_url):
+    # Regression test: the Start button and each taskbar window button
+    # kept their default silver background under this scheme -- unlike a
+    # window/dialog's own internal buttons (deliberately left untouched,
+    # see below), these sit directly embedded in the red taskbar itself,
+    # so staying silver read as an unrecolored bug rather than restraint
+    # ("not all surfaces recolor well").
+    goto_win98(page, base_url)
+    # Right-click and apply the scheme before opening a window -- the
+    # dialog overlay covers the whole desktop while open, and win-about's
+    # default position would cover the bare desktop at the click point
+    # this helper uses once it's open (same overlapping-window reasoning
+    # other tests here work around) -- so open a window only after the
+    # dialog is closed again.
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-ok")
+    page.wait_for_timeout(100)
+    open_via_dblclick(page, "win-about")
+    assert page.evaluate("getComputedStyle(document.querySelector('.start-button')).backgroundColor") == "rgb(255, 0, 0)"
+    assert (
+        page.evaluate("getComputedStyle(document.querySelector('.taskbar-window-button')).backgroundColor")
+        == "rgb(255, 0, 0)"
+    )
+
+
 def test_hot_dog_stand_leaves_window_content_untouched(page, base_url):
     # Regression test: an earlier version of this scheme recolored the
     # shared `.window` class red, which bled into every window/dialog's

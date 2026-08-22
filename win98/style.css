@@ -622,21 +622,31 @@ body {
 
 /* ---------- Hot Dog Stand (hidden color scheme) ----------
    A real built-in Windows 98 color scheme (Display Properties >
-   Appearance > Scheme), reachable only via the desktop's right-click
-   Properties item above -- see that markup's own comment on why it's not
-   listed anywhere more obvious. Checked against a real screenshot, not
-   guessed: the desktop itself is yellow, not red -- only title bars (and,
-   by the same logic, this theme's own taskbar) go red with white text.
-   Window/dialog *content* -- Control Panel's icon grid, a dialog's own
-   fields and buttons -- stays completely untouched, normal silver/white,
-   in that same reference. An earlier version of this got both of those
-   backwards (red desktop, and red bleeding into every window/dialog body
-   because the override targeted the shared `.window` class instead of
-   just `.title-bar`), which is what made static text unreadable instead
-   of just "loud". Deliberately not chasing down every single other
-   98.css-baked color (button bevels, scrollbars, the title-bar-control
-   icons) -- some are baked into the vendored dist build as literal hex
-   with no custom property to hook, and it's a joke, not a full reskin. */
+   Appearance > Scheme), reachable via the desktop's right-click
+   Properties item or the Settings window's Display applet -- see either
+   markup's own comment for why the scheme choice itself isn't listed
+   anywhere more obvious than that dialog. Checked against a real
+   screenshot, not guessed: the desktop itself is yellow, not red -- only
+   title bars (and, by the same logic, this theme's own taskbar) go red
+   with white text. Window/dialog *content* -- Control Panel's icon grid,
+   a dialog's own fields and buttons -- stays completely untouched, normal
+   silver/white, in that same reference. An earlier version of this got
+   both of those backwards (red desktop, and red bleeding into every
+   window/dialog body because the override targeted the shared `.window`
+   class instead of just `.title-bar`), which is what made static text
+   unreadable instead of just "loud".
+
+   The Start button and each taskbar window button ARE recolored, on top
+   of that reference, even though they're technically "buttons" like the
+   window/dialog ones left untouched above: unlike those, they sit
+   directly embedded in the red taskbar itself, not on a neutral window
+   body, so leaving them their default silver reads as a bug (an
+   unrecolored patch) rather than a deliberate restraint -- reported
+   exactly that way ("not all surfaces recolor well"). Deliberately still
+   not chasing every other 98.css-baked color (button bevels elsewhere,
+   scrollbars, the title-bar-control icons) -- some are baked into the
+   vendored dist build as literal hex with no custom property to hook,
+   and it's a joke, not a full reskin. */
 body.hotdog-stand .desktop {
   background: #ffff00;
 }
@@ -655,8 +665,14 @@ body.hotdog-stand .taskbar-tray {
 }
 
 body.hotdog-stand .taskbar-clock,
-body.hotdog-stand .taskbar-window-label {
+body.hotdog-stand .taskbar-window-label,
+body.hotdog-stand .start-button-label {
   color: #ffffff;
+}
+
+body.hotdog-stand .start-button,
+body.hotdog-stand .taskbar-window-button {
+  background: #ff0000;
 }
 
 body.hotdog-stand .title-bar {
