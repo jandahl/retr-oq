@@ -698,7 +698,18 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
   // only, not touch -- hijacking touchmove to force the same stepped feel
   // would fight native mobile scrolling far more than it's worth here.
   const ROW_HEIGHT = parseFloat(getComputedStyle(document.body).lineHeight) || 14;
+  // A real mechanical wheel has detents -- one click, one line, no matter
+  // how fast you spin it. A trackpad has none: a single two-finger swipe
+  // fires a burst of many "wheel" events in quick succession, each with a
+  // small deltaY. Stepping by ROW_HEIGHT on every one of those (the
+  // earlier version of this function) still moved a whole row per event,
+  // but the burst was frequent enough to *look* like a smooth glide -- the
+  // exact "smooth scrolling" bug report this throttle exists to fix.
+  // Coalescing the burst down to one step per WHEEL_STEP_INTERVAL_MS makes
+  // a fast swipe visibly hop row by row instead, like a real terminal.
+  const WHEEL_STEP_INTERVAL_MS = 60;
   function stepScrollOnWheel(el) {
+    let lastStepAt = 0;
     el.addEventListener(
       "wheel",
       (event) => {
@@ -711,7 +722,13 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
         // treat exactly-0 as "scroll up" and move the container on a
         // gesture the user never made vertically.
         if (event.deltaY === 0) return;
+        // preventDefault on every event in the burst, even throttled-away
+        // ones -- otherwise the swallowed events fall through to native
+        // scrolling and reintroduce the exact smoothness being suppressed.
         event.preventDefault();
+        const now = performance.now();
+        if (now - lastStepAt < WHEEL_STEP_INTERVAL_MS) return;
+        lastStepAt = now;
         el.scrollTop += event.deltaY > 0 ? ROW_HEIGHT : -ROW_HEIGHT;
       },
       { passive: false },

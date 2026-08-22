@@ -306,14 +306,31 @@
   function rowHeight(el) {
     return parseFloat(getComputedStyle(el).lineHeight) || 20;
   }
+  // A real mechanical wheel has detents -- one click, one line, no matter
+  // how fast you spin it. A trackpad has none: a single two-finger swipe
+  // fires a burst of many "wheel" events in quick succession. Stepping by
+  // a full row on every one of those events still moved a whole row per
+  // event, but the burst was frequent enough to *look* like a smooth
+  // glide -- the exact "smooth scrolling" bug report this throttle exists
+  // to fix. Coalescing the burst down to one step per
+  // WHEEL_STEP_INTERVAL_MS (same value and reasoning as dos/app.js's
+  // identical throttle) makes a fast swipe visibly hop row by row instead.
+  const WHEEL_STEP_INTERVAL_MS = 60;
   function stepScrollOnWheel(el) {
     const step = rowHeight(el);
+    let lastStepAt = 0;
     el.addEventListener(
       "wheel",
       (event) => {
         if (event.ctrlKey || event.metaKey) return;
         if (event.deltaY === 0) return;
+        // preventDefault on every event in the burst, even throttled-away
+        // ones -- otherwise the swallowed events fall through to native
+        // scrolling and reintroduce the exact smoothness being suppressed.
         event.preventDefault();
+        const now = performance.now();
+        if (now - lastStepAt < WHEEL_STEP_INTERVAL_MS) return;
+        lastStepAt = now;
         el.scrollTop += event.deltaY > 0 ? step : -step;
       },
       { passive: false },
