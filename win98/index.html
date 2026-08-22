@@ -8,20 +8,21 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 98 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/win98/98.css" />
-<link rel="stylesheet" href="style.css?v=6" />
+<link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
-  <!-- Pure window-manager chrome for this first pass -- taskbar, Start
-       menu, and genuinely resizable-from-any-edge windows with real
-       minimize/maximize/close. No functional app inside a window yet (see
-       issue #29's "not required, but worth deciding on purpose" section);
-       DICT.EXE-equivalent content is deliberately left for a follow-up PR
-       once the window manager itself is solid. -->
+  <!-- Taskbar, Start menu, and genuinely resizable-from-any-edge windows
+       with real minimize/maximize/close (see issue #29). OQ! is the one
+       window with a real app behind it -- a Kalaallisut dictionary
+       lookup, reusing shared/dict-source.js and shared/hyphenation.js the
+       same way dos/'s DICT.EXE does. My Computer/About retr-oq/Recycle
+       Bin stay chrome-only on purpose, matching mac1984/'s own icons that
+       have no window content behind them either. -->
   <div class="desktop" id="desktop">
     <div class="desktop-icons">
       <button type="button" class="desktop-icon" data-open="win-oq">
         <span class="desktop-icon-glyph icon-oq" aria-hidden="true"></span>
-        <span class="desktop-icon-label">OQ</span>
+        <span class="desktop-icon-label">OQ!</span>
       </button>
       <button type="button" class="desktop-icon" data-open="win-computer">
         <span class="desktop-icon-glyph icon-computer" aria-hidden="true"></span>
@@ -37,23 +38,29 @@
       </button>
     </div>
 
-    <section class="window win98-window" id="win-oq" data-icon="oq" style="top: 2.5rem; left: 4rem; width: 26rem; height: 16rem;">
+    <section class="window win98-window" id="win-oq" data-icon="oq" style="top: 2.5rem; left: 4rem; width: 28rem; height: 20rem;">
       <div class="title-bar">
-        <div class="title-bar-text">OQ</div>
+        <div class="title-bar-text">OQ!</div>
         <div class="title-bar-controls">
           <button aria-label="Minimize" class="win-minimize"></button>
           <button aria-label="Maximize" class="win-maximize"></button>
           <button aria-label="Close" class="win-close"></button>
         </div>
       </div>
-      <div class="window-body win98-window-body">
-        <p>
-          A Kalaallisut dictionary lookup would live in this window --
-          <code>dos/</code>'s DICT.EXE is the working template for it -- but
-          it isn't wired up yet. This is chrome only, same as the other
-          windows here, waiting on a follow-up once the window manager
-          itself is solid (see issue #29's own "not in scope" note).
-        </p>
+      <div class="window-body win98-window-body oq-body">
+        <div class="field-row oq-filter-row">
+          <input type="text" id="oq-filter" placeholder="Type to search..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <p class="oq-status" id="oq-status">Loading dictionary...</p>
+        <div class="sunken-panel oq-results-panel">
+          <table class="interactive" id="oq-table">
+            <thead>
+              <tr><th>Lexeme</th><th>English</th></tr>
+            </thead>
+            <tbody id="oq-tbody"></tbody>
+          </table>
+        </div>
+        <p class="oq-attribution" id="oq-attribution"></p>
       </div>
       <div class="win98-resize-handle win98-resize-n" data-dir="n"></div>
       <div class="win98-resize-handle win98-resize-s" data-dir="s"></div>
@@ -156,7 +163,7 @@
 
   <ul role="menu" class="start-menu" id="start-menu" hidden>
     <li role="menu-item" class="start-menu-item" data-open="win-oq">
-      <span class="start-menu-icon icon-oq" aria-hidden="true"></span> OQ
+      <span class="start-menu-icon icon-oq" aria-hidden="true"></span> OQ!
     </li>
     <li role="menu-item" class="start-menu-item" data-open="win-computer">
       <span class="start-menu-icon icon-computer" aria-hidden="true"></span> My Computer
@@ -186,7 +193,7 @@
         <div class="title-bar-text">Shut Down Windows</div>
       </div>
       <div class="window-body win98-window-body">
-        <p>This is a prototype -- there's nothing to actually shut down.</p>
+        <p>It is now safe to leave this theme.</p>
         <div class="win98-dialog-actions">
           <button type="button" id="shutdown-ok">OK</button>
         </div>
@@ -194,6 +201,11 @@
     </section>
   </div>
 
-  <script src="app.js?v=6"></script>
+  <!-- Load order matters (see CLAUDE.md): app.js reads window.OqDictSource
+       and window.OqHyphenation, both classic scripts setting those globals
+       synchronously, so both have to load and run before app.js does. -->
+  <script src="../shared/dict-source.js"></script>
+  <script src="../shared/hyphenation.js"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

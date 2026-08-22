@@ -29,6 +29,12 @@
   --icon-programs: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%221%22%20y%3D%224%22%20width%3D%226%22%20height%3D%222%22%20fill%3D%22%23ffcc00%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%221%22%20y%3D%226%22%20width%3D%2214%22%20height%3D%228%22%20fill%3D%22%23ffcc00%22%20stroke%3D%22%23000000%22%2F%3E%20%3C%2Fsvg%3E");
   --icon-settings: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%226%22%20y%3D%221%22%20width%3D%224%22%20height%3D%223%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%2212%22%20width%3D%224%22%20height%3D%223%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%221%22%20y%3D%226%22%20width%3D%223%22%20height%3D%224%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%2212%22%20y%3D%226%22%20width%3D%223%22%20height%3D%224%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%228%22%20height%3D%228%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
   --icon-shutdown: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%227%22%20fill%3D%22%23c00000%22%2F%3E%20%3Cpath%20d%3D%22M4%205%20A6%206%200%201%200%2012%205%22%20fill%3D%22none%22%20stroke%3D%22%23c00000%22%20stroke-width%3D%222%22%2F%3E%20%3C%2Fsvg%3E");
+  /* The Start button's own flag -- deliberately the real Greenlandic flag
+     (white/red bands, an off-center circle with the colors swapped inside
+     it, same construction as the real flag), not a Windows-logo stand-in
+     and not OQ!'s own icon -- this is the one spot on the desktop that's
+     about the theme's setting, not about any one app. */
+  --icon-greenland-flag: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%20%3Crect%20width%3D%2216%22%20height%3D%228%22%20fill%3D%22%23ffffff%22%2F%3E%20%3Crect%20y%3D%228%22%20width%3D%2216%22%20height%3D%228%22%20fill%3D%22%23c8102e%22%2F%3E%20%3CclipPath%20id%3D%22c%22%3E%3Ccircle%20cx%3D%226%22%20cy%3D%228%22%20r%3D%224%22%2F%3E%3C%2FclipPath%3E%20%3Cg%20clip-path%3D%22url%28%23c%29%22%3E%20%3Crect%20x%3D%222%22%20y%3D%224%22%20width%3D%228%22%20height%3D%224%22%20fill%3D%22%23c8102e%22%2F%3E%20%3Crect%20x%3D%222%22%20y%3D%228%22%20width%3D%228%22%20height%3D%224%22%20fill%3D%22%23ffffff%22%2F%3E%20%3C%2Fg%3E%20%3Ccircle%20cx%3D%226%22%20cy%3D%228%22%20r%3D%224%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%220.4%22%20opacity%3D%220.35%22%2F%3E%20%3C%2Fsvg%3E");
 }
 
 .icon-computer { background-image: var(--icon-computer); }
@@ -96,11 +102,16 @@ body {
   min-height: 0;
   background: transparent;
   box-shadow: none;
-  border: 1px dotted transparent;
+  border: none;
   color: #ffffff;
   text-shadow: none;
   cursor: pointer;
   padding: 0.25rem;
+  /* The browser's own default focus ring draws around the whole button --
+     exactly the oversized-rectangle look this file removes everywhere
+     else. The deliberate replacement is scoped to just the label text,
+     via :focus-visible below. */
+  outline: none;
 }
 
 .desktop-icon:active {
@@ -111,19 +122,23 @@ body {
   padding: 0.25rem;
 }
 
-.desktop-icon:hover,
-.desktop-icon:focus-visible {
-  border-color: #ffffff;
-  outline: none;
-}
-
-.desktop-icon:active,
-.desktop-icon.selected {
-  background: rgba(0, 0, 128, 0.4);
-  border-color: #ffffff;
+/* No hover/selected treatment on the button element itself -- a border or
+   fill drawn across the whole icon+gap+label cluster is exactly the "still
+   a rectangle button" look this file otherwise goes out of its way to
+   remove (see the 98.css-reset comment above). Real Windows never
+   highlights a desktop icon as one rectangle: the icon glyph gets a navy
+   tint (via .desktop-icon-glyph::after below, sized to the glyph alone)
+   and the label gets a navy fill sized to its own text (already scoped
+   correctly below) -- two separate, correctly-sized highlights, not one
+   oversized box. Keyboard focus gets its own outline, on the label text
+   only, same reasoning. */
+.desktop-icon:focus-visible .desktop-icon-label {
+  outline: 1px dotted #ffffff;
+  outline-offset: 1px;
 }
 
 .desktop-icon-glyph {
+  position: relative;
   width: 32px;
   height: 32px;
   background-repeat: no-repeat;
@@ -134,6 +149,19 @@ body {
      background-image, not text) is the closest this gets without a
      separate shadow asset per icon. */
   filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.6));
+}
+
+/* Selected-icon tint: a navy overlay sized to exactly the 32x32 glyph box
+   (not the wider button), multiplied against the icon art beneath it so
+   the icon stays recognizable but reads as "selected" the way a real
+   Windows icon mask does. */
+.desktop-icon.selected .desktop-icon-glyph::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000080;
+  mix-blend-mode: multiply;
+  opacity: 0.6;
 }
 
 .desktop-icon-label {
@@ -188,6 +216,41 @@ body {
   flex: 1;
   overflow: auto;
   min-height: 0;
+}
+
+/* OQ!'s own body: the filter input and status line stay fixed, only the
+   results table scrolls internally -- so overflow moves from the body
+   itself (the generic rule above) down onto .oq-results-panel alone. */
+.oq-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.oq-filter-row input {
+  width: 100%;
+}
+
+.oq-status {
+  margin: 0;
+  font-size: 11px;
+}
+
+.oq-results-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.oq-results-panel table {
+  width: 100%;
+}
+
+.oq-attribution {
+  margin: 0;
+  font-size: 10px;
+  color: #444444;
 }
 
 .win98-window .title-bar {
@@ -328,13 +391,9 @@ body {
   width: 16px;
   height: 16px;
   display: inline-block;
-  /* A 2x2 four-color flag, the closest a CSS-only glyph gets to the real
-     Windows logo without vendoring bitmap/vector icon art. */
-  background:
-    linear-gradient(#f25022, #f25022) 0 0 / 47% 47% no-repeat,
-    linear-gradient(#7fba00, #7fba00) 53% 0 / 47% 47% no-repeat,
-    linear-gradient(#00a4ef, #00a4ef) 0 53% / 47% 47% no-repeat,
-    linear-gradient(#ffb900, #ffb900) 53% 53% / 47% 47% no-repeat;
+  background-image: var(--icon-greenland-flag);
+  background-repeat: no-repeat;
+  background-size: contain;
 }
 
 .taskbar-separator {

@@ -93,6 +93,77 @@ def test_desktop_icons_render_svg_art_not_emoji(page, base_url):
         assert glyph_text.strip() == ""
 
 
+def test_selected_desktop_icon_has_no_whole_button_rectangle(page, base_url):
+    # Regression test: selecting an icon used to paint a translucent navy
+    # background + border across the *whole* button (icon + gap + label),
+    # reading as a plain highlighted rectangle -- not how a real Windows
+    # desktop selects an icon (a tint on the icon glyph alone, a
+    # tightly-fit fill behind just the label text). The button element
+    # itself should carry no background/border for selection at all now;
+    # only its .desktop-icon-glyph::after (icon tint) and
+    # .desktop-icon-label (text fill) should react to .selected.
+    goto_win98(page, base_url)
+    icon = page.query_selector(".desktop-icon")
+    page.evaluate("el => el.classList.add('selected')", icon)
+    button_styles = page.evaluate(
+        "el => { const s = getComputedStyle(el); return {bg: s.backgroundColor, border: s.borderColor}; }",
+        icon,
+    )
+    assert button_styles["bg"] in ("rgba(0, 0, 0, 0)", "transparent")
+
+
+def test_desktop_icon_single_click_selects_but_does_not_open(page, base_url):
+    # Real desktop convention (and this theme's own explicit choice on a
+    # mouse/trackpad): a single click only selects an icon, it doesn't
+    # launch the app -- launching takes a double-click, same as real
+    # Windows. The default `page` fixture has no touch, so
+    # (pointer: coarse) is false and this is the code path exercised.
+    goto_win98(page, base_url)
+    # win-about's own default position/size visually overlaps its own
+    # desktop icon underneath -- closing it first is what a real desktop
+    # would also require before that icon becomes clickable again (a
+    # window on top of an icon blocks the icon, same as real Windows).
+    page.click("#win-about .win-close")
+    icon = page.query_selector(".desktop-icon[data-open='win-about']")
+    icon.click()
+    page.wait_for_timeout(100)
+    assert "selected" in icon.get_attribute("class")
+    assert "minimized" in page.eval_on_selector("#win-about", "el => el.className")
+
+
+def test_desktop_icon_double_click_opens_on_desktop(page, base_url):
+    goto_win98(page, base_url)
+    page.click("#win-about .win-close")  # see comment above -- frees the icon from behind its own window
+    icon = page.query_selector(".desktop-icon[data-open='win-about']")
+    icon.dblclick()
+    page.wait_for_timeout(150)
+    assert "minimized" not in page.eval_on_selector("#win-about", "el => el.className")
+
+
+def test_touch_desktop_icon_opens_on_single_tap(touch_page, base_url):
+    # Touch has no reliable double-tap and no hover-to-preview -- keeps the
+    # single-tap-opens behavior this theme shipped with initially.
+    goto_win98(touch_page, base_url)
+    icon = touch_page.query_selector(".desktop-icon[data-open='win-about']")
+    box = icon.bounding_box()
+    touch_page.touchscreen.tap(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    touch_page.wait_for_timeout(150)
+    assert "minimized" not in touch_page.eval_on_selector("#win-about", "el => el.className")
+
+
+def test_start_button_flag_is_greenland_flag(page, base_url):
+    # Regression/intent test: the Start button's flag is deliberately the
+    # real Greenlandic flag (a red/white bicolor with an off-center
+    # swapped-color circle), not a generic four-color Windows-logo
+    # stand-in and not OQ!'s own icon -- the one spot on the desktop that's
+    # about the theme's setting, not about any single app.
+    goto_win98(page, base_url)
+    bg = page.evaluate("getComputedStyle(document.querySelector('.start-flag')).backgroundImage")
+    assert bg.startswith('url("data:image/svg+xml')
+    assert "23c8102e" in bg  # the flag's red, URL-encoded (#c8102e)
+    assert "linear-gradient" not in bg
+
+
 def test_taskbar_has_one_button_per_window_with_icon_and_label(page, base_url):
     goto_win98(page, base_url)
     buttons = page.query_selector_all(".taskbar-window-button")
@@ -140,15 +211,18 @@ def test_start_menu_item_opens_window_and_closes_menu(page, base_url):
     assert "minimized" not in page.eval_on_selector("#win-computer", "el => el.className")
 
 
-def test_shutdown_dialog_opens_and_closes(page, base_url):
+def test_shutdown_dialog_opens_then_ok_returns_to_theme_picker(page, base_url):
+    # Shutting down sends the visitor back to the repo's own theme-picker
+    # landing page (relative "../", not a hardcoded absolute URL) rather
+    # than just closing the dialog.
     goto_win98(page, base_url)
     page.click("#start-button")
     page.click("#start-menu-shutdown")
     page.wait_for_timeout(100)
     assert page.get_attribute("#shutdown-overlay", "hidden") is None
-    page.click("#shutdown-ok")
-    page.wait_for_timeout(100)
-    assert page.get_attribute("#shutdown-overlay", "hidden") is not None
+    with page.expect_navigation():
+        page.click("#shutdown-ok")
+    assert page.url.rstrip("/") == base_url.rstrip("/")
 
 
 def test_taskbar_clock_updates_live(page, base_url):
@@ -243,7 +317,11 @@ def test_reopening_a_closed_window_rebuilds_its_taskbar_button(page, base_url):
     before_count = len(page.query_selector_all(".taskbar-window-button"))
     page.click("#win-about .win-close")
     page.wait_for_timeout(100)
-    page.click(".desktop-icon[data-open='win-about']")
+    # dblclick, not click -- opening a desktop icon on the default (non-touch)
+    # `page` fixture takes a double-click now (see the click/dblclick tests
+    # above); closing win-about above also frees its icon to be clickable
+    # at all, since the window used to sit on top of it.
+    page.dblclick(".desktop-icon[data-open='win-about']")
     page.wait_for_timeout(100)
     after_count = len(page.query_selector_all(".taskbar-window-button"))
     assert after_count == before_count
@@ -304,3 +382,76 @@ def test_touch_resize_handles_are_scaled_up(touch_page, base_url):
     se = touch_page.query_selector("#win-about .win98-resize-se")
     box = se.bounding_box()
     assert box["width"] >= 44 and box["height"] >= 44
+
+
+# ---------- OQ! (the dictionary lookup window) ----------
+
+# A small fixture, not the real ~5.75MB dictionary -- shared/dict-source.js
+# only cares that the response is `{dictionary_entries: [...]}` with
+# lexeme/gloss_en fields, so this is enough to exercise the real load/
+# render/filter code path without a live network dependency in CI.
+OQ_FIXTURE_ENTRIES = [
+    {"lexeme": "illu", "gloss_en": "house"},
+    {"lexeme": "nuna", "gloss_en": "land"},
+    {"lexeme": "qajaq", "gloss_en": "kayak"},
+]
+
+
+def mock_dict_source(page):
+    page.route(
+        "**/Oqaasileriffik-dicts/all_entries.json",
+        lambda route: route.fulfill(json={"dictionary_entries": OQ_FIXTURE_ENTRIES}),
+    )
+
+
+def test_oq_loads_and_renders_entries_on_first_open(page, base_url):
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
+    rows = page.query_selector_all("#oq-tbody tr")
+    assert len(rows) == len(OQ_FIXTURE_ENTRIES)
+    row_texts = page.eval_on_selector_all("#oq-tbody tr", "els => els.map(e => e.textContent)")
+    assert any("house" in t for t in row_texts)
+    attribution = page.text_content("#oq-attribution")
+    assert "Oqaasileriffik" in attribution
+    assert "CC-BY-SA" in attribution
+
+
+def test_oq_filter_narrows_results(page, base_url):
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
+    page.fill("#oq-filter", "kayak")
+    page.wait_for_timeout(100)
+    rows = page.query_selector_all("#oq-tbody tr")
+    assert len(rows) == 1
+    # syllabify() inserts a real soft hyphen (\xad) at the syllable
+    # boundary, so the lexeme cell renders "qa\xadjaq" -- strip it before
+    # comparing, same as a sighted reader would ignore an invisible-unless-
+    # wrapping character.
+    rendered = page.text_content("#oq-tbody").replace("\xad", "")
+    assert "qajaq" in rendered
+
+
+def test_oq_filter_no_match_shows_no_matches_status(page, base_url):
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
+    page.fill("#oq-filter", "zzzznotaword")
+    page.wait_for_timeout(100)
+    assert page.text_content("#oq-status").strip() == "No matches."
+    assert page.query_selector_all("#oq-tbody tr") == []
+
+
+def test_oq_load_failure_shows_retry_message(page, base_url):
+    page.route(
+        "**/Oqaasileriffik-dicts/all_entries.json",
+        lambda route: route.fulfill(status=500, body="server error"),
+    )
+    goto_win98(page, base_url)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('Could not load')", timeout=5000)
+    assert "reopen" in page.text_content("#oq-status").lower()
