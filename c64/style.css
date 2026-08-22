@@ -69,6 +69,27 @@ html, body {
      barely-there line on a narrow phone screen instead of a fixed em value
      eating a chunk of already-scarce width there. */
   --c64-border: clamp(4px, 1.5vw, 14px);
+  /* One font-size system (see .c64-screen's own comment below) -- but a
+     single FIXED value that fits a 40-column line on desktop is far too
+     big for a phone: at 20px it starves DICT.EXE's results table down to
+     almost no visible width per cell, since that table wraps instead of
+     scrolling (no lexeme fits before wrapping into an unreadable stack of
+     single syllables). clamp() scales the one shared value down together
+     with the viewport instead, the same way a whole real CRT image would
+     shrink if you stepped back from it -- not different sizes for
+     different elements, just one size that adapts.
+
+     Not tuned to make #c64-dir's 40-column pre-formatted lines fit with
+     zero horizontal scroll at every width -- this font's characters are
+     roughly 1em wide (a real C64 pixel-cell aspect, not the ~0.6em typical
+     text fonts use), so a literal 40-char-fit floor would bottom out
+     around 7-8px, unreadably small. dos/'s own dir listing already
+     accepts the same horizontal-scroll-on-narrow-phones tradeoff (see
+     CLAUDE.md) for the same reason -- #c64-dir's `overflow: auto` handles
+     it the same way. What this range is tuned against is DICT.EXE's
+     results table instead, which reflows (wraps) rather than scrolling,
+     so it actually needs a legible size, not just a fitting one. */
+  --c64-font-size: clamp(13px, 3.4vw, 20px);
 }
 
 /* The real C64 16-color palette, in BASIC's own POKE 646/53280/53281 color
@@ -118,7 +139,7 @@ html, body {
      size -- every screen (.c64-screen, .c64-app, and anything inside them,
      .c64-app-attribution included) shares this one value; nothing here
      sets its own smaller font-size. */
-  font-size: 20px;
+  font-size: var(--c64-font-size);
   line-height: 1.25;
   /* pre, not pre-wrap -- same reasoning as dos/style.css's .dos-dir: a real
      40-column disk listing's fixed-width columns never mid-line-wrapped.
@@ -193,7 +214,7 @@ html, body {
   background: var(--c64-blue);
   color: var(--c64-lightblue);
   font-family: "C64 Pro Mono", ui-monospace, "Courier New", monospace;
-  font-size: 20px;
+  font-size: var(--c64-font-size);
   /* Explicit, not left to inherit -- app.js's stepScrollOnWheel measures
      each scroll container's own real computed line-height (see its own
      comment); without this, .c64-app-results (DICT.EXE's results pane)
@@ -273,6 +294,14 @@ html, body {
   flex: none;
   margin: 1em 1em 0;
   opacity: 0.7; /* dimmed, not shrunk -- one font-size system, see .c64-screen's own comment */
+}
+.c64-app-attribution a {
+  color: inherit;
+  text-decoration: underline;
+}
+.c64-app-attribution a:hover,
+.c64-app-attribution a:focus-visible {
+  opacity: 1;
 }
 .c64-app-footer {
   flex: none;
