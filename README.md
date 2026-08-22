@@ -71,7 +71,9 @@ looks like today.
 - **`c64/`** — a Commodore 64 `LOAD"$",8` disk listing (`c64/index.html`'s
   `#c64-dir`, light-blue-on-blue, 40 columns) with a real `LOAD"NAME",8`
   → `RUN` command line, a border-color-cycling loading-screen flicker, and
-  the same DICT full-screen program as `dos/`. No `vendor/c64/` — see
+  the same DICT full-screen program as `dos/`. `vendor/c64/` holds the real
+  C64 Pro Mono font (`@font-face`-embedded, style64.org, unmodified/
+  original filenames per their license) — no framework, though; see
   "Prospective themes" below for why.
 - **`shared/`** — theme-agnostic code any prototype can reuse:
   `dict-source.js` (fetch/cache/filter the live Oqaasileriffik dictionary
@@ -105,12 +107,14 @@ this repo's own vendoring bar, and what it does have is a thin
 jQuery+Bootstrap skin with no disk-list/loading-screen pieces anyway.
 `c64/style.css` is hand-written from scratch instead — a real C64 screen is
 mostly just a monospace grid, a 16-color palette, and a border, not much of
-a framework to begin with. It also has no vendored PETSCII font yet
-(`vendor/c64/` doesn't exist): the real font, C64 Pro Mono
-([style64.org](https://style64.org/c64-truetype)), only licenses
-`@font-face` embedding, not the redistribute-the-file-plus-its-LICENSE
-pattern `vendor/mac1984/` and `vendor/dos/` use — adding it needs its own
-note file explaining that narrower grant, follow-up work not done yet.
+a framework to begin with. The real PETSCII font, C64 Pro Mono
+([style64.org](https://style64.org/c64-truetype)), IS vendored though, at
+`vendor/c64/fonts/` with `vendor/c64/LICENSE.txt` copied verbatim from their
+distribution zip (their license permits unmodified, original-filename
+`@font-face` embedding — same `vendor/<theme>/LICENSE.txt` pattern
+`vendor/mac1984/` and `vendor/dos/` use, it just took getting the actual
+zip in hand to find they ship a real license file, not just a license
+page).
 `c64/`'s command line follows the real two-step BASIC/KERNAL idiom —
 `LOAD"DICT",8` reports success but does nothing on its own; `RUN` is what
 actually starts whatever was last loaded, with the genuine

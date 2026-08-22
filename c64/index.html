@@ -6,7 +6,7 @@
 <title>retr-oq — C64 desktop prototype</title>
 <!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
-<link rel="stylesheet" href="style.css?v=3" />
+<link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <!-- The C64 booted straight into BASIC, no desktop, no icons -- same
@@ -69,23 +69,6 @@ LIST
        real LOAD/RUN blanked the screen to a solid border-cycling color
        while it worked -- there was no listing visible underneath. -->
   <div class="c64-loading" id="c64-loading" hidden aria-hidden="true"></div>
-
-  <!-- Page chrome, not in-universe C64 text -- lives in the border margin
-       outside .c64-screen/.c64-app, same reasoning a browser's own UI sits
-       outside the page it renders. No PETSCII webfont is vendored (see
-       style.css's header comment for the licensing reasoning); this is the
-       "MAY: link to style64.org so others can download and install the
-       font" clause of their license -- the one path that's actually
-       license-clean without vendoring the font files ourselves. Purely
-       optional for the visitor: everything above already works fine on the
-       monospace fallback stack. -->
-  <a
-    class="c64-font-note"
-    href="https://style64.org/c64-truetype"
-    target="_blank"
-    rel="noopener noreferrer"
-    >Install the real C64 font</a
-  >
 
 <script src="../shared/dict-source.js?v=1"></script>
 <script src="../shared/hyphenation.js?v=1"></script>

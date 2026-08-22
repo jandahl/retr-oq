@@ -18,14 +18,29 @@
    did (#26) -- a 40-column fixed-width disk listing wraps on a narrow phone
    screen exactly as easily as an 80-column one did.
 
-   No PETSCII webfont is vendored yet -- vendor/c64/ doesn't exist. The
-   real font (C64 Pro Mono, style64.org) only licenses @font-face embedding,
-   not the usual "vendor the file + copy its LICENSE verbatim" pattern this
-   repo uses elsewhere, so it needs a conscious decision (a note file
-   instead of a LICENSE.txt) before it's added -- follow-up work, not done
-   here. The monospace fallback stack below is deliberately plain until
-   then; nothing about the layout/JS depends on the real font metrics the
-   way dos/'s measureCell()-driven dragging does. */
+   The real font (C64 Pro Mono, style64.org) IS vendored, at
+   vendor/c64/fonts/ -- turns out style64.org ships a real license.txt in
+   their distribution zip after all (not just a license page, which is what
+   an earlier pass here concluded from second-hand searches without ever
+   getting a hand on the actual zip), so it fits this repo's normal
+   vendor/<theme>/LICENSE.txt pattern exactly, same as vendor/mac1984/. Their
+   license permits unmodified, same-filename @font-face embedding (see
+   vendor/c64/LICENSE.txt), which @font-face below does -- only .woff2/.woff
+   are vendored, not every format in the zip (.eot/.otf/.ttf), since nothing
+   in this repo's supported-browser range needs them. Falls back to plain
+   monospace if the font fails to load; nothing about the layout/JS depends
+   on the real font metrics the way dos/'s measureCell()-driven dragging
+   does. */
+
+@font-face {
+  font-family: "C64 Pro Mono";
+  src:
+    url("../vendor/c64/fonts/C64_Pro_Mono-STYLE.woff2") format("woff2"),
+    url("../vendor/c64/fonts/C64_Pro_Mono-STYLE.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 html, body {
   margin: 0;
@@ -277,25 +292,4 @@ html, body {
 }
 .c64-loading[hidden] {
   display: none;
-}
-
-/* Page chrome, not in-universe C64 text -- sits in the border margin
-   (--c64-border) around .c64-screen/.c64-app rather than inside them, so it
-   doesn't need to obey the "one font-size system" rule those do. z-index
-   above .c64-loading (200) so it stays reachable even mid-flicker. */
-.c64-font-note {
-  position: fixed;
-  right: 0.5em;
-  bottom: 0.25em;
-  z-index: 300;
-  font-family: ui-monospace, "Courier New", monospace;
-  font-size: 11px;
-  color: var(--c64-blue);
-  text-decoration: none;
-  opacity: 0.6;
-}
-.c64-font-note:hover,
-.c64-font-note:focus-visible {
-  opacity: 1;
-  text-decoration: underline;
 }
