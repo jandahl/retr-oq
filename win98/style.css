@@ -628,26 +628,40 @@ body {
    anywhere more obvious than that dialog. Checked against a real
    screenshot, not guessed: the desktop itself is yellow, not red -- only
    title bars (and, by the same logic, this theme's own taskbar) go red
-   with white text. Window/dialog *content* -- Control Panel's icon grid,
-   a dialog's own fields and buttons -- stays completely untouched, normal
-   silver/white, in that same reference. An earlier version of this got
-   both of those backwards (red desktop, and red bleeding into every
-   window/dialog body because the override targeted the shared `.window`
-   class instead of just `.title-bar`), which is what made static text
-   unreadable instead of just "loud".
+   with white text. A dialog's own *interactive controls* -- an edit
+   field, a table, a dropdown -- stay completely untouched, normal
+   white, in that same reference; those already carry their own explicit
+   white background from 98.css regardless of this scheme, so they're
+   naturally unaffected by anything below.
 
-   The Start button and each taskbar window button ARE recolored, on top
-   of that reference, even though they're technically "buttons" like the
-   window/dialog ones left untouched above: unlike those, they sit
-   directly embedded in the red taskbar itself, not on a neutral window
-   body, so leaving them their default silver reads as a bug (an
-   unrecolored patch) rather than a deliberate restraint -- reported
-   exactly that way ("not all surfaces recolor well"). Deliberately still
-   not chasing every other 98.css-baked color (button bevels elsewhere,
-   scrollbars, the title-bar-control icons) -- some are baked into the
-   vendored dist build as literal hex with no custom property to hook,
-   and it's a joke, not a full reskin. */
+   The *backdrop* behind those controls -- a window/dialog's plain empty
+   space, static paragraph text -- is a separate case from either of the
+   above, and has flip-flopped in this scheme's own history: an early
+   version colored it red, which bled under text with no background of
+   its own and made it unreadable ("white bg color seems wrong"); the fix
+   for that left it completely untouched (plain silver), which then read
+   as an unfinished, half-recolored window ("lots of gray in the apps").
+   Yellow (like the desktop) splits the difference deliberately: same
+   black-on-yellow contrast as the desktop's own icon labels, so static
+   text stays legible while the backdrop still actually participates in
+   the scheme instead of sitting out untouched.
+
+   The Start button and each taskbar window button are recolored too, on
+   top of all that, even though they're technically "buttons" like the
+   ones left alone above: unlike those, they sit directly embedded in the
+   red taskbar itself, not on a neutral window body, so leaving them
+   their default silver reads as a bug (an unrecolored patch) rather than
+   a deliberate restraint -- reported exactly that way ("not all surfaces
+   recolor well"). Deliberately still not chasing every other 98.css-
+   baked color (button bevels elsewhere, scrollbars, the title-bar-
+   control icons) -- some are baked into the vendored dist build as
+   literal hex with no custom property to hook, and it's a joke, not a
+   full reskin. */
 body.hotdog-stand .desktop {
+  background: #ffff00;
+}
+
+body.hotdog-stand .win98-window-body {
   background: #ffff00;
 }
 
