@@ -430,6 +430,88 @@
     window.location.href = "../";
   });
 
+  // ---------- Desktop right-click menu + Display Properties ----------
+  // Real Windows 98: right-clicking the bare desktop opens a context menu
+  // whose "Properties" item is the *only* path to the color-scheme
+  // picker -- there's no icon, no Start-menu entry, nothing else pointing
+  // at it. Same here on purpose: this is the one deliberately hidden
+  // feature in this theme.
+  const desktopContextMenu = document.getElementById("desktop-context-menu");
+
+  function closeDesktopContextMenu() {
+    desktopContextMenu.hidden = true;
+  }
+
+  desktop.addEventListener("contextmenu", (event) => {
+    if (event.target !== desktop) return; // not over an icon -- real Windows gives icons their own (unbuilt) context menu instead
+    event.preventDefault();
+    // Clamp so the menu never opens partly off-screen -- desktop.getBoundingClientRect()
+    // excludes the taskbar already (see style.css's `bottom: 32px`), same
+    // reasoning clampToViewport() above uses.
+    const deskRect = desktop.getBoundingClientRect();
+    const menuWidth = 180; // matches .start-menu's own min-width
+    const menuHeight = 60; // one real item tall
+    const left = Math.min(event.clientX, deskRect.right - menuWidth);
+    const top = Math.min(event.clientY, deskRect.bottom - menuHeight);
+    desktopContextMenu.style.left = `${left}px`;
+    desktopContextMenu.style.top = `${top}px`;
+    desktopContextMenu.style.bottom = "auto";
+    desktopContextMenu.hidden = false;
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!desktopContextMenu.hidden && !desktopContextMenu.contains(event.target)) {
+      closeDesktopContextMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !desktopContextMenu.hidden) closeDesktopContextMenu();
+  });
+
+  const displayPropsOverlay = document.getElementById("display-props-overlay");
+  const schemeSelect = document.getElementById("scheme-select");
+  const SCHEME_STORAGE_KEY = "retr-oq:win98-scheme";
+  let schemeBeforeDialog = "standard"; // for Cancel to revert to
+
+  function getStoredScheme() {
+    try {
+      return localStorage.getItem(SCHEME_STORAGE_KEY) || "standard";
+    } catch {
+      return "standard"; // localStorage can throw in a sandboxed iframe -- fall back to the default rather than crash
+    }
+  }
+
+  function applyScheme(scheme) {
+    document.body.classList.toggle("hotdog-stand", scheme === "hotdog");
+    try {
+      localStorage.setItem(SCHEME_STORAGE_KEY, scheme);
+    } catch {
+      // sandboxed iframe or storage disabled -- the scheme still applies for this visit, just doesn't persist
+    }
+  }
+
+  // Applied on load too, not just from the dialog -- a returning visitor
+  // who already found Hot Dog Stand should get it back immediately, the
+  // same way a real OS remembers your chosen scheme across reboots.
+  applyScheme(getStoredScheme());
+
+  document.getElementById("desktop-context-properties").addEventListener("click", () => {
+    closeDesktopContextMenu();
+    schemeBeforeDialog = getStoredScheme();
+    schemeSelect.value = schemeBeforeDialog;
+    displayPropsOverlay.hidden = false;
+  });
+  document.getElementById("display-props-apply").addEventListener("click", () => {
+    applyScheme(schemeSelect.value);
+  });
+  document.getElementById("display-props-ok").addEventListener("click", () => {
+    applyScheme(schemeSelect.value);
+    displayPropsOverlay.hidden = true;
+  });
+  document.getElementById("display-props-cancel").addEventListener("click", () => {
+    applyScheme(schemeBeforeDialog); // undo any Apply already clicked, same as a real Cancel button
+    displayPropsOverlay.hidden = true;
+  });
+
   // ---------- Taskbar clock ----------
   // Real-time updating text, not a static screenshot-style clock (issue
   // #29 calls this out explicitly as a period-accurate touch 98.css

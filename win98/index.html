@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 98 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/win98/98.css" />
-<link rel="stylesheet" href="style.css?v=7" />
+<link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
   <!-- Taskbar, Start menu, and genuinely resizable-from-any-edge windows
@@ -201,11 +201,49 @@
     </section>
   </div>
 
+  <!-- Right-click the bare desktop for a real Properties item -- same as
+       real Windows 98, and the only way to reach the color scheme picker
+       below. Not listed anywhere else on purpose (see the scheme
+       <option>s' own comment): a scheme this loud earns a real "found it"
+       moment, not a labeled menu entry. -->
+  <ul role="menu" class="start-menu desktop-context-menu" id="desktop-context-menu" hidden>
+    <li role="menu-item" class="start-menu-item" id="desktop-context-properties">
+      <span class="start-menu-icon icon-settings" aria-hidden="true"></span> Properties
+    </li>
+  </ul>
+
+  <div class="win98-dialog-overlay" id="display-props-overlay" hidden>
+    <section class="window win98-dialog">
+      <div class="title-bar">
+        <div class="title-bar-text">Display Properties</div>
+      </div>
+      <div class="window-body win98-window-body">
+        <div class="field-row">
+          <label for="scheme-select">Scheme:</label>
+        </div>
+        <div class="field-row">
+          <select id="scheme-select">
+            <option value="standard">Windows Standard</option>
+            <!-- A real built-in Windows 98 color scheme, not a made-up
+                 name -- famously the loudest, ugliest one Microsoft ever
+                 shipped as a serious option. -->
+            <option value="hotdog">Hot Dog Stand</option>
+          </select>
+        </div>
+        <div class="win98-dialog-actions">
+          <button type="button" id="display-props-ok">OK</button>
+          <button type="button" id="display-props-cancel">Cancel</button>
+          <button type="button" id="display-props-apply">Apply</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <!-- Load order matters (see CLAUDE.md): app.js reads window.OqDictSource
        and window.OqHyphenation, both classic scripts setting those globals
        synchronously, so both have to load and run before app.js does. -->
   <script src="../shared/dict-source.js"></script>
   <script src="../shared/hyphenation.js"></script>
-  <script src="app.js?v=8"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>

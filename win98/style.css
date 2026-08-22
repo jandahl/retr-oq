@@ -549,5 +549,63 @@ body {
 .win98-dialog-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 6px;
   margin-top: 1rem;
+}
+
+/* ---------- Desktop right-click menu ---------- */
+
+.desktop-context-menu {
+  /* .start-menu's own left/bottom defaults are overridden inline by
+     app.js's contextmenu handler (positioned at the click, not pinned
+     above the Start button) -- this only trims the width down from
+     .start-menu's 12rem, since "Properties" is the only item here. */
+  min-width: 8rem;
+}
+
+/* ---------- Hot Dog Stand (hidden color scheme) ----------
+   A real built-in Windows 98 color scheme (Display Properties >
+   Appearance > Scheme), reachable only via the desktop's right-click
+   Properties item above -- see that markup's own comment on why it's not
+   listed anywhere more obvious. Recolors the chrome most people actually
+   picture when they picture it -- desktop, taskbar, title bars, window/
+   dialog frames -- red and yellow; deliberately not chasing down every
+   single 98.css-baked color (button bevels, scrollbars, the title-bar-
+   control icons) since a handful of those are baked into the vendored
+   dist build as literal hex values with no custom property to hook, and
+   chasing all of them down would be effort spent on a joke far past the
+   point it's still funny. */
+body.hotdog-stand .desktop {
+  background: #ff0000;
+}
+
+body.hotdog-stand .taskbar {
+  background: #ff0000;
+  box-shadow: inset 0 1px #ffff00;
+}
+
+body.hotdog-stand .taskbar-separator {
+  box-shadow: inset -1px 0 #ffff00, inset 1px 0 #000000;
+}
+
+body.hotdog-stand .taskbar-tray {
+  background: #ff0000;
+}
+
+body.hotdog-stand .start-menu,
+body.hotdog-stand .window {
+  background: #ff0000;
+}
+
+body.hotdog-stand .start-menu-item:hover,
+body.hotdog-stand .start-menu-item:focus-visible {
+  background: #000000;
+}
+
+body.hotdog-stand .title-bar {
+  background: #ff0000;
+}
+
+body.hotdog-stand .title-bar-text {
+  color: #ffff00;
 }
