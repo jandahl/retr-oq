@@ -6,7 +6,7 @@
 <title>retr-oq — C64 desktop prototype</title>
 <!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
-<link rel="stylesheet" href="style.css?v=4" />
+<link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <!-- The C64 booted straight into BASIC, no desktop, no icons -- same
@@ -57,10 +57,20 @@ LIST
         </thead>
         <tbody id="dict-tbody"></tbody>
       </table>
+      <!-- Filled in by app.js from shared/dict-source.js's DICT_ATTRIBUTION,
+           same reasoning as dos/index.html's identical block -- but as a
+           link here, not bare text: CC-BY-SA 4.0 requires this exact string
+           wherever the data is shown (dict-source.js's own comment), so the
+           text itself can't shrink or hide, only stop being dead weight by
+           linking out to the actual license. Lives at the bottom of the
+           results list, scrolling with it, rather than in a fixed footer
+           that permanently eats screen space above RUN/STOP=EXIT -- a
+           short current result set (DEFAULT_ROWS/MAX_FILTERED_ROWS in
+           app.js) means it's usually one scroll away, not buried. -->
+      <p class="c64-app-attribution">
+        <a id="dict-attribution" href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer"></a>
+      </p>
     </div>
-    <!-- Filled in by app.js from shared/dict-source.js's DICT_ATTRIBUTION,
-         same reasoning as dos/index.html's identical block. -->
-    <p class="c64-app-attribution" id="dict-attribution"></p>
     <button type="button" class="c64-app-footer" id="dict-exit">RUN/STOP=EXIT TO READY.</button>
   </div>
 
