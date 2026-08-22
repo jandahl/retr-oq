@@ -50,13 +50,7 @@ html, body {
   overscroll-behavior: none;
   position: fixed;
   width: 100%;
-  /* The real C64's border (POKE 53280) and screen background (POKE 53281)
-     are two DIFFERENT default colors, not one -- light blue border, blue
-     background. body is the border layer here: .c64-screen/.c64-app/
-     #c64-loading are inset from the viewport edge (see --c64-border below)
-     so this shows through as a permanently-visible frame, the one thing a
-     real C64 display never went without. */
-  background: #7c70da;
+  background: #35289c;
 }
 
 :root {
@@ -64,7 +58,17 @@ html, body {
   --c64-lightblue: #7c70da; /* default screen text + border */
   --c64-white: #ffffff;
   --c64-black: #000000;
-  --c64-border: 1.5em; /* border thickness, in the same font-relative unit as everything else here */
+  /* The real C64's border (POKE 53280) and screen background (POKE 53281)
+     are two DIFFERENT default colors, not one -- light blue border, blue
+     background. Drawn as a real CSS `border` on .c64-screen/.c64-app below
+     (a self-contained frame right at the screen's own edge), not as body's
+     background peeking through an inset -- an earlier version of this did
+     that, and on a wide viewport with the 40ch content capped well short of
+     the window, the "border" turned into a huge, disproportionate wall of
+     color with no visible edge, not a frame. clamp() keeps it a thin, only
+     barely-there line on a narrow phone screen instead of a fixed em value
+     eating a chunk of already-scarce width there. */
+  --c64-border: clamp(4px, 1.5vw, 14px);
 }
 
 /* The real C64 16-color palette, in BASIC's own POKE 646/53280/53281 color
@@ -96,14 +100,17 @@ html, body {
 
 .c64-screen {
   position: fixed;
-  /* Inset by --c64-border on all four sides so body's lightblue shows
-     through as the permanent screen frame -- see body's own comment above. */
-  top: calc(var(--app-top, 0px) + var(--c64-border)); /* same visualViewport-tracking reasoning as dos/style.css's .dos-dir */
-  left: var(--c64-border);
-  right: var(--c64-border);
-  height: calc(var(--app-height, 100vh) - 2 * var(--c64-border));
+  top: var(--app-top, 0); /* same visualViewport-tracking reasoning as dos/style.css's .dos-dir */
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100vh);
   overflow: auto;
   padding: 1em;
+  /* box-sizing: border-box below makes this border sit INSIDE the box
+     (eating a few px of padding on any viewport) rather than adding to it
+     -- see --c64-border's own comment for why a real border, not an inset,
+     draws the permanent screen frame here. */
+  border: var(--c64-border) solid var(--c64-lightblue);
   background: var(--c64-blue);
   color: var(--c64-lightblue);
   font-family: "C64 Pro Mono", ui-monospace, "Courier New", monospace;
@@ -117,7 +124,12 @@ html, body {
      40-column disk listing's fixed-width columns never mid-line-wrapped.
      overflow: auto above already makes both axes scrollable as needed. */
   white-space: pre;
-  max-width: 40ch;
+  /* box-sizing: border-box (below) counts the border and this rule's own
+     1em padding as part of the box, not on top of it -- without adding
+     both back in here, a real 40-column line (e.g. the boot banner's "...
+     BASIC BYTES FREE") would get a few pixels too little room and clip at
+     the right edge instead of actually fitting 40 characters. */
+  max-width: calc(40ch + 2em + 2 * var(--c64-border));
   margin: 0 auto;
   box-sizing: border-box;
 }
@@ -169,10 +181,12 @@ html, body {
 
 .c64-app {
   position: fixed;
-  top: calc(var(--app-top, 0px) + var(--c64-border));
-  left: var(--c64-border);
-  right: var(--c64-border);
-  height: calc(var(--app-height, 100vh) - 2 * var(--c64-border));
+  top: var(--app-top, 0);
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100vh);
+  border: var(--c64-border) solid var(--c64-lightblue); /* same reasoning as .c64-screen's own border */
+  box-sizing: border-box;
   z-index: 100;
   display: flex;
   flex-direction: column;
