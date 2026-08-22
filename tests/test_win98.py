@@ -45,6 +45,35 @@ def test_loads_without_errors(page, base_url):
     assert real_errors == []
 
 
+def open_via_dblclick(page, win_id):
+    """Opens `win_id` the way a real mouse/trackpad visitor would -- every
+    window starts closed (see win98/app.js's own "start closed" comment),
+    so any test touching a window's geometry or controls needs this first."""
+    page.dblclick(f".desktop-icon[data-open='{win_id}']")
+    page.wait_for_timeout(100)
+
+
+def open_via_tap(page, win_id):
+    """Same as open_via_dblclick, but for a touch context -- a single tap
+    opens on touch (no reliable double-tap), see win98/app.js."""
+    icon = page.query_selector(f".desktop-icon[data-open='{win_id}']")
+    box = icon.bounding_box()
+    page.touchscreen.tap(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.wait_for_timeout(100)
+
+
+def test_all_windows_start_closed(page, base_url):
+    # Real Windows 98 boots to a bare desktop -- no windows open, no
+    # taskbar buttons apart from Start/clock. This theme used to open
+    # every window by default, cluttering the desktop before the visitor
+    # touched anything.
+    goto_win98(page, base_url)
+    for win_id in WIN98_ICON_IDS:
+        assert "minimized" in page.eval_on_selector(f"#{win_id}", "el => el.className")
+        assert page.evaluate(f"getComputedStyle(document.getElementById('{win_id}')).display") == "none"
+    assert page.query_selector_all(".taskbar-window-button") == []
+
+
 def test_all_windows_present_and_stacked_above_desktop_icons(page, base_url):
     # Regression test: only the first window in DOM order ever got an
     # explicit z-index (a single focus(windows[0]) call at setup), so every
@@ -118,12 +147,8 @@ def test_desktop_icon_single_click_selects_but_does_not_open(page, base_url):
     # launch the app -- launching takes a double-click, same as real
     # Windows. The default `page` fixture has no touch, so
     # (pointer: coarse) is false and this is the code path exercised.
+    # All windows start closed, so nothing else needs closing first.
     goto_win98(page, base_url)
-    # win-about's own default position/size visually overlaps its own
-    # desktop icon underneath -- closing it first is what a real desktop
-    # would also require before that icon becomes clickable again (a
-    # window on top of an icon blocks the icon, same as real Windows).
-    page.click("#win-about .win-close")
     icon = page.query_selector(".desktop-icon[data-open='win-about']")
     icon.click()
     page.wait_for_timeout(100)
@@ -133,7 +158,6 @@ def test_desktop_icon_single_click_selects_but_does_not_open(page, base_url):
 
 def test_desktop_icon_double_click_opens_on_desktop(page, base_url):
     goto_win98(page, base_url)
-    page.click("#win-about .win-close")  # see comment above -- frees the icon from behind its own window
     icon = page.query_selector(".desktop-icon[data-open='win-about']")
     icon.dblclick()
     page.wait_for_timeout(150)
@@ -166,6 +190,15 @@ def test_start_button_flag_is_greenland_flag(page, base_url):
 
 def test_taskbar_has_one_button_per_window_with_icon_and_label(page, base_url):
     goto_win98(page, base_url)
+    # Via the Start menu, not desktop-icon double-clicks -- opening one
+    # window at its default (large) size can cover other windows' desktop
+    # icons underneath it, the same real-desktop stacking behavior other
+    # tests here work around. The Start menu sits above every window
+    # (z-index 1001, see style.css) so it's always reachable regardless.
+    for win_id in WIN98_ICON_IDS:
+        page.click("#start-button")
+        page.click(f".start-menu-item[data-open='{win_id}']")
+        page.wait_for_timeout(100)
     buttons = page.query_selector_all(".taskbar-window-button")
     assert len(buttons) == len(WIN98_ICON_IDS)
     for btn in buttons:
@@ -203,7 +236,7 @@ def test_start_menu_closes_on_escape(page, base_url):
 
 def test_start_menu_item_opens_window_and_closes_menu(page, base_url):
     goto_win98(page, base_url)
-    page.click("#win-computer .win-minimize")  # start from a known (minimized) state
+    # win-computer already starts closed/minimized -- nothing to do first.
     page.click("#start-button")
     page.click(".start-menu-item[data-open='win-computer']")
     page.wait_for_timeout(150)
@@ -238,6 +271,7 @@ def test_taskbar_clock_updates_live(page, base_url):
 
 def test_window_drag_moves_by_title_bar(page, base_url):
     goto_win98(page, base_url)
+    open_via_dblclick(page, "win-about")
     win = page.query_selector("#win-about")
     before = win.bounding_box()
     titlebar = page.query_selector("#win-about .title-bar")
@@ -252,14 +286,10 @@ def test_window_drag_moves_by_title_bar(page, base_url):
 
 def test_window_resize_from_se_handle(page, base_url):
     goto_win98(page, base_url)
+    # win-about is the only window opened here, so unlike when every window
+    # started open, there's nothing else around to cover its resize handle.
+    open_via_dblclick(page, "win-about")
     win = page.query_selector("#win-about")
-    # win-about isn't topmost by default (win-computer/win-recyclebin cover
-    # part of its bottom-right corner in the default cascade) -- focusing
-    # it first, via a real click, brings it above whatever's currently
-    # covering its own resize handle. Real overlapping-window behavior, not
-    # a workaround: a window's own resize handle is only reachable where
-    # nothing else is drawn on top of it, same as any real desktop.
-    page.click("#win-about .title-bar-text")
     before = win.bounding_box()
     se = page.query_selector("#win-about .win98-resize-se")
     sbox = se.bounding_box()
@@ -274,6 +304,7 @@ def test_window_resize_from_se_handle(page, base_url):
 
 def test_window_maximize_and_restore(page, base_url):
     goto_win98(page, base_url)
+    open_via_dblclick(page, "win-about")
     win = page.query_selector("#win-about")
     before = win.bounding_box()
     page.click("#win-about .win-maximize")
@@ -289,6 +320,7 @@ def test_window_maximize_and_restore(page, base_url):
 
 def test_window_minimize_and_restore_via_taskbar(page, base_url):
     goto_win98(page, base_url)
+    open_via_dblclick(page, "win-about")
     page.click("#win-about .win-minimize")
     page.wait_for_timeout(100)
     assert page.evaluate("getComputedStyle(document.getElementById('win-about')).display") == "none"
@@ -303,7 +335,9 @@ def test_window_close_removes_its_taskbar_button(page, base_url):
     # button never actually left the taskbar -- not real Win98 behavior,
     # where the taskbar only ever shows currently-running windows.
     goto_win98(page, base_url)
+    open_via_dblclick(page, "win-about")
     before_count = len(page.query_selector_all(".taskbar-window-button"))
+    assert before_count == 1
     page.click("#win-about .win-close")
     page.wait_for_timeout(100)
     after_count = len(page.query_selector_all(".taskbar-window-button"))
@@ -314,15 +348,11 @@ def test_window_close_removes_its_taskbar_button(page, base_url):
 
 def test_reopening_a_closed_window_rebuilds_its_taskbar_button(page, base_url):
     goto_win98(page, base_url)
+    open_via_dblclick(page, "win-about")
     before_count = len(page.query_selector_all(".taskbar-window-button"))
     page.click("#win-about .win-close")
     page.wait_for_timeout(100)
-    # dblclick, not click -- opening a desktop icon on the default (non-touch)
-    # `page` fixture takes a double-click now (see the click/dblclick tests
-    # above); closing win-about above also frees its icon to be clickable
-    # at all, since the window used to sit on top of it.
-    page.dblclick(".desktop-icon[data-open='win-about']")
-    page.wait_for_timeout(100)
+    open_via_dblclick(page, "win-about")
     after_count = len(page.query_selector_all(".taskbar-window-button"))
     assert after_count == before_count
     btn = page.query_selector(".taskbar-window-button:has-text('About retr-oq')")
@@ -354,6 +384,13 @@ def test_mobile_windows_clamp_within_viewport(touch_page, base_url):
     # entirely off-screen with no way to reach them.
     goto_win98(touch_page, base_url)
     viewport = touch_page.viewport_size
+    # Via the Start menu, not desktop-icon taps -- on a 390px viewport, the
+    # first window opened can cover the rest of the desktop icons entirely,
+    # same reasoning as the equivalent desktop-side test above.
+    for win_id in WIN98_ICON_IDS:
+        touch_page.click("#start-button")
+        touch_page.click(f".start-menu-item[data-open='{win_id}']")
+        touch_page.wait_for_timeout(100)
     for win_id in WIN98_ICON_IDS:
         box = touch_page.query_selector(f"#{win_id}").bounding_box()
         assert box["x"] >= 0
@@ -370,6 +407,7 @@ def test_touch_tap_on_title_bar_controls_is_not_swallowed_by_resize_handle(touch
     # unpositioned title bar, silently swallowing taps meant for those
     # buttons.
     goto_win98(touch_page, base_url)
+    open_via_tap(touch_page, "win-recyclebin")
     close_btn = touch_page.query_selector("#win-recyclebin .win-close")
     box = close_btn.bounding_box()
     touch_page.touchscreen.tap(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
@@ -379,6 +417,7 @@ def test_touch_tap_on_title_bar_controls_is_not_swallowed_by_resize_handle(touch
 
 def test_touch_resize_handles_are_scaled_up(touch_page, base_url):
     goto_win98(touch_page, base_url)
+    open_via_tap(touch_page, "win-about")
     se = touch_page.query_selector("#win-about .win98-resize-se")
     box = se.bounding_box()
     assert box["width"] >= 44 and box["height"] >= 44
@@ -455,3 +494,25 @@ def test_oq_load_failure_shows_retry_message(page, base_url):
     page.dblclick(".desktop-icon[data-open='win-oq']")
     page.wait_for_selector("#oq-status:has-text('Could not load')", timeout=5000)
     assert "reopen" in page.text_content("#oq-status").lower()
+
+
+def test_oq_row_click_selects_with_theme_highlight(page, base_url):
+    # Clicking/tapping a result row selects it with the theme's own
+    # selection color -- 98.css's real table.interactive > tbody >
+    # tr.highlighted rule (navy background, white text), not a one-off
+    # style invented for this table.
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
+    rows = page.query_selector_all("#oq-tbody tr")
+    assert len(rows) == len(OQ_FIXTURE_ENTRIES)
+    rows[0].click()
+    assert "highlighted" in rows[0].get_attribute("class")
+    bg = page.evaluate("el => getComputedStyle(el).backgroundColor", rows[0])
+    assert bg == "rgb(0, 0, 128)"  # navy
+    # Selecting a second row moves the highlight -- exclusive selection,
+    # not accumulating multiple highlighted rows.
+    rows[1].click()
+    assert "highlighted" in rows[1].get_attribute("class")
+    assert "highlighted" not in rows[0].get_attribute("class")

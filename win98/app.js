@@ -275,7 +275,11 @@
 
   for (const win of windows) {
     state.set(win, { preMaximizeRect: null, taskbarButton: null });
-    taskbarButtonFor(win);
+    // No taskbarButtonFor(win) here -- every window starts closed (see the
+    // "start closed" block below), and a closed window has no taskbar
+    // button at all, same as one closed via its own close button. One is
+    // built on demand by openWindow() the first time each window is
+    // actually opened.
 
     const titlebar = win.querySelector(".title-bar");
     makeDraggable(titlebar, win);
@@ -318,7 +322,17 @@
     zTop += 1;
     win.style.zIndex = String(zTop);
   }
-  if (windows.length) focus(windows[windows.length - 1]);
+
+  // Real Windows 98 boots to a bare desktop -- no windows open, an empty
+  // taskbar apart from Start/clock. Marking every window .minimized here
+  // (after clampToViewport() above, which needs each window's real
+  // pre-hide layout to measure against -- getBoundingClientRect() on a
+  // display:none element returns an all-zero rect) hides them the same
+  // way closing one does, with no taskbar button (none was built above),
+  // consistent with the closed state closeWindow()/openWindow() already
+  // handle. No window is auto-focused either -- there's nothing to focus
+  // until the visitor opens one themselves.
+  for (const win of windows) win.classList.add("minimized");
 
   // Re-clamp on viewport changes -- a phone rotated from portrait to
   // landscape (or back) can otherwise leave a window that fit a moment
@@ -450,8 +464,26 @@
   let oqEntries = null; // null until a load succeeds
   let oqLoadStarted = false; // guards against re-fetching every time the window is reopened
 
+  // Clicking/tapping a row selects it with the theme's own selection
+  // color -- 98.css's real `table.interactive > tbody > tr.highlighted`
+  // rule (navy background, white text), the same convention any other
+  // 98.css table already uses, not a one-off style invented for this
+  // table. Event delegation on the tbody itself, not a per-row listener,
+  // since renderOqRows() below rebuilds every row from scratch on each
+  // keystroke -- a per-row listener would need re-attaching every time,
+  // this doesn't.
+  let oqSelectedRow = null;
+  oqTbody.addEventListener("click", (event) => {
+    const row = event.target.closest("tr");
+    if (!row) return;
+    if (oqSelectedRow) oqSelectedRow.classList.remove("highlighted");
+    row.classList.add("highlighted");
+    oqSelectedRow = row;
+  });
+
   function renderOqRows(rows) {
-    oqTbody.textContent = "";
+    oqTbody.textContent = ""; // also drops whatever row was .highlighted -- nothing left to track
+    oqSelectedRow = null;
     for (const entry of rows) {
       const row = document.createElement("tr");
       const lexemeCell = document.createElement("td");
