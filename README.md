@@ -82,19 +82,22 @@ looks like today.
   shareable-state URLs, e.g. `dos/index.html?screen=dict&filter=word`
   opens straight into DICT.EXE pre-filtered).
 - **`win98/`** — a Windows 98 desktop (`win98/index.html`'s `#desktop`):
-  a taskbar with a real Start menu, desktop icons that open windows on
-  click (single-click on touch, real double-click on a mouse/trackpad),
-  and windows that drag by the title bar and resize from any edge or
-  corner (not just the bottom-right growbox `mac1984/`/`dos/` have), with
-  real minimize/maximize/close via the title bar's own button trio and a
+  boots to a bare desktop, same as the real thing — no windows open, an
+  empty taskbar apart from Start/clock, until the visitor opens one. A
+  taskbar with a real Start menu, desktop icons that open windows on click
+  (single-click on touch, real double-click on a mouse/trackpad), and
+  windows that drag by the title bar and resize from any edge or corner
+  (not just the bottom-right growbox `mac1984/`/`dos/` have), with real
+  minimize/maximize/close via the title bar's own button trio and a
   live-updating taskbar clock. **OQ!** is the one window with a real app
   behind it — a Kalaallisut dictionary lookup, reusing
   `shared/dict-source.js` and `shared/hyphenation.js` the same way `dos/`'s
-  DICT.EXE does; My Computer/About retr-oq/Recycle Bin stay chrome-only on
-  purpose, same as `mac1984/`'s own icons with no window content behind
-  them. The Start button's flag is the real Greenlandic flag, not a
-  Windows-logo stand-in. Shut Down sends the visitor back to this repo's
-  own theme picker (`../`).
+  DICT.EXE does, with clickable/tappable result rows highlighted in
+  98.css's own real selection color (navy/white); My Computer/About
+  retr-oq/Recycle Bin stay chrome-only on purpose, same as `mac1984/`'s own
+  icons with no window content behind them. The Start button's flag is the
+  real Greenlandic flag, not a Windows-logo stand-in. Shut Down sends the
+  visitor back to this repo's own theme picker (`../`).
 - **`tests/`** — `win98/`'s own Playwright/pytest regression suite
   (`test_win98.py`, shared fixtures in `conftest.py`), wired into GitHub
   Actions on every push/PR touching `win98/` — see `CLAUDE.md`'s Testing
