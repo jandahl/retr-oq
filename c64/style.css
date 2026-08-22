@@ -278,3 +278,24 @@ html, body {
 .c64-loading[hidden] {
   display: none;
 }
+
+/* Page chrome, not in-universe C64 text -- sits in the border margin
+   (--c64-border) around .c64-screen/.c64-app rather than inside them, so it
+   doesn't need to obey the "one font-size system" rule those do. z-index
+   above .c64-loading (200) so it stays reachable even mid-flicker. */
+.c64-font-note {
+  position: fixed;
+  right: 0.5em;
+  bottom: 0.25em;
+  z-index: 300;
+  font-family: ui-monospace, "Courier New", monospace;
+  font-size: 11px;
+  color: var(--c64-blue);
+  text-decoration: none;
+  opacity: 0.6;
+}
+.c64-font-note:hover,
+.c64-font-note:focus-visible {
+  opacity: 1;
+  text-decoration: underline;
+}
