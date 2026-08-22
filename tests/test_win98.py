@@ -582,13 +582,40 @@ def test_selecting_hot_dog_stand_and_ok_applies_and_persists_scheme(page, base_u
     page.wait_for_timeout(100)
     assert page.get_attribute("#display-props-overlay", "hidden") is not None
     assert "hotdog-stand" in page.get_attribute("body", "class")
-    # Recognizable chrome actually turns red/yellow, not just the class name.
-    assert page.evaluate("getComputedStyle(document.querySelector('.desktop')).backgroundColor") == "rgb(255, 0, 0)"
+    # Recognizable chrome actually turns yellow/red, not just the class
+    # name -- checked against a real screenshot: desktop is yellow, title
+    # bars are red (see style.css's own comment on this scheme).
+    assert page.evaluate("getComputedStyle(document.querySelector('.desktop')).backgroundColor") == "rgb(255, 255, 0)"
 
     # Persists across a reload, same as a real OS remembering your scheme.
     page.reload()
     page.wait_for_timeout(300)
     assert "hotdog-stand" in page.get_attribute("body", "class")
+
+
+def test_hot_dog_stand_leaves_window_content_untouched(page, base_url):
+    # Regression test: an earlier version of this scheme recolored the
+    # shared `.window` class red, which bled into every window/dialog's
+    # own content area too (static text, table results) since those don't
+    # set their own background -- not what a real screenshot of this
+    # scheme shows. Only the desktop and title bars should change; a
+    # window's own body content stays its normal color.
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-ok")
+    page.wait_for_timeout(100)
+    assert "hotdog-stand" in page.get_attribute("body", "class")
+
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
+    body_bg = page.evaluate(
+        "getComputedStyle(document.querySelector('#win-oq .win98-window-body')).backgroundColor"
+    )
+    assert body_bg not in ("rgb(255, 0, 0)", "rgb(255, 255, 0)")
+    results_bg = page.evaluate("getComputedStyle(document.querySelector('.oq-results-panel table')).backgroundColor")
+    assert results_bg not in ("rgb(255, 0, 0)", "rgb(255, 255, 0)")
 
 
 def test_apply_applies_without_closing_dialog(page, base_url):
