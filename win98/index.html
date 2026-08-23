@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 98 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/win98/98.css" />
-<link rel="stylesheet" href="style.css?v=24" />
+<link rel="stylesheet" href="style.css?v=25" />
 </head>
 <body>
   <!-- Taskbar, Start menu, and genuinely resizable-from-any-edge windows
@@ -23,6 +23,10 @@
       <button type="button" class="desktop-icon" data-open="win-oq">
         <span class="desktop-icon-glyph icon-oq" aria-hidden="true"></span>
         <span class="desktop-icon-label">OQ!</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-decon">
+        <span class="desktop-icon-glyph icon-decon" aria-hidden="true"></span>
+        <span class="desktop-icon-label">DECON</span>
       </button>
       <button type="button" class="desktop-icon" data-open="win-computer">
         <span class="desktop-icon-glyph icon-computer" aria-hidden="true"></span>
@@ -61,6 +65,36 @@
           </table>
         </div>
         <p class="oq-attribution" id="oq-attribution"></p>
+      </div>
+      <div class="win98-resize-handle win98-resize-n" data-dir="n"></div>
+      <div class="win98-resize-handle win98-resize-s" data-dir="s"></div>
+      <div class="win98-resize-handle win98-resize-e" data-dir="e"></div>
+      <div class="win98-resize-handle win98-resize-w" data-dir="w"></div>
+      <div class="win98-resize-handle win98-resize-ne" data-dir="ne"></div>
+      <div class="win98-resize-handle win98-resize-nw" data-dir="nw"></div>
+      <div class="win98-resize-handle win98-resize-se" data-dir="se"></div>
+      <div class="win98-resize-handle win98-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win98-window" id="win-decon" data-icon="decon" style="top: 3rem; left: 8rem; width: 30rem; height: 22rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">DECON</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win98-window-body decon-body">
+        <div class="field-row decon-word-row">
+          <input type="text" id="decon-word" placeholder="Type a Kalaallisut word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <div class="field-row decon-order-row">
+          <input type="checkbox" id="decon-root-first" checked />
+          <label for="decon-root-first">Root first</label>
+        </div>
+        <p class="decon-status" id="decon-status">Type a word, press Enter.</p>
+        <div class="sunken-panel decon-results-panel" id="decon-results"></div>
       </div>
       <div class="win98-resize-handle win98-resize-n" data-dir="n"></div>
       <div class="win98-resize-handle win98-resize-s" data-dir="s"></div>
@@ -196,6 +230,9 @@
     <li role="menu-item" class="start-menu-item" data-open="win-oq">
       <span class="start-menu-icon icon-oq" aria-hidden="true"></span> OQ!
     </li>
+    <li role="menu-item" class="start-menu-item" data-open="win-decon">
+      <span class="start-menu-icon icon-decon" aria-hidden="true"></span> DECON
+    </li>
     <li role="menu-item" class="start-menu-item" data-open="win-computer">
       <span class="start-menu-icon icon-computer" aria-hidden="true"></span> My Computer
     </li>
@@ -275,7 +312,16 @@
        synchronously, so both have to load and run before app.js does. -->
   <script src="../shared/dict-source.js"></script>
   <script src="../shared/hyphenation.js"></script>
+  <script src="../shared/router.js"></script>
   <script src="../shared/redmond/window-manager.js"></script>
-  <script src="app.js?v=11"></script>
+  <!-- Real ES module, not a classic script -- see shared/oq-analysis.js's
+       own header comment for why this one file is the exception.
+       type="module" scripts are deferred automatically, so window.OqAnalysis
+       isn't guaranteed to exist the moment app.js's own top-level code runs
+       below -- shared/decon-app.js only reads it lazily, inside a search
+       call, never destructured at the top like window.OqDictSource is. -->
+  <script type="module" src="../shared/oq-analysis.js"></script>
+  <script src="../shared/decon-app.js"></script>
+  <script src="app.js?v=12"></script>
 </body>
 </html>

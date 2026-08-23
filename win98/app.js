@@ -25,7 +25,16 @@
   // funnels through the shared module's one openWindow()), the Hot Dog
   // Stand/Display Properties scheme, the Shut Down dialog, and the
   // taskbar clock.
-  const { openWindow } = window.OqRedmond.initWindowManager({
+  // OQ! and DECON are the two windows whose open/closed state is real,
+  // shareable URL state (?screen=oq&filter=... / ?screen=decon&word=...),
+  // the same way dos/'s DICT.EXE/DECON.EXE own theirs via
+  // shared/router.js -- see routeOpen/routeClose below and this file's own
+  // "OQ! router wiring"/"DECON" sections. My Computer/About/Recycle Bin/
+  // Settings stay plain chrome with no router state, same as before.
+  const winOq = document.getElementById("win-oq");
+  const winDecon = document.getElementById("win-decon");
+
+  const { openWindow, forceOpenWindow, closeWindow } = window.OqRedmond.initWindowManager({
     desktop,
     taskbarWindows,
     windows,
@@ -34,6 +43,27 @@
     minHeight: MIN_WIN_HEIGHT,
     onOpen(win) {
       if (win.id === "win-oq") startOqLoad();
+    },
+    // Desktop icon / Start menu / taskbar-restore clicks on OQ! or DECON
+    // all funnel through this one openWindow() (see shared/redmond/
+    // window-manager.js's own comment) -- routing them to OqRouter.navigate()
+    // instead of opening directly keeps the URL and the visible window in
+    // sync no matter which of those three triggered it.
+    routeOpen(win) {
+      if (win.id === "win-oq") {
+        window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null });
+        return true;
+      }
+      if (win.id === "win-decon") {
+        window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+        return true;
+      }
+      return false;
+    },
+    routeClose(win) {
+      if (win.id === "win-oq" || win.id === "win-decon") {
+        window.OqRouter.navigate({ screen: null, filter: null, word: null });
+      }
     },
   });
 
@@ -266,5 +296,153 @@
     renderOqResults();
   }
 
-  oqFilter.addEventListener("input", renderOqResults);
+  oqFilter.addEventListener("input", () => {
+    renderOqResults();
+    // replace: true -- every keystroke reshaping the same search shouldn't
+    // each get their own back-button stop, only the act of opening OQ! and
+    // its final filter state should (same reasoning as dos/app.js's own
+    // dictFilter input handler).
+    window.OqRouter.navigate({ filter: oqFilter.value || null }, { replace: true });
+  });
+
+  // ---------- DECON (word deconstruction) ----------
+  // shared/decon-app.js owns the search/abort/order-persistence core
+  // (search/abort/order-persistence, extracted so dos/, win98/, and xp/
+  // share one implementation -- see that file's own comment). This
+  // section is the win98-specific consumer: window-styled rendering,
+  // reading/writing the router-owned word/order state, and the
+  // window-manager-driven open/close wiring shared with OQ! above.
+  const deconWord = document.getElementById("decon-word");
+  const deconRootFirst = document.getElementById("decon-root-first");
+  const deconStatus = document.getElementById("decon-status");
+  const deconResults = document.getElementById("decon-results");
+
+  function renderDeconResults({ matches, dictMatch }) {
+    deconResults.textContent = "";
+    for (const match of matches) {
+      const card = document.createElement("div");
+      card.className = "decon-card";
+
+      const header = document.createElement("div");
+      const tag = document.createElement("span");
+      tag.className = match.approximate ? "decon-tag decon-tag--approximate" : "decon-tag";
+      tag.textContent = match.approximate ? "~ approximate" : "exact rebuild";
+      const word = document.createElement("span");
+      word.className = "decon-word";
+      word.textContent = ` ${match.word}`;
+      header.append(tag, word);
+      card.appendChild(header);
+
+      if (match.meaning) {
+        const meaning = document.createElement("div");
+        meaning.className = "decon-meaning";
+        meaning.textContent = match.meaning;
+        card.appendChild(meaning);
+      }
+
+      const breakdown = document.createElement("div");
+      breakdown.className = "decon-breakdown";
+      const rows = deconRootFirst.checked ? match.breakdown : [...match.breakdown].reverse();
+      for (const { marker, text, changedRanges, gloss } of rows) {
+        const row = document.createElement("div");
+        // Same changedRanges slicing dos/app.js's own renderDeconResults
+        // does (jandahl/oq#833) -- see its own comment for why. No
+        // "."-padding here, unlike dos's text-mode columns: this theme has
+        // a real proportional font, so lining up column position via
+        // repeated "." characters wouldn't actually align anything.
+        let cursor = 0;
+        row.appendChild(document.createTextNode(marker));
+        for (const { start, end } of changedRanges) {
+          if (start > cursor) row.appendChild(document.createTextNode(text.slice(cursor, start)));
+          const changed = document.createElement("span");
+          changed.className = "decon-truncated";
+          changed.textContent = text.slice(start, end);
+          row.appendChild(changed);
+          cursor = end;
+        }
+        if (cursor < text.length) row.appendChild(document.createTextNode(text.slice(cursor)));
+        row.appendChild(document.createTextNode(` - ${gloss}`));
+        breakdown.appendChild(row);
+      }
+      card.appendChild(breakdown);
+
+      deconResults.appendChild(card);
+    }
+
+    if (dictMatch) {
+      const dictNote = document.createElement("p");
+      dictNote.className = "decon-dict-match";
+      dictNote.textContent = `Found in the dictionary: ${dictMatch.expected} -- ${dictMatch.gloss_en}`;
+      deconResults.appendChild(dictNote);
+    }
+  }
+
+  const { getStoredRootFirst, setStoredRootFirst, createController } = window.OqDecon;
+  deconRootFirst.checked = getStoredRootFirst();
+
+  const deconController = createController({
+    isRootFirst: () => deconRootFirst.checked,
+    onStatus: (text) => { deconStatus.textContent = text; },
+    onRender: (analysis) => renderDeconResults(analysis),
+    onClear: () => { deconResults.textContent = ""; },
+  });
+
+  deconRootFirst.addEventListener("change", () => {
+    setStoredRootFirst(deconRootFirst.checked);
+    deconController.reRenderLast();
+    window.OqRouter.navigate({ order: deconRootFirst.checked ? null : "final" }, { replace: true });
+  });
+
+  deconWord.addEventListener("keydown", (event) => {
+    // Enter, not "input" like oqFilter -- deconstructing a word runs a real
+    // (occasionally seconds-long) search, unlike OQ!'s instant local
+    // filter, so re-running it on every keystroke would be wasteful (same
+    // reasoning as dos/app.js's own decon-word keydown handler).
+    if (event.key !== "Enter") return;
+    window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+    deconController.search(deconWord.value);
+  });
+
+  // ---------- Router wiring: OQ! and DECON's shared open/close/state ----------
+  // window.OqRouter (shared/router.js) is the single source of truth for
+  // which of OQ!/DECON is reflected in the URL -- every user-facing
+  // trigger above (desktop icon, Start menu item, taskbar restore via
+  // routeOpen; each window's own close button via routeClose; oqFilter's
+  // input handler; decon-word's Enter handler; the root-first checkbox)
+  // already goes through navigate() instead of opening/closing a window or
+  // running a search directly. This one onChange callback is what actually
+  // calls forceOpenWindow()/closeWindow()/renderOqResults()/
+  // deconController.search() -- exactly dos/app.js's own "plain UI
+  // functions with no URL knowledge, one onChange owns the rest" pattern
+  // (see its own comment on window.OqRouter.onChange).
+  window.OqRouter.onChange((params) => {
+    const screen = params.get("screen");
+    if (screen === "oq") {
+      if (winOq.classList.contains("minimized")) forceOpenWindow(winOq);
+      const filter = params.get("filter") || "";
+      if (oqFilter.value !== filter) {
+        // Only reached via back/forward or a pasted link -- oqFilter's own
+        // input handler already updated both the router and the display
+        // itself, so it can never disagree with what it just set.
+        oqFilter.value = filter;
+        renderOqResults();
+      }
+    } else if (screen === "decon") {
+      if (winDecon.classList.contains("minimized")) forceOpenWindow(winDecon);
+      const orderParam = params.get("order");
+      const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
+      if (deconRootFirst.checked !== rootFirst) {
+        deconRootFirst.checked = rootFirst;
+        deconController.reRenderLast();
+      }
+      const word = params.get("word") || "";
+      if (deconWord.value !== word) {
+        deconWord.value = word;
+        deconController.search(word);
+      }
+    } else {
+      if (!winOq.classList.contains("minimized")) closeWindow(winOq);
+      if (!winDecon.classList.contains("minimized")) closeWindow(winDecon);
+    }
+  });
 })();
