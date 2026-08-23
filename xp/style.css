@@ -1,0 +1,545 @@
+/* Windows XP (Luna Blue) desktop prototype -- layered on top of
+   vendor/xp/XP.css (botoxparty/XP.css, MIT), which supplies the
+   window/title-bar/button/field chrome. This file only adds what
+   XP.css doesn't: the desktop surface, desktop icons, the taskbar +
+   Start menu, and the resize-handle hitboxes the drag/resize machinery
+   in app.js hooks into -- same split as win98/style.css, just Luna-
+   colored instead of Win98-grey.
+
+   Luna Blue only: XP.css ships one theme (Luna Blue, the classic 2001
+   default). Royale/Olive/Silver were separate .theme visual styles
+   requiring the native msstyles engine to actually swap -- there's no
+   real CSS-only source to draw them from without inventing colors from
+   scratch, which the issue explicitly says to avoid. Luna Blue is also
+   the iconic, immediately-recognizable choice, so it's not a loss. */
+
+* {
+  box-sizing: border-box;
+}
+
+/* Icon art, as inline data-URI SVGs rather than Unicode emoji -- same
+   cross-platform-color reasoning as win98/style.css's own comment (an
+   emoji glyph's color rendering depends on the platform having a color
+   emoji font installed; plain SVG renders identically everywhere). The
+   shapes below are the same ones win98/style.css already drew (computer,
+   about, recycle bin, OQ! logo, settings, shutdown, the Greenlandic
+   flag) -- visual consistency across themes is fine, and there's no
+   reason to redraw working pixel art from scratch. */
+:root {
+  --icon-computer: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2212%22%20height%3D%229%22%20fill%3D%22%23c0c0c0%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%227%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%228%22%20height%3D%225%22%20fill%3D%22%231084d0%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%2211%22%20width%3D%224%22%20height%3D%222%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%221%22%20fill%3D%22%23808080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-about: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%223%22%20y%3D%221%22%20width%3D%229%22%20height%3D%2214%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Cpolygon%20points%3D%229%2C1%2012%2C4%209%2C4%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%226%22%20width%3D%225%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%228%22%20width%3D%225%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%2210%22%20width%3D%223%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-recyclebin: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%221%22%20width%3D%224%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%225%22%20width%3D%228%22%20height%3D%2210%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%228%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%2210%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-oq: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Cpath%20d%3D%22M1%203%20L8%202%20L8%2013%20L1%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Cpath%20d%3D%22M15%203%20L8%202%20L8%2013%20L15%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%2211%22%20fill%3D%22%23800000%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%229%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-shutdown: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%227%22%20fill%3D%22%23c00000%22%2F%3E%20%3Cpath%20d%3D%22M4%205%20A6%206%200%201%200%2012%205%22%20fill%3D%22none%22%20stroke%3D%22%23c00000%22%20stroke-width%3D%222%22%2F%3E%20%3C%2Fsvg%3E");
+  /* The Start button's own flag -- the real Greenlandic flag (white/red
+     bands, an off-center circle with the colors swapped inside it), same
+     spot as win98/style.css's own start-flag: this is the one place on
+     the desktop that's about the theme's setting, not about any one
+     app. */
+  --icon-greenland-flag: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%20%3Crect%20width%3D%2216%22%20height%3D%228%22%20fill%3D%22%23ffffff%22%2F%3E%20%3Crect%20y%3D%228%22%20width%3D%2216%22%20height%3D%228%22%20fill%3D%22%23c8102e%22%2F%3E%20%3CclipPath%20id%3D%22c%22%3E%3Ccircle%20cx%3D%226%22%20cy%3D%228%22%20r%3D%224%22%2F%3E%3C%2FclipPath%3E%20%3Cg%20clip-path%3D%22url%28%23c%29%22%3E%20%3Crect%20x%3D%222%22%20y%3D%224%22%20width%3D%228%22%20height%3D%224%22%20fill%3D%22%23c8102e%22%2F%3E%20%3Crect%20x%3D%222%22%20y%3D%228%22%20width%3D%228%22%20height%3D%224%22%20fill%3D%22%23ffffff%22%2F%3E%20%3C%2Fg%3E%20%3Ccircle%20cx%3D%226%22%20cy%3D%228%22%20r%3D%224%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%220.4%22%20opacity%3D%220.35%22%2F%3E%20%3C%2Fsvg%3E");
+}
+
+.icon-computer { background-image: var(--icon-computer); }
+.icon-about { background-image: var(--icon-about); }
+.icon-recyclebin { background-image: var(--icon-recyclebin); }
+.icon-oq { background-image: var(--icon-oq); }
+.icon-shutdown { background-image: var(--icon-shutdown); }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* the desktop itself never scrolls -- windows do, internally, same convention as win98/ */
+}
+
+body {
+  font-family: "Pixelated MS Sans Serif", Tahoma, Arial, sans-serif;
+}
+
+.desktop {
+  position: fixed;
+  inset: 0;
+  bottom: 30px; /* leaves room for the fixed taskbar below */
+  /* The real XP default desktop: solid "Bliss" hill-and-sky teal-blue
+     background color (#5a7edc-ish) when no wallpaper image is loaded --
+     approximated here as a flat gradient rather than trying to recreate
+     the actual Bliss photograph, same "no build step, no external asset"
+     reasoning win98/'s flat teal already follows. */
+  background: linear-gradient(180deg, #5a82d1 0%, #7ba3e0 55%, #3a6ea5 100%);
+  overflow: hidden;
+}
+
+/* ---------- Desktop icons ---------- */
+
+.desktop-icons {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  z-index: 1;
+}
+
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 5.5rem;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 0;
+  min-height: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  color: #ffffff;
+  text-shadow: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  outline: none;
+}
+
+.desktop-icon:active {
+  padding: 0.25rem;
+}
+
+.desktop-icon:focus-visible .desktop-icon-label {
+  outline: 1px dotted #ffffff;
+  outline-offset: 1px;
+}
+
+.desktop-icon-glyph {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.6));
+}
+
+.desktop-icon.selected .desktop-icon-glyph::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #1958d0;
+  mix-blend-mode: multiply;
+  opacity: 0.6;
+}
+
+.desktop-icon-label {
+  font-size: 11px;
+  text-align: center;
+  text-shadow: 1px 1px 0 #000000;
+}
+
+.desktop-icon.selected .desktop-icon-label {
+  background: #1958d0;
+  text-shadow: none;
+}
+
+/* ---------- Windows ---------- */
+
+.xp-window {
+  position: absolute;
+  min-width: 200px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  /* Baseline only -- app.js overwrites this with each window's own real
+     stacking order via an inline style at setup and on every focus(), same
+     reasoning as win98/style.css's own comment on this rule. */
+  z-index: 10;
+}
+
+.xp-window.maximized {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.xp-window.minimized {
+  display: none;
+}
+
+.xp-window-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* OQ!'s own body: the filter input and status line stay fixed, only the
+   results table scrolls internally. */
+.oq-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.oq-filter-row input {
+  width: 100%;
+}
+
+.oq-status {
+  margin: 0;
+  font-size: 11px;
+}
+
+/* xp.css ships no .sunken-panel component (unlike 98.css) -- this
+   recreates the same "recessed field" look by hand with an inset
+   box-shadow, matching the bevel colors XP.css's own inputs already use
+   (border:#7f9db9, inner highlight white) rather than inventing new
+   ones. */
+.oq-results-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #ffffff;
+  border: 1px solid #7f9db9;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.oq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.oq-table th {
+  position: sticky;
+  top: 0;
+  text-align: left;
+  padding: 3px 6px;
+  background: linear-gradient(180deg, #f0f4fb 0%, #d3dff5 100%);
+  border-bottom: 1px solid #7f9db9;
+}
+
+.oq-table td {
+  padding: 2px 6px;
+  border-bottom: 1px solid #eef2fa;
+}
+
+.oq-table tbody tr:nth-child(even) {
+  background: #f4f7fd;
+}
+
+/* Row selection -- XP.css ships no table.interactive-style highlighted-
+   row rule either, so this reuses the real Luna selection blue
+   (#316ac5, the same shade Explorer/IE used for selected list/table
+   rows) rather than the Win98 navy win98/style.css's own .highlighted
+   rule uses. */
+.oq-table tbody tr.highlighted {
+  background: #316ac5;
+  color: #ffffff;
+}
+
+.oq-attribution {
+  margin: 0;
+  font-size: 10px;
+  color: #444444;
+}
+
+.xp-window .title-bar {
+  cursor: default;
+  user-select: none;
+  touch-action: none;
+}
+
+.xp-window .title-bar-controls {
+  /* Same reasoning as win98/style.css's own comment: keeps the
+     minimize/maximize/close cluster above the resize handles' z-index
+     below, or the NE corner handle (scaled up for touch) swallows taps
+     meant for those buttons. */
+  position: relative;
+  z-index: 3;
+}
+
+.xp-window .title-bar-controls button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Resize handles: thin invisible strips along each edge/corner, laid over
+   the window's own border -- identical geometry to win98/style.css's own
+   handles, just renamed to this theme's own class prefix. */
+.xp-resize-handle {
+  position: absolute;
+  z-index: 1;
+}
+
+.xp-resize-n, .xp-resize-s {
+  left: 6px;
+  right: 6px;
+  height: 6px;
+  cursor: ns-resize;
+}
+.xp-resize-n { top: -3px; }
+.xp-resize-s { bottom: -3px; }
+
+.xp-resize-e, .xp-resize-w {
+  top: 6px;
+  bottom: 6px;
+  width: 6px;
+  cursor: ew-resize;
+}
+.xp-resize-e { right: -3px; }
+.xp-resize-w { left: -3px; }
+
+.xp-resize-ne, .xp-resize-nw, .xp-resize-se, .xp-resize-sw {
+  width: 10px;
+  height: 10px;
+  z-index: 2;
+}
+.xp-resize-ne { top: -3px; right: -3px; cursor: nesw-resize; }
+.xp-resize-nw { top: -3px; left: -3px; cursor: nwse-resize; }
+.xp-resize-se { bottom: -3px; right: -3px; cursor: nwse-resize; }
+.xp-resize-sw { bottom: -3px; left: -3px; cursor: nesw-resize; }
+
+.xp-window.maximized .xp-resize-handle {
+  display: none; /* nothing to resize while maximized */
+}
+
+/* Touch: same 5x-scaled hitboxes as win98/style.css's own block, same
+   reasoning -- (pointer: coarse) is true for touchscreens, false for a
+   mouse/trackpad including a touch-capable laptop with a mouse attached. */
+@media (pointer: coarse) {
+  .xp-resize-n, .xp-resize-s {
+    left: 30px;
+    right: 30px;
+    height: 30px;
+  }
+  .xp-resize-n { top: -15px; }
+  .xp-resize-s { bottom: -15px; }
+
+  .xp-resize-e, .xp-resize-w {
+    top: 30px;
+    bottom: 30px;
+    width: 30px;
+  }
+  .xp-resize-e { right: -15px; }
+  .xp-resize-w { left: -15px; }
+
+  .xp-resize-ne, .xp-resize-nw, .xp-resize-se, .xp-resize-sw {
+    width: 50px;
+    height: 50px;
+  }
+  .xp-resize-ne { top: -25px; right: -25px; }
+  .xp-resize-nw { top: -25px; left: -25px; }
+  .xp-resize-se { bottom: -25px; right: -25px; }
+  .xp-resize-sw { bottom: -25px; left: -25px; }
+}
+
+/* ---------- Taskbar ---------- */
+
+.taskbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px;
+  /* The real Luna taskbar gradient -- darker blue top edge, brighter
+     mid-band, darker bottom -- same family of blues as XP.css's own
+     .title-bar gradient (this theme's one other blue-chrome surface),
+     not an unrelated color pulled from nowhere. */
+  background: linear-gradient(180deg, #1c56cf 0%, #2f71e0 4%, #1650c3 50%, #1c56ce 92%, #123f9e 100%);
+  box-shadow: inset 0 1px #4a8ef0;
+  z-index: 1000;
+}
+
+.start-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  font-weight: bold;
+  font-style: italic;
+  font-size: 13px;
+  color: #ffffff;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+  padding: 0 10px 0 4px;
+  border: none;
+  border-radius: 4px;
+  /* XP's real Start button: a green pill, brighter on hover/press --
+     approximated as a flat green gradient rather than the exact
+     rounded-corner glossy-highlight artwork, same "close enough at this
+     size" tradeoff win98/'s own chrome takes elsewhere. */
+  background: linear-gradient(180deg, #6fce55 0%, #4ea937 45%, #3c9328 55%, #4ea937 100%);
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.4), inset -1px -1px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.start-button[aria-expanded="true"] {
+  background: linear-gradient(180deg, #3c9328 0%, #4ea937 45%, #6fce55 100%);
+  box-shadow: inset 1px 1px rgba(0, 0, 0, 0.3), inset -1px -1px rgba(255, 255, 255, 0.2);
+}
+
+.start-flag {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  background-image: var(--icon-greenland-flag);
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-radius: 2px;
+}
+
+.taskbar-separator {
+  width: 2px;
+  align-self: stretch;
+  box-shadow: inset -1px 0 rgba(0, 0, 0, 0.3), inset 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.taskbar-windows {
+  flex: 1;
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.taskbar-window-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  max-width: 160px;
+  padding: 0 8px;
+  font-size: 11px;
+  text-align: left;
+  color: #ffffff;
+  border: none;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #3f7fe6 0%, #2c62d0 100%);
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.3), inset -1px -1px rgba(0, 0, 0, 0.2);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.taskbar-window-icon {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.taskbar-window-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.taskbar-window-button.active {
+  background: linear-gradient(180deg, #1c4bb5 0%, #123a90 100%);
+  box-shadow: inset 1px 1px rgba(0, 0, 0, 0.3), inset -1px -1px rgba(255, 255, 255, 0.15);
+}
+
+.taskbar-tray {
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 3px 0 0 3px;
+  background: linear-gradient(180deg, #1650c3 0%, #123f9e 100%);
+  box-shadow: inset 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.taskbar-clock {
+  font-size: 11px;
+  color: #ffffff;
+}
+
+/* ---------- Start menu ---------- */
+
+.start-menu {
+  position: fixed;
+  left: 3px;
+  bottom: 33px;
+  z-index: 1001;
+  margin: 0;
+  padding: 3px;
+  list-style: none;
+  min-width: 13rem;
+  background: #ffffff;
+  border: 1px solid #0a4fc4;
+  border-radius: 6px 6px 0 0;
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.start-menu[hidden] {
+  display: none;
+}
+
+.start-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 12px;
+  color: #000000;
+  cursor: pointer;
+  white-space: nowrap;
+  border-radius: 3px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.start-menu-item:hover,
+.start-menu-item:focus-visible {
+  background: #2f71e0;
+  color: #ffffff;
+  outline: none;
+}
+
+.start-menu-icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.start-menu-divider {
+  height: 1px;
+  margin: 4px 2px;
+  background: #d3dff5;
+}
+
+/* ---------- Turn off computer dialog ---------- */
+
+.xp-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  bottom: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1002;
+}
+
+.xp-dialog-overlay[hidden] {
+  display: none;
+}
+
+.xp-dialog {
+  position: static;
+  width: 20rem;
+}
+
+.xp-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 1rem;
+}
