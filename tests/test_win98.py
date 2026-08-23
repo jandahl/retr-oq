@@ -889,3 +889,16 @@ def test_hot_dog_stand_recolors_scheme_select_field_and_options(page, base_url):
     # SVG with silver/dfdfdf/gray swapped for red/yellow/maroon.
     bg_image = page.evaluate("el => getComputedStyle(el).backgroundImage", select)
     assert "ffff00" in bg_image and "ff0000" in bg_image
+
+    # Reported directly, a third time ("the selector color can be
+    # overridden if using the html customizable selector"): even with the
+    # popup's background/checked-state option rules above, the row
+    # Chromium's native popup actively highlights (mouse-hovered or
+    # keyboard-focused) ignored author CSS entirely -- appearance:
+    # base-select opts the <select> and its ::picker(select) into the
+    # newer, fully own-CSS popup where that row is themeable too.
+    assert page.evaluate("el => getComputedStyle(el).appearance", select) == "base-select"
+    picker_bg = page.evaluate(
+        "el => getComputedStyle(el, '::picker(select)').backgroundColor", select
+    )
+    assert picker_bg == "rgb(255, 255, 0)"

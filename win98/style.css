@@ -873,3 +873,28 @@ body.hotdog-stand select:focus option:hover {
   background-color: #ff0000;
   color: #ffffff;
 }
+
+/* The option:checked/:hover rules above theme every row in the popup
+   except the one row Chromium's *native* popup paints itself: the
+   actively mouse-hovered/keyboard-highlighted row, which ignores author
+   CSS entirely in a plain <select>. appearance: base-select (Chromium
+   133+) opts in to the newer, fully own-CSS popup where that no longer
+   happens -- ::picker(select) needs its own appearance: base-select too
+   (it's a separate box from the select itself), and hiding the UA's
+   ::picker-icon avoids doubling up with the background-image arrow set
+   above. No fallback needed: browsers without support just keep the
+   ordinary native popup styled by the option rules above. */
+body.hotdog-stand select {
+  appearance: base-select;
+}
+
+body.hotdog-stand select::picker(select) {
+  appearance: base-select;
+  background-color: #ffff00;
+  border: 2px solid #ff0000;
+  padding: 0;
+}
+
+body.hotdog-stand select::picker-icon {
+  display: none;
+}
