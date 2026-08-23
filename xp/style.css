@@ -385,49 +385,30 @@ body {
   box-shadow: inset 1px 1px rgba(0, 0, 0, 0.3), inset -1px -1px rgba(255, 255, 255, 0.2);
 }
 
-/* Real XP's Start button glyph is the four-pane "waving Windows flag" --
-   angled panes with their own highlight/shadow, not a flat rectangle.
-   Reusing that construction (skewed panes + a highlight sweep) with the
-   Greenlandic flag's own colors underneath keeps the "dynamic" waving
-   silhouette without pretending this is the Windows logo. */
+/* Real XP's Start button glyph is a "waving flag", not a flat static
+   square -- a gentle skew plus a diagonal highlight sweep reads as cloth
+   catching light without breaking the flag's own geometry apart (an
+   earlier attempt split it into two clipped panes and the result was an
+   unrecognizable smear, not a flag -- keep this as ONE intact image). */
 .start-flag {
   position: relative;
   width: 16px;
   height: 16px;
   display: inline-block;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+  background-image: var(--icon-greenland-flag);
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-radius: 2px;
+  transform: skewY(-6deg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-.start-flag::before,
 .start-flag::after {
   content: "";
   position: absolute;
-  top: 1px;
-  bottom: 1px;
-  width: 6px;
-  background-image: var(--icon-greenland-flag);
-  background-repeat: no-repeat;
-  background-size: 16px 16px;
-  border-radius: 1px;
-}
-
-/* Left pane: leans back (top edge in, bottom edge out) and reads as the
-   flag's near side, slightly dimmed like it's angled away from the
-   light. Right pane leans the opposite way and stays full brightness --
-   together the two panes read as one banner caught mid-wave instead of
-   a static square. */
-.start-flag::before {
-  left: 0;
-  background-position: 0 0;
-  clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
-  filter: brightness(0.82);
-}
-
-.start-flag::after {
-  right: 0;
-  background-position: -8px 0;
-  clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
-  filter: brightness(1.12);
+  inset: 0;
+  border-radius: 2px;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 35%, rgba(0, 0, 0, 0) 70%, rgba(0, 0, 0, 0.25) 100%);
 }
 
 .taskbar-separator {
