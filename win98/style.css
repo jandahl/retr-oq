@@ -844,6 +844,20 @@ body.hotdog-stand select {
   box-shadow: none;
 }
 
+/* Still reported as gray after the box-shadow fix above: the dropdown
+   arrow itself is a *third*, separate piece of chrome -- a baked-in
+   data: URI SVG (98.css's `select{background-image:url(...)}`) whose
+   bevel/face colors (#dfdfdf, #fff, gray, silver) are hardcoded pixels,
+   not CSS colors, so no color/background-color/border override on the
+   select element can reach it. Same shape as the title-bar and scrollbar
+   icons already noted elsewhere in this file as needing a full
+   background-image replacement rather than a simple override -- this is
+   the same source SVG with silver/dfdfdf/gray swapped for red/yellow/
+   maroon and the black outline/arrow glyph left as-is for contrast. */
+body.hotdog-stand select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D%2716%27%20height%3D%2717%27%20fill%3D%27none%27%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M15%200H0v16h1V1h14V0z%27%20fill%3D%27%23ffff00%27/%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M2%201H1v14h1V2h12V1H2z%27%20fill%3D%27%23ffff00%27/%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M16%2017H0v-1h15V0h1v17z%27%20fill%3D%27%23000%27/%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M15%201h-1v14H1v1h14V1z%27%20fill%3D%27%23800000%27/%3E%3Cpath%20fill%3D%27%23ff0000%27%20d%3D%27M2%202h12v13H2z%27/%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M11%206H4v1h1v1h1v1h1v1h1V9h1V8h1V7h1V6z%27%20fill%3D%27%23000%27/%3E%3C/svg%3E");
+}
+
 body.hotdog-stand select:focus {
   background-color: #ffff00;
   color: #000000;

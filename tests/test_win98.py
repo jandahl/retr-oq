@@ -879,3 +879,13 @@ def test_hot_dog_stand_recolors_scheme_select_field_and_options(page, base_url):
     select.focus()
     assert page.evaluate("el => getComputedStyle(el).backgroundColor", select) == "rgb(255, 255, 0)"
     assert page.evaluate("el => getComputedStyle(el).color", select) == "rgb(0, 0, 0)"
+
+    # Reported directly, again ("The dropdown selector box is still
+    # gray"): the arrow button is a third, separate piece of chrome from
+    # the field background and the border -- a baked-in data: URI SVG
+    # (98.css's select{background-image:...}) whose bevel/face colors are
+    # hardcoded pixels, so no border/background-color override reaches it.
+    # It needs its own background-image, recolored from the same source
+    # SVG with silver/dfdfdf/gray swapped for red/yellow/maroon.
+    bg_image = page.evaluate("el => getComputedStyle(el).backgroundImage", select)
+    assert "ffff00" in bg_image and "ff0000" in bg_image
