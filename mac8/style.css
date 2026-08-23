@@ -284,7 +284,12 @@ button,
 .mac8-title-bar {
   position: relative;
   touch-action: none; /* without this, touch-dragging the title bar is unreliable */
-  height: 1.15rem;
+  /* 1.35rem, not 1.15rem -- at 1.15rem the bar was actually shorter than
+     .title's own natural text height (13.8px bar vs. ~15.5px of text),
+     so the title block visibly overflowed the bar's top and bottom
+     edges, which is what read as an unrelated floating overlay rather
+     than content sitting inside the bar. */
+  height: 1.35rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -307,15 +312,32 @@ button,
    (solid, filling the full pinstripe field); ::after draws only the
    white rows, shifted 1px left via transform so its own left AND right
    edges both land 1px left of ::before's -- exposing that 1px of grey
-   at both ends of every row, not just one side. */
+   at both ends of every row, not just one side.
+
+   left: 18px / right: 34px, not a uniform small inset -- these are the
+   real, fixed geometry of base.css's own control boxes (.close-box
+   sits at left: 4px and is 14px wide, so its own right edge is always
+   at 18px regardless of window width; .zoom-box sits at right: 20px
+   and is 14px wide, so its left edge is always 34px from the bar's own
+   right edge). Both are raw px in base.css, not rem, so they don't
+   scale with this theme's own font-size and stay exactly these values
+   at any window width. A small uniform inset (the previous version
+   used 2px) left the pinstripes visible in the margin PAST each
+   button, out to the window's own corners -- wrong; real Mac OS 8.1
+   pinstripes fill only the gap between the buttons and the title, not
+   past them. .title itself (below, z-index: 1, opaque white/grey
+   background) sits on top of the center of this same fill and covers
+   it, which is what actually produces the visible "close -- stripes --
+   title -- stripes -- zoom" look, not two separately positioned
+   pinstripe blocks. */
 .mac8-title-bar:not(.inactive)::before,
 .mac8-title-bar:not(.inactive)::after {
   content: "";
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 2px;
-  right: 2px;
+  left: 18px;
+  right: 34px;
   z-index: 0;
 }
 .mac8-title-bar:not(.inactive)::before {
@@ -347,8 +369,23 @@ button,
   z-index: 1;
   background: #ffffff;
   padding: 0 0.4rem;
+  /* width: auto, not base.css's own un-overridden width: 100% -- the
+     close/zoom control boxes are position: absolute (removed from
+     normal flow), so .title is the ONLY real flex item in this bar,
+     and base.css's width: 100% was stretching it to fill the entire
+     flex row, overlapping both control boxes instead of sitting
+     between them. That's what actually read as "the title is an
+     overlay" -- it wasn't a stacking/z-index bug, .title's own box was
+     just far wider than its own text. */
+  width: auto;
   min-width: 0;
-  max-width: calc(100% - 3rem);
+  max-width: calc(100% - 52px); /* 18px (close box clearance) + 34px (zoom box clearance), same values ::before/::after use above */
+  /* Matches .mac8-title-bar's own 1.35rem height exactly, so .title's
+     box no longer overflows the bar's top/bottom edges -- the other
+     half of the "overlay" look, see .mac8-title-bar's own comment on
+     why 1.35rem replaced 1.15rem. */
+  height: 1.35rem;
+  line-height: 1.35rem;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
