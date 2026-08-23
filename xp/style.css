@@ -64,12 +64,22 @@ body {
   position: fixed;
   inset: 0;
   bottom: 30px; /* leaves room for the fixed taskbar below */
-  /* The real XP default desktop: solid "Bliss" hill-and-sky teal-blue
-     background color (#5a7edc-ish) when no wallpaper image is loaded --
-     approximated here as a flat gradient rather than trying to recreate
-     the actual Bliss photograph, same "no build step, no external asset"
-     reasoning win98/'s flat teal already follows. */
-  background: linear-gradient(180deg, #5a82d1 0%, #7ba3e0 55%, #3a6ea5 100%);
+  /* XP's real default wallpaper is "Bliss" -- Charles O'Rear's photo of a
+     Napa Valley hillside, licensed to Microsoft, not something this repo
+     can vendor or redistribute (unlike xp.css itself, there's no
+     permissively-licensed source file for the actual photograph). This is
+     a from-scratch SVG *evocation* of Bliss's unmistakable silhouette --
+     blue sky graduating to a pale horizon, a few soft clouds, a rolling
+     green double hillside -- drawn as flat vector shapes, not a copy of
+     the photo's own pixels, same "no external asset" reasoning as every
+     other icon in this file (inline data-URI SVG, cover-fit so it reads
+     right at any window size). */
+  background:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%20900%22%3E%20%3Cdefs%3E%20%3ClinearGradient%20id%3D%22sky%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%232f5fc4%22%2F%3E%20%3Cstop%20offset%3D%2245%25%22%20stop-color%3D%22%236ea8ea%22%2F%3E%20%3Cstop%20offset%3D%2280%25%22%20stop-color%3D%22%23bcdcfb%22%2F%3E%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23e8f4ff%22%2F%3E%20%3C%2FlinearGradient%3E%20%3ClinearGradient%20id%3D%22hillBack%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%237fc24a%22%2F%3E%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%233f8a24%22%2F%3E%20%3C%2FlinearGradient%3E%20%3ClinearGradient%20id%3D%22hillFront%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%235fae30%22%2F%3E%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23255f13%22%2F%3E%20%3C%2FlinearGradient%3E%20%3C%2Fdefs%3E%20%3Crect%20width%3D%221600%22%20height%3D%22900%22%20fill%3D%22url%28%23sky%29%22%2F%3E%20%3Cg%20fill%3D%22%23ffffff%22%3E%20%3Cellipse%20cx%3D%22360%22%20cy%3D%22170%22%20rx%3D%22150%22%20ry%3D%2232%22%20opacity%3D%220.9%22%2F%3E%20%3Cellipse%20cx%3D%22460%22%20cy%3D%22150%22%20rx%3D%22105%22%20ry%3D%2224%22%20opacity%3D%220.8%22%2F%3E%20%3Cellipse%20cx%3D%22270%22%20cy%3D%22150%22%20rx%3D%2290%22%20ry%3D%2222%22%20opacity%3D%220.8%22%2F%3E%20%3Cellipse%20cx%3D%221180%22%20cy%3D%22120%22%20rx%3D%22130%22%20ry%3D%2228%22%20opacity%3D%220.85%22%2F%3E%20%3Cellipse%20cx%3D%221290%22%20cy%3D%22102%22%20rx%3D%2285%22%20ry%3D%2220%22%20opacity%3D%220.75%22%2F%3E%20%3Cellipse%20cx%3D%221080%22%20cy%3D%22105%22%20rx%3D%2270%22%20ry%3D%2218%22%20opacity%3D%220.7%22%2F%3E%20%3C%2Fg%3E%20%3Cpath%20d%3D%22M0%2C540%20C%20220%2C460%20420%2C610%20680%2C520%20C%20940%2C430%201160%2C580%201600%2C470%20L1600%2C900%20L0%2C900%20Z%22%20fill%3D%22url%28%23hillBack%29%22%2F%3E%20%3Cpath%20d%3D%22M0%2C660%20C%20260%2C600%20560%2C700%20860%2C630%20C%201160%2C560%201380%2C680%201600%2C610%20L1600%2C900%20L0%2C900%20Z%22%20fill%3D%22url%28%23hillFront%29%22%2F%3E%20%3C%2Fsvg%3E")
+    center bottom / cover no-repeat,
+    /* fallback flat gradient behind the SVG in case a browser can't
+       decode the data URI -- same colors as the sky's own top/bottom */
+    linear-gradient(180deg, #2f5fc4 0%, #6ea8ea 45%, #bcdcfb 80%, #3f8a24 100%);
   overflow: hidden;
 }
 
