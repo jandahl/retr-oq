@@ -503,4 +503,21 @@
       if (!winDecon.classList.contains("closed")) closeWindowEl(winDecon);
     }
   });
+
+  // ---------- Menu bar clock ----------
+  // Real-time updating text, not a static screenshot-style clock -- same
+  // convention win98/xp/win7's own taskbar clocks already follow. Real
+  // Mac OS 8 always shows one at the menu bar's own right edge.
+  const clockEl = document.getElementById("menu-clock");
+  function updateClock() {
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const suffix = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    if (hours === 0) hours = 12;
+    clockEl.textContent = `${hours}:${minutes} ${suffix}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
 })();

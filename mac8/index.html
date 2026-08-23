@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Mac OS 8.1 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/mac8/base.css" />
-<link rel="stylesheet" href="style.css?v=9" />
+<link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
   <!-- Mac OS 8.1 (Platinum) desktop prototype -- Mac-lineage, NOT part of
@@ -92,6 +92,11 @@
         <li role="menu-item" id="menu-shutdown"><a href="#">Shut Down</a></li>
       </ul>
     </li>
+    <!-- Real Mac OS 8 always shows a live clock at the menu bar's own
+         right edge -- real-time updating (see app.js), not a static
+         screenshot-style one, same convention win98/xp/win7's own
+         taskbar clocks already follow. -->
+    <li class="mac8-menu-clock" id="menu-clock" aria-hidden="true">12:00 PM</li>
   </ul>
 
   <div class="mac8-desktop" id="desktop">
@@ -263,6 +268,6 @@
        own header comment for why this one file is the exception. -->
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=1"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>

@@ -117,13 +117,30 @@ button,
   height: 1.25rem;
   background: #ffffff;
   border-bottom: 1px solid #000000;
-  font-family: "ChicagoFLF", "Charcoal", Geneva, ui-sans-serif, sans-serif;
+  /* Charcoal first, not ChicagoFLF -- same real Mac OS 8 system-font
+     swap as .mac8-title-bar .title's own font-family (see its comment):
+     Charcoal replaced Chicago everywhere except the Apple menu's own
+     glyph (which is an SVG icon here, not text, so no font applies to
+     it anyway). Real Charcoal is proprietary and can't be vendored;
+     falls back to real sans-serif system fonts. */
+  font-family: "Charcoal", "ChicagoFLF", Geneva, ui-sans-serif, sans-serif;
   font-size: 0.75rem;
 }
 .mac8-menu-bar > [role="menu-item"] {
   position: relative;
   display: flex;
   align-items: center;
+  padding: 0 0.6rem;
+  color: #000000;
+  white-space: nowrap;
+}
+.mac8-menu-clock {
+  display: flex;
+  align-items: center;
+  /* Pushes the clock to the bar's own right edge, same as every other
+     theme's own taskbar clock -- real Mac OS 8's menu bar always shows
+     one there, and this bar had nothing at all past "Special" before. */
+  margin-left: auto;
   padding: 0 0.6rem;
   color: #000000;
   white-space: nowrap;
@@ -261,6 +278,26 @@ button,
   max-width: none;
   display: flex;
   flex-direction: column;
+  /* base.css's own .content box-shadow is `1px 2px #111, inset ...,
+     inset ...` -- a small hard-edged offset, not the soft blurred
+     shadow a real Mac OS 8 window casts onto the desktop/windows behind
+     it. Keeps the same two inset bevel-highlight lines (they have to be
+     repeated here since box-shadow doesn't merge across a cascading
+     override, only the winning declaration's full value list applies),
+     replacing only the hard offset with a real blur. Active windows get
+     a visibly stronger/larger shadow below via :has() -- real classic
+     Mac OS only the frontmost window casts a shadow onto whatever is
+     behind it. */
+  box-shadow:
+    3px 4px 8px rgba(0, 0, 0, 0.35),
+    inset 1px 1px 0px 0px #fff,
+    inset -1px -1px 0px 0px #999;
+}
+.mac8-window:has(.mac8-title-bar:not(.inactive)) {
+  box-shadow:
+    5px 6px 14px rgba(0, 0, 0, 0.45),
+    inset 1px 1px 0px 0px #fff,
+    inset -1px -1px 0px 0px #999;
 }
 .mac8-window.closed {
   display: none;
@@ -540,6 +577,50 @@ button,
   background: #ffffff;
   border: 1px solid #000000;
   box-shadow: inset 1px 1px 0 0 #888888;
+  /* Firefox fallback -- no arrow buttons or beveled thumb possible via
+     scrollbar-width/scrollbar-color alone, but at least period-plausible
+     colors instead of the platform default. The real Platinum scrollbar
+     (track + up/down arrow buttons + a beveled thumb) is built below via
+     ::-webkit-scrollbar, which neither classic.css nor base.css supplies
+     at all -- this repo's OQ!/DECON result panels had bare browser-default
+     scrollbars until now. */
+  scrollbar-width: thin;
+  scrollbar-color: #c0c0c0 #dedede;
+}
+.mac8-panel::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+.mac8-panel::-webkit-scrollbar-track {
+  background: #dedede;
+  border-left: 1px solid #000000;
+}
+.mac8-panel::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px 0 0 #ffffff, inset -1px -1px 0 0 #888888;
+}
+.mac8-panel::-webkit-scrollbar-thumb:hover {
+  background: #b0b0b0;
+}
+.mac8-panel::-webkit-scrollbar-button {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background-color: #c0c0c0;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px 0 0 #ffffff, inset -1px -1px 0 0 #888888;
+}
+.mac8-panel::-webkit-scrollbar-button:vertical:start {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpolygon%20points%3D%225%2C2%209%2C8%201%2C8%22%20fill%3D%22%23000%22%2F%3E%3C%2Fsvg%3E");
+}
+.mac8-panel::-webkit-scrollbar-button:vertical:end {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010%2010%22%3E%3Cpolygon%20points%3D%221%2C2%209%2C2%205%2C8%22%20fill%3D%22%23000%22%2F%3E%3C%2Fsvg%3E");
+}
+.mac8-panel::-webkit-scrollbar-corner {
+  background: #dedede;
 }
 .mac8-attribution {
   margin: 0 0.5rem 0.4rem !important;
