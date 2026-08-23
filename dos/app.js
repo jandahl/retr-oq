@@ -275,38 +275,18 @@
   // sender saw; localStorage is what a plain revisit (no explicit order in
   // the URL) falls back to. Router wins when both are present, same
   // precedent as everything else DECON.EXE's URL already owns.
-  const ROOT_FIRST_STORAGE_KEY = "retr-oq:decon-root-first";
-  function getStoredRootFirst() {
-    const stored = localStorage.getItem(ROOT_FIRST_STORAGE_KEY);
-    return stored === null ? true : stored === "1";
-  }
-  function setStoredRootFirst(value) {
-    localStorage.setItem(ROOT_FIRST_STORAGE_KEY, value ? "1" : "0");
-  }
+  //
+  // shared/decon-app.js owns the search/abort/order-persistence core
+  // (extracted for win98/'s and xp's own DECON reuse -- see its own file
+  // comment); this file stays the DOS-specific consumer: router wiring,
+  // localStorage-vs-URL precedence, and the text-mode rendering below.
+  const { getStoredRootFirst, setStoredRootFirst, createController } = window.OqDecon;
   // Read once at load, synchronously -- window.OqRouter (a classic script)
   // is already loaded by this point, unlike window.OqAnalysis.
   {
     const initialOrder = window.OqRouter.getParams().get("order");
     deconRootFirst.checked = initialOrder ? initialOrder !== "final" : getStoredRootFirst();
   }
-
-  // window.OqAnalysis is set by shared/oq-analysis.js, a type="module"
-  // script -- deferred by the platform until after this classic script's
-  // own top-level code has already run, so it can be missing at the exact
-  // moment a deep link (?screen=decon&word=...) fires OqRouter's onChange
-  // immediately on registration below. oq-analysis.js dispatches
-  // "oq-analysis-ready" on window right after setting the global, so this
-  // just waits for whichever already happened.
-  function waitForOqAnalysis() {
-    if (window.OqAnalysis) return Promise.resolve(window.OqAnalysis);
-    return new Promise((resolve) => {
-      window.addEventListener("oq-analysis-ready", () => resolve(window.OqAnalysis), { once: true });
-    });
-  }
-
-  // Cached so toggling "Root first" can re-render the existing results in
-  // the new order without re-running the search itself.
-  let lastAnalysis = null;
 
   function renderDeconResults({ matches, dictMatch }) {
     deconResults.textContent = "";
@@ -387,49 +367,23 @@
     }
   }
 
+  const deconController = createController({
+    isRootFirst: () => deconRootFirst.checked,
+    onStatus: (text) => { deconStatus.textContent = text; },
+    onRender: (analysis) => renderDeconResults(analysis),
+    onClear: () => { deconResults.textContent = ""; },
+  });
+  const searchDecon = (word) => deconController.search(word);
+
   deconRootFirst.addEventListener("change", () => {
     setStoredRootFirst(deconRootFirst.checked);
-    if (lastAnalysis) renderDeconResults(lastAnalysis); // re-render existing results in the new order, no new search
+    deconController.reRenderLast(); // re-render existing results in the new order, no new search
     // replace: true -- same reasoning as dictFilter's own navigate() call:
     // an in-place display refinement, not a new "screen" to visit via
     // back/forward. null (omit from the URL) for the default (root first),
     // so a plain, un-toggled link stays exactly as short as it is today.
     window.OqRouter.navigate({ order: deconRootFirst.checked ? null : "final" }, { replace: true });
   });
-
-  // Cancels a still-running search when a newer one supersedes it -- an
-  // unparseable word can take real seconds against the full grammarian set
-  // (shared/oq-analysis.js's own comment), so without this every keystroke
-  // would pile up abandoned searches finishing out of order.
-  let deconSearchAbort = null;
-
-  async function searchDecon(word) {
-    if (deconSearchAbort) deconSearchAbort.abort();
-    const trimmed = word.trim();
-    deconResults.textContent = "";
-    lastAnalysis = null;
-    if (trimmed === "") {
-      deconStatus.textContent = "Type a word, press Enter.";
-      return;
-    }
-    deconSearchAbort = new AbortController();
-    const { signal } = deconSearchAbort;
-    deconStatus.textContent = "Analyzing...";
-    try {
-      const analysis = await waitForOqAnalysis();
-      const result = await analysis.analyzeWord(trimmed, { signal });
-      if (signal.aborted) return; // a newer search already took over
-      lastAnalysis = result;
-      renderDeconResults(result);
-      const found = result.matches.length || result.dictMatch;
-      deconStatus.textContent = found
-        ? `${result.evalCount.toLocaleString()} combinations tried in ${Math.round(result.elapsedMs)}ms.`
-        : `No parse found (${result.evalCount.toLocaleString()} combinations tried in ${Math.round(result.elapsedMs)}ms).`;
-    } catch (err) {
-      if (err.name === "AbortError") return; // superseded, not a real failure
-      deconStatus.textContent = `Could not analyze (${err.message}).`;
-    }
-  }
 
   async function launchDecon(initialWord = "") {
     // Abort unconditionally, not just when searchDecon() below runs (which
@@ -439,20 +393,18 @@
     // AbortController's signal never aborted. It would later resolve,
     // pass its own `if (signal.aborted) return`, and silently overwrite
     // this fresh, just-reset UI with a stale, unrelated result.
-    if (deconSearchAbort) deconSearchAbort.abort();
+    deconController.reset();
     dirScreen.hidden = true;
     dictApp.hidden = true;
     deconApp.hidden = false;
     deconWord.value = initialWord;
-    deconResults.textContent = "";
-    lastAnalysis = null;
     deconStatus.textContent = "Type a word, press Enter.";
     deconWord.focus();
     if (initialWord.trim()) await searchDecon(initialWord);
   }
 
   function exitDecon() {
-    if (deconSearchAbort) deconSearchAbort.abort(); // same reasoning as launchDecon above
+    deconController.abort(); // same reasoning as launchDecon above
     deconApp.hidden = true;
     dirScreen.hidden = false;
   }
@@ -491,7 +443,7 @@
       // display itself, so it can never disagree with what it just set.
       if (deconRootFirst.checked !== rootFirst) {
         deconRootFirst.checked = rootFirst;
-        if (lastAnalysis) renderDeconResults(lastAnalysis);
+        deconController.reRenderLast();
       }
       if (deconApp.hidden) {
         launchDecon(params.get("word") || "");
