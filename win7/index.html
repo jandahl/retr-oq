@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>retr-oq — Windows 7 desktop prototype</title>
+<link rel="stylesheet" href="../vendor/win7/7.css" />
+<link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body class="win7">
+  <!-- Windows 7 (Aero) desktop prototype -- third member of the "Redmond"
+       window-chrome family alongside win98/ and xp/, reusing the exact same
+       theme-agnostic drag/resize/focus/minimize/maximize/close/taskbar/
+       desktop-icon/Start-menu machinery in shared/redmond/window-manager.js
+       (see that file's own top-of-file comment). Built on khang-nd/7.css
+       (MIT, vendored under vendor/win7/) -- like xp.css, it styles
+       title-bar buttons via button[aria-label="Minimize|Maximize|Close"]
+       attribute selectors, not classes, verified by grepping the vendored
+       CSS before writing this markup (see style.css's own comment) -- so
+       each button below carries both the real aria-label (what 7.css
+       itself selects on) and the .win-minimize/.win-maximize/.win-close
+       class shared/redmond/window-manager.js's click handlers are
+       hardcoded to look up (a JS hook, inert as far as 7.css is
+       concerned), same dual-purpose pattern as xp/index.html. -->
+  <div class="desktop" id="desktop">
+    <div class="desktop-icons">
+      <button type="button" class="desktop-icon" data-open="win-oq">
+        <span class="desktop-icon-glyph icon-oq" aria-hidden="true"></span>
+        <span class="desktop-icon-label">OQ!</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-decon">
+        <span class="desktop-icon-glyph icon-decon" aria-hidden="true"></span>
+        <span class="desktop-icon-label">DECON</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-computer">
+        <span class="desktop-icon-glyph icon-computer" aria-hidden="true"></span>
+        <span class="desktop-icon-label">My Computer</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-about">
+        <span class="desktop-icon-glyph icon-about" aria-hidden="true"></span>
+        <span class="desktop-icon-label">About retr-oq</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-recyclebin">
+        <span class="desktop-icon-glyph icon-recyclebin" aria-hidden="true"></span>
+        <span class="desktop-icon-label">Recycle Bin</span>
+      </button>
+    </div>
+
+    <section class="window win7-window glass" id="win-oq" data-icon="oq" style="top: 2.5rem; left: 4rem; width: 28rem; height: 20rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">OQ!</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win7-window-body oq-body">
+        <div class="win7-field-row oq-filter-row">
+          <input type="text" id="oq-filter" placeholder="Type to search..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <p class="oq-status" id="oq-status">Loading dictionary...</p>
+        <div class="oq-results-panel">
+          <table class="oq-table" id="oq-table">
+            <thead>
+              <tr><th>Lexeme</th><th>English</th></tr>
+            </thead>
+            <tbody id="oq-tbody"></tbody>
+          </table>
+        </div>
+        <p class="oq-attribution" id="oq-attribution"></p>
+      </div>
+      <div class="win7-resize-handle win7-resize-n" data-dir="n"></div>
+      <div class="win7-resize-handle win7-resize-s" data-dir="s"></div>
+      <div class="win7-resize-handle win7-resize-e" data-dir="e"></div>
+      <div class="win7-resize-handle win7-resize-w" data-dir="w"></div>
+      <div class="win7-resize-handle win7-resize-ne" data-dir="ne"></div>
+      <div class="win7-resize-handle win7-resize-nw" data-dir="nw"></div>
+      <div class="win7-resize-handle win7-resize-se" data-dir="se"></div>
+      <div class="win7-resize-handle win7-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win7-window glass" id="win-decon" data-icon="decon" style="top: 3rem; left: 8rem; width: 30rem; height: 22rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">DECON</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win7-window-body decon-body">
+        <div class="win7-field-row decon-word-row">
+          <input type="text" id="decon-word" placeholder="Type a Kalaallisut word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <div class="win7-field-row decon-order-row">
+          <input type="checkbox" id="decon-root-first" checked />
+          <label for="decon-root-first">Root first</label>
+        </div>
+        <p class="decon-status" id="decon-status">Type a word, press Enter.</p>
+        <div class="decon-results-panel" id="decon-results"></div>
+      </div>
+      <div class="win7-resize-handle win7-resize-n" data-dir="n"></div>
+      <div class="win7-resize-handle win7-resize-s" data-dir="s"></div>
+      <div class="win7-resize-handle win7-resize-e" data-dir="e"></div>
+      <div class="win7-resize-handle win7-resize-w" data-dir="w"></div>
+      <div class="win7-resize-handle win7-resize-ne" data-dir="ne"></div>
+      <div class="win7-resize-handle win7-resize-nw" data-dir="nw"></div>
+      <div class="win7-resize-handle win7-resize-se" data-dir="se"></div>
+      <div class="win7-resize-handle win7-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win7-window glass" id="win-about" data-icon="about" style="top: 3rem; left: 3rem; width: 26rem; height: 16rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">About retr-oq</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win7-window-body">
+        <p>
+          This is a prototype Windows 7 (Aero) desktop -- a glass taskbar
+          with a real Start orb, and windows you can drag by the title bar
+          and resize from any edge or corner, minimize down to a taskbar
+          button, and maximize to fill the screen.
+        </p>
+        <p>Built on 7.css -- see this theme's style.css for the Aero
+          glass/gloss decisions made for the title bars and taskbar.</p>
+      </div>
+      <div class="win7-resize-handle win7-resize-n" data-dir="n"></div>
+      <div class="win7-resize-handle win7-resize-s" data-dir="s"></div>
+      <div class="win7-resize-handle win7-resize-e" data-dir="e"></div>
+      <div class="win7-resize-handle win7-resize-w" data-dir="w"></div>
+      <div class="win7-resize-handle win7-resize-ne" data-dir="ne"></div>
+      <div class="win7-resize-handle win7-resize-nw" data-dir="nw"></div>
+      <div class="win7-resize-handle win7-resize-se" data-dir="se"></div>
+      <div class="win7-resize-handle win7-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win7-window glass" id="win-computer" data-icon="computer" style="top: 5rem; left: 6rem; width: 24rem; height: 14rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">My Computer</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win7-window-body">
+        <p>Nothing to browse yet -- there's no real file system behind this
+          window, just window-manager chrome (same scope decision as
+          win98/'s and xp/'s own My Computer).</p>
+      </div>
+      <div class="win7-resize-handle win7-resize-n" data-dir="n"></div>
+      <div class="win7-resize-handle win7-resize-s" data-dir="s"></div>
+      <div class="win7-resize-handle win7-resize-e" data-dir="e"></div>
+      <div class="win7-resize-handle win7-resize-w" data-dir="w"></div>
+      <div class="win7-resize-handle win7-resize-ne" data-dir="ne"></div>
+      <div class="win7-resize-handle win7-resize-nw" data-dir="nw"></div>
+      <div class="win7-resize-handle win7-resize-se" data-dir="se"></div>
+      <div class="win7-resize-handle win7-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win7-window glass" id="win-recyclebin" data-icon="recyclebin" style="top: 8rem; left: 9rem; width: 22rem; height: 12rem;">
+      <div class="title-bar">
+        <div class="title-bar-text">Recycle Bin</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize" class="win-minimize"></button>
+          <button aria-label="Maximize" class="win-maximize"></button>
+          <button aria-label="Close" class="win-close"></button>
+        </div>
+      </div>
+      <div class="window-body win7-window-body">
+        <p>The Recycle Bin is empty.</p>
+      </div>
+      <div class="win7-resize-handle win7-resize-n" data-dir="n"></div>
+      <div class="win7-resize-handle win7-resize-s" data-dir="s"></div>
+      <div class="win7-resize-handle win7-resize-e" data-dir="e"></div>
+      <div class="win7-resize-handle win7-resize-w" data-dir="w"></div>
+      <div class="win7-resize-handle win7-resize-ne" data-dir="ne"></div>
+      <div class="win7-resize-handle win7-resize-nw" data-dir="nw"></div>
+      <div class="win7-resize-handle win7-resize-se" data-dir="se"></div>
+      <div class="win7-resize-handle win7-resize-sw" data-dir="sw"></div>
+    </section>
+  </div>
+
+  <footer class="taskbar" id="taskbar">
+    <!-- The real Aero "orb" -- a glossy circular Windows logo button, not
+         the rectangular pill win98/xp use, see style.css's own comment for
+         the SVG art. -->
+    <button type="button" class="start-button" id="start-button" aria-haspopup="true" aria-expanded="false">
+      <span class="start-orb" aria-hidden="true"></span>
+    </button>
+    <div class="taskbar-separator"></div>
+    <!-- Icon-only taskbar buttons, no text label -- a real, deliberate
+         divergence from win98/xp's labeled-button convention. See
+         style.css's own comment (near .taskbar-window-button) for the
+         reasoning: real Windows 7 shipped icon-only by default, and this
+         theme leans into that rather than matching its siblings for
+         consistency's own sake. -->
+    <div class="taskbar-windows" id="taskbar-windows"></div>
+    <div class="taskbar-separator"></div>
+    <div class="taskbar-tray">
+      <span class="taskbar-clock" id="taskbar-clock">12:00 PM</span>
+    </div>
+  </footer>
+
+  <!-- Single-column Start menu -- same simplification xp/index.html already
+       made and explains in its own comment: no meaningful "pinned
+       programs" list exists for this window set, so one column covers it
+       fully. -->
+  <ul role="menu" class="start-menu" id="start-menu" hidden>
+    <li class="start-menu-user" aria-hidden="true">
+      <span class="start-menu-user-icon" aria-hidden="true"></span>
+      <span class="start-menu-user-name">Piniartorsuak</span>
+    </li>
+    <li role="menu-item" class="start-menu-item" data-open="win-oq">
+      <span class="start-menu-icon icon-oq" aria-hidden="true"></span> OQ!
+    </li>
+    <li role="menu-item" class="start-menu-item" data-open="win-decon">
+      <span class="start-menu-icon icon-decon" aria-hidden="true"></span> DECON
+    </li>
+    <li role="menu-item" class="start-menu-item" data-open="win-computer">
+      <span class="start-menu-icon icon-computer" aria-hidden="true"></span> My Computer
+    </li>
+    <li role="menu-item" class="start-menu-item" data-open="win-about">
+      <span class="start-menu-icon icon-about" aria-hidden="true"></span> About retr-oq
+    </li>
+    <li role="menu-item" class="start-menu-item" data-open="win-recyclebin">
+      <span class="start-menu-icon icon-recyclebin" aria-hidden="true"></span> Recycle Bin
+    </li>
+    <li class="start-menu-divider"></li>
+    <li role="menu-item" class="start-menu-item" id="start-menu-shutdown">
+      <span class="start-menu-icon icon-shutdown" aria-hidden="true"></span> Shut Down
+    </li>
+  </ul>
+
+  <div class="win7-dialog-overlay" id="shutdown-overlay" hidden>
+    <section class="window win7-dialog glass">
+      <div class="title-bar">
+        <div class="title-bar-text">Shut Down Windows</div>
+      </div>
+      <div class="window-body win7-window-body">
+        <p>It is now safe to leave this theme.</p>
+        <div class="win7-dialog-actions">
+          <button type="button" id="shutdown-ok">OK</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Load order matters (see CLAUDE.md): app.js reads window.OqDictSource
+       and window.OqHyphenation, both classic scripts setting those globals
+       synchronously, so both have to load and run before app.js does, and
+       shared/redmond/window-manager.js has to load before app.js calls
+       window.OqRedmond.*. -->
+  <script src="../shared/dict-source.js"></script>
+  <script src="../shared/hyphenation.js"></script>
+  <script src="../shared/router.js"></script>
+  <script src="../shared/redmond/window-manager.js"></script>
+  <!-- Real ES module, not a classic script -- see shared/oq-analysis.js's
+       own header comment for why this one file is the exception. -->
+  <script type="module" src="../shared/oq-analysis.js"></script>
+  <script src="../shared/decon-app.js"></script>
+  <script src="app.js?v=1"></script>
+</body>
+</html>
