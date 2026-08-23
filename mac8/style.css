@@ -22,6 +22,38 @@
   --mac8-titlebar-inactive: #999999;
 }
 
+/* classic.css's window chrome (control boxes, growbox, borders) is sized
+   in real fixed px for a 1990s low-DPI CRT -- a 12-14px close/zoom box
+   that read as crisp iconography at 72dpi just turns to mush under a
+   modern display's anti-aliasing, which is what actually made the
+   controls look "garbled" rather than period-authentic. `zoom: 2` is a
+   real layout rescale (not a visual-only transform), so every fixed px
+   dimension in vendor/mac8/base.css and this file gets twice the room to
+   resolve cleanly, and -- critically -- mouse event coordinates
+   (clientX/clientY) and getBoundingClientRect() both already report
+   post-zoom values in the same coordinate space, so app.js's drag/resize
+   math needs no compensation for this.
+
+   On html only, NOT also on body -- zoom compounds multiplicatively
+   across an ancestor chain (a child element's own zoom multiplies its
+   parent's), so `html, body { zoom: 2 }` silently rendered at 4x, not
+   2x, since body is html's own child. One zoom, on the outermost
+   element, is the fix for that part.
+
+   Gated to min-width: 700px, not applied unconditionally -- rem-sized
+   windows (e.g. OQ!'s 27rem) that comfortably fit a desktop viewport at
+   2x overflow off the edge of an actual phone screen at that same 2x,
+   since `zoom` has no awareness of viewport size on its own. Below the
+   breakpoint this theme stays at native 1x -- small, but a phone is held
+   close enough for that to still be legible, the same tradeoff every
+   other theme in this repo already makes by not adding its own extra
+   scaling for mobile either. */
+@media (min-width: 700px) {
+  html {
+    zoom: 2;
+  }
+}
+
 html, body {
   /* base.css's own default desktop pattern (img/patterns/128.png) is a
      colorful, noisy tile lifted from the System-7-era "After Dark" desktop
