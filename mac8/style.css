@@ -94,10 +94,14 @@ html, body {
 button,
 .desktop-icon,
 [role="menu-item"],
-.control-box-inner,
-.growbox {
+.control-box-inner {
   cursor: default;
 }
+/* .growbox is deliberately NOT in the list above -- unlike every other
+   control in this theme, a resize handle legitimately needs a real
+   nwse-resize affordance (see its own rule further down), not the
+   default-cursor house convention. Including it here would just be
+   dead CSS silently overridden by that later, more specific rule. */
 
 /* ---------- Menu bar ---------- */
 /* classic.css supplies no menu-bar component at all, so this whole block
@@ -273,8 +277,14 @@ button,
   z-index: 10;
   margin: 0;
   width: 20rem;
-  min-width: 14rem;
-  min-height: 7rem;
+  /* Raw px, matching app.js's own makeResizable(growbox, win, 224, 128)
+     call exactly -- these used to be 14rem/7rem (168px/84px at this
+     theme's 12px root), silently out of sync with the JS despite a
+     comment there claiming they matched. 84px in particular was too
+     short a floor for OQ!/DECON's own content (filter row + status +
+     table header alone), which is what the JS's 128 already assumed. */
+  min-width: 224px;
+  min-height: 128px;
   max-width: none;
   display: flex;
   flex-direction: column;

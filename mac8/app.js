@@ -145,7 +145,16 @@
     win.classList.add("closed");
     if (wasActive) {
       const next = windows.find((w) => w !== win && !w.classList.contains("closed"));
-      if (next) focus(next);
+      if (next) {
+        focus(next); // marks every other window (including this one) inactive
+      } else {
+        // No other window to hand focus to -- without this, this window's
+        // own bar would keep reading as "active" (no .inactive class)
+        // while hidden, and a later focus(win) reopening it would hit
+        // focus()'s own early-return guard ("already active") and skip
+        // the z-index bump.
+        bar.classList.add("inactive");
+      }
     }
   }
 
