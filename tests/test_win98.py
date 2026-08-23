@@ -865,3 +865,17 @@ def test_hot_dog_stand_recolors_scheme_select_field_and_options(page, base_url):
     option = page.query_selector("#scheme-select option[value='hotdog']")
     assert page.evaluate("el => getComputedStyle(el).backgroundColor", option) == "rgb(255, 0, 0)"
     assert page.evaluate("el => getComputedStyle(el).color", option) == "rgb(255, 255, 255)"
+
+    # Reported directly ("a gray box on the dropdown selector"): 98.css
+    # draws the select's bevel via box-shadow, not border, so the
+    # background-color override above left that grey/white inset frame
+    # untouched -- flattened to a plain red border, same treatment as
+    # .sunken-panel got earlier.
+    assert page.evaluate("el => getComputedStyle(el).borderColor", select) == "rgb(255, 0, 0)"
+    assert page.evaluate("el => getComputedStyle(el).boxShadow", select) == "none"
+
+    # 98.css's select:focus{background-color:navy;color:#fff} would
+    # otherwise flash the field navy the moment it's focused.
+    select.focus()
+    assert page.evaluate("el => getComputedStyle(el).backgroundColor", select) == "rgb(255, 255, 0)"
+    assert page.evaluate("el => getComputedStyle(el).color", select) == "rgb(0, 0, 0)"

@@ -824,3 +824,38 @@ body.hotdog-stand select option:hover {
   background-color: #ff0000;
   color: #ffffff;
 }
+
+/* Reported directly ("a gray box on the dropdown selector"): the select's
+   own bevel border is a box-shadow, not a border (98.css:
+   `select{box-shadow:inset -1px -1px #fff,inset 1px 1px grey,inset -2px
+   -2px #dfdfdf,inset 2px 2px #0a0a0a}`), so overriding background-color
+   alone left that grey/white 3D inset frame untouched around the yellow
+   field -- same shape of bug as the .sunken-panel border fixed earlier.
+   Flattened to a plain red border here, same treatment.
+
+   98.css also has `select:focus{background-color:navy;color:#fff}` and
+   `select:focus option{background-color:#fff;color:#000}`, which would
+   otherwise flash the field navy and reset the popup's options back to
+   white/black the moment the select is focused (e.g. right after Apply).
+   Both are pinned explicitly rather than relying on our select/option
+   rules above happening to out-specify them. */
+body.hotdog-stand select {
+  border: 2px solid #ff0000;
+  box-shadow: none;
+}
+
+body.hotdog-stand select:focus {
+  background-color: #ffff00;
+  color: #000000;
+}
+
+body.hotdog-stand select:focus option {
+  background-color: #ffff00;
+  color: #000000;
+}
+
+body.hotdog-stand select:focus option:checked,
+body.hotdog-stand select:focus option:hover {
+  background-color: #ff0000;
+  color: #ffffff;
+}
