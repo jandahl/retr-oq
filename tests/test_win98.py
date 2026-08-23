@@ -633,11 +633,12 @@ def test_hot_dog_stand_tints_backdrop_and_oq_filter_and_table(page, base_url):
     # OQ!'s own filter input and results table were initially left alone
     # as "a control's own explicit white background stays untouched" --
     # overruled on direct follow-up ("Now the white in the filter search
-    # and the lexeme list"), so those go yellow too now. The one thing
-    # that's still genuinely untouched is the results table's own
-    # .highlighted *selection* color (navy/white) -- a distinct, already-
-    # deliberate feature from before this scheme existed, not an
-    # oversight -- covered separately below.
+    # and the lexeme list"), so those go yellow too now. The selection
+    # highlight (98.css's own real navy/white) was initially left alone
+    # too, as a distinct pre-existing feature -- also overruled on direct
+    # follow-up ("Marine blue selection color is wrong"), now red/white
+    # like every other emphasis surface in this scheme; see
+    # test_hot_dog_stand_recolors_selection_highlight below.
     mock_dict_source(page)
     goto_win98(page, base_url)
     open_display_properties(page)
@@ -657,11 +658,28 @@ def test_hot_dog_stand_tints_backdrop_and_oq_filter_and_table(page, base_url):
     results_bg = page.evaluate("getComputedStyle(document.querySelector('.oq-results-panel table')).backgroundColor")
     assert results_bg == "rgb(255, 255, 0)"
 
-    # The selection color is untouched by any of the above.
+
+def test_hot_dog_stand_recolors_selection_highlight(page, base_url):
+    # Reported directly ("Marine blue selection color is wrong"): 98.css's
+    # own real selection color (table>tbody>tr.highlighted, navy/white)
+    # was the one accent still in the original Windows blue after
+    # everything else went red/yellow. Red now, reusing the same
+    # background/white-text pairing every other emphasis surface in this
+    # scheme already uses (title bar, taskbar, buttons), not a new third
+    # color introduced just for this state.
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-ok")
+    page.wait_for_timeout(100)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
+
     rows = page.query_selector_all("#oq-tbody tr")
     rows[0].click()
-    highlighted_bg = page.evaluate("el => getComputedStyle(el).backgroundColor", rows[0])
-    assert highlighted_bg == "rgb(0, 0, 128)"
+    assert page.evaluate("el => getComputedStyle(el).backgroundColor", rows[0]) == "rgb(255, 0, 0)"
+    assert page.evaluate("el => getComputedStyle(el).color", rows[0]) == "rgb(255, 255, 255)"
 
 
 def apply_hotdog_stand(page):

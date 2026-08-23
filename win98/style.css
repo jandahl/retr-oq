@@ -774,14 +774,23 @@ body.hotdog-stand ::-webkit-scrollbar-corner {
    background stays untouched" reasoning above -- overruled here
    specifically for these two, same yellow as every other backdrop/
    surface in this scheme. table>thead>tr>* (already red, from the
-   window-frame/table-header pass) and tr.highlighted (navy/white, the
-   theme's own real *selection* color, a distinct and already-deliberate
-   feature from before this scheme existed) are both unaffected --
-   selectors below only reach the table's own plain body background. */
+   window-frame/table-header pass) is unaffected -- these selectors only
+   reach the table's own plain body background. */
 body.hotdog-stand input[type="text"],
 body.hotdog-stand input[type="search"],
 body.hotdog-stand select,
 body.hotdog-stand .sunken-panel,
 body.hotdog-stand table {
   background-color: #ffff00;
+}
+
+/* The selection color (98.css's own real navy/white, table>tbody>
+   tr.highlighted) was the one accent left in the original Windows blue
+   after everything else went red/yellow -- reported directly ("Marine
+   blue selection color is wrong"). Red/white instead, reusing the same
+   pairing every other emphasis surface in this scheme already uses
+   (title bar, taskbar, buttons) rather than introducing a third color
+   just for this one state. */
+body.hotdog-stand tr.highlighted {
+  background-color: #ff0000;
 }
