@@ -284,12 +284,15 @@ button,
 .mac8-title-bar {
   position: relative;
   touch-action: none; /* without this, touch-dragging the title bar is unreliable */
-  /* 1.35rem, not 1.15rem -- at 1.15rem the bar was actually shorter than
-     .title's own natural text height (13.8px bar vs. ~15.5px of text),
-     so the title block visibly overflowed the bar's top and bottom
-     edges, which is what read as an unrelated floating overlay rather
-     than content sitting inside the bar. */
-  height: 1.35rem;
+  /* 19px, a real fixed px value like base.css's own control-box geometry
+     uses, not rem -- close/zoom boxes are 14px tall and now sit only
+     1px from the top (see .close-box/.zoom-box below), so their bottom
+     edge lands at 15px; 19px total (18px usable content height, after
+     the 1px border-bottom eats into the border-box) leaves a real 3px
+     of clearance before the border, not the ~0.2px an earlier version
+     of this bar left (14px box, top: 2px, in a 13.8px-tall bar --
+     mathematically already crossing into the border by a hair). */
+  height: 19px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -314,18 +317,19 @@ button,
    edges both land 1px left of ::before's -- exposing that 1px of grey
    at both ends of every row, not just one side.
 
-   left: 18px / right: 34px, not a uniform small inset -- these are the
-   real, fixed geometry of base.css's own control boxes (.close-box
-   sits at left: 4px and is 14px wide, so its own right edge is always
-   at 18px regardless of window width; .zoom-box sits at right: 20px
-   and is 14px wide, so its left edge is always 34px from the bar's own
-   right edge). Both are raw px in base.css, not rem, so they don't
-   scale with this theme's own font-size and stay exactly these values
-   at any window width. A small uniform inset (the previous version
-   used 2px) left the pinstripes visible in the margin PAST each
-   button, out to the window's own corners -- wrong; real Mac OS 8.1
-   pinstripes fill only the gap between the buttons and the title, not
-   past them. .title itself (below, z-index: 1, opaque white/grey
+   left: 15px / right: 15px, not a uniform small inset -- these are the
+   real, fixed geometry of the control boxes below, now that both
+   close-box and zoom-box sit snug at top: 1px / (left|right): 1px:
+   close-box's own right edge is always at 1+14=15px regardless of
+   window width; zoom-box's left edge is always 15px from the bar's own
+   right edge, by the same math mirrored. Both are raw px, not rem, so
+   they don't scale with this theme's own font-size and stay exactly
+   these values at any window width. A small uniform inset (an earlier
+   version of this file used 2px, against control boxes that weren't
+   snug to the corners yet) left the pinstripes visible in the margin
+   PAST each button, out to the window's own corners -- wrong; real Mac
+   OS 8.1 pinstripes fill only the gap between the buttons and the
+   title, not past them. .title itself (below, z-index: 1, opaque
    background) sits on top of the center of this same fill and covers
    it, which is what actually produces the visible "close -- stripes --
    title -- stripes -- zoom" look, not two separately positioned
@@ -336,8 +340,8 @@ button,
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 18px;
-  right: 34px;
+  left: 15px;
+  right: 15px;
   z-index: 0;
 }
 .mac8-title-bar:not(.inactive)::before {
@@ -367,7 +371,23 @@ button,
 .mac8-title-bar .title {
   position: relative;
   z-index: 1;
-  background: #ffffff;
+  /* The real window body grey (--mac8-grey), not white -- a real Mac OS
+     8.1 title bar's text sits on the same flat grey as the rest of the
+     window, distinct only from the darker pinstripe grey around it,
+     never on a separate white patch. */
+  background: var(--mac8-grey);
+  /* Real Mac OS 8 system font for window chrome is Charcoal (a clean
+     sans-serif), not Chicago/ChicagoFLF -- Chicago stayed the Apple
+     menu's own font but was replaced everywhere else, including window
+     titles, starting with Mac OS 8. Real Charcoal is a proprietary
+     Apple font this repo can't vendor (same situation as Apple Garamond
+     on the desktop background above); the stack below tries it, then
+     falls back to real sans-serif system fonts rather than
+     base.css/html's own body font-family, which chains to serif faces
+     (Times New Roman/Georgia) if ChicagoFLF fails to load -- wrong for
+     either Chicago or Charcoal, both sans. */
+  font-family: "Charcoal", Geneva, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: bold;
   padding: 0 0.4rem;
   /* width: auto, not base.css's own un-overridden width: 100% -- the
      close/zoom control boxes are position: absolute (removed from
@@ -379,13 +399,16 @@ button,
      just far wider than its own text. */
   width: auto;
   min-width: 0;
-  max-width: calc(100% - 52px); /* 18px (close box clearance) + 34px (zoom box clearance), same values ::before/::after use above */
-  /* Matches .mac8-title-bar's own 1.35rem height exactly, so .title's
-     box no longer overflows the bar's top/bottom edges -- the other
-     half of the "overlay" look, see .mac8-title-bar's own comment on
-     why 1.35rem replaced 1.15rem. */
-  height: 1.35rem;
-  line-height: 1.35rem;
+  max-width: calc(100% - 30px); /* 15px clearance on each side, same values ::before/::after use above */
+  /* Deliberately less than .mac8-title-bar's own 19px/18px-usable
+     height, with .mac8-title-bar's own flex align-items: center doing
+     the vertical centering -- a height/line-height exactly matching
+     the bar's own was what caused the original overflow bug (font
+     metrics changing, e.g. from this same font-family swap, would
+     silently reintroduce it if the two heights had to stay in exact
+     lockstep). 15px comfortably clears both the border and the top. */
+  height: 15px;
+  line-height: 15px;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -413,11 +436,21 @@ button,
    it visually crowds the corner where a real Mac OS 8.1 zoom box never
    sat. Removed that override; zoom-box now uses base.css's own real
    default position. */
+/* Both snug at top: 1px / (left|right): 1px, not base.css's own
+   top: 3px / left: 4px / right: 20px -- "pixel perfect snug at the top
+   left and top right corners" means as close to the window's own 1px
+   frame as a 1px margin allows, not floating several px in. This also
+   directly fixes the near-zero clearance bug .mac8-title-bar's own
+   height: 19px comment explains: a 14px-tall box at top: 1px now ends
+   at 15px, with 3px of real room before the bar's 1px border, instead
+   of the ~0.2px an earlier top: 2px in a 13.8px-tall bar left. */
 .mac8-window .close-box.control-box {
-  top: 2px;
+  top: 1px;
+  left: 1px;
 }
 .mac8-window .zoom-box.control-box {
-  top: 2px;
+  top: 1px;
+  right: 1px;
 }
 
 /* base.css's own .zoom-box-inner is a single L-shaped corner bracket
@@ -596,15 +629,6 @@ button,
 .mac8-dialog.content {
   position: static;
   width: 18rem;
-}
-.mac8-dialog .mac8-title-bar {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    #ffffff 0,
-    #ffffff 1px,
-    #b8b8b8 1px,
-    #b8b8b8 2px
-  );
 }
 .mac8-dialog .inner p {
   padding: 0 0.5rem;
