@@ -625,40 +625,38 @@ body {
    Appearance > Scheme), reachable via the desktop's right-click
    Properties item or the Settings window's Display applet -- see either
    markup's own comment for why the scheme choice itself isn't listed
-   anywhere more obvious than that dialog. Checked against a real
-   screenshot, not guessed: the desktop itself is yellow, not red -- only
-   title bars (and, by the same logic, this theme's own taskbar) go red
-   with white text. A dialog's own *interactive controls* -- an edit
-   field, a table, a dropdown -- stay completely untouched, normal
-   white, in that same reference; those already carry their own explicit
-   white background from 98.css regardless of this scheme, so they're
-   naturally unaffected by anything below.
+   anywhere more obvious than that dialog.
 
-   The *backdrop* behind those controls -- a window/dialog's plain empty
-   space, static paragraph text -- is a separate case from either of the
-   above, and has flip-flopped in this scheme's own history: an early
-   version colored it red, which bled under text with no background of
-   its own and made it unreadable ("white bg color seems wrong"); the fix
-   for that left it completely untouched (plain silver), which then read
-   as an unfinished, half-recolored window ("lots of gray in the apps").
-   Yellow (like the desktop) splits the difference deliberately: same
-   black-on-yellow contrast as the desktop's own icon labels, so static
-   text stays legible while the backdrop still actually participates in
-   the scheme instead of sitting out untouched.
-
-   The Start button and each taskbar window button are recolored too, on
-   top of all that, even though they're technically "buttons" like the
-   ones left alone above: unlike those, they sit directly embedded in the
-   red taskbar itself, not on a neutral window body, so leaving them
-   their default silver reads as a bug (an unrecolored patch) rather than
-   a deliberate restraint -- reported exactly that way ("not all surfaces
-   recolor well"). Deliberately still not chasing every other 98.css-
-   baked color (button bevels elsewhere, scrollbars, the title-bar-
-   control icons) -- some are baked into the vendored dist build as
-   literal hex with no custom property to hook, and it's a joke, not a
-   full reskin. */
+   This block's own scope has moved twice already, each time chasing a
+   real report against a real screenshot: an early version colored the
+   window/dialog backdrop red with no explicit background on its own text,
+   which bled through and made it unreadable ("white bg color seems
+   wrong"); the fix for that swung to leaving every surface but the
+   desktop/title-bar/taskbar completely untouched, which then read as
+   unfinished ("lots of gray in the apps"). This version is a real full
+   reskin instead of another incremental patch: every surface 98.css or
+   this file's own CSS can reach gets recolored, red or yellow, with only
+   two things left alone on purpose --
+     1. a control's own explicit white background (an edit field, a
+        table, a dropdown's own field) -- unaffected by any rule below
+        by construction, since white is painted on top of whatever
+        backdrop sits behind it, not overridden;
+     2. 98.css's black-line icon glyphs baked into the vendored dist
+        build as literal `data:` URIs (title-bar minimize/maximize/close,
+        the select-arrow, checkbox/radio marks) -- there's no color to
+        hook there without forking the vendored file itself, and black
+        reads fine against both red and yellow anyway.
+   Red vs. yellow follows one rule throughout: title bars, the taskbar,
+   and every window/dialog's own outer frame are red (the "chrome" layer);
+   the desktop and every window/dialog's inner backdrop are yellow (the
+   "surface" layer) -- two tones, consistently applied, rather than an
+   arbitrary mix. */
 body.hotdog-stand .desktop {
   background: #ffff00;
+}
+
+body.hotdog-stand .window {
+  background: #ff0000;
 }
 
 body.hotdog-stand .win98-window-body {
@@ -695,4 +693,77 @@ body.hotdog-stand .title-bar {
 
 body.hotdog-stand .title-bar-text {
   color: #ffffff;
+}
+
+/* Title-bar minimize/maximize/close and every plain dialog button (Shut
+   Down's OK, Display Properties' OK/Cancel/Apply). :not() exclusions for
+   .desktop-icon/.control-panel-icon, not just relying on their own class
+   rule's specificity to win -- `body.hotdog-stand button` actually OUT-
+   specifies a lone `.desktop-icon` class selector (0,1,2 beats 0,1,0:
+   one class either way, but this selector also matches two type
+   selectors), so without excluding them explicitly here this repainted a
+   red box behind every desktop icon, exactly the "still a button
+   rectangle" bug fixed once already. */
+body.hotdog-stand button:not(.desktop-icon):not(.control-panel-icon) {
+  background-color: #ff0000;
+}
+
+body.hotdog-stand .win98-dialog-actions button {
+  /* 98.css renders button text via color:transparent + a text-shadow
+     "shadow" standing in for real text color (a pixel-font rendering
+     trick) -- overriding text-shadow, not color, is what actually changes
+     what's visible. The title-bar-control buttons have no text of their
+     own, so they don't need this. */
+  text-shadow: 0 0 #ffffff;
+}
+
+body.hotdog-stand table > thead > tr > * {
+  background: #ff0000;
+  color: #ffffff;
+}
+
+body.hotdog-stand .sunken-panel {
+  /* .sunken-panel's own inset bevel is a border-image (a baked grey/
+     white/black pixel SVG from 98.css) -- swapping its colors would need
+     a whole new SVG asset; a flat border reads close enough at this
+     size and keeps the panel visually boxed instead of being the one
+     conspicuously ungrouped white rectangle left. */
+  border: 2px solid #ff0000;
+  border-image: none;
+}
+
+body.hotdog-stand .start-menu {
+  background: #ff0000;
+}
+
+body.hotdog-stand .start-menu-item {
+  color: #ffffff;
+}
+
+body.hotdog-stand .start-menu-item--disabled {
+  color: #c0c0c0; /* dimmed relative to the enabled white above, same relationship 98.css's own grey-on-silver disabled state has */
+}
+
+body.hotdog-stand .start-menu-divider {
+  box-shadow: inset 0 -1px #000000, inset 0 1px #ffff00;
+}
+
+/* The real 98.css scrollbar is a baked grey bevel (SVG border-image /
+   background-image `data:` URIs) with no color to hook -- flat colors
+   here instead of trying to recreate that bevel's exact pixels in red/
+   yellow, which would need forking the vendored file for a part of the
+   UI a visitor mostly never stops to look at closely. */
+body.hotdog-stand ::-webkit-scrollbar-thumb {
+  background-color: #ff0000;
+  background-image: none;
+  box-shadow: none;
+}
+
+body.hotdog-stand ::-webkit-scrollbar-track {
+  background-color: #ffff00;
+  background-image: none;
+}
+
+body.hotdog-stand ::-webkit-scrollbar-corner {
+  background-color: #ffff00;
 }

@@ -652,6 +652,83 @@ def test_hot_dog_stand_tints_backdrop_but_not_interactive_controls(page, base_ur
     assert results_bg == "rgb(255, 255, 255)"
 
 
+def apply_hotdog_stand(page):
+    page.click("#desktop", button="right", position={"x": 700, "y": 400})
+    page.click("#desktop-context-properties")
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-ok")
+    page.wait_for_timeout(100)
+
+
+def test_hot_dog_stand_recolors_window_frame_and_table_header(page, base_url):
+    # Full-reskin follow-up ("Still missing... lots of gray in the apps"
+    # -> asked to chase down every remaining gray surface): the window's
+    # own outer frame (98.css's shared .window class) and a table's own
+    # header row both stayed plain silver even after the backdrop/taskbar
+    # rounds above.
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    apply_hotdog_stand(page)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
+    assert page.evaluate("getComputedStyle(document.querySelector('#win-oq')).backgroundColor") == "rgb(255, 0, 0)"
+    header_bg = page.evaluate("getComputedStyle(document.querySelector('#oq-table thead th')).backgroundColor")
+    assert header_bg == "rgb(255, 0, 0)"
+
+
+def test_hot_dog_stand_recolors_dialog_buttons_and_start_menu(page, base_url):
+    goto_win98(page, base_url)
+    apply_hotdog_stand(page)
+    # Shut Down's OK / Display Properties' OK-Cancel-Apply -- plain 98.css
+    # buttons inside a dialog, previously left silver on the reasoning
+    # that a real screenshot showed a customize dialog's OWN buttons
+    # staying untouched; superseded once a full reskin was explicitly
+    # asked for instead.
+    page.click("#start-button")
+    page.click("#start-menu-shutdown")
+    page.wait_for_timeout(100)
+    assert page.evaluate("getComputedStyle(document.querySelector('#shutdown-ok')).backgroundColor") == "rgb(255, 0, 0)"
+
+    # The Shut Down dialog has no cancel/close button of its own (only OK,
+    # which navigates away) -- reload rather than fight that to get back
+    # to a clean state for the next check.
+    page.reload()
+    page.wait_for_timeout(300)
+
+    # The Start menu itself (and the desktop's own right-click context
+    # menu, which reuses the same .start-menu class) stayed plain silver
+    # too.
+    page.click("#start-button")
+    page.wait_for_timeout(100)
+    assert page.evaluate("getComputedStyle(document.querySelector('#start-menu')).backgroundColor") == "rgb(255, 0, 0)"
+    assert (
+        page.evaluate("getComputedStyle(document.querySelector('.start-menu-item')).color") == "rgb(255, 255, 255)"
+    )
+
+
+def test_hot_dog_stand_does_not_repaint_desktop_or_control_panel_icons(page, base_url):
+    # Regression test: the blanket `body.hotdog-stand button` rule added
+    # to reach title-bar-controls and dialog buttons actually OUT-
+    # specifies a lone `.desktop-icon`/`.control-panel-icon` class
+    # selector (a selector combining two type selectors plus a class beats
+    # one class alone, component-by-component, regardless of "class beats
+    # element" intuition for a single pair) -- without explicit :not()
+    # exclusions this repainted a solid red box behind every desktop icon,
+    # exactly the "still a button rectangle" bug fixed once already.
+    goto_win98(page, base_url)
+    apply_hotdog_stand(page)
+    icon_bg = page.evaluate("getComputedStyle(document.querySelector('.desktop-icon')).backgroundColor")
+    assert icon_bg in ("rgba(0, 0, 0, 0)", "transparent")
+
+    page.click("#start-button")
+    page.click(".start-menu-item[data-open='win-settings']")
+    page.wait_for_timeout(150)
+    cp_icon_bg = page.evaluate(
+        "getComputedStyle(document.querySelector('#settings-display-icon')).backgroundColor"
+    )
+    assert cp_icon_bg in ("rgba(0, 0, 0, 0)", "transparent")
+
+
 # ---------- Settings window (the touch-reachable path to Display Properties) ----------
 
 
