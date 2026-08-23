@@ -353,5 +353,15 @@
     window.visualViewport.addEventListener("resize", syncAppHeight);
     window.visualViewport.addEventListener("scroll", syncAppHeight);
   }
+  // Belt-and-suspenders beyond visualViewport's own events: orientation
+  // changes and bfcache restores (Safari in particular re-shows a page from
+  // cache on back/forward without necessarily firing a visualViewport
+  // resize first) have been seen to leave --app-height/--app-top stale
+  // from before the navigation. Re-syncing on these too costs nothing (the
+  // property is a no-op set if nothing actually changed) and closes that
+  // gap instead of leaving the screen sized to a viewport it's not in
+  // anymore.
+  window.addEventListener("orientationchange", syncAppHeight);
+  window.addEventListener("pageshow", syncAppHeight);
   syncAppHeight();
 })();

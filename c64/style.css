@@ -88,8 +88,15 @@ html, body {
      CLAUDE.md) for the same reason -- #c64-dir's `overflow: auto` handles
      it the same way. What this range is tuned against is DICT.EXE's
      results table instead, which reflows (wraps) rather than scrolling,
-     so it actually needs a legible size, not just a fitting one. */
-  --c64-font-size: clamp(13px, 3.4vw, 20px);
+     so it actually needs a legible size, not just a fitting one.
+
+     Lowered again (13-20px -> 11-18px, 3.4vw -> 3vw coefficient) after
+     real-device feedback that the first pass still read too large on an
+     actual phone, not just a simulated narrow viewport -- this font's
+     bold, full-block glyphs read bigger per-pixel than a typical text
+     font at the same font-size, so the fitting math alone undersold how
+     large it'd actually look. */
+  --c64-font-size: clamp(11px, 3vw, 18px);
 }
 
 /* The real C64 16-color palette, in BASIC's own POKE 646/53280/53281 color
@@ -124,7 +131,14 @@ html, body {
   top: var(--app-top, 0); /* same visualViewport-tracking reasoning as dos/style.css's .dos-dir */
   left: 0;
   right: 0;
-  height: var(--app-height, 100vh);
+  /* 100dvh, not 100vh -- the dynamic-viewport-height unit already tracks
+     the browser chrome (address bar, etc.) that visualViewport.height
+     otherwise has to correct for in JS. Still just a fallback: JS's own
+     --app-height (app.js's syncAppHeight) is the real answer once it's
+     run, since dvh alone doesn't cover a mobile keyboard opening, but this
+     means the box is sized close to correctly on first paint too, not
+     only after the first resize/scroll event fires. */
+  height: var(--app-height, 100dvh);
   overflow: auto;
   padding: 1em;
   /* box-sizing: border-box below makes this border sit INSIDE the box
@@ -205,7 +219,7 @@ html, body {
   top: var(--app-top, 0);
   left: 0;
   right: 0;
-  height: var(--app-height, 100vh);
+  height: var(--app-height, 100dvh);
   border: var(--c64-border) solid var(--c64-lightblue); /* same reasoning as .c64-screen's own border */
   box-sizing: border-box;
   z-index: 100;
@@ -333,7 +347,7 @@ html, body {
   top: var(--app-top, 0);
   left: 0;
   right: 0;
-  height: var(--app-height, 100vh);
+  height: var(--app-height, 100dvh);
   z-index: 200;
 }
 .c64-loading[hidden] {
