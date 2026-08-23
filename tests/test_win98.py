@@ -841,3 +841,27 @@ def test_cancel_reverts_scheme_without_persisting(page, base_url):
     page.reload()
     page.wait_for_timeout(300)
     assert "hotdog-stand" not in (page.get_attribute("body", "class") or "")
+
+
+def test_hot_dog_stand_recolors_scheme_select_field_and_options(page, base_url):
+    # Reported directly ("Display properties drop down"): the Scheme
+    # <select>'s field background was already themed yellow, but its
+    # closed-field text color and its own <option>s were untouched --
+    # Chromium reflects the (unstylable) native blue-highlight text back
+    # onto the closed field while the popup is open unless the select has
+    # its own explicit color, and the option list itself was still plain
+    # white/black. Both are pinned explicitly now.
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-apply")
+    page.wait_for_timeout(100)
+
+    select = page.query_selector("#scheme-select")
+    assert page.evaluate("el => getComputedStyle(el).backgroundColor", select) == "rgb(255, 255, 0)"
+    assert page.evaluate("el => getComputedStyle(el).color", select) == "rgb(0, 0, 0)"
+
+    option = page.query_selector("#scheme-select option[value='hotdog']")
+    assert page.evaluate("el => getComputedStyle(el).backgroundColor", option) == "rgb(255, 0, 0)"
+    assert page.evaluate("el => getComputedStyle(el).color", option) == "rgb(255, 255, 255)"

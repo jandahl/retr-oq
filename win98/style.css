@@ -784,6 +784,15 @@ body.hotdog-stand table {
   background-color: #ffff00;
 }
 
+/* Without an explicit color here, Chromium repaints the closed <select>'s
+   displayed value using the popup's currently-highlighted <option>'s
+   native (unstylable) blue-highlight text color while the popup is open,
+   even though the option list itself is themed below -- pin it to black
+   so the field's own text stays legible in both states. */
+body.hotdog-stand select {
+  color: #000000;
+}
+
 /* The selection color (98.css's own real navy/white, table>tbody>
    tr.highlighted) was the one accent left in the original Windows blue
    after everything else went red/yellow -- reported directly ("Marine
@@ -793,4 +802,25 @@ body.hotdog-stand table {
    just for this one state. */
 body.hotdog-stand tr.highlighted {
   background-color: #ff0000;
+}
+
+/* Reported directly ("Display properties drop down"): the Scheme
+   <select>'s own field was already yellow (see the input/table rule
+   above), but its native option-list popup is a separate, browser-drawn
+   surface that CSS on the <select> itself doesn't reach -- it was still
+   plain white with Windows-blue :checked highlighting, and Chromium also
+   reflects that same blue/white pairing back onto the closed field's text
+   color while the popup is open. Styling the <option>s directly (Chromium
+   honors background-color/color there, unlike most native popup chrome)
+   fixes both: the popup goes yellow/red to match, and the closed field's
+   text stops flashing white-on-yellow. */
+body.hotdog-stand select option {
+  background-color: #ffff00;
+  color: #000000;
+}
+
+body.hotdog-stand select option:checked,
+body.hotdog-stand select option:hover {
+  background-color: #ff0000;
+  color: #ffffff;
 }
