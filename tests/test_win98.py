@@ -862,9 +862,14 @@ def test_hot_dog_stand_recolors_scheme_select_field_and_options(page, base_url):
     assert page.evaluate("el => getComputedStyle(el).backgroundColor", select) == "rgb(255, 255, 0)"
     assert page.evaluate("el => getComputedStyle(el).color", select) == "rgb(0, 0, 0)"
 
+    # :checked alone is deliberately plain yellow, not red -- red is the
+    # actively-highlighted state, not "this is the current selection", so
+    # the previously-selected row gives up the highlight the instant
+    # something else is hovered (reported directly: "the previously
+    # active/selected item should lose the focus color").
     option = page.query_selector("#scheme-select option[value='hotdog']")
-    assert page.evaluate("el => getComputedStyle(el).backgroundColor", option) == "rgb(255, 0, 0)"
-    assert page.evaluate("el => getComputedStyle(el).color", option) == "rgb(255, 255, 255)"
+    assert page.evaluate("el => getComputedStyle(el).backgroundColor", option) == "rgb(255, 255, 0)"
+    assert page.evaluate("el => getComputedStyle(el).color", option) == "rgb(0, 0, 0)"
 
     # Reported directly ("a gray box on the dropdown selector"): 98.css
     # draws the select's bevel via box-shadow, not border, so the

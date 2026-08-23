@@ -819,7 +819,13 @@ body.hotdog-stand select option {
   color: #000000;
 }
 
-body.hotdog-stand select option:checked,
+/* :checked alone (not also :hover) deliberately isn't red here -- red is
+   the "actively highlighted" state, and the previously-selected row
+   should give that up the moment the mouse/keyboard moves to a different
+   row, the same way it did before this scheme touched anything. Only
+   :hover carries the highlight color; :checked keeps the plain
+   yellow/black row style above and relies on the browser's own checkmark
+   to show which option is selected. */
 body.hotdog-stand select option:hover {
   background-color: #ff0000;
   color: #ffffff;
@@ -868,7 +874,6 @@ body.hotdog-stand select:focus option {
   color: #000000;
 }
 
-body.hotdog-stand select:focus option:checked,
 body.hotdog-stand select:focus option:hover {
   background-color: #ff0000;
   color: #ffffff;
