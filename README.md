@@ -142,12 +142,44 @@ looks like today.
   with soft glowing abstract swirl shapes — not a copy of the actual
   Microsoft-licensed artwork, same precedent `xp/`'s own Bliss evocation
   set for its wallpaper.
+- **`mac8/`** — a Mac OS 8.1 (Platinum) desktop. Mac-lineage, not part of
+  the "Redmond" family `win98/`/`xp/`/`win7/` share
+  (`shared/redmond/window-manager.js`): a top menu bar instead of a
+  taskbar, a single close box and zoom box in the title bar's corners
+  instead of min/max/close buttons, and its own from-scratch drag/resize/
+  focus/menu-bar logic in `mac8/app.js`, adapted in spirit from
+  `mac1984/app.js`'s own approach rather than sharing code with it (same
+  explicit "don't touch or share code with `mac1984/`'s own bespoke
+  window logic" rule this repo already applies to that theme). Built on
+  the real [`npjg/classic.css`](https://github.com/npjg/classic.css)
+  (MIT, vendored at `vendor/mac8/base.css` plus its `fonts/` — the real
+  public-domain ChicagoFLF TrueType font — and `img/` — the desktop
+  stipple pattern and a bomb icon). classic.css itself ships only a
+  single fixed-size window primitive (`.content`/`.inner`/`.title`/
+  `.control-box`/`.command_button`) and the desktop background pattern —
+  no menu bar, no desktop icons, no floating/resizable windows, so all of
+  those are this theme's own CSS on top, the same "override the box
+  model, keep the vendored surface" split `mac1984/style.css` makes
+  against its own framework. Windows resize from a single bottom-right
+  growbox only, not the omnidirectional edge handles `win98/`/`xp/`/
+  `win7/` share — the real Mac OS 8.1 Finder never offered edge-drag
+  resizing, only that one striped corner box — and the zoom box toggles
+  between the window's current dragged/resized rect and one filling the
+  desktop, restoring the exact prior rect on a second click (the real
+  classic zoom-box behavior, not a fixed "maximized" size). Desktop icons
+  (Macintosh HD, OQ!, DECON, About This Computer, Trash) are hand-drawn
+  inline SVGs rather than reused Windows-theme shapes — Mac OS 8.1's own
+  icon language is more colorful/detailed than Windows 9x's flat glyphs,
+  and only five icons were needed here. OQ!/DECON reuse
+  `shared/router.js`/`shared/dict-source.js`/`shared/hyphenation.js`/
+  `shared/decon-app.js` exactly as every other theme does, with the same
+  `?screen=oq&filter=...`/`?screen=decon&word=...&order=...` URL scheme.
 
 ## Prospective themes
 
 Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`),
-**Commodore 64** (`c64/`), **Windows 98** (`win98/`), and **Windows 7**
-(`win7/`), all above.
+**Commodore 64** (`c64/`), **Windows 98** (`win98/`), **Windows 7**
+(`win7/`), and **Mac OS 8.1** (`mac8/`), all above.
 `c64/` is a deliberate exception to
 the "vendor a real framework" pattern the other two follow: the candidate
 named below (`bootstrap-c64`) ships no `LICENSE` file at all, which fails
@@ -224,7 +256,6 @@ vendoring time since none of these have been vendored yet:
 | Theme | Framework | License (unverified until vendored) |
 | --- | --- | --- |
 | Windows XP | [`XP.css`](https://github.com/botoxparty/XP.css) | MIT |
-| Mac OS 8.1 | [`classic.css`](https://github.com/npjg/classic.css) | check upstream |
 | NES | [`NES.css`](https://github.com/nostalgic-css/NES.css) | MIT |
 | Modern macOS | [`Puppertino`](https://github.com/brayanjeshua/Puppertino) | check upstream |
 | Norton Commander | *no drop-in CSS framework found* — closest is [`victorantos/NC`](https://github.com/victorantos/NC), a full JS file-manager clone, not a CSS library. Would likely need to be hand-built from the 8x16 DOS box-drawing look, closer to how `mac1984/`'s desktop icons/menu bar were added on top of `@sakun/system.css`. |
@@ -237,8 +268,11 @@ its own license file from its actual upstream project (third-party code,
 kept separate on purpose) — `vendor/mac1984/LICENSE.txt` is
 `@sakun/system.css`'s own MIT license, copied verbatim, and
 `vendor/win98/LICENSE` is `jdan/98.css`'s own MIT license, likewise
-copied verbatim, and `vendor/win7/LICENSE` is `khang-nd/7.css`'s own MIT
-license, also copied verbatim.
+copied verbatim, `vendor/win7/LICENSE` is `khang-nd/7.css`'s own MIT
+license, also copied verbatim, and `vendor/mac8/LICENSE` is
+`npjg/classic.css`'s own MIT license, likewise copied verbatim (confirmed
+via its actual GitHub `LICENSE` file, resolving the "check upstream" this
+README carried for it before it was vendored).
 
 `shared/hyphenation.js` is the one file in this repo under a different
 license than the rest of its own code: MPL-2.0, not MIT. To be precise

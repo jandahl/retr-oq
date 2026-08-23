@@ -1,0 +1,10 @@
+{
+  "_comment": "A small, hand-picked set of real Kalaallisut/English pairs for local dev/QA screenshots -- NOT the real ~5.75MB Oqaasileriffik dictionary shared/dict-source.js fetches at runtime. Shaped exactly like that fetch's own expected response ({dictionary_entries: [{lexeme, gloss_en}, ...]}) so it drops straight into a Playwright route mock or a manual `python3 -m http.server` + browser fetch override with zero reshaping -- see shared/dict-source.js's validateShape(). First appeared as an inline fixture in tests/test_win98.py (illu/nuna/qajaq); qimmeq and ataaseq were added here when mac8/ needed a couple more entries for its own verification screenshots. Add to this list rather than inventing a separate one-off fixture elsewhere.",
+  "dictionary_entries": [
+    { "lexeme": "illu", "gloss_en": "house" },
+    { "lexeme": "nuna", "gloss_en": "land" },
+    { "lexeme": "qajaq", "gloss_en": "kayak" },
+    { "lexeme": "qimmeq", "gloss_en": "dog" },
+    { "lexeme": "ataaseq", "gloss_en": "one" }
+  ]
+}
