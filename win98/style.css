@@ -621,25 +621,70 @@ body {
 }
 
 /* ---------- Hot Dog Stand (hidden color scheme) ----------
-   A real built-in Windows color scheme (Display Properties > Appearance >
-   Scheme), reachable via the desktop's right-click Properties item or the
-   Settings window's Display applet -- see either markup's own comment for
-   why the scheme choice itself isn't listed anywhere more obvious than
-   that dialog.
+   A real built-in Windows 98 color scheme (Display Properties >
+   Appearance > Scheme), reachable via the desktop's right-click
+   Properties item or the Settings window's Display applet -- see either
+   markup's own comment for why the scheme choice itself isn't listed
+   anywhere more obvious than that dialog.
 
-   This block's scope has moved several times, each chasing a real report
-   against a real screenshot -- first too little (bare title bar/taskbar),
-   then swinging to a full reskin of every reachable surface (buttons,
-   inputs, selects, tables, scrollbars, selection highlight...), which
-   turned out to not be what the real scheme does at all: a real
-   screenshot of the genuine Windows Hot Dog Stand scheme, side by side
-   with this theme's over-reskinned version, showed only the desktop and
-   the active title bar are actually red/yellow in the original -- every
-   control (buttons, dropdowns, list boxes, scrollbars) stays plain
-   Windows grey. Scoped back down to match that reference exactly: two
-   rules, not a whole file section. */
+   This block's own scope has moved twice already, each time chasing a
+   real report against a real screenshot: an early version colored the
+   window/dialog backdrop red with no explicit background on its own text,
+   which bled through and made it unreadable ("white bg color seems
+   wrong"); the fix for that swung to leaving every surface but the
+   desktop/title-bar/taskbar completely untouched, which then read as
+   unfinished ("lots of gray in the apps"). This version is a real full
+   reskin instead of another incremental patch: every surface 98.css or
+   this file's own CSS can reach gets recolored, red or yellow, with only
+   two things left alone on purpose --
+     1. a control's own explicit white background (an edit field, a
+        table, a dropdown's own field) -- unaffected by any rule below
+        by construction, since white is painted on top of whatever
+        backdrop sits behind it, not overridden;
+     2. 98.css's black-line icon glyphs baked into the vendored dist
+        build as literal `data:` URIs (title-bar minimize/maximize/close,
+        the select-arrow, checkbox/radio marks) -- there's no color to
+        hook there without forking the vendored file itself, and black
+        reads fine against both red and yellow anyway.
+   Red vs. yellow follows one rule throughout: title bars, the taskbar,
+   and every window/dialog's own outer frame are red (the "chrome" layer);
+   the desktop and every window/dialog's inner backdrop are yellow (the
+   "surface" layer) -- two tones, consistently applied, rather than an
+   arbitrary mix. */
 body.hotdog-stand .desktop {
   background: #ffff00;
+}
+
+body.hotdog-stand .window {
+  background: #ff0000;
+}
+
+body.hotdog-stand .win98-window-body {
+  background: #ffff00;
+}
+
+body.hotdog-stand .taskbar {
+  background: #ff0000;
+  box-shadow: inset 0 1px #ffff00;
+}
+
+body.hotdog-stand .taskbar-separator {
+  box-shadow: inset -1px 0 #ffff00, inset 1px 0 #000000;
+}
+
+body.hotdog-stand .taskbar-tray {
+  background: #ff0000;
+}
+
+body.hotdog-stand .taskbar-clock,
+body.hotdog-stand .taskbar-window-label,
+body.hotdog-stand .start-button-label {
+  color: #ffffff;
+}
+
+body.hotdog-stand .start-button,
+body.hotdog-stand .taskbar-window-button {
+  background: #ff0000;
 }
 
 body.hotdog-stand .title-bar {
@@ -648,4 +693,213 @@ body.hotdog-stand .title-bar {
 
 body.hotdog-stand .title-bar-text {
   color: #ffffff;
+}
+
+/* Title-bar minimize/maximize/close and every plain dialog button (Shut
+   Down's OK, Display Properties' OK/Cancel/Apply). :not() exclusions for
+   .desktop-icon/.control-panel-icon, not just relying on their own class
+   rule's specificity to win -- `body.hotdog-stand button` actually OUT-
+   specifies a lone `.desktop-icon` class selector (0,1,2 beats 0,1,0:
+   one class either way, but this selector also matches two type
+   selectors), so without excluding them explicitly here this repainted a
+   red box behind every desktop icon, exactly the "still a button
+   rectangle" bug fixed once already. */
+body.hotdog-stand button:not(.desktop-icon):not(.control-panel-icon) {
+  background-color: #ff0000;
+}
+
+body.hotdog-stand .win98-dialog-actions button {
+  /* 98.css renders button text via color:transparent + a text-shadow
+     "shadow" standing in for real text color (a pixel-font rendering
+     trick) -- overriding text-shadow, not color, is what actually changes
+     what's visible. The title-bar-control buttons have no text of their
+     own, so they don't need this. */
+  text-shadow: 0 0 #ffffff;
+}
+
+body.hotdog-stand table > thead > tr > * {
+  background: #ff0000;
+  color: #ffffff;
+}
+
+body.hotdog-stand .sunken-panel {
+  /* .sunken-panel's own inset bevel is a border-image (a baked grey/
+     white/black pixel SVG from 98.css) -- swapping its colors would need
+     a whole new SVG asset; a flat border reads close enough at this
+     size and keeps the panel visually boxed instead of being the one
+     conspicuously ungrouped white rectangle left. */
+  border: 2px solid #ff0000;
+  border-image: none;
+}
+
+body.hotdog-stand .start-menu {
+  background: #ff0000;
+}
+
+body.hotdog-stand .start-menu-item {
+  color: #ffffff;
+}
+
+body.hotdog-stand .start-menu-item--disabled {
+  color: #c0c0c0; /* dimmed relative to the enabled white above, same relationship 98.css's own grey-on-silver disabled state has */
+}
+
+body.hotdog-stand .start-menu-divider {
+  box-shadow: inset 0 -1px #000000, inset 0 1px #ffff00;
+}
+
+/* The real 98.css scrollbar is a baked grey bevel (SVG border-image /
+   background-image `data:` URIs) with no color to hook -- flat colors
+   here instead of trying to recreate that bevel's exact pixels in red/
+   yellow, which would need forking the vendored file for a part of the
+   UI a visitor mostly never stops to look at closely. */
+body.hotdog-stand ::-webkit-scrollbar-thumb {
+  background-color: #ff0000;
+  background-image: none;
+  box-shadow: none;
+}
+
+body.hotdog-stand ::-webkit-scrollbar-track {
+  background-color: #ffff00;
+  background-image: none;
+}
+
+body.hotdog-stand ::-webkit-scrollbar-corner {
+  background-color: #ffff00;
+}
+
+/* Reported directly ("Now the white in the filter search and the lexeme
+   list"): OQ!'s own filter input and results table were the two
+   remaining pure-white surfaces, on the "a control's own explicit white
+   background stays untouched" reasoning above -- overruled here
+   specifically for these two, same yellow as every other backdrop/
+   surface in this scheme. table>thead>tr>* (already red, from the
+   window-frame/table-header pass) is unaffected -- these selectors only
+   reach the table's own plain body background. */
+body.hotdog-stand input[type="text"],
+body.hotdog-stand input[type="search"],
+body.hotdog-stand select,
+body.hotdog-stand .sunken-panel,
+body.hotdog-stand table {
+  background-color: #ffff00;
+}
+
+/* Without an explicit color here, Chromium repaints the closed <select>'s
+   displayed value using the popup's currently-highlighted <option>'s
+   native (unstylable) blue-highlight text color while the popup is open,
+   even though the option list itself is themed below -- pin it to black
+   so the field's own text stays legible in both states. */
+body.hotdog-stand select {
+  color: #000000;
+}
+
+/* The selection color (98.css's own real navy/white, table>tbody>
+   tr.highlighted) was the one accent left in the original Windows blue
+   after everything else went red/yellow -- reported directly ("Marine
+   blue selection color is wrong"). Red/white instead, reusing the same
+   pairing every other emphasis surface in this scheme already uses
+   (title bar, taskbar, buttons) rather than introducing a third color
+   just for this one state. */
+body.hotdog-stand tr.highlighted {
+  background-color: #ff0000;
+}
+
+/* Reported directly ("Display properties drop down"): the Scheme
+   <select>'s own field was already yellow (see the input/table rule
+   above), but its native option-list popup is a separate, browser-drawn
+   surface that CSS on the <select> itself doesn't reach -- it was still
+   plain white with Windows-blue :checked highlighting, and Chromium also
+   reflects that same blue/white pairing back onto the closed field's text
+   color while the popup is open. Styling the <option>s directly (Chromium
+   honors background-color/color there, unlike most native popup chrome)
+   fixes both: the popup goes yellow/red to match, and the closed field's
+   text stops flashing white-on-yellow. */
+body.hotdog-stand select option {
+  background-color: #ffff00;
+  color: #000000;
+}
+
+/* :checked alone (not also :hover) deliberately isn't red here -- red is
+   the "actively highlighted" state, and the previously-selected row
+   should give that up the moment the mouse/keyboard moves to a different
+   row, the same way it did before this scheme touched anything. Only
+   :hover carries the highlight color; :checked keeps the plain
+   yellow/black row style above and relies on the browser's own checkmark
+   to show which option is selected. */
+body.hotdog-stand select option:hover {
+  background-color: #ff0000;
+  color: #ffffff;
+}
+
+/* Reported directly ("a gray box on the dropdown selector"): the select's
+   own bevel border is a box-shadow, not a border (98.css:
+   `select{box-shadow:inset -1px -1px #fff,inset 1px 1px grey,inset -2px
+   -2px #dfdfdf,inset 2px 2px #0a0a0a}`), so overriding background-color
+   alone left that grey/white 3D inset frame untouched around the yellow
+   field -- same shape of bug as the .sunken-panel border fixed earlier.
+   Flattened to a plain red border here, same treatment.
+
+   98.css also has `select:focus{background-color:navy;color:#fff}` and
+   `select:focus option{background-color:#fff;color:#000}`, which would
+   otherwise flash the field navy and reset the popup's options back to
+   white/black the moment the select is focused (e.g. right after Apply).
+   Both are pinned explicitly rather than relying on our select/option
+   rules above happening to out-specify them. */
+body.hotdog-stand select {
+  border: 2px solid #ff0000;
+  box-shadow: none;
+}
+
+/* Still reported as gray after the box-shadow fix above: the dropdown
+   arrow itself is a *third*, separate piece of chrome -- a baked-in
+   data: URI SVG (98.css's `select{background-image:url(...)}`) whose
+   bevel/face colors (#dfdfdf, #fff, gray, silver) are hardcoded pixels,
+   not CSS colors, so no color/background-color/border override on the
+   select element can reach it. Same shape as the title-bar and scrollbar
+   icons already noted elsewhere in this file as needing a full
+   background-image replacement rather than a simple override -- this is
+   the same source SVG with silver/dfdfdf/gray swapped for red/yellow/
+   maroon and the black outline/arrow glyph left as-is for contrast. */
+body.hotdog-stand select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D%2716%27%20height%3D%2717%27%20fill%3D%27none%27%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M15%200H0v16h1V1h14V0z%27%20fill%3D%27%23ffff00%27/%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M2%201H1v14h1V2h12V1H2z%27%20fill%3D%27%23ffff00%27/%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M16%2017H0v-1h15V0h1v17z%27%20fill%3D%27%23000%27/%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M15%201h-1v14H1v1h14V1z%27%20fill%3D%27%23800000%27/%3E%3Cpath%20fill%3D%27%23ff0000%27%20d%3D%27M2%202h12v13H2z%27/%3E%3Cpath%20fill-rule%3D%27evenodd%27%20clip-rule%3D%27evenodd%27%20d%3D%27M11%206H4v1h1v1h1v1h1v1h1V9h1V8h1V7h1V6z%27%20fill%3D%27%23000%27/%3E%3C/svg%3E");
+}
+
+body.hotdog-stand select:focus {
+  background-color: #ffff00;
+  color: #000000;
+}
+
+body.hotdog-stand select:focus option {
+  background-color: #ffff00;
+  color: #000000;
+}
+
+body.hotdog-stand select:focus option:hover {
+  background-color: #ff0000;
+  color: #ffffff;
+}
+
+/* The option:checked/:hover rules above theme every row in the popup
+   except the one row Chromium's *native* popup paints itself: the
+   actively mouse-hovered/keyboard-highlighted row, which ignores author
+   CSS entirely in a plain <select>. appearance: base-select (Chromium
+   133+) opts in to the newer, fully own-CSS popup where that no longer
+   happens -- ::picker(select) needs its own appearance: base-select too
+   (it's a separate box from the select itself), and hiding the UA's
+   ::picker-icon avoids doubling up with the background-image arrow set
+   above. No fallback needed: browsers without support just keep the
+   ordinary native popup styled by the option rules above. */
+body.hotdog-stand select {
+  appearance: base-select;
+}
+
+body.hotdog-stand select::picker(select) {
+  appearance: base-select;
+  background-color: #ffff00;
+  border: 2px solid #ff0000;
+  padding: 0;
+}
+
+body.hotdog-stand select::picker-icon {
+  display: none;
 }

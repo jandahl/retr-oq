@@ -593,49 +593,92 @@ def test_selecting_hot_dog_stand_and_ok_applies_and_persists_scheme(page, base_u
     assert "hotdog-stand" in page.get_attribute("body", "class")
 
 
-def test_hot_dog_stand_leaves_controls_and_taskbar_untouched(page, base_url):
-    # Regression test for a scope correction: an earlier version of this
-    # scheme did a full reskin of every reachable surface -- buttons, the
-    # taskbar, table headers, form controls, the selection highlight, all
-    # turned red/yellow. A real screenshot of the genuine Windows Hot Dog
-    # Stand scheme showed that isn't what it does at all: only the desktop
-    # and the active title bar are recolored; every control (buttons,
-    # dropdowns, taskbar, list boxes, scrollbars) stays plain Windows grey
-    # ("selectors aren't hot dogged nor the controls"). This asserts the
-    # untouched half of that split -- see
-    # test_selecting_hot_dog_stand_and_ok_applies_and_persists_scheme for
-    # the desktop/title-bar half that *does* change.
+def test_hot_dog_stand_recolors_start_button_and_taskbar_buttons(page, base_url):
+    # Regression test: the Start button and each taskbar window button
+    # kept their default silver background under this scheme -- unlike a
+    # window/dialog's own internal buttons (deliberately left untouched,
+    # see below), these sit directly embedded in the red taskbar itself,
+    # so staying silver read as an unrecolored bug rather than restraint
+    # ("not all surfaces recolor well").
+    goto_win98(page, base_url)
+    # Right-click and apply the scheme before opening a window -- the
+    # dialog overlay covers the whole desktop while open, and win-about's
+    # default position would cover the bare desktop at the click point
+    # this helper uses once it's open (same overlapping-window reasoning
+    # other tests here work around) -- so open a window only after the
+    # dialog is closed again.
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-ok")
+    page.wait_for_timeout(100)
+    open_via_dblclick(page, "win-about")
+    assert page.evaluate("getComputedStyle(document.querySelector('.start-button')).backgroundColor") == "rgb(255, 0, 0)"
+    assert (
+        page.evaluate("getComputedStyle(document.querySelector('.taskbar-window-button')).backgroundColor")
+        == "rgb(255, 0, 0)"
+    )
+
+
+def test_hot_dog_stand_tints_backdrop_and_oq_filter_and_table(page, base_url):
+    # A window's own backdrop (empty space, static paragraph text) is
+    # deliberately tinted yellow under this scheme -- same idea as the
+    # desktop's own black-on-yellow icon labels, so it actually
+    # participates instead of sitting out as an unrecolored, boring patch
+    # of grey ("lots of gray in the apps"). This isn't the same as the
+    # bug an earlier version had (that one made the backdrop RED with no
+    # explicit background of its own children, bleeding under text and
+    # making it unreadable, "white bg color seems wrong") -- yellow keeps
+    # black text legible on purpose.
+    #
+    # OQ!'s own filter input and results table were initially left alone
+    # as "a control's own explicit white background stays untouched" --
+    # overruled on direct follow-up ("Now the white in the filter search
+    # and the lexeme list"), so those go yellow too now. The selection
+    # highlight (98.css's own real navy/white) was initially left alone
+    # too, as a distinct pre-existing feature -- also overruled on direct
+    # follow-up ("Marine blue selection color is wrong"), now red/white
+    # like every other emphasis surface in this scheme; see
+    # test_hot_dog_stand_recolors_selection_highlight below.
     mock_dict_source(page)
     goto_win98(page, base_url)
     open_display_properties(page)
     page.select_option("#scheme-select", "hotdog")
     page.click("#display-props-ok")
     page.wait_for_timeout(100)
-    open_via_dblclick(page, "win-about")
-
-    assert page.evaluate("getComputedStyle(document.querySelector('.start-button')).backgroundColor") == "rgb(192, 192, 192)"
-    assert (
-        page.evaluate("getComputedStyle(document.querySelector('.taskbar-window-button')).backgroundColor")
-        == "rgb(192, 192, 192)"
-    )
-    assert page.evaluate("getComputedStyle(document.querySelector('.window')).backgroundColor") == "rgb(192, 192, 192)"
+    assert "hotdog-stand" in page.get_attribute("body", "class")
 
     page.dblclick(".desktop-icon[data-open='win-oq']")
     page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
     body_bg = page.evaluate(
         "getComputedStyle(document.querySelector('#win-oq .win98-window-body')).backgroundColor"
     )
-    assert body_bg in ("rgba(0, 0, 0, 0)", "transparent")
+    assert body_bg == "rgb(255, 255, 0)"
     filter_bg = page.evaluate("getComputedStyle(document.querySelector('#oq-filter')).backgroundColor")
-    assert filter_bg == "rgb(255, 255, 255)"
-    header_bg = page.evaluate("getComputedStyle(document.querySelector('#oq-table thead th')).backgroundColor")
-    assert header_bg == "rgb(192, 192, 192)"
-    select_bg = page.evaluate("getComputedStyle(document.querySelector('#scheme-select')).backgroundColor")
-    assert select_bg == "rgb(255, 255, 255)"
+    assert filter_bg == "rgb(255, 255, 0)"
+    results_bg = page.evaluate("getComputedStyle(document.querySelector('.oq-results-panel table')).backgroundColor")
+    assert results_bg == "rgb(255, 255, 0)"
+
+
+def test_hot_dog_stand_recolors_selection_highlight(page, base_url):
+    # Reported directly ("Marine blue selection color is wrong"): 98.css's
+    # own real selection color (table>tbody>tr.highlighted, navy/white)
+    # was the one accent still in the original Windows blue after
+    # everything else went red/yellow. Red now, reusing the same
+    # background/white-text pairing every other emphasis surface in this
+    # scheme already uses (title bar, taskbar, buttons), not a new third
+    # color introduced just for this state.
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-ok")
+    page.wait_for_timeout(100)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
 
     rows = page.query_selector_all("#oq-tbody tr")
     rows[0].click()
-    assert page.evaluate("el => getComputedStyle(el).backgroundColor", rows[0]) == "rgb(0, 0, 128)"
+    assert page.evaluate("el => getComputedStyle(el).backgroundColor", rows[0]) == "rgb(255, 0, 0)"
     assert page.evaluate("el => getComputedStyle(el).color", rows[0]) == "rgb(255, 255, 255)"
 
 
@@ -647,13 +690,34 @@ def apply_hotdog_stand(page):
     page.wait_for_timeout(100)
 
 
-def test_hot_dog_stand_leaves_dialog_buttons_and_start_menu_untouched(page, base_url):
+def test_hot_dog_stand_recolors_window_frame_and_table_header(page, base_url):
+    # Full-reskin follow-up ("Still missing... lots of gray in the apps"
+    # -> asked to chase down every remaining gray surface): the window's
+    # own outer frame (98.css's shared .window class) and a table's own
+    # header row both stayed plain silver even after the backdrop/taskbar
+    # rounds above.
+    mock_dict_source(page)
     goto_win98(page, base_url)
     apply_hotdog_stand(page)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_selector("#oq-status:has-text('entries loaded')", timeout=5000)
+    assert page.evaluate("getComputedStyle(document.querySelector('#win-oq')).backgroundColor") == "rgb(255, 0, 0)"
+    header_bg = page.evaluate("getComputedStyle(document.querySelector('#oq-table thead th')).backgroundColor")
+    assert header_bg == "rgb(255, 0, 0)"
+
+
+def test_hot_dog_stand_recolors_dialog_buttons_and_start_menu(page, base_url):
+    goto_win98(page, base_url)
+    apply_hotdog_stand(page)
+    # Shut Down's OK / Display Properties' OK-Cancel-Apply -- plain 98.css
+    # buttons inside a dialog, previously left silver on the reasoning
+    # that a real screenshot showed a customize dialog's OWN buttons
+    # staying untouched; superseded once a full reskin was explicitly
+    # asked for instead.
     page.click("#start-button")
     page.click("#start-menu-shutdown")
     page.wait_for_timeout(100)
-    assert page.evaluate("getComputedStyle(document.querySelector('#shutdown-ok')).backgroundColor") == "rgb(192, 192, 192)"
+    assert page.evaluate("getComputedStyle(document.querySelector('#shutdown-ok')).backgroundColor") == "rgb(255, 0, 0)"
 
     # The Shut Down dialog has no cancel/close button of its own (only OK,
     # which navigates away) -- reload rather than fight that to get back
@@ -661,22 +725,26 @@ def test_hot_dog_stand_leaves_dialog_buttons_and_start_menu_untouched(page, base
     page.reload()
     page.wait_for_timeout(300)
 
+    # The Start menu itself (and the desktop's own right-click context
+    # menu, which reuses the same .start-menu class) stayed plain silver
+    # too.
     page.click("#start-button")
     page.wait_for_timeout(100)
-    assert page.evaluate("getComputedStyle(document.querySelector('#start-menu')).backgroundColor") == "rgb(192, 192, 192)"
+    assert page.evaluate("getComputedStyle(document.querySelector('#start-menu')).backgroundColor") == "rgb(255, 0, 0)"
     assert (
-        page.evaluate("getComputedStyle(document.querySelector('.start-menu-item')).color") == "rgb(34, 34, 34)"
+        page.evaluate("getComputedStyle(document.querySelector('.start-menu-item')).color") == "rgb(255, 255, 255)"
     )
 
 
 def test_hot_dog_stand_does_not_repaint_desktop_or_control_panel_icons(page, base_url):
-    # Regression test kept from the full-reskin era: desktop icons and the
-    # Settings window's Display icon must stay transparent, not get
-    # accidentally swept up by some future rule the way an earlier
-    # `body.hotdog-stand button` rule once did (a selector combining two
-    # type selectors plus a class out-specifies a lone class selector,
-    # component-by-component, regardless of "class beats element"
-    # intuition for a single pair).
+    # Regression test: the blanket `body.hotdog-stand button` rule added
+    # to reach title-bar-controls and dialog buttons actually OUT-
+    # specifies a lone `.desktop-icon`/`.control-panel-icon` class
+    # selector (a selector combining two type selectors plus a class beats
+    # one class alone, component-by-component, regardless of "class beats
+    # element" intuition for a single pair) -- without explicit :not()
+    # exclusions this repainted a solid red box behind every desktop icon,
+    # exactly the "still a button rectangle" bug fixed once already.
     goto_win98(page, base_url)
     apply_hotdog_stand(page)
     icon_bg = page.evaluate("getComputedStyle(document.querySelector('.desktop-icon')).backgroundColor")
@@ -774,3 +842,68 @@ def test_cancel_reverts_scheme_without_persisting(page, base_url):
     page.wait_for_timeout(300)
     assert "hotdog-stand" not in (page.get_attribute("body", "class") or "")
 
+
+def test_hot_dog_stand_recolors_scheme_select_field_and_options(page, base_url):
+    # Reported directly ("Display properties drop down"): the Scheme
+    # <select>'s field background was already themed yellow, but its
+    # closed-field text color and its own <option>s were untouched --
+    # Chromium reflects the (unstylable) native blue-highlight text back
+    # onto the closed field while the popup is open unless the select has
+    # its own explicit color, and the option list itself was still plain
+    # white/black. Both are pinned explicitly now.
+    mock_dict_source(page)
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    page.select_option("#scheme-select", "hotdog")
+    page.click("#display-props-apply")
+    page.wait_for_timeout(100)
+
+    select = page.query_selector("#scheme-select")
+    assert page.evaluate("el => getComputedStyle(el).backgroundColor", select) == "rgb(255, 255, 0)"
+    assert page.evaluate("el => getComputedStyle(el).color", select) == "rgb(0, 0, 0)"
+
+    # :checked alone is deliberately plain yellow, not red -- red is the
+    # actively-highlighted state, not "this is the current selection", so
+    # the previously-selected row gives up the highlight the instant
+    # something else is hovered (reported directly: "the previously
+    # active/selected item should lose the focus color").
+    option = page.query_selector("#scheme-select option[value='hotdog']")
+    assert page.evaluate("el => getComputedStyle(el).backgroundColor", option) == "rgb(255, 255, 0)"
+    assert page.evaluate("el => getComputedStyle(el).color", option) == "rgb(0, 0, 0)"
+
+    # Reported directly ("a gray box on the dropdown selector"): 98.css
+    # draws the select's bevel via box-shadow, not border, so the
+    # background-color override above left that grey/white inset frame
+    # untouched -- flattened to a plain red border, same treatment as
+    # .sunken-panel got earlier.
+    assert page.evaluate("el => getComputedStyle(el).borderColor", select) == "rgb(255, 0, 0)"
+    assert page.evaluate("el => getComputedStyle(el).boxShadow", select) == "none"
+
+    # 98.css's select:focus{background-color:navy;color:#fff} would
+    # otherwise flash the field navy the moment it's focused.
+    select.focus()
+    assert page.evaluate("el => getComputedStyle(el).backgroundColor", select) == "rgb(255, 255, 0)"
+    assert page.evaluate("el => getComputedStyle(el).color", select) == "rgb(0, 0, 0)"
+
+    # Reported directly, again ("The dropdown selector box is still
+    # gray"): the arrow button is a third, separate piece of chrome from
+    # the field background and the border -- a baked-in data: URI SVG
+    # (98.css's select{background-image:...}) whose bevel/face colors are
+    # hardcoded pixels, so no border/background-color override reaches it.
+    # It needs its own background-image, recolored from the same source
+    # SVG with silver/dfdfdf/gray swapped for red/yellow/maroon.
+    bg_image = page.evaluate("el => getComputedStyle(el).backgroundImage", select)
+    assert "ffff00" in bg_image and "ff0000" in bg_image
+
+    # Reported directly, a third time ("the selector color can be
+    # overridden if using the html customizable selector"): even with the
+    # popup's background/checked-state option rules above, the row
+    # Chromium's native popup actively highlights (mouse-hovered or
+    # keyboard-focused) ignored author CSS entirely -- appearance:
+    # base-select opts the <select> and its ::picker(select) into the
+    # newer, fully own-CSS popup where that row is themeable too.
+    assert page.evaluate("el => getComputedStyle(el).appearance", select) == "base-select"
+    picker_bg = page.evaluate(
+        "el => getComputedStyle(el, '::picker(select)').backgroundColor", select
+    )
+    assert picker_bg == "rgb(255, 255, 0)"
