@@ -31,6 +31,11 @@
   --icon-recyclebin: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%221%22%20width%3D%224%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%225%22%20width%3D%228%22%20height%3D%2210%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%228%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%2210%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3C%2Fsvg%3E");
   --icon-oq: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Cpath%20d%3D%22M1%203%20L8%202%20L8%2013%20L1%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Cpath%20d%3D%22M15%203%20L8%202%20L8%2013%20L15%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%2211%22%20fill%3D%22%23800000%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%229%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
   --icon-shutdown: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%227%22%20fill%3D%22%23c00000%22%2F%3E%20%3Cpath%20d%3D%22M4%205%20A6%206%200%201%200%2012%205%22%20fill%3D%22none%22%20stroke%3D%22%23c00000%22%20stroke-width%3D%222%22%2F%3E%20%3C%2Fsvg%3E");
+  /* Same "word breaking into its own morpheme blocks" motif as win98/'s
+     own --icon-decon (identical art, reused rather than redrawn -- same
+     precedent as this file's own comment on why the computer/about/
+     recyclebin/oq/shutdown icons above are shared with win98/). */
+  --icon-decon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%221%22%20y%3D%226%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23808080%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%2211%22%20y%3D%226%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%223%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%227%22%20y%3D%2211%22%20width%3D%222%22%20height%3D%223%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
   /* The Start menu's user-banner avatar -- a real photo (Piniartorsuak),
      center-cropped to a square and downscaled to a small inline PNG data
      URI, same "no external asset file" approach as every SVG icon above,
@@ -50,6 +55,7 @@
 .icon-recyclebin { background-image: var(--icon-recyclebin); }
 .icon-oq { background-image: var(--icon-oq); }
 .icon-shutdown { background-image: var(--icon-shutdown); }
+.icon-decon { background-image: var(--icon-decon); }
 
 html, body {
   margin: 0;
@@ -275,6 +281,87 @@ body {
   margin: 0;
   font-size: 10px;
   color: #444444;
+}
+
+/* DECON's own body: same fixed-input/scrolling-results split as OQ!'s
+   .oq-body above, plus a root-first/final-first order toggle row. */
+.decon-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.decon-word-row input {
+  width: 100%;
+}
+
+.decon-order-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.decon-status {
+  margin: 0;
+  font-size: 11px;
+}
+
+.decon-results-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid #7f9db9;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.decon-card {
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #d3dff5;
+}
+
+.decon-card:last-child {
+  border-bottom: none;
+}
+
+.decon-tag {
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.decon-tag--approximate {
+  color: #a02020;
+}
+
+.decon-word {
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.decon-meaning {
+  margin: 2px 0;
+  font-style: italic;
+  font-size: 11px;
+}
+
+.decon-breakdown {
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.decon-truncated {
+  color: #a02020;
+}
+
+.decon-dict-match {
+  margin: 6px 0 0;
+  font-size: 11px;
 }
 
 .xp-window .title-bar {

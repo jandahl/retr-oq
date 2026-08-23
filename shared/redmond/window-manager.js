@@ -48,7 +48,21 @@
   // Returns the functions a theme's own UI (desktop icons, Start menu
   // items, taskbar buttons it builds itself) needs to trigger against
   // this window set.
-  function initWindowManager({ desktop, taskbarWindows, windows, resizeHandleSelector, minWidth, minHeight, onOpen }) {
+  // `routeOpen(win)`: optional -- for a window whose open/closed state is
+  // owned by a router (win98/'s and xp's own OQ!/DECON windows, wired
+  // through shared/router.js the same way dos/app.js already owns DICT.EXE/
+  // DECON.EXE's state), every user trigger that would otherwise open a
+  // window directly (a desktop icon, a Start menu item, restoring from the
+  // taskbar) should instead ask the router to navigate and let its own
+  // onChange callback be the one thing that actually opens it -- exactly
+  // dos/app.js's own "one onChange callback, plain UI functions with no URL
+  // knowledge" pattern (see its own comment). Returning true from
+  // `routeOpen` for a given window makes the returned `openWindow` skip
+  // opening it directly (the caller is expected to have just called
+  // OqRouter.navigate() instead); the router's own onChange handler then
+  // reaches this window's real, unrouted open via `forceOpenWindow` below,
+  // which bypasses `routeOpen` entirely so this can't loop back on itself.
+  function initWindowManager({ desktop, taskbarWindows, windows, resizeHandleSelector, minWidth, minHeight, onOpen, routeOpen, routeClose }) {
     let zTop = 10;
 
     // The markup's starting top/left/width/height (each theme's own inline
@@ -101,7 +115,7 @@
       return win.style.zIndex === String(zTop);
     }
 
-    function openWindow(win) {
+    function forceOpenWindow(win) {
       // Closing removes this window's taskbar button entirely (see
       // closeWindow) -- reopening it, from a desktop icon or the Start
       // menu, needs to rebuild one before it can be focused/highlighted
@@ -110,6 +124,11 @@
       win.classList.remove("minimized");
       focus(win);
       if (onOpen) onOpen(win);
+    }
+
+    function openWindow(win) {
+      if (routeOpen && routeOpen(win)) return; // a router owns this window's open state -- it will call forceOpenWindow itself
+      forceOpenWindow(win);
     }
 
     function toggleMinimize(win) {
@@ -151,6 +170,7 @@
       // is still fine visually, but the taskbar button itself has to go
       // too; openWindow() rebuilds a fresh one on next launch.
       const s = state.get(win);
+      if (!s.taskbarButton) return; // already closed -- a routed window's own onChange handler can reach an already-closed window (see routeClose), this makes that a safe no-op
       win.classList.add("minimized");
       win.classList.remove("maximized");
       s.taskbarButton.remove();
@@ -324,7 +344,15 @@
       });
       win.querySelector(".win-close").addEventListener("click", (e) => {
         e.stopPropagation();
+        // Same routeOpen reasoning in reverse: a router-owned window's own
+        // close button should navigate away rather than hide the window
+        // directly, so the URL and the visible chrome can't disagree. A
+        // routed window still gets hidden here too (routeClose doesn't
+        // prevent that, unlike routeOpen) -- the router's own onChange
+        // handler reaching the same already-closed window back is a no-op
+        // by construction (see forceCloseWindow's callers).
         closeWindow(win);
+        if (routeClose) routeClose(win);
       });
       titlebar.addEventListener("dblclick", (e) => {
         if (e.target.closest("button")) return;
@@ -372,7 +400,7 @@
       for (const win of windows) clampToViewport(win);
     });
 
-    return { openWindow, closeWindow, toggleMinimize, toggleMaximize, focus, isTopmost, clampToViewport, state };
+    return { openWindow, forceOpenWindow, closeWindow, toggleMinimize, toggleMaximize, focus, isTopmost, clampToViewport, state };
   }
 
   window.OqRedmond.initWindowManager = initWindowManager;
