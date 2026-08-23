@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows XP desktop prototype</title>
 <link rel="stylesheet" href="../vendor/xp/XP.css" />
-<link rel="stylesheet" href="style.css?v=1" />
+<link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body class="surface">
   <!-- Windows XP (Luna Blue) desktop prototype -- same taskbar/Start-menu/
@@ -180,6 +180,15 @@
        is the honest choice given what's actually being launched, not a
        missing feature. -->
   <ul role="menu" class="start-menu" id="start-menu" hidden>
+    <!-- Real XP Start menus always open on a blue user banner (avatar +
+         account name) above the item list -- there's no real "no login"
+         state to fall back to, so a plain "retr-oq" account name stands
+         in the way a single-user demo machine would show whichever
+         account is logged in. -->
+    <li class="start-menu-user" aria-hidden="true">
+      <span class="start-menu-user-icon" aria-hidden="true"></span>
+      <span class="start-menu-user-name">retr-oq</span>
+    </li>
     <li role="menu-item" class="start-menu-item" data-open="win-oq">
       <span class="start-menu-icon icon-oq" aria-hidden="true"></span> OQ!
     </li>

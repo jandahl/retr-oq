@@ -31,6 +31,10 @@
   --icon-recyclebin: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%221%22%20width%3D%224%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%225%22%20width%3D%228%22%20height%3D%2210%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%228%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%2210%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3C%2Fsvg%3E");
   --icon-oq: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Cpath%20d%3D%22M1%203%20L8%202%20L8%2013%20L1%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Cpath%20d%3D%22M15%203%20L8%202%20L8%2013%20L15%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%2211%22%20fill%3D%22%23800000%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%229%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
   --icon-shutdown: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%227%22%20fill%3D%22%23c00000%22%2F%3E%20%3Cpath%20d%3D%22M4%205%20A6%206%200%201%200%2012%205%22%20fill%3D%22none%22%20stroke%3D%22%23c00000%22%20stroke-width%3D%222%22%2F%3E%20%3C%2Fsvg%3E");
+  /* The Start menu's user-banner avatar -- a simple head-and-shoulders
+     silhouette on a light disc, same generic-account art every XP demo
+     screenshot shows when there's no real photo/user tile set. */
+  --icon-user: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%2214%22%20height%3D%2214%22%20rx%3D%222%22%20fill%3D%22%23ffe8b8%22%20stroke%3D%22%23a86c1d%22%2F%3E%20%3Ccircle%20cx%3D%228%22%20cy%3D%226%22%20r%3D%223%22%20fill%3D%22%236b3f1d%22%2F%3E%20%3Cpath%20d%3D%22M2%2015%20A6%206%200%200%201%2014%2015%20Z%22%20fill%3D%22%232a63c4%22%2F%3E%20%3C%2Fsvg%3E");
   /* The Start button's own flag -- the real Greenlandic flag (white/red
      bands, an off-center circle with the colors swapped inside it), same
      spot as win98/style.css's own start-flag: this is the one place on
@@ -381,14 +385,49 @@ body {
   box-shadow: inset 1px 1px rgba(0, 0, 0, 0.3), inset -1px -1px rgba(255, 255, 255, 0.2);
 }
 
+/* Real XP's Start button glyph is the four-pane "waving Windows flag" --
+   angled panes with their own highlight/shadow, not a flat rectangle.
+   Reusing that construction (skewed panes + a highlight sweep) with the
+   Greenlandic flag's own colors underneath keeps the "dynamic" waving
+   silhouette without pretending this is the Windows logo. */
 .start-flag {
+  position: relative;
   width: 16px;
   height: 16px;
   display: inline-block;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.start-flag::before,
+.start-flag::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  width: 6px;
   background-image: var(--icon-greenland-flag);
   background-repeat: no-repeat;
-  background-size: contain;
-  border-radius: 2px;
+  background-size: 16px 16px;
+  border-radius: 1px;
+}
+
+/* Left pane: leans back (top edge in, bottom edge out) and reads as the
+   flag's near side, slightly dimmed like it's angled away from the
+   light. Right pane leans the opposite way and stays full brightness --
+   together the two panes read as one banner caught mid-wave instead of
+   a static square. */
+.start-flag::before {
+  left: 0;
+  background-position: 0 0;
+  clip-path: polygon(15% 0, 100% 0, 100% 100%, 0% 100%);
+  filter: brightness(0.82);
+}
+
+.start-flag::after {
+  right: 0;
+  background-position: -8px 0;
+  clip-path: polygon(0 0, 85% 0, 100% 100%, 0% 100%);
+  filter: brightness(1.12);
 }
 
 .taskbar-separator {
@@ -408,17 +447,22 @@ body {
 .taskbar-window-button {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   height: 24px;
-  max-width: 160px;
+  min-width: 110px;
+  max-width: 200px;
+  flex: 1 1 160px;
   padding: 0 8px;
   font-size: 11px;
   text-align: left;
   color: #ffffff;
   border: none;
   border-radius: 3px;
-  background: linear-gradient(180deg, #3f7fe6 0%, #2c62d0 100%);
-  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.3), inset -1px -1px rgba(0, 0, 0, 0.2);
+  /* Inactive: a lighter, flatter "raised" blue -- clearly a button
+     sitting on top of the taskbar, distinct from both the taskbar's own
+     darker background and the pressed-in .active state below. */
+  background: linear-gradient(180deg, #5a9bf5 0%, #3f7fe6 50%, #2c62d0 100%);
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.45), inset -1px -1px rgba(0, 0, 0, 0.25);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -439,9 +483,17 @@ body {
   text-overflow: ellipsis;
 }
 
+/* Active: real XP's foreground-window taskbar button reads as visibly
+   *pressed in* -- noticeably darker than the inactive gradient above,
+   flipped inset shadow (dark top-left/light bottom-right instead of the
+   raised light-top-left/dark-bottom-right every inactive button uses),
+   plus a thin bright top edge to sell the sunken groove. */
 .taskbar-window-button.active {
-  background: linear-gradient(180deg, #1c4bb5 0%, #123a90 100%);
-  box-shadow: inset 1px 1px rgba(0, 0, 0, 0.3), inset -1px -1px rgba(255, 255, 255, 0.15);
+  background: linear-gradient(180deg, #0c2f78 0%, #123a90 50%, #1c4bb5 100%);
+  box-shadow:
+    inset 1px 1px rgba(0, 0, 0, 0.45),
+    inset -1px -1px rgba(255, 255, 255, 0.12),
+    inset 0 1px rgba(0, 0, 0, 0.3);
 }
 
 .taskbar-tray {
@@ -467,17 +519,54 @@ body {
   bottom: 33px;
   z-index: 1001;
   margin: 0;
-  padding: 3px;
+  padding: 0 3px 3px;
   list-style: none;
-  min-width: 13rem;
+  min-width: 14rem;
   background: #ffffff;
   border: 1px solid #0a4fc4;
-  border-radius: 6px 6px 0 0;
-  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+  border-radius: 8px 8px 0 0;
+  /* Real XP Start menus are noticeably blue-framed, not a plain white
+     box with a hairline border -- an outer glow the same family of
+     blues as the taskbar/title-bar gradients sells that frame. */
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4), 0 0 0 2px #7aa6ec;
+  overflow: hidden;
 }
 
 .start-menu[hidden] {
   display: none;
+}
+
+/* The user banner: the blue gradient strip every real XP Start menu
+   opens on, avatar + account name, sitting flush above the item list
+   (negative side margins cancel the <ul>'s own 3px padding so the
+   banner runs edge-to-edge under the rounded top corners). */
+.start-menu-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 -3px 4px;
+  padding: 0.5rem 0.75rem 0.6rem;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, #2f71e0 0%, #1c56cf 55%, #123f9e 100%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.start-menu-user-icon {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  background-image: var(--icon-user);
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.start-menu-user-name {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.35);
 }
 
 .start-menu-item {
