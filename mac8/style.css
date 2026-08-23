@@ -267,22 +267,59 @@ button,
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Active title bar: real Platinum horizontal pinstripes, drawn the same
-     crisp-repeating-gradient way mac1984/style.css draws System 1's own
-     (a CSS gradient can't do a single-pixel line reliably at all zoom
-     levels, but a small enough repeat reads correctly regardless). */
+  /* Inactive by default: a flat, uniform grey bar -- no pinstripes, no
+     controls (see .inactive .control-box below). Active state overrides
+     this via ::before/::after, see those rules for why a plain
+     repeating-linear-gradient wasn't enough. */
+  background-color: #dddddd;
+  border-bottom: 1px solid #000000;
+}
+
+/* Active title bar: real Platinum horizontal pinstripes -- alternating
+   1px white/grey rows, same crisp-repeating-gradient idea
+   mac1984/style.css uses for System 1's own. Two layers, not one,
+   because the real thing isn't just flat alternating rows: each white
+   row is inset 1px relative to the grey it sits on, so the grey shows
+   as a 1px sliver at both the start (left) and end (right) of every
+   white line -- a tiny embossed bevel framing the whole pinstripe
+   field, not just a uniform stripe block. ::before is the grey base
+   (solid, filling the full pinstripe field); ::after draws only the
+   white rows, shifted 1px left via transform so its own left AND right
+   edges both land 1px left of ::before's -- exposing that 1px of grey
+   at both ends of every row, not just one side. */
+.mac8-title-bar:not(.inactive)::before,
+.mac8-title-bar:not(.inactive)::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 2px;
+  right: 2px;
+  z-index: 0;
+}
+.mac8-title-bar:not(.inactive)::before {
+  background-color: #b8b8b8;
+}
+.mac8-title-bar:not(.inactive)::after {
+  transform: translateX(-1px);
   background-image: repeating-linear-gradient(
     to bottom,
     #ffffff 0,
     #ffffff 1px,
-    #b8b8b8 1px,
-    #b8b8b8 2px
+    transparent 1px,
+    transparent 2px
   );
-  border-bottom: 1px solid #000000;
 }
 .mac8-title-bar.inactive {
-  background-image: none;
   background-color: #dddddd;
+}
+/* Control boxes sit in normal document order between ::before and
+   ::after, so without an explicit z-index the white-stripe ::after
+   layer (also z-index: 0, but later in paint order) would draw over
+   them. z-index: 1 keeps them on top, the same way .title's own
+   z-index: 1 already does. */
+.mac8-title-bar .control-box {
+  z-index: 1;
 }
 .mac8-title-bar .title {
   position: relative;
@@ -303,16 +340,56 @@ button,
   display: none;
 }
 
-/* base.css's .control-box/.control-box-inner/.zoom-box-inner are used as
-   shipped (top/left/right offsets, the beveled corner-box look) -- only
-   the ones this theme actually places (close-box, zoom-box; no
-   windowshade-box, out of scope here) get referenced in markup. */
+/* base.css's .control-box/.control-box-inner (the beveled corner-box
+   look) are used as shipped -- only the top/right offsets and the zoom
+   glyph itself are overridden below. base.css ships three control
+   slots: .close-box (left:4px), .zoom-box (right:20px), and a separate
+   .windowshade-box (right:4px, the rightmost slot, closest to the
+   corner). Only close-box and zoom-box are used here -- Mac OS 8.1
+   (this theme's actual target) never shipped a WindowShade collapse
+   box in its stock title bar; that was a Mac OS 8.5 addition (Oct
+   1998), after 8.1 (Aug 1998). An earlier version of this file put
+   zoom-box at right:4px -- windowshade's own slot, not zoom's real
+   right:20px -- which is exactly wrong for two reasons at once: it's
+   the wrong position for a window that has no windowshade control, and
+   it visually crowds the corner where a real Mac OS 8.1 zoom box never
+   sat. Removed that override; zoom-box now uses base.css's own real
+   default position. */
 .mac8-window .close-box.control-box {
   top: 2px;
 }
 .mac8-window .zoom-box.control-box {
   top: 2px;
-  right: 4px; /* base.css leaves room for a windowshade-box at right:4px this theme doesn't use */
+}
+
+/* base.css's own .zoom-box-inner is a single L-shaped corner bracket
+   (border-bottom + border-right) -- closer to a resize/grow-box glyph
+   than a real Mac OS zoom box, which is two concentric outline squares
+   (a smaller one overlapping the larger one's bottom-right corner).
+   Redrawn as two real nested squares instead of reusing base.css's
+   shape as-is. */
+.mac8-window .zoom-box .control-box-inner {
+  position: relative;
+}
+.mac8-window .zoom-box .zoom-box-inner {
+  position: absolute;
+  top: 2px;
+  left: 1px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #000000;
+  background: transparent;
+  box-shadow: none;
+}
+.mac8-window .zoom-box .zoom-box-inner::after {
+  content: "";
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 4px;
+  height: 4px;
+  border: 1px solid #000000;
+  background-color: #eeeeee;
 }
 
 .growbox {
