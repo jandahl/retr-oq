@@ -439,11 +439,14 @@ body {
   color: #ffffff;
   border: none;
   border-radius: 3px;
-  /* Inactive: a lighter, flatter "raised" blue -- clearly a button
-     sitting on top of the taskbar, distinct from both the taskbar's own
-     darker background and the pressed-in .active state below. */
-  background: linear-gradient(180deg, #5a9bf5 0%, #3f7fe6 50%, #2c62d0 100%);
-  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.45), inset -1px -1px rgba(0, 0, 0, 0.25);
+  /* Inactive: real XP taskbar buttons for a non-foreground window are
+     almost the same blue as the taskbar itself -- they don't stand out
+     as their own "raised" button, just a faint edge separates them.
+     Matches the taskbar's own gradient blue rather than a lighter tint,
+     so only the .active state below (visibly darker + sunken) reads as
+     different. */
+  background: linear-gradient(180deg, #2f71e0 0%, #1c56cf 50%, #123f9e 100%);
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.2), inset -1px -1px rgba(0, 0, 0, 0.2);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -469,7 +472,15 @@ body {
    flipped inset shadow (dark top-left/light bottom-right instead of the
    raised light-top-left/dark-bottom-right every inactive button uses),
    plus a thin bright top edge to sell the sunken groove. */
-.taskbar-window-button.active {
+/* #taskbar-windows-scoped, not just .taskbar-window-button.active: XP.css
+   ships its own `button:not(:disabled).active` rule (a real Win-XP.css
+   generic "pressed toggle button" style) whose specificity
+   (0,2,1 -- the :not() pseudo-class counts same as a class) beats a
+   plain two-class selector (0,2,0) and was silently painting every
+   "active" taskbar button pale grey instead of the sunken navy below.
+   The extra #taskbar-windows ancestor makes this selector win instead
+   of renaming the class shared/redmond/window-manager.js hardcodes. */
+#taskbar-windows .taskbar-window-button.active {
   background: linear-gradient(180deg, #0c2f78 0%, #123a90 50%, #1c4bb5 100%);
   box-shadow:
     inset 1px 1px rgba(0, 0, 0, 0.45),
