@@ -620,6 +620,35 @@ body {
   min-width: 8rem;
 }
 
+/* ---------- Customizable <select> popup (theme-agnostic) ----------
+   Originally added scoped to `body.hotdog-stand` only, to fix that
+   scheme's popup highlight color -- but the underlying fix (opting into
+   Chromium's fully-CSS-styleable select popup, appearance: base-select)
+   isn't actually about Hot Dog Stand at all, it's a general rendering
+   improvement over the plain native popup (Windows Standard's own popup
+   also gets a duplicate arrow without the ::picker-icon hide below).
+   Scoping it to one theme was an unintentional divergence rather than a
+   real fix ("that irks me") -- applies to every <select> regardless of
+   scheme now. No color is set here; each scheme's own rules (see Hot Dog
+   Stand below) style the popup, same as they already style the plain
+   select field. No fallback needed: browsers without base-select support
+   just keep rendering the ordinary native popup. */
+select {
+  appearance: base-select;
+}
+
+select::picker(select) {
+  appearance: base-select;
+}
+
+/* 98.css already draws its own arrow via `select{background-image:...}`
+   (a baked-in data: URI SVG, same source Hot Dog Stand's own arrow below
+   is recolored from) -- appearance: base-select would otherwise also
+   render the UA's own default arrow icon on top of it, doubling up. */
+select::picker-icon {
+  display: none;
+}
+
 /* ---------- Hot Dog Stand (hidden color scheme) ----------
    A real built-in Windows 98 color scheme (Display Properties >
    Appearance > Scheme), reachable via the desktop's right-click
@@ -882,24 +911,13 @@ body.hotdog-stand select:focus option:hover {
 /* The option:checked/:hover rules above theme every row in the popup
    except the one row Chromium's *native* popup paints itself: the
    actively mouse-hovered/keyboard-highlighted row, which ignores author
-   CSS entirely in a plain <select>. appearance: base-select (Chromium
-   133+) opts in to the newer, fully own-CSS popup where that no longer
-   happens -- ::picker(select) needs its own appearance: base-select too
-   (it's a separate box from the select itself), and hiding the UA's
-   ::picker-icon avoids doubling up with the background-image arrow set
-   above. No fallback needed: browsers without support just keep the
-   ordinary native popup styled by the option rules above. */
-body.hotdog-stand select {
-  appearance: base-select;
-}
-
+   CSS entirely in a plain <select>. The generic `select { appearance:
+   base-select }` rule above (theme-agnostic, applies regardless of
+   scheme) opts in to the newer, fully own-CSS popup where that's no
+   longer true -- this just gives the popup box itself this scheme's
+   colors, same as every other themed surface here. */
 body.hotdog-stand select::picker(select) {
-  appearance: base-select;
   background-color: #ffff00;
   border: 2px solid #ff0000;
   padding: 0;
-}
-
-body.hotdog-stand select::picker-icon {
-  display: none;
 }
