@@ -619,7 +619,7 @@ def test_hot_dog_stand_recolors_start_button_and_taskbar_buttons(page, base_url)
     )
 
 
-def test_hot_dog_stand_tints_backdrop_but_not_interactive_controls(page, base_url):
+def test_hot_dog_stand_tints_backdrop_and_oq_filter_and_table(page, base_url):
     # A window's own backdrop (empty space, static paragraph text) is
     # deliberately tinted yellow under this scheme -- same idea as the
     # desktop's own black-on-yellow icon labels, so it actually
@@ -628,10 +628,16 @@ def test_hot_dog_stand_tints_backdrop_but_not_interactive_controls(page, base_ur
     # bug an earlier version had (that one made the backdrop RED with no
     # explicit background of its own children, bleeding under text and
     # making it unreadable, "white bg color seems wrong") -- yellow keeps
-    # black text legible on purpose. What genuinely stays untouched is any
-    # control that already carries its own explicit white background
-    # regardless of scheme (an edit field, a results table) -- checked
-    # here via OQ!'s own filter input and results table.
+    # black text legible on purpose.
+    #
+    # OQ!'s own filter input and results table were initially left alone
+    # as "a control's own explicit white background stays untouched" --
+    # overruled on direct follow-up ("Now the white in the filter search
+    # and the lexeme list"), so those go yellow too now. The one thing
+    # that's still genuinely untouched is the results table's own
+    # .highlighted *selection* color (navy/white) -- a distinct, already-
+    # deliberate feature from before this scheme existed, not an
+    # oversight -- covered separately below.
     mock_dict_source(page)
     goto_win98(page, base_url)
     open_display_properties(page)
@@ -647,9 +653,15 @@ def test_hot_dog_stand_tints_backdrop_but_not_interactive_controls(page, base_ur
     )
     assert body_bg == "rgb(255, 255, 0)"
     filter_bg = page.evaluate("getComputedStyle(document.querySelector('#oq-filter')).backgroundColor")
-    assert filter_bg == "rgb(255, 255, 255)"
+    assert filter_bg == "rgb(255, 255, 0)"
     results_bg = page.evaluate("getComputedStyle(document.querySelector('.oq-results-panel table')).backgroundColor")
-    assert results_bg == "rgb(255, 255, 255)"
+    assert results_bg == "rgb(255, 255, 0)"
+
+    # The selection color is untouched by any of the above.
+    rows = page.query_selector_all("#oq-tbody tr")
+    rows[0].click()
+    highlighted_bg = page.evaluate("el => getComputedStyle(el).backgroundColor", rows[0])
+    assert highlighted_bg == "rgb(0, 0, 128)"
 
 
 def apply_hotdog_stand(page):

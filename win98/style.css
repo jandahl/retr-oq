@@ -767,3 +767,21 @@ body.hotdog-stand ::-webkit-scrollbar-track {
 body.hotdog-stand ::-webkit-scrollbar-corner {
   background-color: #ffff00;
 }
+
+/* Reported directly ("Now the white in the filter search and the lexeme
+   list"): OQ!'s own filter input and results table were the two
+   remaining pure-white surfaces, on the "a control's own explicit white
+   background stays untouched" reasoning above -- overruled here
+   specifically for these two, same yellow as every other backdrop/
+   surface in this scheme. table>thead>tr>* (already red, from the
+   window-frame/table-header pass) and tr.highlighted (navy/white, the
+   theme's own real *selection* color, a distinct and already-deliberate
+   feature from before this scheme existed) are both unaffected --
+   selectors below only reach the table's own plain body background. */
+body.hotdog-stand input[type="text"],
+body.hotdog-stand input[type="search"],
+body.hotdog-stand select,
+body.hotdog-stand .sunken-panel,
+body.hotdog-stand table {
+  background-color: #ffff00;
+}
