@@ -595,8 +595,10 @@ body {
   height: 30px;
   background-image: var(--icon-user);
   background-repeat: no-repeat;
-  background-size: contain;
-  border-radius: 4px;
+  background-size: cover;
+  background-position: center;
+  /* Real XP's user tile is a circle, not a rounded square. */
+  border-radius: 50%;
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
