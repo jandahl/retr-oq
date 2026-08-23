@@ -574,6 +574,26 @@ def test_properties_opens_display_properties_defaulting_to_standard(page, base_u
     assert "hotdog-stand" not in (page.get_attribute("body", "class") or "")
 
 
+def test_customizable_select_popup_applies_regardless_of_scheme(page, base_url):
+    # Regression test for a scope correction: the customizable-select
+    # popup fix (appearance: base-select, ::picker-icon hidden so it
+    # doesn't double up with 98.css's own baked-in arrow) was originally
+    # scoped to body.hotdog-stand only, even though it isn't a Hot Dog
+    # Stand-specific fix at all -- Windows Standard's own popup has the
+    # exact same double-arrow/unstylable-highlight issues. Reported
+    # directly ("that irks me... please extend it to the basic theme"):
+    # the mechanism now lives in a theme-agnostic rule, applying under
+    # the default "standard" scheme too, not just hotdog-stand.
+    goto_win98(page, base_url)
+    open_display_properties(page)
+    select = page.query_selector("#scheme-select")
+    assert page.evaluate("el => getComputedStyle(el).appearance", select) == "base-select"
+    picker_display = page.evaluate(
+        "el => getComputedStyle(el, '::picker-icon').display", select
+    )
+    assert picker_display == "none"
+
+
 def test_selecting_hot_dog_stand_and_ok_applies_and_persists_scheme(page, base_url):
     goto_win98(page, base_url)
     open_display_properties(page)
