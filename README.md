@@ -113,11 +113,41 @@ looks like today.
   section for how to run it locally and how this fits the "no CI" framing
   above (that's about staying out of *oq's* CI, not about this repo never
   having any of its own).
+- **`win7/`** — a Windows 7 (Aero) desktop, the third member of the
+  "Redmond" window-chrome family alongside `win98/` and `xp/`, sharing the
+  same `shared/redmond/window-manager.js` drag/resize/focus/minimize/
+  maximize/close/taskbar/desktop-icon/Start-menu behavior and the same
+  `shared/router.js`-backed OQ!/DECON window state. Built on the real
+  [`khang-nd/7.css`](https://github.com/khang-nd/7.css) v0.21.1 (MIT),
+  vendored as its published `dist/7.css` build the same way `win98/`
+  vendors `98.css`'s dist build — it ships no external font files, unlike
+  `win98/`, since its `--w7-font` stack is entirely system fonts (Segoe
+  UI/Noto Sans). The distinctive, genuinely new work here is Aero's glass
+  look, which no vendored framework actually supplies: title bars and the
+  taskbar use `backdrop-filter: blur()` layered over a semi-transparent
+  gradient (so a browser without `backdrop-filter` support still reads as
+  glassy, just without the live blur), plus a diagonal glossy highlight
+  sweep and soft drop shadows, replacing 98/XP's flat pixel bevels
+  entirely. The Start button is a real circular Aero "orb" (inline SVG,
+  the four Windows-flag quadrant colors with a glass highlight) rather
+  than 98/XP's rectangular pill — genuinely new art, since a rectangular
+  Start button doesn't translate to a circle. Taskbar buttons are
+  icon-only (no text label next to the glyph), a deliberate divergence
+  from `win98/`'s and `xp/`'s labeled-button convention, following real
+  Windows 7's own default rather than matching its siblings for
+  consistency's sake (the real title stays in the DOM, visually hidden
+  rather than removed, so it's still available to assistive tech). The
+  desktop background is a from-scratch inline SVG evocation of Windows
+  7's real default wallpaper, "Harmony" — a dark blue-to-black gradient
+  with soft glowing abstract swirl shapes — not a copy of the actual
+  Microsoft-licensed artwork, same precedent `xp/`'s own Bliss evocation
+  set for its wallpaper.
 
 ## Prospective themes
 
 Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`),
-**Commodore 64** (`c64/`), and **Windows 98** (`win98/`), all above.
+**Commodore 64** (`c64/`), **Windows 98** (`win98/`), and **Windows 7**
+(`win7/`), all above.
 `c64/` is a deliberate exception to
 the "vendor a real framework" pattern the other two follow: the candidate
 named below (`bootstrap-c64`) ships no `LICENSE` file at all, which fails
@@ -196,7 +226,6 @@ vendoring time since none of these have been vendored yet:
 | Windows XP | [`XP.css`](https://github.com/botoxparty/XP.css) | MIT |
 | Mac OS 8.1 | [`classic.css`](https://github.com/npjg/classic.css) | check upstream |
 | NES | [`NES.css`](https://github.com/nostalgic-css/NES.css) | MIT |
-| Windows 7 *(bonus, same family as 98.css/XP.css)* | [`7.css`](https://github.com/khang-nd/7.css) | MIT |
 | Modern macOS | [`Puppertino`](https://github.com/brayanjeshua/Puppertino) | check upstream |
 | Norton Commander | *no drop-in CSS framework found* — closest is [`victorantos/NC`](https://github.com/victorantos/NC), a full JS file-manager clone, not a CSS library. Would likely need to be hand-built from the 8x16 DOS box-drawing look, closer to how `mac1984/`'s desktop icons/menu bar were added on top of `@sakun/system.css`. |
 | Windows 3.1 | *no drop-in CSS framework found* — closest is [`karol-kiersnowski/win31`](https://github.com/karol-kiersnowski/win31), a full simulator, not a CSS library. Same situation as Norton Commander. |
@@ -208,7 +237,8 @@ its own license file from its actual upstream project (third-party code,
 kept separate on purpose) — `vendor/mac1984/LICENSE.txt` is
 `@sakun/system.css`'s own MIT license, copied verbatim, and
 `vendor/win98/LICENSE` is `jdan/98.css`'s own MIT license, likewise
-copied verbatim.
+copied verbatim, and `vendor/win7/LICENSE` is `khang-nd/7.css`'s own MIT
+license, also copied verbatim.
 
 `shared/hyphenation.js` is the one file in this repo under a different
 license than the rest of its own code: MPL-2.0, not MIT. To be precise

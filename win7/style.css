@@ -1,0 +1,822 @@
+/* Windows 7 (Aero) desktop prototype -- layered on top of
+   vendor/win7/7.css (khang-nd/7.css, MIT), which supplies the
+   window/title-bar/button/field chrome. This file only adds what
+   7.css doesn't: the desktop surface, desktop icons, the taskbar +
+   Start menu, and the resize-handle hitboxes the drag/resize machinery
+   in app.js hooks into -- same split as win98/style.css and
+   xp/style.css, just with Aero's translucent glass treatment layered
+   on top instead of a flat bevel look.
+
+   Aero glass, on purpose: the user explicitly asked this theme "remember
+   all the glassy/assy effects" of real Windows 7, so unlike win98/xp's
+   flat chrome, title bars and the taskbar here use backdrop-filter blur
+   plus a semi-transparent gradient fallback, a glossy highlight sweep,
+   and soft drop shadows. See the "Aero glass chrome" section below for
+   the concrete rules and their fallback story. */
+
+* {
+  box-sizing: border-box;
+}
+
+/* Icon art, as inline data-URI SVGs rather than Unicode emoji -- same
+   cross-platform-color reasoning as win98/style.css's own comment. The
+   shapes below are the exact same ones win98/style.css and xp/style.css
+   already drew (computer, about, recycle bin, OQ! logo, shutdown,
+   decon, the Greenlandic flag) -- reused rather than redrawn, same
+   precedent xp/ already set copying win98's set. The Aero orb (below,
+   .start-orb) reuses the same Greenlandic flag art cropped to a circle,
+   not the real Windows logo's colors -- see that rule's own comment. */
+:root {
+  --icon-computer: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2212%22%20height%3D%229%22%20fill%3D%22%23c0c0c0%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%227%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%224%22%20width%3D%228%22%20height%3D%225%22%20fill%3D%22%231084d0%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%2211%22%20width%3D%224%22%20height%3D%222%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%2213%22%20width%3D%228%22%20height%3D%221%22%20fill%3D%22%23808080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-about: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%223%22%20y%3D%221%22%20width%3D%229%22%20height%3D%2214%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Cpolygon%20points%3D%229%2C1%2012%2C4%209%2C4%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%226%22%20width%3D%225%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%228%22%20width%3D%225%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%2210%22%20width%3D%223%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-recyclebin: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%2210%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%221%22%20width%3D%224%22%20height%3D%222%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%224%22%20y%3D%225%22%20width%3D%228%22%20height%3D%2210%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%228%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3Crect%20x%3D%2210%22%20y%3D%227%22%20width%3D%221%22%20height%3D%226%22%20fill%3D%22%23808080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-oq: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Cpath%20d%3D%22M1%203%20L8%202%20L8%2013%20L1%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Cpath%20d%3D%22M15%203%20L8%202%20L8%2013%20L15%2014%20Z%22%20fill%3D%22%23ffffff%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%2211%22%20fill%3D%22%23800000%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%223%22%20y%3D%229%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%225%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%229%22%20y%3D%227%22%20width%3D%224%22%20height%3D%221%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-shutdown: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%227%22%20fill%3D%22%23c00000%22%2F%3E%20%3Cpath%20d%3D%22M4%205%20A6%206%200%201%200%2012%205%22%20fill%3D%22none%22%20stroke%3D%22%23c00000%22%20stroke-width%3D%222%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-decon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20shape-rendering%3D%22crispEdges%22%3E%20%3Crect%20x%3D%221%22%20y%3D%226%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%226%22%20y%3D%226%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23808080%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%2211%22%20y%3D%226%22%20width%3D%224%22%20height%3D%224%22%20fill%3D%22%23c0c0c0%22%20stroke%3D%22%23000000%22%2F%3E%20%3Crect%20x%3D%227%22%20y%3D%222%22%20width%3D%222%22%20height%3D%223%22%20fill%3D%22%23000080%22%2F%3E%20%3Crect%20x%3D%227%22%20y%3D%2211%22%20width%3D%222%22%20height%3D%223%22%20fill%3D%22%23000080%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-user: url("data:image/png;base64,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");
+  /* NOT reused for the Aero orb below -- this square badge art was drawn
+     for win98/xp's own small square Start-button glyph (sitting next to
+     a text label), where its 16x16 square canvas is the right shape.
+     Cover-cropping this same square asset into .start-orb's circle
+     squashed the flag's real proportions and cut into the emblem
+     unevenly -- a real mistreatment of the flag, not just a style
+     mismatch. --icon-greenland-flag-round below is dedicated circular
+     art instead: the two bands and the offset emblem are drawn directly
+     against a circular canvas, not derived by cropping a square. */
+  --icon-greenland-flag: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%20%3Crect%20width%3D%2216%22%20height%3D%228%22%20fill%3D%22%23ffffff%22%2F%3E%20%3Crect%20y%3D%228%22%20width%3D%2216%22%20height%3D%228%22%20fill%3D%22%23c8102e%22%2F%3E%20%3CclipPath%20id%3D%22c%22%3E%3Ccircle%20cx%3D%226%22%20cy%3D%228%22%20r%3D%224%22%2F%3E%3C%2FclipPath%3E%20%3Cg%20clip-path%3D%22url%28%23c%29%22%3E%20%3Crect%20x%3D%222%22%20y%3D%224%22%20width%3D%228%22%20height%3D%224%22%20fill%3D%22%23c8102e%22%2F%3E%20%3Crect%20x%3D%222%22%20y%3D%228%22%20width%3D%228%22%20height%3D%224%22%20fill%3D%22%23ffffff%22%2F%3E%20%3C%2Fg%3E%20%3Ccircle%20cx%3D%226%22%20cy%3D%228%22%20r%3D%224%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%220.4%22%20opacity%3D%220.35%22%2F%3E%20%3C%2Fsvg%3E");
+  --icon-greenland-flag-round: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%20%3Cdefs%3E%20%3CclipPath%20id%3D%22disc%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2216%22%2F%3E%3C%2FclipPath%3E%20%3C%2Fdefs%3E%20%3Cg%20clip-path%3D%22url%28%23disc%29%22%3E%20%3Crect%20x%3D%220%22%20y%3D%220%22%20width%3D%2232%22%20height%3D%2216%22%20fill%3D%22%23ffffff%22%2F%3E%20%3Crect%20x%3D%220%22%20y%3D%2216%22%20width%3D%2232%22%20height%3D%2216%22%20fill%3D%22%23c8102e%22%2F%3E%20%3CclipPath%20id%3D%22emblem%22%3E%3Ccircle%20cx%3D%2213%22%20cy%3D%2216%22%20r%3D%228%22%2F%3E%3C%2FclipPath%3E%20%3Cg%20clip-path%3D%22url%28%23emblem%29%22%3E%20%3Crect%20x%3D%225%22%20y%3D%228%22%20width%3D%2216%22%20height%3D%228%22%20fill%3D%22%23c8102e%22%2F%3E%20%3Crect%20x%3D%225%22%20y%3D%2216%22%20width%3D%2216%22%20height%3D%228%22%20fill%3D%22%23ffffff%22%2F%3E%20%3C%2Fg%3E%20%3Ccircle%20cx%3D%2213%22%20cy%3D%2216%22%20r%3D%228%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%220.5%22%20opacity%3D%220.3%22%2F%3E%20%3C%2Fg%3E%20%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2215.5%22%20fill%3D%22none%22%20stroke%3D%22%23000000%22%20stroke-width%3D%220.6%22%20opacity%3D%220.35%22%2F%3E%20%3C%2Fsvg%3E");
+}
+
+.icon-computer { background-image: var(--icon-computer); }
+.icon-about { background-image: var(--icon-about); }
+.icon-recyclebin { background-image: var(--icon-recyclebin); }
+.icon-oq { background-image: var(--icon-oq); }
+.icon-shutdown { background-image: var(--icon-shutdown); }
+.icon-decon { background-image: var(--icon-decon); }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* the desktop itself never scrolls -- windows do, internally, same convention as win98/xp */
+}
+
+body {
+  font-family: "Segoe UI", "Pixelated MS Sans Serif", Tahoma, Arial, sans-serif;
+}
+
+.desktop {
+  position: fixed;
+  inset: 0;
+  bottom: 40px; /* leaves room for the taller Aero taskbar below */
+  /* Windows 7's real default wallpaper is "Harmony" -- a Microsoft-
+     licensed abstract blue/black swirl -- same copyright situation as
+     XP's Bliss, which xp/style.css already documents its own precedent
+     for. This is a from-scratch SVG *evocation* of Harmony's look (a
+     dark blue-to-black radial gradient with a couple of soft glowing
+     ribbon/swirl shapes), not a copy of the real artwork, drawn as flat
+     vector shapes with blur filters for the glow, same "no external
+     asset" rule as every icon in this file. */
+  background:
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201600%20900%22%3E%20%3Cdefs%3E%20%3CradialGradient%20id%3D%22bg%22%20cx%3D%2250%25%22%20cy%3D%2240%25%22%20r%3D%2280%25%22%3E%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%230c1f4d%22%2F%3E%20%3Cstop%20offset%3D%2255%25%22%20stop-color%3D%22%23060f2e%22%2F%3E%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%23000104%22%2F%3E%20%3C%2FradialGradient%3E%20%3Cfilter%20id%3D%22blur1%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2226%22%2F%3E%3C%2Ffilter%3E%20%3Cfilter%20id%3D%22blur2%22%3E%3CfeGaussianBlur%20stdDeviation%3D%2214%22%2F%3E%3C%2Ffilter%3E%20%3ClinearGradient%20id%3D%22ribbon1%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%2347b6ff%22%2F%3E%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%231a3f8f%22%2F%3E%20%3C%2FlinearGradient%3E%20%3ClinearGradient%20id%3D%22ribbon2%22%20x1%3D%221%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22%2399e6ff%22%2F%3E%20%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22%232359c9%22%2F%3E%20%3C%2FlinearGradient%3E%20%3C%2Fdefs%3E%20%3Crect%20width%3D%221600%22%20height%3D%22900%22%20fill%3D%22url%28%23bg%29%22%2F%3E%20%3Cg%20filter%3D%22url%28%23blur1%29%22%20opacity%3D%220.75%22%3E%20%3Cpath%20d%3D%22M150%2C650%20C%20400%2C500%20500%2C750%20800%2C600%20C%201050%2C480%201200%2C650%201500%2C500%22%20stroke%3D%22url%28%23ribbon1%29%22%20stroke-width%3D%2290%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%20%3C%2Fg%3E%20%3Cg%20filter%3D%22url%28%23blur2%29%22%20opacity%3D%220.85%22%3E%20%3Cpath%20d%3D%22M250%2C620%20C%20500%2C480%20620%2C700%20900%2C560%20C%201100%2C460%201250%2C560%201450%2C440%22%20stroke%3D%22url%28%23ribbon2%29%22%20stroke-width%3D%2245%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%20%3C%2Fg%3E%20%3Cg%20filter%3D%22url%28%23blur1%29%22%20opacity%3D%220.4%22%3E%20%3Ccircle%20cx%3D%221250%22%20cy%3D%22260%22%20r%3D%22180%22%20fill%3D%22%233a6fd6%22%2F%3E%20%3C%2Fg%3E%20%3C%2Fsvg%3E")
+    center bottom / cover no-repeat,
+    /* fallback flat gradient behind the SVG in case a browser can't
+       decode the data URI -- same dark-blue-to-black family as the
+       radial gradient's own stops */
+    radial-gradient(ellipse at 50% 40%, #0c1f4d 0%, #060f2e 55%, #000104 100%);
+  overflow: hidden;
+}
+
+/* ---------- Desktop icons ---------- */
+
+.desktop-icons {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  z-index: 1;
+}
+
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  width: 5.5rem;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 0;
+  min-height: 0;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  color: #ffffff;
+  text-shadow: none;
+  /* Real Windows never shows a hand/pointer cursor over a desktop icon
+     or any of its own chrome -- house convention, see CLAUDE.md/README
+     precedent already applied to xp/style.css. */
+  cursor: default;
+  padding: 0.25rem;
+  outline: none;
+}
+
+/* Desktop icons are real <button>s, so 7.css's own generic
+   `button:not(:disabled):hover`/`:active` rules (a border-color change
+   plus a `.active` bevel, see vendor/win7/7.css's own :root rules) apply
+   by default and beat a plain `.desktop-icon:hover`/`:active` selector
+   on specificity -- same `:not()`-counts-as-a-class issue already fixed
+   in xp/style.css (see its own comment on .desktop-icons
+   .desktop-icon:hover). The ancestor-scoped selectors below are specific
+   enough to win and strip it back to nothing: real Windows never
+   outlines/bevels a desktop icon as one rectangle on hover or press. */
+.desktop-icons .desktop-icon:hover,
+.desktop-icons .desktop-icon:active,
+.desktop-icons .desktop-icon:focus {
+  background: transparent;
+  box-shadow: none;
+  border-color: transparent;
+  outline: none;
+  padding: 0.25rem;
+}
+
+.desktop-icon:focus-visible .desktop-icon-label {
+  outline: 1px dotted #ffffff;
+  outline-offset: 1px;
+}
+
+.desktop-icon-glyph {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.6));
+}
+
+.desktop-icon.selected .desktop-icon-glyph::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #3390ff;
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+}
+
+.desktop-icon-label {
+  font-size: 11px;
+  text-align: center;
+  text-shadow: 1px 1px 0 #000000;
+}
+
+.desktop-icon.selected .desktop-icon-label {
+  background: #3390ff;
+  text-shadow: none;
+}
+
+/* ---------- Aero glass chrome ----------
+   The genuinely-new visual work for this theme: 7.css itself ships flat
+   window/title-bar chrome (see vendor/win7/7.css), so all of Aero's
+   translucency comes from this file. backdrop-filter blur is layered
+   over a semi-transparent gradient so a browser without backdrop-filter
+   support (or one where it's disabled) still gets a recognizably glassy
+   dark-tinted bar, just without the live blur -- not a hard fallback
+   branch, both rules are just always-present together. */
+
+.win7-window.glass > .title-bar {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(215, 231, 250, 0.55) 0%, rgba(160, 197, 240, 0.45) 40%, rgba(120, 165, 220, 0.5) 100%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.6),
+    inset 0 -1px rgba(0, 0, 0, 0.15),
+    0 8px 24px rgba(0, 0, 20, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: none;
+}
+
+/* The glossy highlight sweep -- a lighter, angled band across the upper
+   portion of the title bar, the way real Aero glass caught light from
+   above. A pseudo-element rather than a second background layer so it
+   composites over the backdrop-filtered bar cleanly. */
+.win7-window.glass > .title-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.25) 30%, rgba(255, 255, 255, 0) 55%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+}
+
+.win7-window.glass {
+  box-shadow: 0 12px 32px rgba(0, 0, 10, 0.45);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.win7-window.glass .window-body {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: none;
+}
+
+html, body {
+  overflow: hidden;
+}
+
+.win7-window {
+  position: absolute;
+  min-width: 200px;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  /* Baseline only -- app.js overwrites this with each window's own real
+     stacking order via an inline style at setup and on every focus(),
+     same reasoning as win98/style.css's/xp/style.css's own comment. */
+  z-index: 10;
+}
+
+.win7-window.maximized {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0;
+}
+
+.win7-window.minimized {
+  display: none;
+}
+
+.win7-window-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* OQ!'s own body: the filter input and status line stay fixed, only the
+   results table scrolls internally. */
+.oq-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.win7-field-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.oq-filter-row input {
+  width: 100%;
+}
+
+.oq-status {
+  margin: 0;
+  font-size: 12px;
+}
+
+/* 7.css ships no ready-made recessed-panel component for arbitrary
+   content -- same gap win98/style.css's .sunken-panel and xp/style.css's
+   own hand-rolled .oq-results-panel each fill in their own way. This
+   recreates the same "recessed field" look with an inset box-shadow,
+   using 7.css's own field-border color token rather than inventing a
+   new one. */
+.oq-results-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #ffffff;
+  border: 1px solid var(--w7-el-bd, #8e8f8f);
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.oq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.oq-table th {
+  position: sticky;
+  top: 0;
+  text-align: left;
+  padding: 3px 6px;
+  background: linear-gradient(180deg, #eef5fc 0%, #cfe4f7 100%);
+  border-bottom: 1px solid var(--w7-el-bd, #8e8f8f);
+}
+
+.oq-table td {
+  padding: 2px 6px;
+  border-bottom: 1px solid #eef2fa;
+}
+
+.oq-table tbody tr:nth-child(even) {
+  background: #f4f8fd;
+}
+
+/* Row selection -- real Aero's own list/table selection blue, close to
+   the accent 7.css's own --w7-li-bd-hl/--w7-li-bg-hl tokens use for
+   listview selection highlight. */
+.oq-table tbody tr.highlighted {
+  background: #3390ff;
+  color: #ffffff;
+}
+
+.oq-attribution {
+  margin: 0;
+  font-size: 10px;
+  color: #444444;
+}
+
+/* DECON's own body: same fixed-input/scrolling-results split as OQ!'s
+   .oq-body above, plus a root-first/final-first order toggle row. */
+.decon-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 8px;
+}
+
+.decon-word-row input {
+  width: 100%;
+}
+
+.decon-order-row {
+  font-size: 12px;
+}
+
+.decon-status {
+  margin: 0;
+  font-size: 12px;
+}
+
+.decon-results-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 6px;
+  background: #ffffff;
+  border: 1px solid var(--w7-el-bd, #8e8f8f);
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.decon-card {
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #d3e4f7;
+}
+
+.decon-card:last-child {
+  border-bottom: none;
+}
+
+.decon-tag {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.decon-tag--approximate {
+  color: #a02020;
+}
+
+.decon-word {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.decon-meaning {
+  margin: 2px 0;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.decon-breakdown {
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.decon-truncated {
+  color: #a02020;
+}
+
+.decon-dict-match {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+
+.win7-window .title-bar {
+  cursor: default;
+  user-select: none;
+  touch-action: none;
+}
+
+.win7-window .title-bar-controls {
+  position: relative;
+  z-index: 3;
+}
+
+.win7-window .title-bar-controls button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Resize handles: thin invisible strips along each edge/corner, laid over
+   the window's own border -- identical geometry to win98/style.css's and
+   xp/style.css's own handles, just renamed to this theme's own class
+   prefix. */
+.win7-resize-handle {
+  position: absolute;
+  z-index: 1;
+}
+
+.win7-resize-n, .win7-resize-s {
+  left: 6px;
+  right: 6px;
+  height: 6px;
+  cursor: ns-resize;
+}
+.win7-resize-n { top: -3px; }
+.win7-resize-s { bottom: -3px; }
+
+.win7-resize-e, .win7-resize-w {
+  top: 6px;
+  bottom: 6px;
+  width: 6px;
+  cursor: ew-resize;
+}
+.win7-resize-e { right: -3px; }
+.win7-resize-w { left: -3px; }
+
+.win7-resize-ne, .win7-resize-nw, .win7-resize-se, .win7-resize-sw {
+  width: 10px;
+  height: 10px;
+  z-index: 2;
+}
+.win7-resize-ne { top: -3px; right: -3px; cursor: nesw-resize; }
+.win7-resize-nw { top: -3px; left: -3px; cursor: nwse-resize; }
+.win7-resize-se { bottom: -3px; right: -3px; cursor: nwse-resize; }
+.win7-resize-sw { bottom: -3px; left: -3px; cursor: nesw-resize; }
+
+.win7-window.maximized .win7-resize-handle {
+  display: none; /* nothing to resize while maximized */
+}
+
+/* Touch: same 5x-scaled hitboxes as win98/style.css's/xp/style.css's own
+   block, same reasoning -- (pointer: coarse) is true for touchscreens,
+   false for a mouse/trackpad including a touch-capable laptop with a
+   mouse attached. */
+@media (pointer: coarse) {
+  .win7-resize-n, .win7-resize-s {
+    left: 30px;
+    right: 30px;
+    height: 30px;
+  }
+  .win7-resize-n { top: -15px; }
+  .win7-resize-s { bottom: -15px; }
+
+  .win7-resize-e, .win7-resize-w {
+    top: 30px;
+    bottom: 30px;
+    width: 30px;
+  }
+  .win7-resize-e { right: -15px; }
+  .win7-resize-w { left: -15px; }
+
+  .win7-resize-ne, .win7-resize-nw, .win7-resize-se, .win7-resize-sw {
+    width: 50px;
+    height: 50px;
+  }
+  .win7-resize-ne { top: -25px; right: -25px; }
+  .win7-resize-nw { top: -25px; left: -25px; }
+  .win7-resize-se { bottom: -25px; right: -25px; }
+  .win7-resize-sw { bottom: -25px; left: -25px; }
+}
+
+/* ---------- Taskbar ----------
+   Same glass treatment as the title bars above: translucent blurred dark
+   bar, not a flat opaque one -- real Aero's taskbar was noticeably
+   darker/more saturated glass than a window's own title bar.
+
+   Decision made, not defaulted: real Windows 7 shipped icon-only taskbar
+   buttons by default (no text label next to the icon, unlike XP/98's
+   "grouped label" buttons) -- this theme follows that rather than
+   matching win98/xp's labeled-button convention, because it's a small,
+   self-contained, easily-reversible visual change and it's the single
+   most immediately-recognizable Windows-7-specific taskbar trait (wider
+   than win98/xp's stylistic differences, this one's behavioral/layout).
+   See .taskbar-window-button below for the actual icon-only rule. */
+
+.taskbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px;
+  background: linear-gradient(180deg, rgba(40, 62, 96, 0.72) 0%, rgba(18, 34, 58, 0.82) 100%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.25), 0 -2px 16px rgba(0, 0, 10, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  z-index: 1000;
+}
+
+/* A real circle, not a rounded rectangle -- the Aero orb itself
+   (.start-orb below) was already round, but the clickable <button> around
+   it stayed a 46x34 pill, so hover/press glow and focus outline both
+   still read as rectangular. Equal width/height + border-radius: 50%
+   makes the hit target match the art -- min-width/min-height need their
+   own explicit reset too, not just width/height: 7.css's own generic
+   `button { min-width: 75px; min-height: 23px; ... }` rule (a real
+   textual-button default, for e.g. dialog OK/Cancel buttons) otherwise
+   wins over a smaller explicit width regardless of selector specificity
+   -- unlike the specificity traps elsewhere in this file, a conflicting
+   min-width always overrides width by spec, so overriding the value
+   itself is the only fix. */
+.start-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* #start-button, not just .start-button: same specificity trap as
+   win98/xp (7.css's own `button:not(:disabled):hover`/`:active`
+   generic rules would otherwise win over a plain class selector -- see
+   this file's own note near .desktop-icons .desktop-icon:hover, and
+   xp/style.css's #start-button:hover comment for the precedent). Hover
+   and "menu open" both get a soft glow behind the orb, not a bevel --
+   Aero's own affordance for its round chrome. */
+#start-button:hover .start-orb,
+.start-button[aria-expanded="true"] .start-orb {
+  filter: drop-shadow(0 0 6px rgba(120, 200, 255, 0.9)) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+#start-button:active .start-orb {
+  transform: scale(0.94);
+}
+
+/* The Aero orb itself: a circular glossy button showing the real
+   Greenlandic flag -- --icon-greenland-flag-round, drawn directly
+   against a round canvas (not the same asset as win98/xp's own square
+   Start-button glyph; see that variable's own comment on why cropping
+   the square version into a circle mistreated the flag's proportions),
+   not the real Windows logo's red/green/blue/yellow quadrants. contain,
+   not cover: the art is already exactly circular at 1:1, so no
+   scale-to-fill cropping is needed or wanted. A radial glass highlight
+   sits above the flat art via a ::after sweep, the same "highlight
+   layered over real art" approach the title bar gloss above uses. */
+.start-orb {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-image: var(--icon-greenland-flag-round);
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.15);
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+
+.start-orb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.15) 40%, rgba(255, 255, 255, 0) 55%);
+  pointer-events: none;
+}
+
+.taskbar-separator {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.taskbar-windows {
+  flex: 1;
+  display: flex;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Icon-only taskbar buttons -- see this section's own top comment for
+   why this theme diverges from win98/xp's labeled-button convention.
+   The real title still lives in the DOM (shared/redmond/window-
+   manager.js's taskbarButtonFor() always builds a .taskbar-window-label
+   span) so it stays in the accessibility tree and available to a screen
+   reader/hover tooltip -- only the *visual* label is suppressed here via
+   an accessible-hide pattern, not removed from markup. */
+.taskbar-window-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.15);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.taskbar-window-icon {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+}
+
+.taskbar-window-label {
+  /* Visually hidden, not display:none -- keeps the real window title in
+     the accessibility tree (see this block's own top comment) while the
+     icon-only Aero look shows just the glyph. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Active: real Aero's foreground taskbar button gets a bright glass
+   highlight and a visible glow, not a sunken bevel the way win98/xp's
+   flat chrome reads "pressed in" -- Aero's whole idiom is translucent
+   light, not carved plastic. */
+#taskbar-windows .taskbar-window-button.active {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.5),
+    0 0 8px rgba(140, 200, 255, 0.5);
+}
+
+.taskbar-tray {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.taskbar-clock {
+  font-size: 12px;
+  color: #ffffff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Start menu ---------- */
+
+/* #start-menu, not just .start-menu: this is a real <ul role="menu">, and
+   vendor/win7/7.css ships its own `ul[role=menu] { position: relative; ...
+   }` rule -- an element+attribute selector that outranks a plain single
+   class on specificity, the same `:not(:disabled)`-style trap already hit
+   twice on win98/xp (taskbar button .active, desktop-icon/start-button
+   hover). Left uncaught here it silently drops `position: fixed` back to
+   the vendor's `relative`, which put this menu in normal document flow at
+   the top of the page instead of anchored above the taskbar -- the id
+   selector is specific enough to win. */
+#start-menu {
+  position: fixed;
+  left: 3px;
+  bottom: 44px;
+  z-index: 1001;
+  margin: 0;
+  padding: 0 3px 3px;
+  list-style: none;
+  min-width: 15rem;
+  background: linear-gradient(180deg, rgba(245, 249, 255, 0.9) 0%, rgba(225, 236, 250, 0.85) 100%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 10, 0.5), inset 0 1px rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+}
+
+.start-menu[hidden] {
+  display: none;
+}
+
+.start-menu-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 -3px 4px;
+  padding: 0.5rem 0.75rem 0.6rem;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, rgba(80, 140, 210, 0.55) 0%, rgba(40, 90, 160, 0.55) 100%);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.start-menu-user-icon {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  background-image: var(--icon-user);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.start-menu-user-name {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.35);
+}
+
+.start-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  font-size: 12px;
+  color: #000000;
+  /* Real Windows never shows a hand cursor over its own menus. */
+  cursor: default;
+  white-space: nowrap;
+  border-radius: 4px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.start-menu-item:hover,
+.start-menu-item:focus-visible {
+  background: rgba(51, 144, 255, 0.85);
+  color: #ffffff;
+  outline: none;
+}
+
+.start-menu-icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+}
+
+.start-menu-divider {
+  height: 1px;
+  margin: 4px 2px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- Shut Down dialog ---------- */
+
+.win7-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  bottom: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1002;
+}
+
+.win7-dialog-overlay[hidden] {
+  display: none;
+}
+
+.win7-dialog {
+  position: static;
+  width: 20rem;
+}
+
+.win7-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 1rem;
+}
