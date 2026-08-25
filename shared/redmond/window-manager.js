@@ -62,8 +62,137 @@
   // OqRouter.navigate() instead); the router's own onChange handler then
   // reaches this window's real, unrouted open via `forceOpenWindow` below,
   // which bypasses `routeOpen` entirely so this can't loop back on itself.
-  function initWindowManager({ desktop, taskbarWindows, windows, resizeHandleSelector, minWidth, minHeight, onOpen, routeOpen, routeClose }) {
+  // `animation`: optional per-theme tuning for minimize/maximize/restore --
+  // { geometryMs, geometryEasing, minimizeMs, minimizeEasing, minimizeScale }.
+  // Not a single hardcoded feel on purpose: win98/app.js, xp/app.js and
+  // win7/app.js each pass their own values (see those files' own comments)
+  // so a snappy flat-chrome minimize doesn't have to look like Aero's
+  // softer one. Unset fields fall back to the defaults below.
+  function initWindowManager({ desktop, taskbarWindows, windows, resizeHandleSelector, minWidth, minHeight, onOpen, routeOpen, routeClose, animation }) {
     let zTop = 10;
+
+    const anim = Object.assign(
+      { geometryMs: 160, geometryEasing: "ease", minimizeMs: 160, minimizeEasing: "ease-in", minimizeScale: 0.05 },
+      animation,
+    );
+
+    // Real Windows itself skips these animations under "reduce motion"-
+    // equivalent settings; prefers-reduced-motion is the web's version of
+    // that same user preference, so honor it rather than forcing every
+    // visitor through a scale/fade they've asked to avoid.
+    function reduceMotion() {
+      return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    }
+
+    // Shared by maximize and un-maximize (restore-to-previous-rect): both
+    // just change top/left/width/height (one via the .maximized class's own
+    // !important rule, the other via inline styles) and want the same
+    // "animate between old and new rect" treatment. Setting `transition`
+    // and forcing a reflow before `mutate()` runs (rather than right after)
+    // ensures the browser commits the *old* geometry as the transition's
+    // start point -- ordering it the other way around risks the browser
+    // coalescing both style changes into one recalculation with nothing to
+    // transition from.
+    function withGeometryTransition(win, mutate) {
+      if (reduceMotion()) {
+        mutate();
+        return;
+      }
+      win.style.transition =
+        `top ${anim.geometryMs}ms ${anim.geometryEasing}, left ${anim.geometryMs}ms ${anim.geometryEasing}, ` +
+        `width ${anim.geometryMs}ms ${anim.geometryEasing}, height ${anim.geometryMs}ms ${anim.geometryEasing}`;
+      void win.offsetWidth; // force the reflow described above
+      mutate();
+      let done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        win.style.transition = "";
+        win.removeEventListener("transitionend", onEnd);
+      }
+      function onEnd(event) {
+        if (event.target === win) finish();
+      }
+      win.addEventListener("transitionend", onEnd);
+      // Fallback in case nothing actually changed size/position (no
+      // transitionend ever fires) -- e.g. un-maximizing back to the exact
+      // rect it started at.
+      setTimeout(finish, anim.geometryMs + 80);
+    }
+
+    // Minimize/restore fly the window toward (or out of) its own taskbar
+    // button -- real Windows' "genie"-ish minimize animation -- rather than
+    // just the plain fade a generic shrink-in-place would give. `taskbarBtn`
+    // is optional: a window minimized before its button exists (shouldn't
+    // happen in practice, since toggleMinimize below always has one) falls
+    // back to shrinking toward its own bottom edge.
+    function targetCenterFor(win, taskbarBtn) {
+      const wr = win.getBoundingClientRect();
+      if (!taskbarBtn) return { x: wr.left + wr.width / 2, y: wr.bottom };
+      const tr = taskbarBtn.getBoundingClientRect();
+      return { x: tr.left + tr.width / 2, y: tr.top + tr.height / 2 };
+    }
+
+    function animateMinimizeOut(win, taskbarBtn, onDone) {
+      if (reduceMotion()) {
+        onDone();
+        return;
+      }
+      const wr = win.getBoundingClientRect();
+      const target = targetCenterFor(win, taskbarBtn);
+      const dx = target.x - (wr.left + wr.width / 2);
+      const dy = target.y - (wr.top + wr.height / 2);
+      win.style.transformOrigin = "center center";
+      win.style.transition = `transform ${anim.minimizeMs}ms ${anim.minimizeEasing}, opacity ${anim.minimizeMs}ms ${anim.minimizeEasing}`;
+      requestAnimationFrame(() => {
+        win.style.transform = `translate(${dx}px, ${dy}px) scale(${anim.minimizeScale})`;
+        win.style.opacity = "0";
+      });
+      let done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        win.style.transition = "";
+        win.style.transform = "";
+        win.style.opacity = "";
+        win.removeEventListener("transitionend", onEnd);
+        onDone();
+      }
+      function onEnd(event) {
+        if (event.target === win) finish();
+      }
+      win.addEventListener("transitionend", onEnd);
+      setTimeout(finish, anim.minimizeMs + 80);
+    }
+
+    // Reverse of the above: the window has just had .minimized removed (so
+    // it's visible at its real rect again) -- jump it instantly to the
+    // small/faded "at the taskbar button" state with no transition, force a
+    // reflow to commit that as the start point, then transition back to its
+    // normal transform/opacity.
+    function animateRestoreFromTaskbar(win, taskbarBtn) {
+      if (reduceMotion()) return;
+      const wr = win.getBoundingClientRect();
+      const origin = targetCenterFor(win, taskbarBtn);
+      const dx = origin.x - (wr.left + wr.width / 2);
+      const dy = origin.y - (wr.top + wr.height / 2);
+      win.style.transition = "none";
+      win.style.transformOrigin = "center center";
+      win.style.transform = `translate(${dx}px, ${dy}px) scale(${anim.minimizeScale})`;
+      win.style.opacity = "0";
+      void win.offsetWidth;
+      win.style.transition = `transform ${anim.minimizeMs}ms ${anim.minimizeEasing}, opacity ${anim.minimizeMs}ms ${anim.minimizeEasing}`;
+      requestAnimationFrame(() => {
+        win.style.transform = "";
+        win.style.opacity = "";
+      });
+      function onEnd(event) {
+        if (event.target !== win) return;
+        win.style.transition = "";
+        win.removeEventListener("transitionend", onEnd);
+      }
+      win.addEventListener("transitionend", onEnd);
+    }
 
     // The markup's starting top/left/width/height (each theme's own inline
     // styles) are sized for a desktop viewport and overflow outright on a
@@ -120,8 +249,14 @@
       // closeWindow) -- reopening it, from a desktop icon or the Start
       // menu, needs to rebuild one before it can be focused/highlighted
       // there.
-      if (!state.get(win).taskbarButton) taskbarButtonFor(win);
+      const wasMinimized = win.classList.contains("minimized");
+      const s = state.get(win);
+      if (!s.taskbarButton) taskbarButtonFor(win);
       win.classList.remove("minimized");
+      // Only animate the "flying out of the taskbar" restore when it was
+      // actually minimized -- a window opened fresh (never minimized) has
+      // no taskbar button position to fly from yet.
+      if (wasMinimized) animateRestoreFromTaskbar(win, s.taskbarButton);
       focus(win);
       if (onOpen) onOpen(win);
     }
@@ -133,10 +268,15 @@
 
     function toggleMinimize(win) {
       const willMinimize = !win.classList.contains("minimized");
-      win.classList.toggle("minimized");
+      const s = state.get(win);
       if (willMinimize) {
-        state.get(win).taskbarButton.classList.remove("active");
+        s.taskbarButton.classList.remove("active");
+        animateMinimizeOut(win, s.taskbarButton, () => {
+          win.classList.add("minimized");
+        });
       } else {
+        win.classList.remove("minimized");
+        animateRestoreFromTaskbar(win, s.taskbarButton);
         focus(win);
       }
     }
@@ -144,13 +284,15 @@
     function toggleMaximize(win) {
       const s = state.get(win);
       if (win.classList.contains("maximized")) {
-        win.classList.remove("maximized");
-        if (s.preMaximizeRect) {
-          win.style.top = s.preMaximizeRect.top;
-          win.style.left = s.preMaximizeRect.left;
-          win.style.width = s.preMaximizeRect.width;
-          win.style.height = s.preMaximizeRect.height;
-        }
+        withGeometryTransition(win, () => {
+          win.classList.remove("maximized");
+          if (s.preMaximizeRect) {
+            win.style.top = s.preMaximizeRect.top;
+            win.style.left = s.preMaximizeRect.left;
+            win.style.width = s.preMaximizeRect.width;
+            win.style.height = s.preMaximizeRect.height;
+          }
+        });
       } else {
         s.preMaximizeRect = {
           top: win.style.top,
@@ -158,7 +300,9 @@
           width: win.style.width,
           height: win.style.height,
         };
-        win.classList.add("maximized");
+        withGeometryTransition(win, () => {
+          win.classList.add("maximized");
+        });
       }
       focus(win);
     }

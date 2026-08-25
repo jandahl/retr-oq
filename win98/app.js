@@ -41,6 +41,16 @@
     resizeHandleSelector: ".win98-resize-handle",
     minWidth: MIN_WIN_WIDTH,
     minHeight: MIN_WIN_HEIGHT,
+    // Win98's own minimize/maximize/restore animations were short and
+    // linear -- no easing curve, no bounce, just a quick snap -- matching
+    // the flat, no-gloss chrome the rest of this theme already goes for.
+    animation: {
+      geometryMs: 120,
+      geometryEasing: "linear",
+      minimizeMs: 140,
+      minimizeEasing: "linear",
+      minimizeScale: 0.04,
+    },
     onOpen(win) {
       if (win.id === "win-oq") startOqLoad();
     },
