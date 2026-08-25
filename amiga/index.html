@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>retr-oq — Amiga Workbench 1.3 prototype</title>
+<link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <!-- Amiga Workbench 1.3 desktop prototype. Kickstart 1.3 chrome is a
+       hard 4-pen palette (blue / white / black / orange) — Intuition
+       gadgets, the screen bar, window frames. The backdrop, icons, About
+       painting, copper bars and Boing ball are the other Amiga: Deluxe
+       Paint and the demo scene, 12-bit OCS color, unapologetically
+       non-sequitur. No drop-in CSS framework is vendored (the candidate
+       amiga.css kits either lack a LICENSE or aren't 1.3); chrome is
+       hand-drawn the same way c64/ and gb/ are. Font is TopazPlus a500
+       (GPL-FE) at vendor/amiga/. Mac-lineage window logic, not Redmond
+       — see app.js. -->
+
+  <ul role="menu-bar" class="wb-screenbar" id="screen-bar">
+    <li class="wb-screen-depth" title="Screen depth">
+      <button type="button" class="gadget gadget-depth" id="screen-depth" aria-label="Screen depth"></button>
+    </li>
+    <li class="wb-screen-title">Workbench 1.3</li>
+    <li role="menu-item" tabindex="0" aria-haspopup="true">
+      Workbench
+      <ul role="menu">
+        <li role="menu-item"><a href="#">Backdrop</a></li>
+        <li role="menu-item" id="menu-execute"><a href="#">Execute Command…</a></li>
+        <li role="menu-item" class="divider"><a href="#">Redraw All</a></li>
+        <li role="menu-item"><a href="#">Update All</a></li>
+        <li role="menu-item"><a href="#">Last Message</a></li>
+        <li role="menu-item" class="divider" data-open="win-about"><a href="#">About retr-oq…</a></li>
+        <li role="menu-item" id="menu-quit"><a href="#">Quit</a></li>
+      </ul>
+    </li>
+    <li role="menu-item" tabindex="0" aria-haspopup="true">
+      Window
+      <ul role="menu">
+        <li role="menu-item"><a href="#">New Drawer</a></li>
+        <li role="menu-item"><a href="#">Open Parent</a></li>
+        <li role="menu-item"><a href="#">Close</a></li>
+        <li role="menu-item" class="divider"><a href="#">Select Contents</a></li>
+        <li role="menu-item"><a href="#">Clean Up</a></li>
+        <li role="menu-item"><a href="#">Snapshot</a></li>
+        <li role="menu-item" class="divider"><a href="#">Show → All Files</a></li>
+        <li role="menu-item"><a href="#">View By → Icon</a></li>
+      </ul>
+    </li>
+    <li role="menu-item" tabindex="0" aria-haspopup="true">
+      Tools
+      <ul role="menu">
+        <li role="menu-item" id="menu-boing"><a href="#">Boing</a></li>
+        <li role="menu-item" id="menu-copper"><a href="#">Copper</a></li>
+        <li role="menu-item" class="divider"><a href="#">ResetWB</a></li>
+      </ul>
+    </li>
+    <li class="wb-screen-clock" id="screen-clock" aria-hidden="true">00:00:00</li>
+  </ul>
+
+  <div class="wb-desktop" id="desktop">
+    <div class="wb-backdrop" aria-hidden="true"></div>
+    <canvas id="copper" class="wb-copper" width="320" height="48" aria-hidden="true"></canvas>
+    <canvas id="boing" class="wb-boing" width="96" height="96" aria-label="Boing ball"></canvas>
+
+    <div class="desktop-icons desktop-icons-left">
+      <button type="button" class="desktop-icon" data-open="win-ram">
+        <img src="art/icon-disk.png" alt="" width="64" height="64" />
+        <span class="desktop-icon-label">RAM:</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-oq">
+        <img src="art/icon-oq.png" alt="" width="64" height="64" />
+        <span class="desktop-icon-label">OQ!</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-decon">
+        <img src="art/icon-decon.png" alt="" width="64" height="64" />
+        <span class="desktop-icon-label">DECON</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-about">
+        <img src="art/icon-drawer.png" alt="" width="64" height="64" />
+        <span class="desktop-icon-label">Art</span>
+      </button>
+    </div>
+    <div class="desktop-icons desktop-icons-right">
+      <button type="button" class="desktop-icon" data-open="win-trash">
+        <img src="art/icon-trash.png" alt="" width="64" height="64" />
+        <span class="desktop-icon-label">Trash</span>
+      </button>
+    </div>
+
+    <!-- OQ! and DECON: real, shareable-URL state via shared/router.js,
+         same ?screen=oq&filter=... / ?screen=decon&word=...&order=...
+         params every other theme's router wiring already uses. -->
+    <section class="wb-window closed" id="win-oq" style="top: 2rem; left: 7rem; width: 28rem; height: 22rem;">
+      <div class="wb-titlebar" id="win-oq-titlebar">
+        <button type="button" class="gadget gadget-close" id="win-oq-close" aria-label="Close"></button>
+        <h1 class="wb-title">OQ!</h1>
+        <button type="button" class="gadget gadget-zoom" id="win-oq-zoom" aria-label="Zoom"></button>
+        <button type="button" class="gadget gadget-depth" id="win-oq-depth" aria-label="Depth"></button>
+      </div>
+      <div class="wb-body oq-body">
+        <div class="wb-field">
+          <input type="text" id="oq-filter" placeholder="Type to search..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <p class="wb-status" id="oq-status">Loading dictionary...</p>
+        <div class="wb-panel">
+          <table class="oq-table" id="oq-table">
+            <thead>
+              <tr><th>Lexeme</th><th>English</th></tr>
+            </thead>
+            <tbody id="oq-tbody"></tbody>
+          </table>
+        </div>
+        <p class="wb-attribution" id="oq-attribution"></p>
+      </div>
+      <div class="wb-growbox" id="win-oq-growbox"></div>
+    </section>
+
+    <section class="wb-window closed" id="win-decon" style="top: 3rem; left: 10rem; width: 30rem; height: 23rem;">
+      <div class="wb-titlebar" id="win-decon-titlebar">
+        <button type="button" class="gadget gadget-close" id="win-decon-close" aria-label="Close"></button>
+        <h1 class="wb-title">DECON</h1>
+        <button type="button" class="gadget gadget-zoom" id="win-decon-zoom" aria-label="Zoom"></button>
+        <button type="button" class="gadget gadget-depth" id="win-decon-depth" aria-label="Depth"></button>
+      </div>
+      <div class="wb-body decon-body">
+        <div class="wb-field">
+          <input type="text" id="decon-word" placeholder="Type a Kalaallisut word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <div class="wb-field wb-check-row">
+          <input type="checkbox" id="decon-root-first" checked />
+          <label for="decon-root-first">Root first</label>
+        </div>
+        <p class="wb-status" id="decon-status">Type a word, press Enter.</p>
+        <div class="wb-panel decon-results-panel" id="decon-results"></div>
+      </div>
+      <div class="wb-growbox" id="win-decon-growbox"></div>
+    </section>
+
+    <section class="wb-window closed" id="win-ram" style="top: 4rem; left: 3rem; width: 22rem; height: 14rem;">
+      <div class="wb-titlebar" id="win-ram-titlebar">
+        <button type="button" class="gadget gadget-close" id="win-ram-close" aria-label="Close"></button>
+        <h1 class="wb-title">RAM:</h1>
+        <button type="button" class="gadget gadget-zoom" id="win-ram-zoom" aria-label="Zoom"></button>
+        <button type="button" class="gadget gadget-depth" id="win-ram-depth" aria-label="Depth"></button>
+      </div>
+      <div class="wb-body">
+        <p>Nothing to browse yet — no real file system behind this window,
+          same scope decision as every other theme's own disk/My Computer.</p>
+      </div>
+      <div class="wb-growbox" id="win-ram-growbox"></div>
+    </section>
+
+    <section class="wb-window closed" id="win-about" style="top: 5rem; left: 8rem; width: 26rem; height: 22rem;">
+      <div class="wb-titlebar" id="win-about-titlebar">
+        <button type="button" class="gadget gadget-close" id="win-about-close" aria-label="Close"></button>
+        <h1 class="wb-title">About retr-oq</h1>
+        <button type="button" class="gadget gadget-zoom" id="win-about-zoom" aria-label="Zoom"></button>
+        <button type="button" class="gadget gadget-depth" id="win-about-depth" aria-label="Depth"></button>
+      </div>
+      <div class="wb-body about-body">
+        <img class="about-art" src="art/about.png" width="160" height="120" alt="Deluxe Paint still: banana, chrome ship, juggler" />
+        <p>
+          Workbench 1.3 &nbsp; Kickstart 34.5
+        </p>
+        <p>
+          A prototype Amiga desktop — four-pen Intuition chrome
+          (blue / white / black / orange) around a Deluxe Paint backdrop
+          and icons, 12-bit OCS color, the way a real A500 owner actually
+          dressed the machine: Workbench in the gadgets, a macaw and a
+          chrome torus on the wallpaper because they could.
+        </p>
+        <p>
+          Drag windows by the title bar, grow from the bottom-right
+          sizing gadget, depth gadget sends a window to the back.
+          Quit returns to the theme picker.
+        </p>
+      </div>
+      <div class="wb-growbox" id="win-about-growbox"></div>
+    </section>
+
+    <section class="wb-window closed" id="win-trash" style="top: 8rem; left: 12rem; width: 20rem; height: 12rem;">
+      <div class="wb-titlebar" id="win-trash-titlebar">
+        <button type="button" class="gadget gadget-close" id="win-trash-close" aria-label="Close"></button>
+        <h1 class="wb-title">Trash</h1>
+        <button type="button" class="gadget gadget-zoom" id="win-trash-zoom" aria-label="Zoom"></button>
+        <button type="button" class="gadget gadget-depth" id="win-trash-depth" aria-label="Depth"></button>
+      </div>
+      <div class="wb-body">
+        <p>The Trashcan is empty.</p>
+      </div>
+      <div class="wb-growbox" id="win-trash-growbox"></div>
+    </section>
+  </div>
+
+  <div class="wb-shutdown-overlay" id="shutdown-overlay" hidden>
+    <section class="wb-window wb-dialog">
+      <div class="wb-titlebar" id="shutdown-titlebar">
+        <h1 class="wb-title">Workbench</h1>
+      </div>
+      <div class="wb-body">
+        <p>It is now safe to leave this theme.</p>
+        <div class="wb-dialog-actions">
+          <button type="button" class="wb-btn" id="shutdown-ok">OK</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="guru" hidden>
+    <div class="guru-box">
+      <p>Software Failure.&nbsp;&nbsp; Press left mouse button to continue.</p>
+      <p>Guru Meditation #00000004.00OQDEAD</p>
+    </div>
+  </div>
+
+  <!-- Load order matters (see CLAUDE.md): app.js reads window.OqDictSource
+       and window.OqHyphenation, both classic scripts setting those globals
+       synchronously, so both have to load and run before app.js does. -->
+  <script src="../shared/dict-source.js"></script>
+  <script src="../shared/hyphenation.js"></script>
+  <script src="../shared/router.js"></script>
+  <script type="module" src="../shared/oq-analysis.js"></script>
+  <script src="../shared/decon-app.js"></script>
+  <script src="app.js?v=2"></script>
+</body>
+</html>

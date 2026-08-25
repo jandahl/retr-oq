@@ -202,11 +202,29 @@ looks like today.
   `shared/router.js`/`shared/dict-source.js`/`shared/hyphenation.js`/
   `shared/decon-app.js` exactly as every other theme does, with the same
   `?screen=oq&filter=...`/`?screen=decon&word=...&order=...` URL scheme.
+- **`amiga/`** — an Amiga Workbench 1.3 desktop. Kickstart 1.3 chrome is
+  a hard four-pen palette (blue `#0055AA`, white, black, orange
+  `#FF8800`) for the screen bar, Intuition gadgets, window frames and
+  menus — a fifth chrome color would be a lie about what a stock 1.3
+  Workbench could paint. No drop-in CSS framework is vendored (the
+  candidate amiga.css kits either lack a LICENSE or aren't 1.3), so the
+  chrome is hand-drawn the same way `c64/` and `gb/` are. The *other*
+  Amiga — Deluxe Paint and the demo scene — lives in the art: a 12-bit
+  OCS (~32 color) backdrop (macaw, chrome torus, checkerboard floor,
+  copper sunset), painted icons, an About still, animated copper bars
+  along the bottom of the screen, and a bouncing Boing ball. TopazPlus
+  a500 (rewtnull/amigafonts, GPL with Font Exception) is vendored at
+  `vendor/amiga/fonts/`. Windows drag by the title bar, grow from the
+  single bottom-right sizing gadget, and a depth gadget sends a window
+  to the back. OQ!/DECON reuse the same router/dict/decon stack as
+  every other theme. Quit returns to the theme picker. Workbench >
+  Execute Command… is this theme's undocumented `DOOM` / Hot Dog Stand:
+  a Guru Meditation.
 
 ## Prospective themes
 
 Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`),
-**Commodore 64** (`c64/`), **NES** (`nes/`), **Game Boy** (`gb/`), **Windows 98** (`win98/`),
+**Commodore 64** (`c64/`), **Amiga** (`amiga/`), **NES** (`nes/`), **Game Boy** (`gb/`), **Windows 98** (`win98/`),
 **Windows XP** (`xp/`), **Windows 7** (`win7/`), and **Mac OS 8.1**
 (`mac8/`), all above.
 `c64/` is a deliberate exception to
@@ -303,6 +321,9 @@ README carried for it before it was vendored), `vendor/nes/LICENSE` is
 `nostalgic-css/NES.css`'s own MIT license, likewise copied verbatim, and
 `vendor/nes/fonts/OFL.txt` is Press Start 2P's own SIL OFL (a different
 license from the framework, kept next to the TTF on purpose).
+`vendor/amiga/LICENSE` is the GPL-FE notice for TopazPlus a500
+(`rewtnull/amigafonts`) — only that one face is vendored, not the rest
+of the TrueSchool pack.
 
 `shared/hyphenation.js` is the one file in this repo under a different
 license than the rest of its own code: MPL-2.0, not MIT. To be precise

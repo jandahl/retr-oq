@@ -1,0 +1,659 @@
+/* retr-oq Amiga Workbench 1.3 theme. No vendored CSS framework — see
+   index.html's own comment for why (the candidate kits fail this repo's
+   LICENSE bar, same situation as c64/). Two palettes on purpose:
+
+   1. Intuition chrome is Kickstart 1.3's four pens, and only those:
+      blue #0055AA, white #FFFFFF, black #000000, orange #FF8800.
+      Screen bar, gadgets, window frames, menus, requesters. A fifth
+      chrome color would be a lie about what a stock 1.3 Workbench could
+      paint.
+   2. Deluxe Paint / demo-scene art (backdrop, icons, About painting,
+      copper bars, Boing ball) is 12-bit OCS (channel steps of 17) at
+      ~32 colors. That's the other Amiga: HAM-adjacent stills, chrome
+      toruses, macaws on the wallpaper because the blitter was bored.
+
+   Font is TopazPlus a500 (rewtnull/amigafonts, GPL-FE) at
+   vendor/amiga/fonts/. Falls back to monospace if it fails to load. */
+
+@font-face {
+  font-family: "TopazPlus a500";
+  src: url("../vendor/amiga/fonts/TopazPlus_a500.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --wb-blue: #0055aa;
+  --wb-white: #ffffff;
+  --wb-black: #000000;
+  --wb-orange: #ff8800;
+  --wb-font: "TopazPlus a500", "Topaz", ui-monospace, monospace;
+  --wb-size: 16px;
+  --wb-screen: 44px;
+  --wb-title: 28px;
+  --wb-gadget: 28px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  position: fixed;
+  background: var(--wb-blue);
+  color: var(--wb-white);
+  font-family: var(--wb-font);
+  font-size: var(--wb-size);
+  line-height: 1.2;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+/* House convention: no hand/pointer cursor. Real Intuition used a
+   pixel pointer, never a pointing-hand. Growbox is the one exception. */
+button,
+.desktop-icon,
+[role="menu-item"],
+.gadget {
+  cursor: default;
+}
+
+/* ---------- Screen bar ---------- */
+/* Real 1.3 hid menu names until the right mouse button was held. That
+   is unusable on a phone and hostile on the web, so the titles stay
+   visible (Workbench 2.x habit) painted in 1.3's four pens. */
+.wb-screenbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  height: var(--wb-screen);
+  background: var(--wb-blue);
+  color: var(--wb-white);
+  border-bottom: 2px solid var(--wb-black);
+  box-shadow: inset 0 1px 0 var(--wb-white), inset 0 -1px 0 var(--wb-orange);
+  font-family: var(--wb-font);
+  font-size: var(--wb-size);
+  user-select: none;
+}
+.wb-screen-depth {
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+}
+.wb-screen-title {
+  display: flex;
+  align-items: center;
+  padding: 0 0.6rem 0 0.2rem;
+  color: var(--wb-orange);
+  white-space: nowrap;
+}
+.wb-screenbar > [role="menu-item"] {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 0.7rem;
+  color: var(--wb-white);
+  white-space: nowrap;
+  min-height: 44px;
+}
+.wb-screen-clock {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 0 0.7rem;
+  color: var(--wb-white);
+  white-space: nowrap;
+}
+.wb-screenbar [role="menu"] {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 2001;
+  margin: 0;
+  padding: 2px 0;
+  min-width: 14rem;
+  background: var(--wb-white);
+  color: var(--wb-black);
+  border: 2px solid var(--wb-black);
+  box-shadow: 4px 4px 0 var(--wb-black);
+  list-style: none;
+}
+.wb-screenbar [role="menu-item"].menu-open > [role="menu"] {
+  display: block;
+}
+.wb-screenbar [role="menu"] li {
+  padding: 0;
+}
+.wb-screenbar [role="menu"] li.divider {
+  border-top: 2px solid var(--wb-orange);
+  margin-top: 2px;
+  padding-top: 2px;
+}
+.wb-screenbar [role="menu"] a {
+  display: block;
+  padding: 0.35rem 1rem;
+  color: var(--wb-black);
+  text-decoration: none;
+  white-space: nowrap;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+.wb-screenbar [role="menu"] a:hover,
+.wb-screenbar [role="menu"] a:focus-visible {
+  background: var(--wb-orange);
+  color: var(--wb-black);
+}
+.wb-screenbar > [role="menu-item"].menu-open {
+  background: var(--wb-orange);
+  color: var(--wb-black);
+}
+.wb-screenbar > [role="menu-item"]:focus-visible {
+  outline: 1px dotted var(--wb-white);
+  outline-offset: -3px;
+}
+
+/* ---------- Gadgets (4-pen bevel) ---------- */
+.gadget {
+  width: var(--wb-gadget);
+  height: 22px;
+  padding: 0;
+  flex-shrink: 0;
+  background: var(--wb-orange);
+  border: 1px solid var(--wb-black);
+  box-shadow: inset 1px 1px 0 var(--wb-white), inset -1px -1px 0 var(--wb-black);
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.gadget:active {
+  box-shadow: inset 1px 1px 0 var(--wb-black), inset -1px -1px 0 var(--wb-white);
+}
+.gadget-close::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--wb-black);
+  background: var(--wb-orange);
+  box-sizing: border-box;
+}
+.gadget-zoom::after {
+  content: "";
+  width: 12px;
+  height: 10px;
+  border: 2px solid var(--wb-black);
+  box-shadow: 2px 2px 0 0 var(--wb-black);
+  box-sizing: border-box;
+  background: var(--wb-orange);
+}
+.gadget-depth::before,
+.gadget-depth::after {
+  content: "";
+  position: absolute;
+  width: 10px;
+  height: 8px;
+  border: 2px solid var(--wb-black);
+  box-sizing: border-box;
+  background: var(--wb-orange);
+}
+.gadget-depth::before {
+  top: 4px;
+  left: 5px;
+}
+.gadget-depth::after {
+  top: 8px;
+  left: 11px;
+}
+
+/* ---------- Desktop ---------- */
+.wb-desktop {
+  position: fixed;
+  inset: 0;
+  top: var(--wb-screen);
+}
+
+.wb-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: var(--wb-blue);
+  background-image: url("art/backdrop.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.wb-copper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  height: 64px;
+  pointer-events: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.wb-copper.is-off {
+  display: none;
+}
+
+.wb-boing {
+  position: absolute;
+  z-index: 8;
+  width: 96px;
+  height: 96px;
+  image-rendering: auto;
+  touch-action: none;
+}
+.wb-boing.is-off {
+  display: none;
+}
+
+.desktop-icons {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.desktop-icons-left {
+  top: 0.75rem;
+  left: 0.6rem;
+}
+.desktop-icons-right {
+  right: 0.6rem;
+  bottom: 3.5rem; /* above the copper strip */
+}
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  width: 5.5rem;
+  background: none;
+  border: none;
+  padding: 0.15rem;
+  font-family: var(--wb-font);
+  font-size: 16px;
+  color: var(--wb-white);
+  text-align: center;
+}
+.desktop-icon img {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  display: block;
+}
+.desktop-icon-label {
+  padding: 0 0.2rem;
+  overflow-wrap: break-word;
+  /* Pixel halo so labels stay readable on the painting, the way WB
+     icon text sat on a solid blue desktop. */
+  text-shadow:
+    1px 0 var(--wb-black),
+    -1px 0 var(--wb-black),
+    0 1px var(--wb-black),
+    0 -1px var(--wb-black);
+}
+.desktop-icon:focus-visible .desktop-icon-label,
+.desktop-icon.is-selected .desktop-icon-label {
+  background: var(--wb-orange);
+  color: var(--wb-black);
+  text-shadow: none;
+}
+
+@media (max-width: 600px) {
+  .desktop-icons-left,
+  .desktop-icons-right {
+    flex-direction: row;
+    flex-wrap: wrap;
+    top: 0.4rem;
+    left: 0.3rem;
+    right: 0.3rem;
+    bottom: auto;
+    width: auto;
+  }
+  .desktop-icons-right {
+    top: auto;
+    bottom: 3.2rem;
+    justify-content: flex-end;
+  }
+  .desktop-icon {
+    width: 4.6rem;
+  }
+}
+
+/* ---------- Windows ---------- */
+.wb-window {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  min-height: 140px;
+  background: var(--wb-orange);
+  border: 1px solid var(--wb-black);
+  box-shadow:
+    inset 1px 1px 0 var(--wb-white),
+    inset -2px -2px 0 var(--wb-black),
+    3px 3px 0 var(--wb-black);
+}
+.wb-window.closed {
+  display: none;
+}
+.wb-window.inactive {
+  box-shadow:
+    inset 1px 1px 0 var(--wb-white),
+    inset -2px -2px 0 var(--wb-black);
+}
+
+.wb-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: var(--wb-title);
+  padding: 3px;
+  background: var(--wb-orange);
+  touch-action: none;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+.wb-window.inactive .wb-titlebar {
+  background: var(--wb-blue);
+}
+.wb-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0.3rem;
+  font: 16px/1.1 var(--wb-font);
+  font-weight: normal;
+  color: var(--wb-black);
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.wb-window.inactive .wb-title {
+  color: var(--wb-white);
+}
+
+.wb-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 4px 4px;
+  padding: 0.45rem 0.5rem 1.4rem;
+  background: var(--wb-white);
+  color: var(--wb-black);
+  border: 1px solid var(--wb-black);
+  box-shadow: inset 1px 1px 0 var(--wb-black), inset -1px -1px 0 var(--wb-white);
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+}
+.wb-body > p:first-child {
+  margin-top: 0.2rem;
+}
+.wb-body p {
+  margin: 0.4rem 0;
+}
+
+.wb-growbox {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 18px;
+  height: 18px;
+  background:
+    linear-gradient(135deg, var(--wb-orange) 50%, transparent 50%) 0 0 / 6px 6px,
+    var(--wb-orange);
+  border: 1px solid var(--wb-black);
+  box-shadow: inset 1px 1px 0 var(--wb-white);
+  cursor: nwse-resize;
+  touch-action: none;
+}
+
+/* ---------- OQ! / DECON panels ---------- */
+.oq-body,
+.decon-body {
+  padding-bottom: 1.5rem;
+}
+.wb-field {
+  padding: 0.15rem 0 0.25rem;
+}
+.wb-field input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--wb-font);
+  font-size: 16px; /* iOS anti-zoom floor, same as nes/gb */
+  padding: 0.3rem 0.35rem;
+  color: var(--wb-black);
+  background: var(--wb-white);
+  border: 2px solid var(--wb-black);
+  box-shadow: inset 1px 1px 0 var(--wb-black);
+  border-radius: 0;
+}
+.wb-field input[type="text"]:focus {
+  outline: 2px solid var(--wb-orange);
+  outline-offset: 0;
+}
+.wb-check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.wb-check-row input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--wb-orange);
+  width: 1rem;
+  height: 1rem;
+}
+.wb-status {
+  margin: 0.25rem 0 0.35rem;
+  font-size: 16px;
+  color: var(--wb-black);
+}
+.wb-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--wb-white);
+  border: 2px solid var(--wb-black);
+  box-shadow: inset 1px 1px 0 var(--wb-black);
+  scrollbar-width: auto;
+  scrollbar-color: var(--wb-orange) var(--wb-blue);
+}
+.wb-panel::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+.wb-panel::-webkit-scrollbar-track {
+  background: var(--wb-blue);
+}
+.wb-panel::-webkit-scrollbar-thumb {
+  background: var(--wb-orange);
+  border: 1px solid var(--wb-black);
+  box-shadow: inset 1px 1px 0 var(--wb-white), inset -1px -1px 0 var(--wb-black);
+}
+.wb-attribution {
+  margin: 0.35rem 0 0;
+  font-size: 16px;
+  color: var(--wb-black);
+}
+
+.oq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--wb-font);
+  font-size: 16px;
+}
+.oq-table th {
+  position: sticky;
+  top: 0;
+  background: var(--wb-orange);
+  color: var(--wb-black);
+  border-bottom: 2px solid var(--wb-black);
+  text-align: left;
+  padding: 0.25rem 0.4rem;
+  font-weight: normal;
+}
+.oq-table td {
+  padding: 0.2rem 0.4rem;
+  border-bottom: 1px solid var(--wb-blue);
+}
+.oq-table tbody tr.highlighted {
+  background: var(--wb-orange);
+  color: var(--wb-black);
+}
+
+.decon-results-panel {
+  padding: 0.4rem;
+}
+.decon-card {
+  border: 2px solid var(--wb-black);
+  background: var(--wb-white);
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 3px 3px 0 var(--wb-orange);
+}
+.decon-tag {
+  display: inline-block;
+  font-size: 16px;
+  color: var(--wb-blue);
+}
+.decon-tag--approximate {
+  color: var(--wb-orange);
+}
+.decon-word {
+  font-weight: normal;
+}
+.decon-meaning {
+  margin: 0.2rem 0;
+}
+.decon-breakdown div {
+  padding: 0.05rem 0;
+}
+.decon-truncated {
+  background: var(--wb-orange);
+  color: var(--wb-black);
+}
+.decon-dict-match {
+  margin: 0.4rem 0 0;
+}
+
+.about-body {
+  align-items: center;
+  text-align: center;
+}
+.about-art {
+  width: min(320px, 100%);
+  height: auto;
+  aspect-ratio: 4 / 3;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border: 2px solid var(--wb-black);
+  box-shadow: 4px 4px 0 var(--wb-orange);
+  margin: 0.2rem 0 0.6rem;
+}
+
+@media (max-width: 600px) {
+  .wb-screen-title { display: none; }
+  .wb-screenbar > [role="menu-item"] { padding: 0 0.45rem; }
+}
+
+/* ---------- Requesters ---------- */
+.wb-shutdown-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.35);
+}
+.wb-shutdown-overlay[hidden] {
+  display: none;
+}
+.wb-dialog {
+  position: static;
+  width: 20rem;
+  min-height: 0;
+  height: auto;
+}
+.wb-dialog .wb-body {
+  padding-bottom: 0.6rem;
+  text-align: center;
+}
+.wb-dialog-actions {
+  display: flex;
+  justify-content: center;
+  padding: 0.3rem 0 0.2rem;
+}
+.wb-btn {
+  min-width: 4.5rem;
+  min-height: 44px;
+  padding: 0.25rem 0.9rem;
+  font-family: var(--wb-font);
+  font-size: 16px;
+  color: var(--wb-black);
+  background: var(--wb-orange);
+  border: 1px solid var(--wb-black);
+  box-shadow: inset 1px 1px 0 var(--wb-white), inset -1px -1px 0 var(--wb-black), 2px 2px 0 var(--wb-black);
+}
+.wb-btn:active {
+  box-shadow: inset 1px 1px 0 var(--wb-black), inset -1px -1px 0 var(--wb-white);
+}
+
+/* Guru Meditation is Kickstart, not Workbench — red on black, the one
+   place this theme is allowed a color that isn't a 1.3 pen. 12-bit red. */
+#guru {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  background: #000000;
+  color: #ee0000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 10px;
+  font-family: var(--wb-font);
+  font-size: 16px;
+}
+#guru[hidden] {
+  display: none;
+}
+.guru-box {
+  border: 8px solid #ee0000;
+  padding: 0.85rem 1.1rem;
+  min-width: min(92vw, 28rem);
+  background: #000000;
+  animation: guru-flash 0.7s steps(1) infinite;
+  text-align: center;
+}
+.guru-box p {
+  margin: 0.25rem 0;
+}
+@keyframes guru-flash {
+  50% { border-color: #aa0000; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guru-box { animation: none; }
+}
