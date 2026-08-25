@@ -154,8 +154,9 @@ real ES module if there's a reason to (e.g. actually consuming
 - **APU, not samples.** `nes/app.js` synthesizes pulse/triangle/noise with
   Web Audio -- no ripped Nintendo tracks, no MP3s, no build step. Don't
   drop in a Mario/Zelda loop. Title/menu music starts after the first
-  pad/key gesture (autoplay) and silences on OQ!/DECON so the bloops
-  stay readable.
+  pad/key gesture (autoplay) and ducks (does not mute) on OQ!/DECON so the
+  bloops stay readable. Don't call setMusic(null) just because a screen
+  isn't the title -- that was a live bug.
 - **Cache-bust `nes/index.html`'s `?v=N`** for style.css/app.js on every
   change, same convention as every other theme.
 

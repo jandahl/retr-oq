@@ -63,9 +63,7 @@
     else if (document.activeElement && document.activeElement.blur) {
       document.activeElement.blur();
     }
-    if (audioCtx) {
-      setMusic(name === "title" ? "title" : name === "menu" ? "menu" : null);
-    }
+    syncMusic();
   }
 
   function setMenuIndex(next) {
@@ -136,17 +134,18 @@
       if (!audioCtx) {
         audioCtx = new AC();
         musicGain = audioCtx.createGain();
-        musicGain.gain.value = 0.16;
+        musicGain.gain.value = 0.0001;
         musicGain.connect(audioCtx.destination);
         sfxGain = audioCtx.createGain();
-        sfxGain.gain.value = 0.22;
+        sfxGain.gain.value = 0.45;
         sfxGain.connect(audioCtx.destination);
         noiseBuf = makeNoiseBuffer(audioCtx);
       }
       if (audioCtx.state === "suspended") audioCtx.resume();
-      if (!musicTrack) {
-        setMusic(currentScreen === "title" ? "title" : currentScreen === "menu" ? "menu" : null);
-      }
+      // Always (re)attach the bed for the current screen -- an earlier
+      // version silenced everything that wasn't the title, which is why
+      // bloops/music died the moment PRESS START landed on the menu.
+      syncMusic();
       return audioCtx;
     } catch (err) {
       return null;
@@ -231,28 +230,28 @@
     const t = ctx.currentTime + 0.01;
     const dest = sfxGain;
     if (kind === "move") {
-      playPulse(392, t, 0.045, 0.45, 0.125, dest);
-      playNoise(t, 0.03, 0.18, dest, 3);
+      playPulse(392, t, 0.05, 0.7, 0.125, dest);
+      playNoise(t, 0.035, 0.28, dest, 3);
     } else if (kind === "ok") {
-      playPulse(523.25, t, 0.07, 0.55, 0.25, dest);
-      playPulse(783.99, t + 0.06, 0.11, 0.5, 0.25, dest);
-      playTriangle(130.81, t, 0.16, 0.4, dest);
+      playPulse(523.25, t, 0.08, 0.8, 0.25, dest);
+      playPulse(783.99, t + 0.06, 0.12, 0.75, 0.25, dest);
+      playTriangle(130.81, t, 0.18, 0.55, dest);
     } else if (kind === "back") {
-      playPulse(330, t, 0.07, 0.4, 0.5, dest);
-      playPulse(196, t + 0.055, 0.1, 0.35, 0.5, dest);
-      playTriangle(98, t, 0.16, 0.3, dest);
+      playPulse(330, t, 0.08, 0.65, 0.5, dest);
+      playPulse(196, t + 0.055, 0.11, 0.55, 0.5, dest);
+      playTriangle(98, t, 0.18, 0.45, dest);
     } else if (kind === "start") {
-      playPulse(392, t, 0.08, 0.5, 0.25, dest);
-      playPulse(523.25, t + 0.08, 0.08, 0.5, 0.25, dest);
-      playPulse(659.25, t + 0.16, 0.1, 0.55, 0.25, dest);
-      playPulse(784, t + 0.26, 0.18, 0.5, 0.5, dest);
-      playTriangle(130.81, t, 0.22, 0.35, dest);
-      playTriangle(196, t + 0.16, 0.28, 0.4, dest);
+      playPulse(392, t, 0.09, 0.75, 0.25, dest);
+      playPulse(523.25, t + 0.08, 0.09, 0.75, 0.25, dest);
+      playPulse(659.25, t + 0.16, 0.11, 0.8, 0.25, dest);
+      playPulse(784, t + 0.26, 0.2, 0.7, 0.5, dest);
+      playTriangle(130.81, t, 0.24, 0.5, dest);
+      playTriangle(196, t + 0.16, 0.3, 0.55, dest);
     } else if (kind === "konami") {
       const seq = [523.25, 659.25, 783.99, 1046.5, 783.99, 1318.5];
       seq.forEach((f, i) => {
-        playPulse(f, t + i * 0.07, 0.1, 0.5, 0.25, dest);
-        playTriangle(f / 4, t + i * 0.07, 0.12, 0.28, dest);
+        playPulse(f, t + i * 0.07, 0.11, 0.75, 0.25, dest);
+        playTriangle(f / 4, t + i * 0.07, 0.13, 0.4, dest);
       });
     }
   }
@@ -312,7 +311,36 @@
     musicTimer = setTimeout(musicScheduler, 40);
   }
 
-  function setMusic(track) {
+  function trackForScreen(name) {
+    if (name === "title") return "title";
+    return "menu";
+  }
+
+  function levelForScreen(name) {
+    if (name === "title") return 0.2;
+    if (name === "menu" || name === "gameover") return 0.16;
+    return 0.08;
+  }
+
+  function setMusic(track, level) {
+    const lvl = level == null ? 0.16 : level;
+    if (!audioCtx || !musicGain) return;
+    const now = audioCtx.currentTime;
+    musicGain.gain.cancelScheduledValues(now);
+    musicGain.gain.setValueAtTime(Math.max(musicGain.gain.value, 0.0001), now);
+    if (!track) {
+      if (musicTrack !== null) {
+        musicTrack = null;
+        musicGen += 1;
+        if (musicTimer) {
+          clearTimeout(musicTimer);
+          musicTimer = 0;
+        }
+      }
+      musicGain.gain.linearRampToValueAtTime(0.0001, now + 0.12);
+      return;
+    }
+    musicGain.gain.linearRampToValueAtTime(lvl, now + 0.1);
     if (musicTrack === track) return;
     musicTrack = track;
     musicGen += 1;
@@ -320,23 +348,22 @@
       clearTimeout(musicTimer);
       musicTimer = 0;
     }
-    if (!audioCtx || !musicGain) return;
-    const now = audioCtx.currentTime;
-    musicGain.gain.cancelScheduledValues(now);
-    musicGain.gain.setValueAtTime(musicGain.gain.value, now);
-    if (!track) {
-      musicGain.gain.linearRampToValueAtTime(0.0001, now + 0.12);
-      return;
-    }
-    musicGain.gain.linearRampToValueAtTime(0.16, now + 0.08);
     musicStep = 0;
-    musicNext = now + 0.06;
+    musicNext = now + 0.04;
     musicScheduler();
+  }
+
+  function syncMusic() {
+    if (!audioCtx) return;
+    setMusic(trackForScreen(currentScreen), levelForScreen(currentScreen));
   }
 
   document.addEventListener("visibilitychange", () => {
     if (!audioCtx) return;
-    if (document.hidden) audioCtx.suspend();
+    // Only suspend the top-level page. A preview iframe often reports
+    // hidden while the user is looking at it, which is what killed the
+    // APU the instant PRESS START left the title screen.
+    if (document.hidden && window.top === window) audioCtx.suspend();
     else audioCtx.resume();
   });
 
