@@ -72,7 +72,24 @@
     let zTop = 10;
 
     const anim = Object.assign(
-      { geometryMs: 160, geometryEasing: "ease", minimizeMs: 160, minimizeEasing: "ease-in", minimizeScale: 0.05 },
+      {
+        geometryMs: 160,
+        geometryEasing: "ease",
+        minimizeMs: 160,
+        minimizeEasing: "ease-in",
+        minimizeScale: 0.05,
+        // "outline": the real Win9x/XP minimize/restore animation --  an
+        // animated rectangle *outline* flies between the window's rect and
+        // its taskbar button, while the window itself just appears/
+        // disappears at either end. It never scales or fades the window's
+        // own content, which is what actually reads as "genie"/macOS-Dock-
+        // like -- flat Windows chrome never had that. "genie": scale+fade
+        // the real window toward the taskbar button (win7/app.js's own
+        // choice, matching Aero's softer glass feel). Default "outline"
+        // since it's the authentic behavior for the rest of this lineage;
+        // win7 opts into "genie" explicitly.
+        minimizeStyle: "outline",
+      },
       animation,
     );
 
@@ -194,6 +211,104 @@
       win.addEventListener("transitionend", onEnd);
     }
 
+    // ---------- "outline" minimize style (win98/xp's own default) ----------
+    //
+    // A single fixed-position bordered box (no fill, no content) animates
+    // between two rects; the real window is toggled instantly at either
+    // end, never itself scaled or faded. This is what the real Windows
+    // minimize/restore animation actually is -- an outline rectangle, not
+    // a shrinking copy of the window's own content.
+    function animateOutlineBox(fromRect, toRect, onDone) {
+      const box = document.createElement("div");
+      box.setAttribute("aria-hidden", "true");
+      Object.assign(box.style, {
+        position: "fixed",
+        left: `${fromRect.left}px`,
+        top: `${fromRect.top}px`,
+        width: `${fromRect.width}px`,
+        height: `${fromRect.height}px`,
+        boxSizing: "border-box",
+        border: "1px solid #000000",
+        background: "transparent",
+        pointerEvents: "none",
+        zIndex: "999999",
+        transition:
+          `left ${anim.minimizeMs}ms ${anim.minimizeEasing}, top ${anim.minimizeMs}ms ${anim.minimizeEasing}, ` +
+          `width ${anim.minimizeMs}ms ${anim.minimizeEasing}, height ${anim.minimizeMs}ms ${anim.minimizeEasing}`,
+      });
+      document.body.appendChild(box);
+      void box.offsetWidth; // commit fromRect as the transition's start point before mutating below
+      requestAnimationFrame(() => {
+        box.style.left = `${toRect.left}px`;
+        box.style.top = `${toRect.top}px`;
+        box.style.width = `${toRect.width}px`;
+        box.style.height = `${toRect.height}px`;
+      });
+      let done = false;
+      function finish() {
+        if (done) return;
+        done = true;
+        box.remove();
+        onDone();
+      }
+      function onEnd(event) {
+        if (event.target === box) finish();
+      }
+      box.addEventListener("transitionend", onEnd);
+      setTimeout(finish, anim.minimizeMs + 80);
+    }
+
+    // `hide()` is called once the outline box has finished flying from the
+    // window's rect to its taskbar button -- the caller's cue to actually
+    // add .minimized (the window itself never visibly animates).
+    function minimizeOutOutline(win, taskbarBtn, hide) {
+      if (reduceMotion()) {
+        hide();
+        return;
+      }
+      const wr = win.getBoundingClientRect();
+      const tr = taskbarBtn ? taskbarBtn.getBoundingClientRect() : wr;
+      animateOutlineBox(wr, tr, hide);
+    }
+
+    // Reverse: the window stays hidden (.minimized) for the whole flight:
+    // measuring its real target rect needs a momentary, paint-free class
+    // toggle (removing .minimized to measure, then re-adding it before the
+    // browser has a chance to render that in-between state) since
+    // getBoundingClientRect() on a display:none element is always zero --
+    // this also automatically gets a maximized window's real full-screen
+    // target rect right, without this code needing to special-case that.
+    // `show()` is called once the box lands, the caller's cue to actually
+    // remove .minimized/focus the window.
+    function minimizeInOutline(win, taskbarBtn, show) {
+      if (reduceMotion()) {
+        show();
+        return;
+      }
+      win.classList.remove("minimized");
+      const wr = win.getBoundingClientRect();
+      win.classList.add("minimized");
+      const tr = taskbarBtn ? taskbarBtn.getBoundingClientRect() : wr;
+      animateOutlineBox(tr, wr, show);
+    }
+
+    function minimizeOut(win, taskbarBtn, hide) {
+      if (anim.minimizeStyle === "outline") minimizeOutOutline(win, taskbarBtn, hide);
+      else animateMinimizeOut(win, taskbarBtn, hide);
+    }
+
+    function minimizeIn(win, taskbarBtn, show) {
+      if (anim.minimizeStyle === "outline") {
+        minimizeInOutline(win, taskbarBtn, show);
+      } else {
+        // Genie style needs the window visible (at its real rect) before it
+        // can compute/animate the transform back from taskbar-sized to
+        // normal -- see animateRestoreFromTaskbar's own comment.
+        show();
+        animateRestoreFromTaskbar(win, taskbarBtn);
+      }
+    }
+
     // The markup's starting top/left/width/height (each theme's own inline
     // styles) are sized for a desktop viewport and overflow outright on a
     // phone-width screen -- same class of bug dos/app.js's own viewport
@@ -245,27 +360,27 @@
     }
 
     function forceOpenWindow(win) {
-      // Closing removes this window's taskbar button entirely (see
-      // closeWindow) -- reopening it, from a desktop icon or the Start
-      // menu, needs to rebuild one before it can be focused/highlighted
-      // there.
       const wasMinimized = win.classList.contains("minimized");
       const s = state.get(win);
+      // Only animate the "restoring from the taskbar" transition for a
+      // window that's genuinely being restored -- one the user minimized,
+      // whose taskbar button has sat there the whole time to fly to/from.
+      // Neither this window's very first-ever open (every window starts
+      // life with the .minimized class already on it, see this module's
+      // own "boot to a bare desktop" comment below) nor a reopen after
+      // closeWindow (which throws the taskbar button away entirely) has a
+      // real button to restore from -- both are captured by "did this
+      // window already have a taskbar button", checked *before*
+      // taskbarButtonFor() below rebuilds one for either of those cases.
+      const shouldAnimate = wasMinimized && !!s.taskbarButton;
       if (!s.taskbarButton) taskbarButtonFor(win);
-      win.classList.remove("minimized");
-      // Only animate the "flying out of the taskbar" restore for a window
-      // that's genuinely being restored (it was opened before, then
-      // minimized or closed) -- not this window's very first-ever open.
-      // Every window starts life with the .minimized class already on it
-      // (see this module's own "boot to a bare desktop" comment below), so
-      // without the hasOpenedBefore check every first click on a desktop
-      // icon would also run this animation, leaving the window's own
-      // controls mid-transform (and briefly at the wrong screen position)
-      // right when a caller expects it to already be fully interactive.
-      if (wasMinimized && s.hasOpenedBefore) animateRestoreFromTaskbar(win, s.taskbarButton);
-      s.hasOpenedBefore = true;
-      focus(win);
-      if (onOpen) onOpen(win);
+      function reveal() {
+        win.classList.remove("minimized");
+        focus(win);
+        if (onOpen) onOpen(win);
+      }
+      if (shouldAnimate) minimizeIn(win, s.taskbarButton, reveal);
+      else reveal();
     }
 
     function openWindow(win) {
@@ -278,13 +393,14 @@
       const s = state.get(win);
       if (willMinimize) {
         s.taskbarButton.classList.remove("active");
-        animateMinimizeOut(win, s.taskbarButton, () => {
+        minimizeOut(win, s.taskbarButton, () => {
           win.classList.add("minimized");
         });
       } else {
-        win.classList.remove("minimized");
-        animateRestoreFromTaskbar(win, s.taskbarButton);
-        focus(win);
+        minimizeIn(win, s.taskbarButton, () => {
+          win.classList.remove("minimized");
+          focus(win);
+        });
       }
     }
 
@@ -474,7 +590,7 @@
     }
 
     for (const win of windows) {
-      state.set(win, { preMaximizeRect: null, taskbarButton: null, hasOpenedBefore: false });
+      state.set(win, { preMaximizeRect: null, taskbarButton: null });
       // No taskbarButtonFor(win) here -- every window starts closed (see
       // the "start closed" block below), and a closed window has no
       // taskbar button at all, same as one closed via its own close

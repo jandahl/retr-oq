@@ -44,12 +44,15 @@
     // Win98's own minimize/maximize/restore animations were short and
     // linear -- no easing curve, no bounce, just a quick snap -- matching
     // the flat, no-gloss chrome the rest of this theme already goes for.
+    // minimizeStyle isn't set -- this keeps the shared module's own
+    // default "outline" (a plain rectangle flying to/from the taskbar
+    // button, not the window's own content scaling/fading), the real
+    // Win98 minimize/restore behavior.
     animation: {
       geometryMs: 120,
       geometryEasing: "linear",
       minimizeMs: 140,
       minimizeEasing: "linear",
-      minimizeScale: 0.04,
     },
     onOpen(win) {
       if (win.id === "win-oq") startOqLoad();
