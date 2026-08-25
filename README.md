@@ -91,6 +91,14 @@ looks like today.
   `?screen=decon&word=...&order=...`. An undocumented Konami code on the
   title screen is this theme's `DOOM` / Hot Dog Stand: a GAME OVER /
   CONTINUE? screen that claims 30 lives.
+- **`gb/`** — an original Game Boy (DMG-01), not a desktop and not the
+  NES living-room TV. The brick is the computer: olive 4-shade LCD up
+  top, D-pad / A / B / Select / Start molded into the same piece of
+  plastic. No drop-in CSS component library exists for this (the GitHub
+  "gameboy.css" hits are CSS-art of a whole brick, not a kit), so the
+  chrome is hand-drawn the same way `c64/` is. Press Start 2P is reused
+  from `vendor/nes/fonts/` rather than duplicated. Same
+  `handleInput()` / router / OQ! / DECON / Konami path as `nes/`.
 - **`shared/` — theme-agnostic code any prototype can reuse:
   `dict-source.js` (fetch/cache/filter the live Oqaasileriffik dictionary
   data), `hyphenation.js` (real Kalaallisut syllabification, MPL-2.0 —
@@ -194,7 +202,7 @@ looks like today.
 ## Prospective themes
 
 Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`),
-**Commodore 64** (`c64/`), **NES** (`nes/`), **Windows 98** (`win98/`),
+**Commodore 64** (`c64/`), **NES** (`nes/`), **Game Boy** (`gb/`), **Windows 98** (`win98/`),
 **Windows XP** (`xp/`), **Windows 7** (`win7/`), and **Mac OS 8.1**
 (`mac8/`), all above.
 `c64/` is a deliberate exception to

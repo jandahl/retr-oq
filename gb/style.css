@@ -1,0 +1,614 @@
+/* retr-oq gb theme. Original Game Boy (DMG-01), hand-drawn -- there is
+   no drop-in CSS component library for this the way NES.css exists for
+   nes/. The GitHub "gameboy.css" hits are CSS-art of a whole brick, not
+   a kit we could vendor under the same bar as 98.css. Four-shade olive
+   LCD palette is the well-known DMG BGP (public-domain hex values used
+   by every emulator): #9BBC0F / #8BAC0F / #306230 / #0F380F.
+
+   Press Start 2P is already vendored at vendor/nes/fonts/ (SIL OFL) for
+   the NES theme; this file @font-face's the same TTF rather than
+   duplicating 118KB. Same "no real build step" constraint as every
+   other theme.
+
+   This is not a window manager. A real Game Boy had one LCD and the
+   buttons were part of the same piece of plastic. Screens swap via
+   `hidden`, like nes/. */
+
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("../vendor/nes/fonts/PressStart2P-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --gb-lightest: #9bbc0f;
+  --gb-light: #8bac0f;
+  --gb-dark: #306230;
+  --gb-darkest: #0f380f;
+  --gb-body: #c4c4b4;
+  --gb-body-dark: #9a9a88;
+  --gb-well: #6b6d5a;
+  --gb-ab: #8b1e56;
+  --gb-ab-dark: #5a1036;
+  --gb-font-size: clamp(8px, 2.1vw, 11px);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  position: fixed;
+  width: 100%;
+  background: #1a1a14;
+  color: var(--gb-darkest);
+  font-family: "Press Start 2P", ui-monospace, "Courier New", monospace;
+  font-size: var(--gb-font-size);
+  line-height: 1.55;
+}
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+.gb-shell {
+  position: fixed;
+  top: var(--app-top, 0);
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100dvh);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: #1a1a14;
+}
+
+.gb-body {
+  width: min(420px, 100%);
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(#d8d8c8, var(--gb-body) 40%, #b8b8a6);
+  border-radius: 16px 16px 56px 56px;
+  box-shadow:
+    inset 0 2px 0 #ecece0,
+    inset 0 -3px 0 var(--gb-body-dark),
+    0 10px 0 #6e6e5e,
+    0 14px 28px rgba(0, 0, 0, 0.55);
+  padding: 14px 16px 18px;
+  position: relative;
+}
+
+/* Screen housing: the famous big round corner on the bottom-right. */
+.gb-screen-well {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--gb-well);
+  border-radius: 10px 10px 48px 10px;
+  padding: 14px 14px 10px 16px;
+  box-shadow: inset 0 2px 0 #3e4034, 0 2px 0 #d0d0c0;
+}
+
+.gb-battery {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: #2a2a22;
+  font-size: 0.55em;
+  letter-spacing: 0.12em;
+}
+.gb-led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e22;
+  box-shadow: 0 0 6px #ff4d4d;
+  flex: none;
+}
+.gb-battery-label {
+  opacity: 0.7;
+}
+
+.gb-lcd {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  background: var(--gb-lightest);
+  color: var(--gb-darkest);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 3px var(--gb-light), inset 0 0 18px rgba(15, 56, 15, 0.28);
+}
+
+.gb-pixels {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(15, 56, 15, 0.08) 0px,
+      rgba(15, 56, 15, 0.08) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(15, 56, 15, 0.06) 0px,
+      rgba(15, 56, 15, 0.06) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+}
+@media (prefers-reduced-motion: reduce) {
+  .gb-pixels { display: none; }
+  .press-start { animation: none; }
+}
+
+.gb-dotmatrix {
+  margin: 8px 0 0;
+  text-align: center;
+  color: #d8d8c8;
+  font-size: 0.48em;
+  letter-spacing: 0.14em;
+}
+
+.gb-logo {
+  margin: 10px 0 6px;
+  text-align: center;
+  font-style: italic;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 1.6em;
+  letter-spacing: 0.08em;
+  color: #1d4e89;
+  text-shadow: 1px 1px 0 #0a2a52;
+  flex: none;
+}
+
+.gb-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 10px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-align: center;
+}
+.gb-screen[hidden] {
+  display: none;
+}
+.gb-screen-app {
+  justify-content: flex-start;
+  align-items: stretch;
+  text-align: left;
+}
+
+.title-logo {
+  margin: 0.3em 0 0.4em;
+  font-size: 2.6em;
+  letter-spacing: 0.06em;
+  color: var(--gb-darkest);
+}
+.title-sub {
+  margin: 0 0 1.2em;
+  line-height: 1.7;
+  color: var(--gb-dark);
+}
+.title-copy {
+  margin: 0;
+  color: var(--gb-dark);
+  font-size: 0.75em;
+}
+.title-copy-bottom {
+  margin-top: 1.4em;
+}
+.press-start {
+  margin: 0;
+  color: var(--gb-darkest);
+  animation: gb-blink 1.2s steps(1) infinite;
+}
+@keyframes gb-blink {
+  0%, 74% { opacity: 1; }
+  75%, 100% { opacity: 0; }
+}
+
+.screen-heading {
+  margin: 0 0 0.6em;
+  font-size: 0.9em;
+  letter-spacing: 0.08em;
+  color: var(--gb-darkest);
+  text-align: left;
+  width: 100%;
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+.menu-item {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 0.5em 0.3em;
+}
+.menu-cursor {
+  visibility: hidden;
+  display: inline-block;
+  width: 1.2em;
+}
+.menu-item.is-selected {
+  background: var(--gb-darkest);
+  color: var(--gb-lightest);
+}
+.menu-item.is-selected .menu-cursor {
+  visibility: visible;
+}
+
+.hint {
+  margin: 0.7em 0 0;
+  color: var(--gb-dark);
+  font-size: 0.7em;
+  width: 100%;
+  text-align: left;
+}
+
+.gb-field {
+  display: block;
+  margin-bottom: 0.3em;
+  color: var(--gb-dark);
+  font-size: 0.75em;
+}
+.gb-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  /* 16px floor: iOS Safari auto-zooms focused controls under 16px.
+     Same lesson as nes/. */
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--gb-darkest);
+  background: var(--gb-light);
+  border: 2px solid var(--gb-darkest);
+  padding: 0.35em 0.4em;
+  border-radius: 0;
+  outline: none;
+}
+.gb-input:focus {
+  background: var(--gb-lightest);
+}
+
+.oq-status {
+  margin: 0.4em 0;
+  color: var(--gb-dark);
+  min-height: 1.4em;
+  font-size: 0.75em;
+}
+
+.oq-results,
+.decon-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  text-align: left;
+}
+
+.oq-row {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.2em;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--gb-font-size);
+  text-align: left;
+  padding: 0.4em 0.3em 0.45em;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+.oq-gloss-line {
+  color: var(--gb-dark);
+  line-height: 1.45;
+}
+.oq-row.is-selected {
+  background: var(--gb-darkest);
+  color: var(--gb-lightest);
+}
+.oq-row.is-selected .oq-gloss-line {
+  color: var(--gb-light);
+}
+
+.oq-attribution {
+  flex: none;
+  margin: 0.5em 0 0;
+  color: var(--gb-dark);
+  font-size: 0.6em;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.oq-attribution a {
+  color: inherit;
+}
+
+.decon-order {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0.4em 0;
+  color: var(--gb-darkest);
+  font-size: 0.75em;
+}
+.decon-card {
+  margin-bottom: 0.6em;
+  padding: 0.4em 0;
+  border-bottom: 2px solid var(--gb-dark);
+  text-align: left;
+}
+.decon-tag { color: var(--gb-darkest); }
+.decon-tag--approximate { color: var(--gb-dark); }
+.decon-word { color: var(--gb-darkest); }
+.decon-meaning {
+  margin: 0.3em 0;
+  color: var(--gb-dark);
+  overflow-wrap: anywhere;
+}
+.decon-breakdown {
+  margin: 0.3em 0 0;
+  overflow-wrap: anywhere;
+  color: var(--gb-dark);
+  font-size: 0.85em;
+}
+.decon-truncated { color: var(--gb-darkest); text-decoration: underline; }
+.decon-dict-match {
+  margin: 0.5em 0 0;
+  color: var(--gb-darkest);
+  overflow-wrap: anywhere;
+}
+
+.about-copy {
+  margin: 0 0 1em;
+  text-align: left;
+  line-height: 1.7;
+  color: var(--gb-darkest);
+}
+.gameover-title {
+  margin: 0 0 0.6em;
+  font-size: 1.2em;
+  color: var(--gb-darkest);
+  letter-spacing: 0.06em;
+}
+
+/* Controls molded into the brick -- not a separate pad under a TV. */
+.gb-controls {
+  flex: none;
+  margin-top: 4px;
+}
+.pad-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px 0;
+}
+.gb-pills {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 8px;
+}
+
+.pad-dpad {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  flex: none;
+  border-radius: 50%;
+  background: #b4b4a4;
+  box-shadow: inset 0 3px 0 #8e8e80, inset 0 -2px 0 #ddd;
+}
+.pad-plus-v,
+.pad-plus-h {
+  position: absolute;
+  background: #2a2a28;
+  box-shadow: inset 2px 2px 0 #4a4a48, inset -2px -2px 0 #111;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 3px;
+}
+.pad-plus-v {
+  left: 39px;
+  top: 10px;
+  width: 32px;
+  height: 90px;
+}
+.pad-plus-h {
+  left: 10px;
+  top: 39px;
+  width: 90px;
+  height: 32px;
+}
+.pad-plus-nub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  background: #1a1a18;
+  pointer-events: none;
+  z-index: 2;
+}
+.pad-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  z-index: 3;
+}
+.pad-btn:active { background: rgba(0, 0, 0, 0.28); }
+.pad-up, .pad-down { left: 39px; width: 32px; height: 48px; }
+.pad-up { top: 8px; }
+.pad-down { bottom: 8px; }
+.pad-left, .pad-right { top: 39px; width: 48px; height: 32px; }
+.pad-left { left: 8px; }
+.pad-right { right: 8px; }
+
+.pad-face {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 4px 0 0;
+  transform: rotate(-18deg);
+}
+.pad-round {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--gb-ab);
+  color: #3a0018;
+  font-family: inherit;
+  font-size: 0.65em;
+  box-shadow: 0 3px 0 var(--gb-ab-dark);
+  position: relative;
+}
+.pad-round span {
+  display: block;
+  transform: rotate(18deg);
+}
+.pad-round:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--gb-ab-dark);
+}
+.pad-b { margin-top: 16px; }
+.pad-a { margin-bottom: 16px; }
+
+.pad-pill {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #5a5a52;
+  color: #2a2a22;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.5em;
+  letter-spacing: 0.08em;
+  padding: 0.5em 0.85em;
+  min-height: 26px;
+  min-width: 58px;
+  transform: rotate(-28deg);
+  box-shadow: 0 2px 0 #2a2a22;
+}
+.pad-pill:active {
+  transform: rotate(-28deg) translateY(1px);
+  box-shadow: none;
+}
+
+/* Speaker grille, lower-right, like the real DMG teardrop of holes. */
+.gb-speaker {
+  position: absolute;
+  right: 22px;
+  bottom: 28px;
+  width: 70px;
+  height: 42px;
+  transform: rotate(-28deg);
+  background: radial-gradient(circle, #6a6a5c 1.4px, transparent 1.6px) 0 0 / 8px 8px;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+html.is-keyboard .gb-controls,
+html.is-keyboard .gb-logo,
+html.is-keyboard .gb-speaker {
+  display: none;
+}
+html.is-keyboard .gb-body {
+  border-radius: 16px;
+  padding-bottom: 10px;
+}
+
+@media (min-width: 700px) {
+  .gb-shell {
+    padding: 16px 0;
+    box-sizing: border-box;
+  }
+  .gb-body {
+    height: min(760px, 100%);
+    align-self: center;
+  }
+}
+
+
+/* DMG boot: the Nintendo logo drop is theirs. Ours drops "OQ!" on the
+   olive LCD, then a tiny DMG tag -- same beat, original marks. */
+.gb-boot {
+  background: var(--gb-lightest);
+  gap: 0.8em;
+}
+.boot-drop {
+  margin: 0;
+  font-size: 2.8em;
+  letter-spacing: 0.06em;
+  color: var(--gb-darkest);
+  animation: gb-logo-drop 1.15s cubic-bezier(0.22, 0.82, 0.28, 1.18) both;
+}
+@keyframes gb-logo-drop {
+  0% { transform: translateY(-160%); }
+  72% { transform: translateY(10%); }
+  100% { transform: translateY(0); }
+}
+.boot-tag {
+  margin: 0;
+  font-size: 0.7em;
+  letter-spacing: 0.35em;
+  color: var(--gb-dark);
+  animation: gb-boot-fade 0.3s 1.15s both;
+}
+@keyframes gb-boot-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.gb-shell:has(#boot-screen:not([hidden])) .gb-led {
+  animation: gb-led-boot 0.18s steps(2) infinite;
+}
+@keyframes gb-led-boot {
+  from { opacity: 1; }
+  to { opacity: 0.25; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot-drop, .boot-tag { animation: none; }
+  .gb-shell:has(#boot-screen:not([hidden])) .gb-led { animation: none; }
+}
