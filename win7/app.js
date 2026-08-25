@@ -40,6 +40,17 @@
     resizeHandleSelector: ".win7-resize-handle",
     minWidth: MIN_WIN_WIDTH,
     minHeight: MIN_WIN_HEIGHT,
+    // Aero's own minimize/maximize animations were the softest and
+    // slowest of the Windows lineage -- a longer, gentler ease matching
+    // the glass chrome, unlike win98's flat linear snap or xp's quicker
+    // ease-out.
+    animation: {
+      geometryMs: 240,
+      geometryEasing: "cubic-bezier(0.22, 0.61, 0.36, 1)",
+      minimizeMs: 260,
+      minimizeEasing: "cubic-bezier(0.22, 0.61, 0.36, 1)",
+      minimizeScale: 0.06,
+    },
     onOpen(win) {
       if (win.id === "win-oq") startOqLoad();
     },

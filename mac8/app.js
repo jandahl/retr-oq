@@ -112,6 +112,37 @@
   const windows = Array.from(document.querySelectorAll(".mac8-window:not(.mac8-dialog)"));
   let zTop = 10;
 
+  // Zoom box geometry animation -- same "set transition, force a reflow so
+  // the old rect is committed as the start point, then mutate" technique
+  // shared/redmond/window-manager.js's own withGeometryTransition uses for
+  // win98/xp/win7's maximize/restore, kept as a separate copy here rather
+  // than shared since mac8's own window logic is deliberately bespoke (see
+  // this file's own top comment). A little snappier and slightly bouncy --
+  // real Mac OS 8.1's zoom had a quick spring to it, unlike Windows'
+  // straighter ease.
+  function animateZoomGeometry(win, mutate) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      mutate();
+      return;
+    }
+    win.style.transition = "top 200ms cubic-bezier(0.34, 1.56, 0.64, 1), left 200ms cubic-bezier(0.34, 1.56, 0.64, 1), " +
+      "width 200ms cubic-bezier(0.34, 1.56, 0.64, 1), height 200ms cubic-bezier(0.34, 1.56, 0.64, 1)";
+    void win.offsetWidth;
+    mutate();
+    let done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      win.style.transition = "";
+      win.removeEventListener("transitionend", onEnd);
+    }
+    function onEnd(event) {
+      if (event.target === win) finish();
+    }
+    win.addEventListener("transitionend", onEnd);
+    setTimeout(finish, 280);
+  }
+
   // Swaps .mac8-title-bar's own "inactive" class, which is what actually
   // draws (or doesn't) the active-window chrome and hides/shows the close
   // and zoom boxes -- the whole activation mechanism, not a layer on top
@@ -187,17 +218,22 @@
     // Zoom box: toggles between the window's current (dragged/resized)
     // rect and a rect filling the desktop -- the real Mac OS 8.1 zoom
     // box's behavior, restoring the exact prior rect on a second click
-    // rather than a fixed "maximized" size.
+    // rather than a fixed "maximized" size. Animated via
+    // animateZoomGeometry below -- real Mac OS zoomed with a quick,
+    // slightly springy grow/shrink, not an instant jump.
     if (zoomBtn) {
       let savedRect = null;
       zoomBtn.addEventListener("click", () => {
         focus(win);
         if (savedRect) {
-          win.style.top = savedRect.top;
-          win.style.left = savedRect.left;
-          win.style.width = savedRect.width;
-          win.style.height = savedRect.height;
+          const target = savedRect;
           savedRect = null;
+          animateZoomGeometry(win, () => {
+            win.style.top = target.top;
+            win.style.left = target.left;
+            win.style.width = target.width;
+            win.style.height = target.height;
+          });
         } else {
           savedRect = {
             top: win.style.top,
@@ -206,10 +242,12 @@
             height: win.style.height,
           };
           const desktopRect = desktop.getBoundingClientRect();
-          win.style.top = "0px";
-          win.style.left = "0px";
-          win.style.width = `${desktopRect.width}px`;
-          win.style.height = `${desktopRect.height}px`;
+          animateZoomGeometry(win, () => {
+            win.style.top = "0px";
+            win.style.left = "0px";
+            win.style.width = `${desktopRect.width}px`;
+            win.style.height = `${desktopRect.height}px`;
+          });
         }
       });
     }

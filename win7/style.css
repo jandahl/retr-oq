@@ -58,15 +58,31 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  /* 100% alone resolves against the *layout* viewport, which mobile
+     browsers keep a fixed (larger) size even while their own address bar
+     is showing and shrinking the real visible area. 100dvh tracks the
+     actual visible ("dynamic") viewport instead. Kept as a second
+     declaration, not a replacement -- a browser without dvh support still
+     gets the 100% fallback rather than an invalid height. */
+  height: 100dvh;
   overflow: hidden; /* the desktop itself never scrolls -- windows do, internally, same convention as win98/xp */
 }
 
 body {
+  position: relative; /* so .desktop's own position:absolute below sizes against body's real (dvh) box, not the viewport's -- see that rule's own comment */
   font-family: "Segoe UI", "Pixelated MS Sans Serif", Tahoma, Arial, sans-serif;
 }
 
 .desktop {
-  position: fixed;
+  /* position:absolute against body (now position:relative, above), not
+     position:fixed against the viewport directly -- a fixed element's
+     containing block is the *layout* viewport regardless of body's own
+     dvh-based height, which is exactly what left this wallpaper not
+     filling the real screen height on mobile browsers whose address bar
+     was showing/hiding (the layout viewport stays the larger, chrome-
+     inclusive size). Anchoring to body instead means .desktop actually
+     inherits body's dvh-tracked height. */
+  position: absolute;
   inset: 0;
   bottom: 40px; /* leaves room for the taller Aero taskbar below */
   /* Windows 7's real default wallpaper is "Harmony" -- a Microsoft-

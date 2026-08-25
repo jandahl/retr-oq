@@ -40,6 +40,17 @@
     resizeHandleSelector: ".xp-resize-handle",
     minWidth: MIN_WIN_WIDTH,
     minHeight: MIN_WIN_HEIGHT,
+    // Luna's real minimize/maximize animations had a bit more ease-out
+    // "settle" to them than Win98's flat snap -- a touch longer and
+    // curved, not linear, without going as soft/glassy as win7's Aero
+    // profile below.
+    animation: {
+      geometryMs: 180,
+      geometryEasing: "ease-out",
+      minimizeMs: 200,
+      minimizeEasing: "ease-out",
+      minimizeScale: 0.05,
+    },
     onOpen(win) {
       if (win.id === "win-oq") startOqLoad();
     },
