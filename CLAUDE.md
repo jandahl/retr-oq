@@ -123,6 +123,30 @@ real ES module if there's a reason to (e.g. actually consuming
   why). Any future theme wanting shareable-link state should reuse this,
   not reinvent it.
 
+## `nes/` theme specifics
+
+- **NES was a console, not a window manager.** `#title-screen` / `#menu-screen`
+  / `#oq-screen` / `#decon-screen` are mutually-exclusive full-screen
+  takeovers via `hidden`, same single-tasking reasoning as `dos/`'s
+  `#dos-dir` / `#dict-app`. Do not add overlapping draggable windows on
+  top of NES.css chrome -- a real NES never had any, and free-floating
+  windows on this skin would be the same lie as free pixel dragging on
+  `dos/`'s text-mode grid.
+- **One input path.** Keyboard arrows/Enter/Esc and the on-screen pad's
+  `[data-input]` buttons both call `handleInput(action)`. Don't add a
+  third click-only code path that bypasses it (menu item buttons are
+  allowed to call `chooseMenuItem()` directly -- that's the mouse
+  equivalent of highlighting a file-select row and pressing A).
+- **Router owns the screen.** Same rule as `dos/`/`c64/`: never call
+  `launchOq()` / `showScreen()` from a new UI trigger -- go through
+  `OqRouter.navigate()`. Shareable URLs are `?screen=oq&filter=word` and
+  `?screen=decon&word=...&order=...`.
+- **Konami code is title-screen only** and undocumented on purpose (see
+  `dos/`'s `DOOM` and `win98/`'s Hot Dog Stand). Don't list it in the
+  SELECT menu or the ABOUT balloon.
+- **Cache-bust `nes/index.html`'s `?v=N`** for style.css/app.js on every
+  change, same convention as every other theme.
+
 ## Git workflow gotcha: stranded commits
 
 This repo's branch convention is "always restart the working branch from
@@ -143,11 +167,11 @@ landed in `master` once both show "merged".
 
 ## Testing
 
-`win98/` has a real, checked-in Playwright/pytest suite under `tests/`
-(`tests/test_win98.py`, with shared server/browser fixtures in
+`win98/` and `nes/` each have a Playwright/pytest suite under `tests/`
+(`tests/test_win98.py`, `tests/test_nes.py`, shared fixtures in
 `tests/conftest.py`), wired into GitHub Actions
-(`.github/workflows/win98-tests.yml`) on every push/PR that touches
-`win98/`, `vendor/win98/`, or `tests/` itself. This is a deliberate,
+(`.github/workflows/win98-tests.yml` / `.github/workflows/nes-tests.yml`)
+on every push/PR that touches that theme. This is a deliberate,
 narrow reversal of an earlier version of this section, which said no test
 framework/CI was wired up at all, "deliberately decoupled from oq's CI"
 (see README.md's "why this repo exists"). That reasoning about *oq's own*
@@ -168,8 +192,8 @@ python3 -m pytest tests/ -v
 ```
 
 `mac1984/`, `dos/`, and `c64/` have no `tests/test_<theme>.py` yet and
-aren't part of the CI workflow above (see that file's own comment on
-scoping) -- verification for those is still Playwright run ad hoc:
+aren't part of either CI workflow above -- verification for those is
+still Playwright run ad hoc:
 
 ```bash
 python3 -m http.server 9091 &          # serve the repo root

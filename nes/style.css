@@ -69,7 +69,7 @@ button:not(:disabled),
   height: var(--app-height, 100dvh);
   display: flex;
   flex-direction: column;
-  background: #1a1a1a;
+  background: #0b0b0b;
 }
 
 .nes-tv {
@@ -77,11 +77,14 @@ button:not(:disabled),
   min-height: 0;
   position: relative;
   margin: 8px 8px 0;
-  background: var(--nes-navy);
-  border: 8px solid #2c2c2c;
+  background: #000000;
+  /* Grey plastic bezel, dark enough to read as a CRT cabinet but light
+     enough to separate from the #0b0b0b shell -- an earlier 8px #2c2c2c
+     border vanished into the page on a desktop monitor. */
+  border: 10px solid #6e6e6e;
   box-shadow:
-    inset 0 0 0 2px #111,
-    0 0 0 2px #111;
+    inset 0 0 0 3px #111111,
+    0 4px 0 #2a2a2a;
   overflow: hidden;
 }
 
@@ -107,7 +110,11 @@ button:not(:disabled),
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  /* Extra top padding: NES.css .nes-container.with-title > .title uses
+     margin-top: -1.5rem to sit on the container's top border. Without
+     this, overflow:hidden on .nes-tv/.nes-screen clips "SELECT"/"OQ!"/
+     "ABOUT" in half -- shipped that way on the first pass. */
+  padding: 2.2em 12px 12px;
   box-sizing: border-box;
   overflow: hidden;
   color: var(--nes-white);
@@ -148,8 +155,11 @@ button:not(:disabled),
   animation: nes-blink 1s steps(1) infinite;
 }
 @keyframes nes-blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+  /* Real NES "PRESS START" spent most of the cycle ON, a short blink
+     off -- 50/50 made the title look like it had no prompt at all
+     whenever a screenshot (or a glance) landed on the off frame. */
+  0%, 74% { opacity: 1; }
+  75%, 100% { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .press-start { animation: none; }
@@ -163,6 +173,7 @@ button:not(:disabled),
   width: min(36em, 100%);
   max-height: 100%;
   box-sizing: border-box;
+  margin-top: 0.4em;
 }
 .oq-box,
 .decon-box {
@@ -375,6 +386,7 @@ button:not(:disabled),
   border: 0;
   padding: 0;
   box-shadow: inset 0 2px 0 #555, 0 2px 0 #111;
+  z-index: 1;
 }
 .pad-btn:active {
   box-shadow: inset 0 2px 0 #111;
@@ -464,6 +476,9 @@ button:not(:disabled),
   .nes-tv {
     margin: 12px auto 0;
     width: min(720px, calc(100% - 24px));
+    /* Thicker chin, like the plastic under a front-loading NES TV. */
+    border-width: 14px 14px 36px;
+    border-radius: 12px 12px 16px 16px;
   }
   .nes-controller {
     margin: 8px auto 12px;

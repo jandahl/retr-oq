@@ -75,7 +75,23 @@ looks like today.
   C64 Pro Mono font (`@font-face`-embedded, style64.org, unmodified/
   original filenames per their license) — no framework, though; see
   "Prospective themes" below for why.
-- **`shared/`** — theme-agnostic code any prototype can reuse:
+- **`nes/`** — an NES cartridge, not a desktop. A title screen (PRESS
+  START), a file-select menu, then full-screen OQ! / DECON takeovers —
+  the same single-tasking reasoning `dos/` and `c64/` already use, because
+  a real NES never had overlapping windows. Built on the real
+  [`nostalgic-css/NES.css`](https://github.com/nostalgic-css/NES.css)
+  v2.2.1 (MIT), vendored as its published `css/nes.min.css` dist build
+  (the GitHub tree is SCSS; npm/unpkg ship the compiled CSS), plus Press
+  Start 2P (SIL OFL, the font NES.css itself recommends) at
+  `vendor/nes/fonts/` rather than a runtime Google Fonts import. D-pad /
+  A / B / Start on an on-screen pad (and keyboard arrows / Enter / Esc)
+  drive the same `handleInput()` path; OQ! and DECON reuse
+  `shared/router.js` / `shared/dict-source.js` / `shared/hyphenation.js` /
+  `shared/decon-app.js` with `?screen=oq&filter=...` /
+  `?screen=decon&word=...&order=...`. An undocumented Konami code on the
+  title screen is this theme's `DOOM` / Hot Dog Stand: a GAME OVER /
+  CONTINUE? screen that claims 30 lives.
+- **`shared/` — theme-agnostic code any prototype can reuse:
   `dict-source.js` (fetch/cache/filter the live Oqaasileriffik dictionary
   data), `hyphenation.js` (real Kalaallisut syllabification, MPL-2.0 —
   see License below), and `router.js` (a tiny query-string router for
@@ -178,8 +194,9 @@ looks like today.
 ## Prospective themes
 
 Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`),
-**Commodore 64** (`c64/`), **Windows 98** (`win98/`), **Windows 7**
-(`win7/`), and **Mac OS 8.1** (`mac8/`), all above.
+**Commodore 64** (`c64/`), **NES** (`nes/`), **Windows 98** (`win98/`),
+**Windows XP** (`xp/`), **Windows 7** (`win7/`), and **Mac OS 8.1**
+(`mac8/`), all above.
 `c64/` is a deliberate exception to
 the "vendor a real framework" pattern the other two follow: the candidate
 named below (`bootstrap-c64`) ships no `LICENSE` file at all, which fails
@@ -255,8 +272,6 @@ vendoring time since none of these have been vendored yet:
 
 | Theme | Framework | License (unverified until vendored) |
 | --- | --- | --- |
-| Windows XP | [`XP.css`](https://github.com/botoxparty/XP.css) | MIT |
-| NES | [`NES.css`](https://github.com/nostalgic-css/NES.css) | MIT |
 | Modern macOS | [`Puppertino`](https://github.com/brayanjeshua/Puppertino) | check upstream |
 | Norton Commander | *no drop-in CSS framework found* — closest is [`victorantos/NC`](https://github.com/victorantos/NC), a full JS file-manager clone, not a CSS library. Would likely need to be hand-built from the 8x16 DOS box-drawing look, closer to how `mac1984/`'s desktop icons/menu bar were added on top of `@sakun/system.css`. |
 | Windows 3.1 | *no drop-in CSS framework found* — closest is [`karol-kiersnowski/win31`](https://github.com/karol-kiersnowski/win31), a full simulator, not a CSS library. Same situation as Norton Commander. |
@@ -272,7 +287,10 @@ copied verbatim, `vendor/win7/LICENSE` is `khang-nd/7.css`'s own MIT
 license, also copied verbatim, and `vendor/mac8/LICENSE` is
 `npjg/classic.css`'s own MIT license, likewise copied verbatim (confirmed
 via its actual GitHub `LICENSE` file, resolving the "check upstream" this
-README carried for it before it was vendored).
+README carried for it before it was vendored), `vendor/nes/LICENSE` is
+`nostalgic-css/NES.css`'s own MIT license, likewise copied verbatim, and
+`vendor/nes/fonts/OFL.txt` is Press Start 2P's own SIL OFL (a different
+license from the framework, kept next to the TTF on purpose).
 
 `shared/hyphenation.js` is the one file in this repo under a different
 license than the rest of its own code: MPL-2.0, not MIT. To be precise
