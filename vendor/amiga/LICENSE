@@ -1,0 +1,33 @@
+TrueSchool Ascii / rewtnull amigafonts — TopazPlus_a500.ttf only.
+
+Upstream: https://github.com/rewtnull/amigafonts
+(also http://www.trueschool.se)
+
+Only TopazPlus_a500.ttf is vendored here, as a faithful Amiga-aspect
+remake of the Kickstart 1.x Topaz system font, for @font-face embedding
+in the retr-oq Amiga Workbench theme. No other faces from the pack
+(Topaz, P0T-NOoDLE, MicroKnight, mO'sOul, …) are included.
+
+These fonts are released under the GPL with the Font Exception (GPL-FE):
+
+  http://www.gnu.org/licenses/gpl-faq.html#FontException
+
+The GNU GPL Font Exception, quoted:
+
+  As a special exception, if you create a document which uses this
+  font, and embed this font or unaltered portions of this font into
+  the document, this font does not by itself cause the resulting
+  document to be covered by the GNU General Public License. This
+  exception does not however invalidate any other reasons why the
+  document might be covered by the GNU General Public License. If you
+  modify this font, you may extend this exception to your version of
+  the font, but you are not obligated to do so. If you do not wish to
+  do so, delete this exception statement from your version.
+
+The full GNU GPL v2 text is at https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+
+Copyright (from upstream readme.txt, section 14. Legal stuff):
+
+  Topaz is © AmigaInc.
+  ttf, fon, eot, raw & psf v1/v2 versions of Topaz are © dMG/t!s^dS!
+  ttf, fon, eot, raw & psf v1/v2 versions of TopazPlus are © dMG/t!s^dS!

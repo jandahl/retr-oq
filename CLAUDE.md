@@ -174,6 +174,30 @@ Same console-not-desktop rules as `nes/` (one LCD at a time, one
   rather than duplicating the TTF.
 - **Cache-bust `gb/index.html`'s `?v=N`.**
 
+## `amiga/` theme specifics
+
+- **No vendored framework.** Hand-drawn Workbench 1.3 chrome, like `c64/`
+  / `gb/`. Don't pull in an amiga.css kit as if it were 98.css — the
+  candidates fail this repo's LICENSE bar and aren't Kickstart 1.3.
+- **Two palettes, don't mix them.** Intuition chrome (screen bar, gadgets,
+  window frames, menus, requesters) is *only* the four 1.3 pens:
+  `#0055AA` / `#FFFFFF` / `#000000` / `#FF8800`. Backdrop, icons, the
+  About painting, copper bars and the Boing ball are 12-bit OCS art
+  (~32 colors, channel steps of 17). A fifth chrome color is a bug;
+  flattening the painting down to four pens is also a bug.
+- **Mac-lineage window logic, not Redmond.** `amiga/app.js` has its own
+  drag/resize/focus/menu-bar code (depth gadget = to-back; gadgets stay
+  visible on inactive windows). Do not share it with `mac8/` or
+  `mac1984/`, and do not route it through `shared/redmond/`.
+- **Router owns OQ!/DECON.** Same rule as every other theme: never call
+  `openWindow(winOq)` / `closeWindowEl(winOq)` from a new UI trigger —
+  go through `OqRouter.navigate()`.
+- **Guru Meditation is undocumented** on purpose (Workbench > Execute
+  Command…), same as `dos/`'s `DOOM` and `win98/`'s Hot Dog Stand.
+- **Cache-bust `amiga/index.html`'s `?v=N`.**
+- **Font is TopazPlus a500** at `vendor/amiga/fonts/` (GPL-FE, see
+  `vendor/amiga/LICENSE`). Don't swap it for a system mono.
+
 ## Git workflow gotcha: stranded commits
 
 This repo's branch convention is "always restart the working branch from
