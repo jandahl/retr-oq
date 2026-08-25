@@ -27,7 +27,6 @@
   const oqFilter = document.getElementById("oq-filter");
   const oqStatus = document.getElementById("oq-status");
   const oqResults = document.getElementById("oq-results");
-  const oqGloss = document.getElementById("oq-gloss");
   const deconWord = document.getElementById("decon-word");
   const deconStatus = document.getElementById("decon-status");
   const deconResults = document.getElementById("decon-results");
@@ -109,12 +108,62 @@
     return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
   }
 
+  // Square-wave bloops. No audio files -- the NES APU was pulse channels,
+  // and this repo's "no real build step" bar would fight a sample pack
+  // anyway. Silent until the first pad/key gesture (autoplay policy);
+  // typing in SEARCH/WORD is also silent on purpose.
+  let audioCtx = null;
+  function unlockAudio() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!audioCtx) audioCtx = new AC();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      return audioCtx;
+    } catch (err) {
+      return null;
+    }
+  }
+  function tone(freq, when, dur, gain) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = "square";
+    osc.frequency.setValueAtTime(freq, when);
+    g.gain.setValueAtTime(gain, when);
+    g.gain.exponentialRampToValueAtTime(0.001, when + dur);
+    osc.connect(g);
+    g.connect(audioCtx.destination);
+    osc.start(when);
+    osc.stop(when + dur + 0.02);
+  }
+  function sfx(kind) {
+    const ctx = unlockAudio();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    const vol = 0.06;
+    if (kind === "move") {
+      tone(196, t, 0.04, vol);
+    } else if (kind === "ok") {
+      tone(523.25, t, 0.055, vol);
+      tone(659.25, t + 0.055, 0.08, vol * 0.85);
+    } else if (kind === "back") {
+      tone(196, t, 0.06, vol);
+      tone(130.81, t + 0.05, 0.08, vol * 0.75);
+    } else if (kind === "start") {
+      tone(392, t, 0.06, vol);
+      tone(523.25, t + 0.07, 0.06, vol);
+      tone(659.25, t + 0.14, 0.11, vol);
+    } else if (kind === "konami") {
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, t + i * 0.07, 0.09, vol));
+    }
+  }
+
   // ---------- OQ! (dictionary) ----------
   function renderOqRows(rows) {
     visibleRows = rows;
     oqResults.textContent = "";
     if (rows.length === 0) {
-      oqGloss.textContent = "NO MATCHES.";
       return;
     }
     if (selectedIndex >= rows.length) selectedIndex = 0;
@@ -137,6 +186,7 @@
       btn.addEventListener("click", () => {
         selectedIndex = i;
         highlightOqRow();
+        sfx("move");
       });
       oqResults.appendChild(btn);
     });
@@ -151,8 +201,6 @@
       node.setAttribute("aria-selected", on ? "true" : "false");
       if (on) node.scrollIntoView({ block: "nearest" });
     });
-    const entry = visibleRows[selectedIndex];
-    oqGloss.textContent = entry ? entry.gloss_en : "PICK A WORD.";
   }
 
   function renderOqResults() {
@@ -179,7 +227,6 @@
     showScreen("oq");
     oqFilter.value = initialFilter;
     oqResults.textContent = "";
-    oqGloss.textContent = "PICK A WORD.";
     if (dictEntries === null) {
       oqStatus.textContent = "LOADING...";
       try {
@@ -322,6 +369,7 @@
   deconWord.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
     event.preventDefault();
+    sfx("ok");
     window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
     deconController.search(deconWord.value);
   });
@@ -329,14 +377,15 @@
   menuButtons.forEach((btn, i) => {
     btn.addEventListener("click", () => {
       setMenuIndex(i);
+      sfx("ok");
       chooseMenuItem(MENU_ORDER[i]);
     });
   });
-  continueYes.addEventListener("click", () => goMenu());
-  continueNo.addEventListener("click", () => goTitle());
+  continueYes.addEventListener("click", () => { sfx("ok"); goMenu(); });
+  continueNo.addEventListener("click", () => { sfx("back"); goTitle(); });
   // One listener on the whole title screen -- PRESS START is inside it, so
   // a second listener on #press-start would fire navigate() twice.
-  SCREENS.title.addEventListener("click", () => goMenu());
+  SCREENS.title.addEventListener("click", () => { sfx("start"); goMenu(); });
 
   function moveOqSelection(delta) {
     if (visibleRows.length === 0) return;
@@ -345,52 +394,63 @@
   }
 
   function handleInput(action) {
+    unlockAudio();
     if (currentScreen === "title") {
       if (action === "up" || action === "down" || action === "left" || action === "right" || action === "b" || action === "a") {
         if (KONAMI[konamiProgress] === action) {
           konamiProgress += 1;
           if (konamiProgress === KONAMI.length) {
             konamiProgress = 0;
+            sfx("konami");
             window.OqRouter.navigate({ screen: "gameover" });
             return;
           }
+          sfx("move");
         } else {
           konamiProgress = KONAMI[0] === action ? 1 : 0;
         }
       }
       if (action === "start" || action === "select") {
         konamiProgress = 0;
+        sfx("start");
         goMenu();
         return;
       }
-      if (action === "a" && konamiProgress === 0) goMenu();
+      if (action === "a" && konamiProgress === 0) {
+        sfx("start");
+        goMenu();
+      }
       return;
     }
 
     if (currentScreen === "menu") {
-      if (action === "up") setMenuIndex(menuIndex - 1);
-      else if (action === "down") setMenuIndex(menuIndex + 1);
-      else if (action === "a" || action === "start") chooseMenuItem(MENU_ORDER[menuIndex]);
-      else if (action === "b") goTitle();
+      if (action === "up") { sfx("move"); setMenuIndex(menuIndex - 1); }
+      else if (action === "down") { sfx("move"); setMenuIndex(menuIndex + 1); }
+      else if (action === "a" || action === "start") { sfx("ok"); chooseMenuItem(MENU_ORDER[menuIndex]); }
+      else if (action === "b") { sfx("back"); goTitle(); }
       return;
     }
 
     if (currentScreen === "gameover") {
-      if (action === "up" || action === "down") setContinueIndex(continueIndex + (action === "down" ? 1 : -1));
-      else if (action === "a" || action === "start") {
+      if (action === "up" || action === "down") {
+        sfx("move");
+        setContinueIndex(continueIndex + (action === "down" ? 1 : -1));
+      } else if (action === "a" || action === "start") {
+        sfx("ok");
         if (continueIndex === 0) goMenu();
         else goTitle();
-      } else if (action === "b") goTitle();
+      } else if (action === "b") { sfx("back"); goTitle(); }
       return;
     }
 
     if (currentScreen === "about") {
-      if (action === "b" || action === "start" || action === "a") goMenu();
+      if (action === "b" || action === "start" || action === "a") { sfx("back"); goMenu(); }
       return;
     }
 
     if (currentScreen === "oq") {
       if (action === "b") {
+        sfx("back");
         goMenu();
         return;
       }
@@ -398,19 +458,25 @@
         if (inputFocused() && action === "down") {
           oqFilter.blur();
           moveOqSelection(0);
+          sfx("move");
           return;
         }
-        if (!inputFocused()) moveOqSelection(action === "down" ? 1 : -1);
+        if (!inputFocused()) {
+          sfx("move");
+          moveOqSelection(action === "down" ? 1 : -1);
+        }
       }
       return;
     }
 
     if (currentScreen === "decon") {
       if (action === "b") {
+        sfx("back");
         goMenu();
         return;
       }
       if (action === "a" && !inputFocused()) {
+        sfx("ok");
         window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
         deconController.search(deconWord.value);
       }

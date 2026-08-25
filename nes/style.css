@@ -284,20 +284,6 @@ button:not(:disabled),
   color: var(--nes-navy);
 }
 
-.oq-balloon {
-  flex: none;
-  flex-shrink: 0;
-  margin-top: 0.7em;
-  min-height: 3.2em;
-  max-height: 7em;
-  overflow: auto;
-  text-align: left;
-}
-.oq-balloon p {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
 .oq-attribution {
   flex: none;
   margin: 0.7em 0 0;

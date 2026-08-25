@@ -7,7 +7,7 @@
 <!-- ?v= cache-busting, same convention as dos/index.html and c64/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
 <link rel="stylesheet" href="../vendor/nes/nes.min.css" />
-<link rel="stylesheet" href="style.css?v=3" />
+<link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body class="is-dark">
   <!-- NES was a game console, not a window manager: no overlapping windows,
@@ -49,14 +49,11 @@
           </div>
           <p class="oq-status" id="oq-status"></p>
           <div class="oq-results" id="oq-results" role="listbox" aria-label="Dictionary results"></div>
-          <div class="nes-balloon from-left is-dark oq-balloon" id="oq-balloon">
-            <p id="oq-gloss">PICK A WORD.</p>
-          </div>
           <p class="oq-attribution">
             <a id="oq-attribution" href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer"></a>
           </p>
         </section>
-        <p class="hint">A=READ  B=MENU</p>
+        <p class="hint">D-PAD=MOVE  B=MENU</p>
       </div>
 
       <div class="nes-screen nes-screen-app" id="decon-screen" hidden>
@@ -133,7 +130,7 @@
 <!-- Real ES module, not a classic script -- see shared/oq-analysis.js's
      own header comment for why this one file is the exception. -->
 <script type="module" src="../shared/oq-analysis.js?v=11"></script>
-<script src="../shared/decon-app.js?v=2"></script>
-<script src="app.js?v=2"></script>
+<script src="../shared/decon-app.js?v=3"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

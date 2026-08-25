@@ -73,9 +73,7 @@ def test_deeplink_oq_loads_rows(page, base_url):
     assert "is-selected" in page.locator(".oq-row").first.get_attribute("class")
     line = page.locator(".oq-row.is-selected .oq-gloss-line").inner_text().strip()
     assert line, "selected row must show the English gloss, not just the lexeme"
-    balloon = page.locator("#oq-gloss").inner_text().strip()
-    assert balloon and balloon != "PICK A WORD."
-    assert line == balloon
+    assert page.locator("#oq-balloon").count() == 0
     assert "Oqaasileriffik" in page.locator("#oq-attribution").inner_text()
 
 
@@ -96,8 +94,7 @@ def test_deeplink_oq_filter(page, base_url):
     # before looking for the query.
     blob = " ".join(rows.nth(i).inner_text() for i in range(min(rows.count(), 15)))
     blob = blob.replace("\xad", "").lower()
-    gloss = page.locator("#oq-gloss").inner_text().replace("\xad", "").lower()
-    assert "nuna" in blob or "nuna" in gloss
+    assert "nuna" in blob
     assert "NO MATCHES" not in page.locator("#oq-status").inner_text()
 
 
