@@ -233,7 +233,22 @@ button:not(:disabled),
 }
 .nes-input.is-dark {
   font-family: inherit;
-  font-size: inherit;
+  /* 16px floor, not inherit. iOS Safari auto-zooms any focused control
+     whose computed font-size is under 16px; --nes-font-size floors at 8px,
+     so SEARCH/WORD got magnified until the field sat off-screen and the
+     D-pad filled the visual viewport. 16px is the anti-zoom floor, not a
+     second type ramp -- Press Start 2P just runs at that size in the box. */
+  font-size: 16px;
+}
+
+/* Pad is a thumb-sized slab; with the keyboard up it ate the remaining
+   visual viewport and hid the field. html.is-keyboard is toggled from
+   app.js on focusin/focusout. */
+html.is-keyboard .nes-controller {
+  display: none;
+}
+html.is-keyboard .nes-tv {
+  margin-bottom: 8px;
 }
 
 .oq-status {
@@ -352,22 +367,26 @@ button:not(:disabled),
   letter-spacing: 0.08em;
 }
 
-/* NES pad: grey slab, black cross, two red face buttons, two tiny
-   select/start pills -- the western front-loading NES layout, not the
-   Famicom's red-and-gold. Sized for thumbs (min 44px hit targets) even
-   though a real pad's buttons were smaller; a phone is not a controller. */
+/* NES pad: grey slab, one molded black cross in a circular well, two
+   red face buttons, two tiny select/start pills -- western front-loading
+   NES, not the Famicom's red-and-gold. An earlier pass drew the plus as
+   four separate shaded <button>s plus a center span; each arm kept its
+   own drop-shadow so they read as disjoint tiles. The plus is now two
+   overlapping bars (one visual piece); the buttons are transparent hit
+   targets on top. Sized for thumbs even though a real pad's buttons
+   were smaller; a phone is not a controller. */
 .nes-controller {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   margin: 8px;
-  padding: 10px 12px 12px;
+  padding: 8px 10px 10px;
   background: var(--nes-pad);
   border: 4px solid #9a9a9a;
   box-shadow: 0 4px 0 #6e6e6e;
-  min-height: 132px;
+  min-height: 0;
   box-sizing: border-box;
   -webkit-user-select: none;
   user-select: none;
@@ -376,49 +395,76 @@ button:not(:disabled),
 
 .pad-dpad {
   position: relative;
-  width: 108px;
-  height: 108px;
+  width: 120px;
+  height: 120px;
   flex: none;
+  border-radius: 50%;
+  background: #c8c8c8;
+  box-shadow: inset 0 3px 0 #8e8e8e, inset 0 -2px 0 #ececec;
+}
+.pad-plus-v,
+.pad-plus-h {
+  position: absolute;
+  background: #2c2c2c;
+  box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #111;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 3px;
+}
+.pad-plus-v {
+  left: 43px;
+  top: 12px;
+  width: 34px;
+  height: 96px;
+}
+.pad-plus-h {
+  left: 12px;
+  top: 43px;
+  width: 96px;
+  height: 34px;
+}
+.pad-plus-nub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  box-shadow: inset 0 2px 0 #000;
+  pointer-events: none;
+  z-index: 2;
 }
 .pad-btn {
   -webkit-appearance: none;
   appearance: none;
   position: absolute;
-  background: var(--nes-pad-dark);
+  background: transparent;
   border: 0;
   padding: 0;
-  box-shadow: inset 0 2px 0 #555, 0 2px 0 #111;
-  z-index: 1;
+  box-shadow: none;
+  z-index: 3;
 }
 .pad-btn:active {
-  box-shadow: inset 0 2px 0 #111;
-  transform: translateY(1px);
+  background: rgba(0, 0, 0, 0.28);
 }
 .pad-up,
 .pad-down {
-  left: 36px;
-  width: 36px;
-  height: 44px;
+  left: 43px;
+  width: 34px;
+  height: 52px;
 }
-.pad-up { top: 0; }
-.pad-down { bottom: 0; }
+.pad-up { top: 10px; }
+.pad-down { bottom: 10px; }
 .pad-left,
 .pad-right {
-  top: 36px;
-  width: 44px;
-  height: 36px;
+  top: 43px;
+  width: 52px;
+  height: 34px;
 }
-.pad-left { left: 0; }
-.pad-right { right: 0; }
-.pad-dpad-center {
-  position: absolute;
-  left: 36px;
-  top: 36px;
-  width: 36px;
-  height: 36px;
-  background: var(--nes-pad-dark);
-  pointer-events: none;
-}
+.pad-left { left: 10px; }
+.pad-right { right: 10px; }
 
 .pad-mid {
   display: flex;

@@ -543,4 +543,27 @@
   window.addEventListener("orientationchange", syncAppHeight);
   window.addEventListener("pageshow", syncAppHeight);
   syncAppHeight();
+
+  // Hide the on-screen pad while SEARCH/WORD is focused. visualViewport
+  // already shrinks the shell above the keyboard; the pad still ate the
+  // leftover height, and iOS's input-zoom made that leftover a giant
+  // D-pad with the field off-screen. focusin/out covers hardware and
+  // on-screen keyboards; the 16px input floor in style.css stops the zoom.
+  function syncKeyboardChrome() {
+    const on = inputFocused();
+    document.documentElement.classList.toggle("is-keyboard", on);
+    if (!on) return;
+    const el = document.activeElement;
+    requestAnimationFrame(() => {
+      if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+  }
+  document.addEventListener("focusin", syncKeyboardChrome);
+  document.addEventListener("focusout", () => {
+    setTimeout(syncKeyboardChrome, 0);
+  });
+  // launchOq/launchDecon focus the field during router onChange, which
+  // ran before these listeners existed -- catch that initial focus so a
+  // deep link into OQ! doesn't leave the pad up under the keyboard.
+  syncKeyboardChrome();
 })();

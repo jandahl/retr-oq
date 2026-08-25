@@ -140,3 +140,25 @@ def test_about_deeplink(page, base_url):
     goto_nes(page, base_url, "?screen=about")
     assert page.locator("#about-screen").is_visible()
     assert "Kalaallisut" in page.locator("#about-screen").inner_text()
+
+
+def test_search_input_is_at_least_16px(page, base_url):
+    """iOS Safari auto-zooms focused inputs under 16px -- keep the floor."""
+    goto_nes(page, base_url, "?screen=oq")
+    size = page.locator("#oq-filter").evaluate(
+        "el => parseFloat(getComputedStyle(el).fontSize)"
+    )
+    assert size >= 16
+
+
+def test_controller_hides_while_search_focused(page, base_url):
+    goto_nes(page, base_url, "?screen=oq")
+    pad = page.locator("#nes-controller")
+    # launchOq focuses SEARCH on open -- pad should already be gone.
+    assert pad.is_hidden()
+    page.locator("#oq-filter").blur()
+    page.wait_for_timeout(50)
+    assert pad.is_visible()
+    page.locator("#oq-filter").focus()
+    page.wait_for_timeout(50)
+    assert pad.is_hidden()

@@ -144,6 +144,13 @@ real ES module if there's a reason to (e.g. actually consuming
 - **Konami code is title-screen only** and undocumented on purpose (see
   `dos/`'s `DOOM` and `win98/`'s Hot Dog Stand). Don't list it in the
   SELECT menu or the ABOUT balloon.
+- **16px input floor, hide the pad while typing.** iOS Safari auto-zooms
+  any focused control under 16px; `--nes-font-size` floors at 8px, so
+  SEARCH/WORD used to get magnified until the field sat off-screen and
+  the D-pad filled the leftover visual viewport. `.nes-input` is 16px on
+  purpose (anti-zoom, not a second type ramp) and `html.is-keyboard`
+  hides `#nes-controller` for the duration of the focus. Don't drop
+  either to "look more pixel-accurate."
 - **Cache-bust `nes/index.html`'s `?v=N`** for style.css/app.js on every
   change, same convention as every other theme.
 

@@ -7,7 +7,7 @@
 <!-- ?v= cache-busting, same convention as dos/index.html and c64/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
 <link rel="stylesheet" href="../vendor/nes/nes.min.css" />
-<link rel="stylesheet" href="style.css?v=4" />
+<link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body class="is-dark">
   <!-- NES was a game console, not a window manager: no overlapping windows,
@@ -107,11 +107,13 @@
          work and drive the same handleInput() path. -->
     <div class="nes-controller" id="nes-controller">
       <div class="pad-dpad" role="group" aria-label="D-pad">
+        <span class="pad-plus-v" aria-hidden="true"></span>
+        <span class="pad-plus-h" aria-hidden="true"></span>
+        <span class="pad-plus-nub" aria-hidden="true"></span>
         <button type="button" class="pad-btn pad-up" data-input="up" aria-label="Up"></button>
         <button type="button" class="pad-btn pad-left" data-input="left" aria-label="Left"></button>
         <button type="button" class="pad-btn pad-right" data-input="right" aria-label="Right"></button>
         <button type="button" class="pad-btn pad-down" data-input="down" aria-label="Down"></button>
-        <span class="pad-dpad-center" aria-hidden="true"></span>
       </div>
       <div class="pad-mid">
         <button type="button" class="pad-pill" data-input="select" aria-label="Select">SELECT</button>
@@ -130,7 +132,7 @@
 <!-- Real ES module, not a classic script -- see shared/oq-analysis.js's
      own header comment for why this one file is the exception. -->
 <script type="module" src="../shared/oq-analysis.js?v=11"></script>
-<script src="../shared/decon-app.js?v=3"></script>
-<script src="app.js?v=3"></script>
+<script src="../shared/decon-app.js?v=4"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>
