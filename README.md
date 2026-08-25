@@ -42,7 +42,7 @@ looks like today.
 
 ## What's here
 
-- **`index.html`** — landing page listing the available theme prototypes.
+- **`index.html`** — landing page: a machine-icon picker, one distinctive pixel icon per theme (not a text list).
 - **`mac1984/`** — the first (and so far only) prototype: a real
   fixed-size, fixed-position `.window` on a real full-viewport desktop for
   the original **1984 Macintosh 128K** (System 1.0) — not the 1987
