@@ -50,6 +50,12 @@
       minimizeMs: 260,
       minimizeEasing: "cubic-bezier(0.22, 0.61, 0.36, 1)",
       minimizeScale: 0.06,
+      // "genie": scale+fade the real glass window down into its taskbar
+      // button, matching Aero's softer feel -- unlike win98/xp (which keep
+      // the module's own default "outline" style: a plain rectangle flying
+      // between the two rects, the actual flat-chrome Windows behavior),
+      // Aero's glass look reads fine with the window itself animating.
+      minimizeStyle: "genie",
     },
     onOpen(win) {
       if (win.id === "win-oq") startOqLoad();

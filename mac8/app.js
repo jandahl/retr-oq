@@ -241,12 +241,24 @@
             width: win.style.width,
             height: win.style.height,
           };
+          // getBoundingClientRect() reports already-zoomed (rendered) px
+          // under this theme's own `html { zoom: 2 }` (see style.css's own
+          // comment on it), but a style.width/height assignment is read as
+          // *pre*-zoom CSS length and gets multiplied by zoom again on
+          // render -- dividing back out here is what keeps the zoomed
+          // window's rect matching the desktop's real rendered size
+          // instead of rendering at 2x that (4x the area). Drag/resize
+          // elsewhere in this file only ever work with *differences*
+          // between two such rects (dx/dy), which cancel this same offset
+          // out on their own -- only this one absolute assignment needs
+          // the explicit divide.
+          const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
           const desktopRect = desktop.getBoundingClientRect();
           animateZoomGeometry(win, () => {
             win.style.top = "0px";
             win.style.left = "0px";
-            win.style.width = `${desktopRect.width}px`;
-            win.style.height = `${desktopRect.height}px`;
+            win.style.width = `${desktopRect.width / zoomFactor}px`;
+            win.style.height = `${desktopRect.height / zoomFactor}px`;
           });
         }
       });
