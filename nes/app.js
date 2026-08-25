@@ -63,6 +63,9 @@
     else if (document.activeElement && document.activeElement.blur) {
       document.activeElement.blur();
     }
+    if (audioCtx) {
+      setMusic(name === "title" ? "title" : name === "menu" ? "menu" : null);
+    }
   }
 
   function setMenuIndex(next) {
@@ -108,56 +111,235 @@
     return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
   }
 
-  // Square-wave bloops. No audio files -- the NES APU was pulse channels,
-  // and this repo's "no real build step" bar would fight a sample pack
-  // anyway. Silent until the first pad/key gesture (autoplay policy);
-  // typing in SEARCH/WORD is also silent on purpose.
+  // NES APU, not a sample pack -- two pulse channels (12.5/25/50% duty
+  // via PeriodicWave), a triangle, and a 15-bit-ish LFSR noise buffer.
+  // Same "no real build step" bar as the rest of this theme; nothing here
+  // is a ripped Nintendo track. Silent until the first pad/key gesture
+  // (autoplay policy). Typing in SEARCH/WORD stays silent on purpose.
   let audioCtx = null;
+  let musicGain = null;
+  let sfxGain = null;
+  let noiseBuf = null;
+  const pulseWaves = Object.create(null);
+  let musicTrack = null;
+  let musicGen = 0;
+  let musicNext = 0;
+  let musicTimer = 0;
+  let musicStep = 0;
+  const BPM = 112;
+  const SIXTEENTH = 60 / BPM / 4;
+
   function unlockAudio() {
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
-      if (!audioCtx) audioCtx = new AC();
+      if (!audioCtx) {
+        audioCtx = new AC();
+        musicGain = audioCtx.createGain();
+        musicGain.gain.value = 0.16;
+        musicGain.connect(audioCtx.destination);
+        sfxGain = audioCtx.createGain();
+        sfxGain.gain.value = 0.22;
+        sfxGain.connect(audioCtx.destination);
+        noiseBuf = makeNoiseBuffer(audioCtx);
+      }
       if (audioCtx.state === "suspended") audioCtx.resume();
+      if (!musicTrack) {
+        setMusic(currentScreen === "title" ? "title" : currentScreen === "menu" ? "menu" : null);
+      }
       return audioCtx;
     } catch (err) {
       return null;
     }
   }
-  function tone(freq, when, dur, gain) {
-    if (!audioCtx) return;
-    const osc = audioCtx.createOscillator();
+
+  function pulseWave(duty) {
+    const key = String(duty);
+    if (pulseWaves[key]) return pulseWaves[key];
+    const n = 64;
+    const real = new Float32Array(n);
+    const imag = new Float32Array(n);
+    for (let i = 1; i < n; i++) {
+      real[i] = (2 / (i * Math.PI)) * Math.sin(i * Math.PI * duty);
+    }
+    pulseWaves[key] = audioCtx.createPeriodicWave(real, imag);
+    return pulseWaves[key];
+  }
+
+  function makeNoiseBuffer(ctx) {
+    const len = ctx.sampleRate;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    let reg = 1;
+    for (let i = 0; i < len; i++) {
+      const bit = (reg ^ (reg >> 1)) & 1;
+      reg = (reg >> 1) | (bit << 14);
+      data[i] = bit ? 0.55 : -0.55;
+    }
+    return buf;
+  }
+
+  function envGain(dest, when, dur, peak, hold) {
     const g = audioCtx.createGain();
-    osc.type = "square";
+    g.connect(dest);
+    const h = hold == null ? 0.012 : hold;
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(peak, when + Math.min(h, dur * 0.2));
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    return g;
+  }
+
+  function playPulse(freq, when, dur, peak, duty, dest) {
+    if (!freq || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    osc.setPeriodicWave(pulseWave(duty));
     osc.frequency.setValueAtTime(freq, when);
-    g.gain.setValueAtTime(gain, when);
-    g.gain.exponentialRampToValueAtTime(0.001, when + dur);
-    osc.connect(g);
-    g.connect(audioCtx.destination);
+    osc.connect(envGain(dest, when, dur, peak));
     osc.start(when);
     osc.stop(when + dur + 0.02);
   }
+
+  function playTriangle(freq, when, dur, peak, dest) {
+    if (!freq || !audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(freq, when);
+    const g = audioCtx.createGain();
+    g.connect(dest);
+    g.gain.setValueAtTime(peak, when);
+    g.gain.setValueAtTime(peak, when + dur * 0.85);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    osc.connect(g);
+    osc.start(when);
+    osc.stop(when + dur + 0.02);
+  }
+
+  function playNoise(when, dur, peak, dest, playback) {
+    if (!audioCtx || !noiseBuf) return;
+    const src = audioCtx.createBufferSource();
+    src.buffer = noiseBuf;
+    src.loop = true;
+    src.playbackRate.setValueAtTime(playback || 1.4, when);
+    src.connect(envGain(dest, when, dur, peak, 0.004));
+    src.start(when);
+    src.stop(when + dur + 0.02);
+  }
+
   function sfx(kind) {
     const ctx = unlockAudio();
-    if (!ctx) return;
-    const t = ctx.currentTime;
-    const vol = 0.06;
+    if (!ctx || !sfxGain) return;
+    const t = ctx.currentTime + 0.01;
+    const dest = sfxGain;
     if (kind === "move") {
-      tone(196, t, 0.04, vol);
+      playPulse(392, t, 0.045, 0.45, 0.125, dest);
+      playNoise(t, 0.03, 0.18, dest, 3);
     } else if (kind === "ok") {
-      tone(523.25, t, 0.055, vol);
-      tone(659.25, t + 0.055, 0.08, vol * 0.85);
+      playPulse(523.25, t, 0.07, 0.55, 0.25, dest);
+      playPulse(783.99, t + 0.06, 0.11, 0.5, 0.25, dest);
+      playTriangle(130.81, t, 0.16, 0.4, dest);
     } else if (kind === "back") {
-      tone(196, t, 0.06, vol);
-      tone(130.81, t + 0.05, 0.08, vol * 0.75);
+      playPulse(330, t, 0.07, 0.4, 0.5, dest);
+      playPulse(196, t + 0.055, 0.1, 0.35, 0.5, dest);
+      playTriangle(98, t, 0.16, 0.3, dest);
     } else if (kind === "start") {
-      tone(392, t, 0.06, vol);
-      tone(523.25, t + 0.07, 0.06, vol);
-      tone(659.25, t + 0.14, 0.11, vol);
+      playPulse(392, t, 0.08, 0.5, 0.25, dest);
+      playPulse(523.25, t + 0.08, 0.08, 0.5, 0.25, dest);
+      playPulse(659.25, t + 0.16, 0.1, 0.55, 0.25, dest);
+      playPulse(784, t + 0.26, 0.18, 0.5, 0.5, dest);
+      playTriangle(130.81, t, 0.22, 0.35, dest);
+      playTriangle(196, t + 0.16, 0.28, 0.4, dest);
     } else if (kind === "konami") {
-      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, t + i * 0.07, 0.09, vol));
+      const seq = [523.25, 659.25, 783.99, 1046.5, 783.99, 1318.5];
+      seq.forEach((f, i) => {
+        playPulse(f, t + i * 0.07, 0.1, 0.5, 0.25, dest);
+        playTriangle(f / 4, t + i * 0.07, 0.12, 0.28, dest);
+      });
     }
   }
+
+  // Original 4-bar title / 2-bar menu vamp. Frequencies in Hz, 0 = rest.
+  // 16th-note grid. Pulse2 is the same melody delayed two 16ths.
+  const TITLE_P1 = [
+    659, 0, 659, 784, 0, 784, 1047, 0, 784, 0, 659, 0, 587, 659, 698, 0,
+    587, 0, 587, 698, 0, 698, 880, 0, 698, 0, 587, 0, 523, 587, 659, 0,
+    523, 0, 523, 659, 0, 659, 784, 0, 659, 0, 523, 0, 392, 523, 659, 784,
+    784, 698, 659, 587, 523, 0, 659, 0, 784, 0, 1047, 0, 784, 0, 0, 0,
+  ];
+  const TITLE_BASS = [
+    131, 131, 98, 98, 131, 131, 165, 165, 175, 175, 131, 131, 175, 175, 110, 110,
+    131, 131, 98, 98, 110, 110, 87, 87, 98, 98, 147, 147, 131, 131, 131, 131,
+  ];
+  const MENU_P1 = [
+    523, 0, 659, 0, 784, 0, 659, 0, 698, 0, 587, 0, 784, 0, 0, 0,
+    523, 0, 392, 0, 523, 0, 659, 0, 587, 523, 392, 330, 262, 0, 0, 0,
+  ];
+  const MENU_BASS = [
+    131, 131, 98, 98, 131, 131, 98, 98, 175, 175, 131, 131, 98, 98, 98, 98,
+  ];
+
+  function scheduleStep(track, step, when) {
+    const dest = musicGain;
+    if (track === "title") {
+      const i = step % TITLE_P1.length;
+      const p1 = TITLE_P1[i];
+      const p2 = TITLE_P1[(i + TITLE_P1.length - 2) % TITLE_P1.length];
+      const bass = TITLE_BASS[Math.floor(i / 2) % TITLE_BASS.length];
+      playPulse(p1, when, SIXTEENTH * 1.15, 0.22, 0.25, dest);
+      playPulse(p2, when, SIXTEENTH * 1.05, 0.09, 0.5, dest);
+      if (i % 2 === 0) playTriangle(bass, when, SIXTEENTH * 2.05, 0.2, dest);
+      if (i % 4 === 2) playNoise(when, 0.04, 0.045, dest, 2.6);
+      if (i % 16 === 0) playNoise(when, 0.07, 0.07, dest, 0.7);
+    } else if (track === "menu") {
+      const i = step % MENU_P1.length;
+      const p1 = MENU_P1[i];
+      const bass = MENU_BASS[Math.floor(i / 2) % MENU_BASS.length];
+      playPulse(p1, when, SIXTEENTH * 1.1, 0.16, 0.125, dest);
+      if (i % 2 === 0) playTriangle(bass, when, SIXTEENTH * 2.05, 0.16, dest);
+      if (i % 8 === 4) playNoise(when, 0.035, 0.04, dest, 2.8);
+    }
+  }
+
+  function musicScheduler() {
+    if (!audioCtx || !musicTrack) return;
+    const gen = musicGen;
+    const horizon = audioCtx.currentTime + 0.25;
+    while (musicNext < horizon) {
+      if (gen !== musicGen) return;
+      scheduleStep(musicTrack, musicStep, musicNext);
+      musicStep += 1;
+      musicNext += SIXTEENTH;
+    }
+    musicTimer = setTimeout(musicScheduler, 40);
+  }
+
+  function setMusic(track) {
+    if (musicTrack === track) return;
+    musicTrack = track;
+    musicGen += 1;
+    if (musicTimer) {
+      clearTimeout(musicTimer);
+      musicTimer = 0;
+    }
+    if (!audioCtx || !musicGain) return;
+    const now = audioCtx.currentTime;
+    musicGain.gain.cancelScheduledValues(now);
+    musicGain.gain.setValueAtTime(musicGain.gain.value, now);
+    if (!track) {
+      musicGain.gain.linearRampToValueAtTime(0.0001, now + 0.12);
+      return;
+    }
+    musicGain.gain.linearRampToValueAtTime(0.16, now + 0.08);
+    musicStep = 0;
+    musicNext = now + 0.06;
+    musicScheduler();
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (!audioCtx) return;
+    if (document.hidden) audioCtx.suspend();
+    else audioCtx.resume();
+  });
+
 
   // ---------- OQ! (dictionary) ----------
   function renderOqRows(rows) {
