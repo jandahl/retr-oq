@@ -570,3 +570,45 @@ html.is-keyboard .gb-body {
     align-self: center;
   }
 }
+
+
+/* DMG boot: the Nintendo logo drop is theirs. Ours drops "OQ!" on the
+   olive LCD, then a tiny DMG tag -- same beat, original marks. */
+.gb-boot {
+  background: var(--gb-lightest);
+  gap: 0.8em;
+}
+.boot-drop {
+  margin: 0;
+  font-size: 2.8em;
+  letter-spacing: 0.06em;
+  color: var(--gb-darkest);
+  animation: gb-logo-drop 1.15s cubic-bezier(0.22, 0.82, 0.28, 1.18) both;
+}
+@keyframes gb-logo-drop {
+  0% { transform: translateY(-160%); }
+  72% { transform: translateY(10%); }
+  100% { transform: translateY(0); }
+}
+.boot-tag {
+  margin: 0;
+  font-size: 0.7em;
+  letter-spacing: 0.35em;
+  color: var(--gb-dark);
+  animation: gb-boot-fade 0.3s 1.15s both;
+}
+@keyframes gb-boot-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.gb-shell:has(#boot-screen:not([hidden])) .gb-led {
+  animation: gb-led-boot 0.18s steps(2) infinite;
+}
+@keyframes gb-led-boot {
+  from { opacity: 1; }
+  to { opacity: 0.25; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot-drop, .boot-tag { animation: none; }
+  .gb-shell:has(#boot-screen:not([hidden])) .gb-led { animation: none; }
+}

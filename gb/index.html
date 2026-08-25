@@ -6,7 +6,7 @@
 <title>retr-oq — Game Boy prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=1" />
+<link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
   <!-- Original Game Boy (DMG-01), not a window manager and not the NES
@@ -24,6 +24,10 @@
           <span class="gb-battery-label">BATTERY</span>
         </div>
         <div class="gb-lcd" id="gb-lcd">
+          <div class="gb-screen gb-boot" id="boot-screen" hidden>
+            <h1 class="boot-drop">OQ!</h1>
+            <p class="boot-tag">DMG</p>
+          </div>
           <div class="gb-screen" id="title-screen">
             <p class="title-copy">retr-oq</p>
             <h1 class="title-logo">OQ!</h1>
@@ -40,7 +44,7 @@
               <li><button type="button" class="menu-item" data-screen="about" id="menu-about"><span class="menu-cursor" aria-hidden="true">></span> ABOUT</button></li>
               <li><button type="button" class="menu-item" data-screen="quit" id="menu-quit"><span class="menu-cursor" aria-hidden="true">></span> QUIT</button></li>
             </ul>
-            <p class="hint">A=CHOOSE  B=TITLE</p>
+            <p class="hint">SELECT=CYCLE  START=CHOOSE  B=TITLE</p>
           </div>
 
           <div class="gb-screen gb-screen-app" id="oq-screen" hidden>
@@ -124,6 +128,6 @@
 <script src="../shared/router.js?v=1"></script>
 <script type="module" src="../shared/oq-analysis.js?v=11"></script>
 <script src="../shared/decon-app.js?v=4"></script>
-<script src="app.js?v=1"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>

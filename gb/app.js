@@ -10,6 +10,7 @@
   const { getStoredRootFirst, setStoredRootFirst, createController } = window.OqDecon;
 
   const SCREENS = {
+    boot: document.getElementById("boot-screen"),
     title: document.getElementById("title-screen"),
     menu: document.getElementById("menu-screen"),
     oq: document.getElementById("oq-screen"),
@@ -37,8 +38,11 @@
   const DEFAULT_ROWS = 50;
   const MAX_FILTERED_ROWS = 200;
 
-  let currentScreen = "title";
+  let currentScreen = "boot";
   let menuIndex = 0;
+  let bootDone = false;
+  let bootTimer = 0;
+  const BOOT_MS = (navigator.webdriver || window.matchMedia("(prefers-reduced-motion: reduce)").matches) ? 0 : 2000;
   let continueIndex = 0;
   let dictEntries = null;
   let visibleRows = [];
@@ -57,7 +61,7 @@
     for (const [key, el] of Object.entries(SCREENS)) {
       el.hidden = key !== name;
     }
-    if (name !== "title") konamiProgress = 0;
+    if (name !== "title" && name !== "boot") konamiProgress = 0;
     if (name === "oq") oqFilter.focus();
     else if (name === "decon") deconWord.focus();
     else if (document.activeElement && document.activeElement.blur) {
@@ -153,6 +157,12 @@
       tone(392, t, 0.06, vol);
       tone(523.25, t + 0.07, 0.06, vol);
       tone(659.25, t + 0.14, 0.11, vol);
+    } else if (kind === "boot") {
+      // Rising fourths, not the Nintendo logo jingle.
+      tone(220, t, 0.12, vol);
+      tone(277, t + 0.13, 0.12, vol);
+      tone(330, t + 0.26, 0.12, vol);
+      tone(440, t + 0.4, 0.3, vol * 1.15);
     } else if (kind === "konami") {
       [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, t + i * 0.07, 0.09, vol));
     }
@@ -328,16 +338,45 @@
   // dos/app.js -- every user-facing trigger (D-pad, A/B, click, the
   // on-screen pad) goes through navigate() instead of calling
   // showScreen()/launchOq() directly.
+  function finishBoot() {
+    if (bootDone) return;
+    bootDone = true;
+    if (bootTimer) {
+      clearTimeout(bootTimer);
+      bootTimer = 0;
+    }
+    showScreen("title");
+  }
+
+  function startBoot() {
+    if (bootDone) {
+      showScreen("title");
+      return;
+    }
+    if (currentScreen === "boot" && bootTimer) return;
+    showScreen("boot");
+    if (BOOT_MS === 0) {
+      finishBoot();
+      return;
+    }
+    bootTimer = setTimeout(finishBoot, BOOT_MS);
+  }
+
   window.OqRouter.onChange((params) => {
-    const screen = params.get("screen") || "title";
-    if (screen === "oq") {
+    const screen = params.get("screen");
+    if (!screen && !bootDone) {
+      startBoot();
+      return;
+    }
+    const dest = screen || "title";
+    if (dest === "oq") {
       if (currentScreen !== "oq" || SCREENS.oq.hidden) {
         launchOq(params.get("filter") || "");
       } else if (oqFilter.value !== (params.get("filter") || "")) {
         oqFilter.value = params.get("filter") || "";
         renderOqResults();
       }
-    } else if (screen === "decon") {
+    } else if (dest === "decon") {
       const orderParam = params.get("order");
       const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
       if (deconRootFirst.checked !== rootFirst) {
@@ -350,9 +389,10 @@
         deconWord.value = params.get("word") || "";
         deconController.search(deconWord.value);
       }
-    } else if (screen === "menu" || screen === "about" || screen === "gameover" || screen === "title") {
+    } else if (dest === "menu" || dest === "about" || dest === "gameover" || dest === "title") {
       if (currentScreen === "decon") exitDecon();
-      showScreen(screen);
+      bootDone = true;
+      showScreen(dest);
     } else {
       if (currentScreen === "decon") exitDecon();
       showScreen("title");
@@ -383,6 +423,11 @@
   // One listener on the whole title screen -- PRESS START is inside it, so
   // a second listener on #press-start would fire navigate() twice.
   SCREENS.title.addEventListener("click", () => { sfx("start"); goMenu(); });
+  SCREENS.boot.addEventListener("click", () => {
+    unlockAudio();
+    sfx("boot");
+    finishBoot();
+  });
 
   function moveOqSelection(delta) {
     if (visibleRows.length === 0) return;
@@ -392,6 +437,11 @@
 
   function handleInput(action) {
     unlockAudio();
+    if (currentScreen === "boot") {
+      sfx("boot");
+      finishBoot();
+      return;
+    }
     if (currentScreen === "title") {
       if (action === "up" || action === "down" || action === "left" || action === "right" || action === "b" || action === "a") {
         if (KONAMI[konamiProgress] === action) {
@@ -422,16 +472,16 @@
 
     if (currentScreen === "menu") {
       if (action === "up") { sfx("move"); setMenuIndex(menuIndex - 1); }
-      else if (action === "down") { sfx("move"); setMenuIndex(menuIndex + 1); }
+      else if (action === "down" || action === "select") { sfx("move"); setMenuIndex(menuIndex + 1); }
       else if (action === "a" || action === "start") { sfx("ok"); chooseMenuItem(MENU_ORDER[menuIndex]); }
       else if (action === "b") { sfx("back"); goTitle(); }
       return;
     }
 
     if (currentScreen === "gameover") {
-      if (action === "up" || action === "down") {
+      if (action === "up" || action === "down" || action === "select") {
         sfx("move");
-        setContinueIndex(continueIndex + (action === "down" ? 1 : -1));
+        setContinueIndex(continueIndex + (action === "up" ? -1 : 1));
       } else if (action === "a" || action === "start") {
         sfx("ok");
         if (continueIndex === 0) goMenu();
@@ -489,6 +539,7 @@
       Escape: "b",
       Enter: "a",
       " ": "start",
+      Tab: "select",
     };
     // Physical A/B only when not typing -- otherwise the letter "a" in
     // SEARCH would confirm the menu. Emulator convention (Z=B, X=A) is
@@ -501,6 +552,7 @@
     }
     const action = keyMap[event.key];
     if (!action) return;
+    if (inputFocused() && action === "select") return;
     if (inputFocused() && (action === "up" || action === "down" || action === "left" || action === "right" || action === "a" || action === "start")) {
       // Let the caret move / Enter submit DECON. Down from OQ's filter
       // still hops to the list.
