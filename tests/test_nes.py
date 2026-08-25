@@ -71,8 +71,11 @@ def test_deeplink_oq_loads_rows(page, base_url):
     assert page.locator("#oq-screen").is_visible()
     assert page.locator(".oq-row").count() > 0
     assert "is-selected" in page.locator(".oq-row").first.get_attribute("class")
-    gloss = page.locator("#oq-gloss").inner_text().strip()
-    assert gloss and gloss != "PICK A WORD."
+    line = page.locator(".oq-row.is-selected .oq-gloss-line").inner_text().strip()
+    assert line, "selected row must show the English gloss, not just the lexeme"
+    balloon = page.locator("#oq-gloss").inner_text().strip()
+    assert balloon and balloon != "PICK A WORD."
+    assert line == balloon
     assert "Oqaasileriffik" in page.locator("#oq-attribution").inner_text()
 
 

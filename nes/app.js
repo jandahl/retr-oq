@@ -124,7 +124,16 @@
       btn.className = "oq-row" + (i === selectedIndex ? " is-selected" : "");
       btn.setAttribute("role", "option");
       btn.setAttribute("aria-selected", i === selectedIndex ? "true" : "false");
-      btn.textContent = syllabify(entry.lexeme);
+      // Two lines, same as dos/'s lexeme/translation columns -- a balloon
+      // alone hid the gloss under the list (and NES.css's own pixel padding
+      // left that balloon ~one line tall). Lexeme on top, English under it.
+      const lexeme = document.createElement("span");
+      lexeme.className = "oq-lexeme";
+      lexeme.textContent = syllabify(entry.lexeme);
+      const gloss = document.createElement("span");
+      gloss.className = "oq-gloss-line";
+      gloss.textContent = entry.gloss_en || "";
+      btn.append(lexeme, gloss);
       btn.addEventListener("click", () => {
         selectedIndex = i;
         highlightOqRow();
