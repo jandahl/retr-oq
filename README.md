@@ -90,7 +90,11 @@ looks like today.
   `shared/decon-app.js` with `?screen=oq&filter=...` /
   `?screen=decon&word=...&order=...`. An undocumented Konami code on the
   title screen is this theme's `DOOM` / Hot Dog Stand: a GAME OVER /
-  CONTINUE? screen that claims 30 lives.
+  CONTINUE? screen that claims 30 lives. Square-wave bloops and a looping
+  title/menu chiptune are synthesized in `nes/app.js` from pulse/triangle/
+  noise (no sample pack, nothing ripped from a Nintendo soundtrack). The
+  title loop keeps playing at a lower level on the menu and in OQ!/DECON
+  rather than dying the moment PRESS START is hit.
 - **`gb/`** — an original Game Boy (DMG-01), not a desktop and not the
   NES living-room TV. The brick is the computer: olive 4-shade LCD up
   top, D-pad / A / B / Select / Start molded into the same piece of

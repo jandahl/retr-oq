@@ -533,3 +533,46 @@ html.is-keyboard .nes-tv {
     width: min(720px, calc(100% - 24px));
   }
 }
+
+
+/* License-card boot -- NES had no BIOS splash of its own; the cartridge
+   put one up. Not Nintendo's seal (that's theirs); a retr-oq pak card
+   with a CRT power-on flash. */
+.nes-boot {
+  padding: 1.2em;
+  background: #000;
+}
+.boot-flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  pointer-events: none;
+  z-index: 2;
+  animation: nes-crt-on 0.55s steps(4) forwards;
+}
+@keyframes nes-crt-on {
+  0% { opacity: 1; transform: scaleY(0.04); }
+  45% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1); }
+}
+.boot-kicker {
+  margin: 0 0 1.2em;
+  letter-spacing: 0.28em;
+  color: #e76e55;
+  animation: nes-boot-fade 0.35s 0.45s both;
+}
+.boot-pak {
+  margin: 0;
+  line-height: 1.9;
+  font-size: 0.8em;
+  color: var(--nes-white);
+  animation: nes-boot-fade 0.35s 0.7s both;
+}
+@keyframes nes-boot-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot-flash { display: none; }
+  .boot-kicker, .boot-pak { animation: none; }
+}
