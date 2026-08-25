@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>retr-oq — NES cartridge prototype</title>
+<!-- ?v= cache-busting, same convention as dos/index.html and c64/index.html
+     -- bump the number for style.css/app.js whenever either actually changes. -->
+<link rel="stylesheet" href="../vendor/nes/nes.min.css" />
+<link rel="stylesheet" href="style.css?v=5" />
+</head>
+<body class="is-dark">
+  <!-- NES was a game console, not a window manager: no overlapping windows,
+       no desktop icons, no taskbar. One screen owns the whole CRT at a
+       time, the same single-tasking reasoning dos/'s #dos-dir and c64/'s
+       #c64-dir comments give -- a title screen, then a file-select menu,
+       then one full-screen "game" (OQ! or DECON). The on-screen pad below
+       the TV is how a phone without a D-pad plays this; a real keyboard's
+       arrows/Enter/Esc are the other path. -->
+  <div class="nes-shell" id="nes-shell">
+    <div class="nes-tv" id="nes-tv">
+      <div class="nes-screen" id="title-screen">
+        <p class="title-copy">retr-oq</p>
+        <h1 class="title-logo">OQ!</h1>
+        <p class="title-sub">KALAALLISUT<br />DICTIONARY</p>
+        <p class="press-start" id="press-start">PRESS START</p>
+        <p class="title-copy title-copy-bottom">© 1989 OQAASILERIFFIK</p>
+      </div>
+
+      <div class="nes-screen" id="menu-screen" hidden>
+        <section class="nes-container is-dark with-title is-centered menu-box">
+          <h2 class="title">SELECT</h2>
+          <ul class="menu-list" id="menu-list">
+            <li><button type="button" class="menu-item is-selected" data-screen="oq" id="menu-oq"><span class="menu-cursor" aria-hidden="true">></span> OQ!</button></li>
+            <li><button type="button" class="menu-item" data-screen="decon" id="menu-decon"><span class="menu-cursor" aria-hidden="true">></span> DECON</button></li>
+            <li><button type="button" class="menu-item" data-screen="about" id="menu-about"><span class="menu-cursor" aria-hidden="true">></span> ABOUT</button></li>
+            <li><button type="button" class="menu-item" data-screen="quit" id="menu-quit"><span class="menu-cursor" aria-hidden="true">></span> QUIT</button></li>
+          </ul>
+        </section>
+        <p class="hint">A=CHOOSE  B=TITLE</p>
+      </div>
+
+      <div class="nes-screen nes-screen-app" id="oq-screen" hidden>
+        <section class="nes-container is-dark with-title oq-box">
+          <h2 class="title">OQ!</h2>
+          <div class="nes-field">
+            <label for="oq-filter">SEARCH</label>
+            <input type="text" id="oq-filter" class="nes-input is-dark" placeholder="TYPE A WORD..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+          </div>
+          <p class="oq-status" id="oq-status"></p>
+          <div class="oq-results" id="oq-results" role="listbox" aria-label="Dictionary results"></div>
+          <p class="oq-attribution">
+            <a id="oq-attribution" href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer"></a>
+          </p>
+        </section>
+        <p class="hint">D-PAD=MOVE  B=MENU</p>
+      </div>
+
+      <div class="nes-screen nes-screen-app" id="decon-screen" hidden>
+        <section class="nes-container is-dark with-title decon-box">
+          <h2 class="title">DECON</h2>
+          <div class="nes-field">
+            <label for="decon-word">WORD</label>
+            <input type="text" id="decon-word" class="nes-input is-dark" placeholder="TYPE, THEN A..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+          </div>
+          <label class="decon-order">
+            <input type="checkbox" id="decon-root-first" class="nes-checkbox is-dark" checked />
+            <span>ROOT FIRST</span>
+          </label>
+          <p class="oq-status" id="decon-status"></p>
+          <div class="decon-results" id="decon-results"></div>
+        </section>
+        <p class="hint">A=ANALYZE  B=MENU</p>
+      </div>
+
+      <div class="nes-screen" id="about-screen" hidden>
+        <section class="nes-container is-dark with-title is-centered about-box">
+          <h2 class="title">ABOUT</h2>
+          <div class="nes-balloon from-left is-dark">
+            <p>
+              OQ! is a Kalaallisut dictionary in an 8-bit cartridge.
+              DECON splits a word into its morphemes.
+            </p>
+          </div>
+          <p class="about-credit">A retr-oq theme.<br />B=MENU</p>
+        </section>
+      </div>
+
+      <div class="nes-screen" id="gameover-screen" hidden>
+        <p class="gameover-title">GAME OVER</p>
+        <section class="nes-container is-dark with-title is-centered menu-box">
+          <h2 class="title">CONTINUE?</h2>
+          <ul class="menu-list" id="gameover-list">
+            <li><button type="button" class="menu-item is-selected" data-continue="yes" id="continue-yes"><span class="menu-cursor" aria-hidden="true">></span> CONTINUE</button></li>
+            <li><button type="button" class="menu-item" data-continue="no" id="continue-no"><span class="menu-cursor" aria-hidden="true">></span> GIVE UP</button></li>
+          </ul>
+        </section>
+        <p class="title-copy">30 LIVES REMAINING</p>
+      </div>
+
+      <div class="nes-scanlines" aria-hidden="true"></div>
+    </div>
+
+    <!-- On-screen NES pad. A real Famicom/NES had no mouse and no
+         on-screen keyboard; this is the touch equivalent of plugging in a
+         controller, not a second GUI. Keyboard arrows/Enter/Esc still
+         work and drive the same handleInput() path. -->
+    <div class="nes-controller" id="nes-controller">
+      <div class="pad-dpad" role="group" aria-label="D-pad">
+        <span class="pad-plus-v" aria-hidden="true"></span>
+        <span class="pad-plus-h" aria-hidden="true"></span>
+        <span class="pad-plus-nub" aria-hidden="true"></span>
+        <button type="button" class="pad-btn pad-up" data-input="up" aria-label="Up"></button>
+        <button type="button" class="pad-btn pad-left" data-input="left" aria-label="Left"></button>
+        <button type="button" class="pad-btn pad-right" data-input="right" aria-label="Right"></button>
+        <button type="button" class="pad-btn pad-down" data-input="down" aria-label="Down"></button>
+      </div>
+      <div class="pad-mid">
+        <button type="button" class="pad-pill" data-input="select" aria-label="Select">SELECT</button>
+        <button type="button" class="pad-pill" data-input="start" aria-label="Start">START</button>
+      </div>
+      <div class="pad-face" role="group" aria-label="Action buttons">
+        <button type="button" class="pad-round pad-b" data-input="b" aria-label="B">B</button>
+        <button type="button" class="pad-round pad-a" data-input="a" aria-label="A">A</button>
+      </div>
+    </div>
+  </div>
+
+<script src="../shared/dict-source.js?v=1"></script>
+<script src="../shared/hyphenation.js?v=1"></script>
+<script src="../shared/router.js?v=1"></script>
+<!-- Real ES module, not a classic script -- see shared/oq-analysis.js's
+     own header comment for why this one file is the exception. -->
+<script type="module" src="../shared/oq-analysis.js?v=11"></script>
+<script src="../shared/decon-app.js?v=4"></script>
+<script src="app.js?v=4"></script>
+</body>
+</html>

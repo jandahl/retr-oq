@@ -1,0 +1,42 @@
+name: nes tests
+
+# Scoped to nes/ the same way win98-tests.yml is scoped to win98/ -- this
+# repo has no shared build step between themes, so a pixel change in
+# mac1984/ has nothing to break here.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "nes/**"
+      - "vendor/nes/**"
+      - "tests/test_nes.py"
+      - "tests/conftest.py"
+      - "tests/requirements.txt"
+      - ".github/workflows/nes-tests.yml"
+  pull_request:
+    paths:
+      - "nes/**"
+      - "vendor/nes/**"
+      - "tests/test_nes.py"
+      - "tests/conftest.py"
+      - "tests/requirements.txt"
+      - ".github/workflows/nes-tests.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: pip install -r tests/requirements.txt
+
+      - name: Install Playwright's Chromium
+        run: playwright install --with-deps chromium
+
+      - name: Run nes test suite
+        run: python3 -m pytest tests/test_nes.py -v

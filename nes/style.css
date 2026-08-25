@@ -1,0 +1,535 @@
+/* retr-oq nes theme. Built on nostalgic-css/NES.css v2.2.1 (MIT), vendored
+   at vendor/nes/nes.min.css -- the published dist build, same "no real
+   build step" constraint win98/ uses for 98.css (NES.css's GitHub tree is
+   SCSS source; the css/ output is what npm/unpkg actually ship).
+
+   NES.css itself does not bundle a font. Press Start 2P (the typeface it
+   recommends, SIL OFL, reserved name "Press Start 2P") is vendored at
+   vendor/nes/fonts/ rather than pulled from Google Fonts at runtime --
+   this repo vendors its other theme fonts the same way (vendor/c64/,
+   vendor/win98/fonts/, vendor/mac8/fonts/).
+
+   This is not a window manager. A real NES had one full screen at a time
+   and a physical controller; overlapping draggable windows on top of
+   NES.css chrome would be a lie, the same way free pixel dragging on
+   dos/'s text-mode grid would be. Screens swap via `hidden`, like
+   dos/'s #dos-dir / #dict-app and c64/'s #c64-dir / #dict-app. */
+
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("../vendor/nes/fonts/PressStart2P-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --nes-black: #000000;
+  --nes-navy: #212529;
+  --nes-white: #ffffff;
+  --nes-grey: #b4b4b4;
+  --nes-pad: #dcdcdc;
+  --nes-pad-dark: #3a3a3a;
+  --nes-red: #a4161a;
+  --nes-red-dark: #6b0f12;
+  /* Press Start 2P is a 1em-wide pixel font, same problem c64/'s C64 Pro
+     Mono has: a size that fits a desktop CRT is unreadably huge on a
+     phone, and a size that fits 390px is tiny on a monitor. clamp() is
+     one shared size, not a second type ramp -- NES hardware had one
+     character size. Floor stays at 8px (one NES pixel-cell at 1x) so the
+     glyphs stay on the pixel grid instead of going fractional. */
+  --nes-font-size: clamp(8px, 2.2vw, 12px);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  position: fixed;
+  width: 100%;
+  background: var(--nes-black);
+  color: var(--nes-white);
+  font-family: "Press Start 2P", ui-monospace, "Courier New", monospace;
+  font-size: var(--nes-font-size);
+  line-height: 1.6;
+}
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+.nes-shell {
+  position: fixed;
+  top: var(--app-top, 0);
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100dvh);
+  display: flex;
+  flex-direction: column;
+  background: #0b0b0b;
+}
+
+.nes-tv {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  margin: 8px 8px 0;
+  background: #000000;
+  /* Grey plastic bezel, dark enough to read as a CRT cabinet but light
+     enough to separate from the #0b0b0b shell -- an earlier 8px #2c2c2c
+     border vanished into the page on a desktop monitor. */
+  border: 10px solid #6e6e6e;
+  box-shadow:
+    inset 0 0 0 3px #111111,
+    0 4px 0 #2a2a2a;
+  overflow: hidden;
+}
+
+.nes-scanlines {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.18) 0px,
+    rgba(0, 0, 0, 0.18) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+.nes-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Extra top padding: NES.css .nes-container.with-title > .title uses
+     margin-top: -1.5rem to sit on the container's top border. Without
+     this, overflow:hidden on .nes-tv/.nes-screen clips "SELECT"/"OQ!"/
+     "ABOUT" in half -- shipped that way on the first pass. */
+  padding: 2.2em 12px 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--nes-white);
+  text-align: center;
+}
+.nes-screen[hidden] {
+  display: none;
+}
+.nes-screen-app {
+  justify-content: flex-start;
+  align-items: stretch;
+  text-align: left;
+}
+
+.title-logo {
+  margin: 0.4em 0 0.5em;
+  font-size: 3.2em;
+  letter-spacing: 0.08em;
+  color: var(--nes-white);
+  text-shadow: 4px 4px 0 #7c3aed;
+}
+.title-sub {
+  margin: 0 0 1.6em;
+  line-height: 1.8;
+  color: #ffd454;
+}
+.title-copy {
+  margin: 0;
+  color: var(--nes-grey);
+  font-size: 0.85em;
+}
+.title-copy-bottom {
+  margin-top: 1.8em;
+}
+.press-start {
+  margin: 0;
+  color: var(--nes-white);
+  animation: nes-blink 1s steps(1) infinite;
+}
+@keyframes nes-blink {
+  /* Real NES "PRESS START" spent most of the cycle ON, a short blink
+     off -- 50/50 made the title look like it had no prompt at all
+     whenever a screenshot (or a glance) landed on the off frame. */
+  0%, 74% { opacity: 1; }
+  75%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .press-start { animation: none; }
+  .nes-scanlines { display: none; }
+}
+
+.menu-box,
+.about-box,
+.oq-box,
+.decon-box {
+  width: min(36em, 100%);
+  max-height: 100%;
+  box-sizing: border-box;
+  margin-top: 0.4em;
+}
+.oq-box,
+.decon-box {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: left;
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+.menu-item {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 0.55em 0.4em;
+  line-height: 1.6;
+}
+.menu-cursor {
+  visibility: hidden;
+  display: inline-block;
+  width: 1.2em;
+}
+.menu-item.is-selected {
+  background: var(--nes-white);
+  color: var(--nes-navy);
+}
+.menu-item.is-selected .menu-cursor {
+  visibility: visible;
+}
+
+.hint {
+  margin: 0.8em 0 0;
+  color: var(--nes-grey);
+  font-size: 0.8em;
+}
+
+.nes-field {
+  margin-bottom: 0.6em;
+}
+.nes-field label {
+  display: block;
+  margin-bottom: 0.4em;
+  color: #ffd454;
+}
+.nes-input.is-dark {
+  font-family: inherit;
+  /* 16px floor, not inherit. iOS Safari auto-zooms any focused control
+     whose computed font-size is under 16px; --nes-font-size floors at 8px,
+     so SEARCH/WORD got magnified until the field sat off-screen and the
+     D-pad filled the visual viewport. 16px is the anti-zoom floor, not a
+     second type ramp -- Press Start 2P just runs at that size in the box. */
+  font-size: 16px;
+}
+
+/* Pad is a thumb-sized slab; with the keyboard up it ate the remaining
+   visual viewport and hid the field. html.is-keyboard is toggled from
+   app.js on focusin/focusout. */
+html.is-keyboard .nes-controller {
+  display: none;
+}
+html.is-keyboard .nes-tv {
+  margin-bottom: 8px;
+}
+
+.oq-status {
+  margin: 0 0 0.5em;
+  color: var(--nes-grey);
+  min-height: 1.6em;
+}
+
+.oq-results,
+.decon-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  text-align: left;
+}
+
+.oq-row {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25em;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 0.45em 0.4em 0.55em;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+.oq-lexeme {
+  color: inherit;
+}
+.oq-gloss-line {
+  color: #ffd454;
+  line-height: 1.5;
+}
+.oq-row.is-selected {
+  background: var(--nes-white);
+  color: var(--nes-navy);
+}
+.oq-row.is-selected .oq-gloss-line {
+  color: var(--nes-navy);
+}
+
+.oq-attribution {
+  flex: none;
+  margin: 0.7em 0 0;
+  color: var(--nes-grey);
+  font-size: 0.7em;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.oq-attribution a {
+  color: inherit;
+}
+
+.decon-order {
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  margin: 0 0 0.6em;
+  color: var(--nes-white);
+}
+.decon-card {
+  margin-bottom: 0.8em;
+  text-align: left;
+}
+.decon-tag {
+  color: #92cc41;
+}
+.decon-tag--approximate {
+  color: #f7d51d;
+}
+.decon-word {
+  color: var(--nes-white);
+}
+.decon-meaning {
+  margin: 0.4em 0;
+  color: #ffd454;
+  overflow-wrap: anywhere;
+}
+.decon-breakdown {
+  margin: 0.4em 0 0;
+  overflow-wrap: anywhere;
+  color: var(--nes-grey);
+}
+.decon-truncated {
+  color: #e76e55;
+}
+.decon-dict-match {
+  margin: 0.6em 0 0;
+  color: #92cc41;
+  overflow-wrap: anywhere;
+}
+
+.about-box .nes-balloon {
+  text-align: left;
+  margin: 0.4em auto 1em;
+}
+.about-credit {
+  margin: 0;
+  color: var(--nes-grey);
+  line-height: 1.8;
+}
+
+.gameover-title {
+  margin: 0 0 0.8em;
+  font-size: 1.6em;
+  color: #e76e55;
+  letter-spacing: 0.08em;
+}
+
+/* NES pad: grey slab, one molded black cross in a circular well, two
+   red face buttons, two tiny select/start pills -- western front-loading
+   NES, not the Famicom's red-and-gold. An earlier pass drew the plus as
+   four separate shaded <button>s plus a center span; each arm kept its
+   own drop-shadow so they read as disjoint tiles. The plus is now two
+   overlapping bars (one visual piece); the buttons are transparent hit
+   targets on top. Sized for thumbs even though a real pad's buttons
+   were smaller; a phone is not a controller. */
+.nes-controller {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 8px;
+  padding: 8px 10px 10px;
+  background: var(--nes-pad);
+  border: 4px solid #9a9a9a;
+  box-shadow: 0 4px 0 #6e6e6e;
+  min-height: 0;
+  box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.pad-dpad {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  flex: none;
+  border-radius: 50%;
+  background: #c8c8c8;
+  box-shadow: inset 0 3px 0 #8e8e8e, inset 0 -2px 0 #ececec;
+}
+.pad-plus-v,
+.pad-plus-h {
+  position: absolute;
+  background: #2c2c2c;
+  box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #111;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 3px;
+}
+.pad-plus-v {
+  left: 43px;
+  top: 12px;
+  width: 34px;
+  height: 96px;
+}
+.pad-plus-h {
+  left: 12px;
+  top: 43px;
+  width: 96px;
+  height: 34px;
+}
+.pad-plus-nub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: #1a1a1a;
+  box-shadow: inset 0 2px 0 #000;
+  pointer-events: none;
+  z-index: 2;
+}
+.pad-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  z-index: 3;
+}
+.pad-btn:active {
+  background: rgba(0, 0, 0, 0.28);
+}
+.pad-up,
+.pad-down {
+  left: 43px;
+  width: 34px;
+  height: 52px;
+}
+.pad-up { top: 10px; }
+.pad-down { bottom: 10px; }
+.pad-left,
+.pad-right {
+  top: 43px;
+  width: 52px;
+  height: 34px;
+}
+.pad-left { left: 10px; }
+.pad-right { right: 10px; }
+
+.pad-mid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  flex: 1 1 auto;
+}
+.pad-pill {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #5a5a5a;
+  color: #3a3a3a;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.55em;
+  letter-spacing: 0.08em;
+  padding: 0.55em 0.9em;
+  min-height: 28px;
+  min-width: 64px;
+  box-shadow: 0 2px 0 #2a2a2a;
+}
+.pad-pill:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.pad-face {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: none;
+  padding-top: 18px;
+}
+.pad-round {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--nes-red);
+  color: #3a0000;
+  font-family: inherit;
+  font-size: 0.7em;
+  box-shadow: 0 3px 0 var(--nes-red-dark);
+}
+.pad-round:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--nes-red-dark);
+}
+.pad-b { margin-top: 14px; }
+.pad-a { margin-bottom: 14px; }
+
+@media (min-width: 700px) {
+  .nes-tv {
+    margin: 12px auto 0;
+    width: min(720px, calc(100% - 24px));
+    /* Thicker chin, like the plastic under a front-loading NES TV. */
+    border-width: 14px 14px 36px;
+    border-radius: 12px 12px 16px 16px;
+  }
+  .nes-controller {
+    margin: 8px auto 12px;
+    width: min(720px, calc(100% - 24px));
+  }
+}
