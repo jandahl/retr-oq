@@ -253,10 +253,17 @@
       const s = state.get(win);
       if (!s.taskbarButton) taskbarButtonFor(win);
       win.classList.remove("minimized");
-      // Only animate the "flying out of the taskbar" restore when it was
-      // actually minimized -- a window opened fresh (never minimized) has
-      // no taskbar button position to fly from yet.
-      if (wasMinimized) animateRestoreFromTaskbar(win, s.taskbarButton);
+      // Only animate the "flying out of the taskbar" restore for a window
+      // that's genuinely being restored (it was opened before, then
+      // minimized or closed) -- not this window's very first-ever open.
+      // Every window starts life with the .minimized class already on it
+      // (see this module's own "boot to a bare desktop" comment below), so
+      // without the hasOpenedBefore check every first click on a desktop
+      // icon would also run this animation, leaving the window's own
+      // controls mid-transform (and briefly at the wrong screen position)
+      // right when a caller expects it to already be fully interactive.
+      if (wasMinimized && s.hasOpenedBefore) animateRestoreFromTaskbar(win, s.taskbarButton);
+      s.hasOpenedBefore = true;
       focus(win);
       if (onOpen) onOpen(win);
     }
@@ -467,7 +474,7 @@
     }
 
     for (const win of windows) {
-      state.set(win, { preMaximizeRect: null, taskbarButton: null });
+      state.set(win, { preMaximizeRect: null, taskbarButton: null, hasOpenedBefore: false });
       // No taskbarButtonFor(win) here -- every window starts closed (see
       // the "start closed" block below), and a closed window has no
       // taskbar button at all, same as one closed via its own close

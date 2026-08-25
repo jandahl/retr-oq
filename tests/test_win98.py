@@ -308,11 +308,14 @@ def test_window_maximize_and_restore(page, base_url):
     win = page.query_selector("#win-about")
     before = win.bounding_box()
     page.click("#win-about .win-maximize")
-    page.wait_for_timeout(100)
+    # Maximize/restore now animates (win98's own profile: 120ms) rather than
+    # snapping instantly -- wait past that so the assertion checks the
+    # settled rect, not one still mid-transition.
+    page.wait_for_timeout(300)
     maxed = win.bounding_box()
     assert maxed["width"] > before["width"]
     page.click("#win-about .win-maximize")
-    page.wait_for_timeout(100)
+    page.wait_for_timeout(300)
     restored = win.bounding_box()
     assert abs(restored["width"] - before["width"]) < 2
     assert abs(restored["height"] - before["height"]) < 2
@@ -322,10 +325,13 @@ def test_window_minimize_and_restore_via_taskbar(page, base_url):
     goto_win98(page, base_url)
     open_via_dblclick(page, "win-about")
     page.click("#win-about .win-minimize")
-    page.wait_for_timeout(100)
+    # Minimize now animates toward the taskbar button (win98's own profile:
+    # 140ms) before actually hiding -- wait past that so the assertion
+    # checks the settled (display:none) state, not one still fading out.
+    page.wait_for_timeout(300)
     assert page.evaluate("getComputedStyle(document.getElementById('win-about')).display") == "none"
     page.click(".taskbar-window-button:has-text('About retr-oq')")
-    page.wait_for_timeout(100)
+    page.wait_for_timeout(300)
     assert page.evaluate("getComputedStyle(document.getElementById('win-about')).display") != "none"
 
 
