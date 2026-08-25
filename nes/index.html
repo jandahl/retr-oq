@@ -7,7 +7,7 @@
 <!-- ?v= cache-busting, same convention as dos/index.html and c64/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
 <link rel="stylesheet" href="../vendor/nes/nes.min.css" />
-<link rel="stylesheet" href="style.css?v=5" />
+<link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body class="is-dark">
   <!-- NES was a game console, not a window manager: no overlapping windows,
@@ -19,6 +19,11 @@
        arrows/Enter/Esc are the other path. -->
   <div class="nes-shell" id="nes-shell">
     <div class="nes-tv" id="nes-tv">
+      <div class="nes-screen nes-boot" id="boot-screen" hidden>
+        <div class="boot-flash" aria-hidden="true"></div>
+        <p class="boot-kicker">retr-oq</p>
+        <p class="boot-pak">THIS GAME PAK IS LICENSED<br />FOR HOME USE ON THE<br />OQ ENTERTAINMENT SYSTEM</p>
+      </div>
       <div class="nes-screen" id="title-screen">
         <p class="title-copy">retr-oq</p>
         <h1 class="title-logo">OQ!</h1>
@@ -37,7 +42,7 @@
             <li><button type="button" class="menu-item" data-screen="quit" id="menu-quit"><span class="menu-cursor" aria-hidden="true">></span> QUIT</button></li>
           </ul>
         </section>
-        <p class="hint">A=CHOOSE  B=TITLE</p>
+        <p class="hint">SELECT=CYCLE  START=CHOOSE  B=TITLE</p>
       </div>
 
       <div class="nes-screen nes-screen-app" id="oq-screen" hidden>
@@ -132,7 +137,7 @@
 <!-- Real ES module, not a classic script -- see shared/oq-analysis.js's
      own header comment for why this one file is the exception. -->
 <script type="module" src="../shared/oq-analysis.js?v=11"></script>
-<script src="../shared/decon-app.js?v=6"></script>
-<script src="app.js?v=6"></script>
+<script src="../shared/decon-app.js?v=4"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
