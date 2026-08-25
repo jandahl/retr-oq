@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>retr-oq — Game Boy prototype</title>
+<!-- ?v= cache-busting, same convention as nes/index.html -- bump when
+     style.css or app.js actually changes. -->
+<link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body>
+  <!-- Original Game Boy (DMG-01), not a window manager and not the NES
+       living-room TV. The brick IS the computer: LCD up top, D-pad / A / B
+       / Select / Start molded into the body below. No drop-in CSS framework
+       exists for this (the GitHub "gameboy.css" hits are CSS-art of the
+       whole brick, not a component library), so the chrome is hand-drawn
+       the same way c64/ is -- a 4-shade olive LCD and grey plastic, not a
+       vendored kit. Screens swap via hidden, like nes/. -->
+  <div class="gb-shell" id="gb-shell">
+    <div class="gb-body">
+      <div class="gb-screen-well">
+        <div class="gb-battery">
+          <span class="gb-led" aria-hidden="true"></span>
+          <span class="gb-battery-label">BATTERY</span>
+        </div>
+        <div class="gb-lcd" id="gb-lcd">
+          <div class="gb-screen" id="title-screen">
+            <p class="title-copy">retr-oq</p>
+            <h1 class="title-logo">OQ!</h1>
+            <p class="title-sub">KALAALLISUT<br />DICTIONARY</p>
+            <p class="press-start" id="press-start">PRESS START</p>
+            <p class="title-copy title-copy-bottom">© 1989 OQAASILERIFFIK</p>
+          </div>
+
+          <div class="gb-screen" id="menu-screen" hidden>
+            <p class="screen-heading">SELECT</p>
+            <ul class="menu-list" id="menu-list">
+              <li><button type="button" class="menu-item is-selected" data-screen="oq" id="menu-oq"><span class="menu-cursor" aria-hidden="true">></span> OQ!</button></li>
+              <li><button type="button" class="menu-item" data-screen="decon" id="menu-decon"><span class="menu-cursor" aria-hidden="true">></span> DECON</button></li>
+              <li><button type="button" class="menu-item" data-screen="about" id="menu-about"><span class="menu-cursor" aria-hidden="true">></span> ABOUT</button></li>
+              <li><button type="button" class="menu-item" data-screen="quit" id="menu-quit"><span class="menu-cursor" aria-hidden="true">></span> QUIT</button></li>
+            </ul>
+            <p class="hint">A=CHOOSE  B=TITLE</p>
+          </div>
+
+          <div class="gb-screen gb-screen-app" id="oq-screen" hidden>
+            <p class="screen-heading">OQ!</p>
+            <label class="gb-field" for="oq-filter">SEARCH</label>
+            <input type="text" id="oq-filter" class="gb-input" placeholder="TYPE A WORD..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+            <p class="oq-status" id="oq-status"></p>
+            <div class="oq-results" id="oq-results" role="listbox" aria-label="Dictionary results"></div>
+            <p class="oq-attribution">
+              <a id="oq-attribution" href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer"></a>
+            </p>
+            <p class="hint">D-PAD=MOVE  B=MENU</p>
+          </div>
+
+          <div class="gb-screen gb-screen-app" id="decon-screen" hidden>
+            <p class="screen-heading">DECON</p>
+            <label class="gb-field" for="decon-word">WORD</label>
+            <input type="text" id="decon-word" class="gb-input" placeholder="TYPE, THEN A..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+            <label class="decon-order">
+              <input type="checkbox" id="decon-root-first" checked />
+              <span>ROOT FIRST</span>
+            </label>
+            <p class="oq-status" id="decon-status"></p>
+            <div class="decon-results" id="decon-results"></div>
+            <p class="hint">A=ANALYZE  B=MENU</p>
+          </div>
+
+          <div class="gb-screen" id="about-screen" hidden>
+            <p class="screen-heading">ABOUT</p>
+            <p class="about-copy">
+              OQ! is a Kalaallisut dictionary in a DMG cartridge.
+              DECON splits a word into its morphemes.
+            </p>
+            <p class="hint">A retr-oq theme.<br />B=MENU</p>
+          </div>
+
+          <div class="gb-screen" id="gameover-screen" hidden>
+            <p class="gameover-title">GAME OVER</p>
+            <p class="screen-heading">CONTINUE?</p>
+            <ul class="menu-list" id="gameover-list">
+              <li><button type="button" class="menu-item is-selected" data-continue="yes" id="continue-yes"><span class="menu-cursor" aria-hidden="true">></span> CONTINUE</button></li>
+              <li><button type="button" class="menu-item" data-continue="no" id="continue-no"><span class="menu-cursor" aria-hidden="true">></span> GIVE UP</button></li>
+            </ul>
+            <p class="title-copy">30 LIVES REMAINING</p>
+          </div>
+
+          <div class="gb-pixels" aria-hidden="true"></div>
+        </div>
+        <p class="gb-dotmatrix">DOT MATRIX WITH STEREO SOUND</p>
+      </div>
+
+      <p class="gb-logo">GAME BOY</p>
+
+      <div class="gb-controls" id="gb-controller">
+        <div class="pad-row">
+        <div class="pad-dpad" role="group" aria-label="D-pad">
+          <span class="pad-plus-v" aria-hidden="true"></span>
+          <span class="pad-plus-h" aria-hidden="true"></span>
+          <span class="pad-plus-nub" aria-hidden="true"></span>
+          <button type="button" class="pad-btn pad-up" data-input="up" aria-label="Up"></button>
+          <button type="button" class="pad-btn pad-left" data-input="left" aria-label="Left"></button>
+          <button type="button" class="pad-btn pad-right" data-input="right" aria-label="Right"></button>
+          <button type="button" class="pad-btn pad-down" data-input="down" aria-label="Down"></button>
+        </div>
+        <div class="pad-face" role="group" aria-label="Action buttons">
+          <button type="button" class="pad-round pad-b" data-input="b" aria-label="B"><span>B</span></button>
+          <button type="button" class="pad-round pad-a" data-input="a" aria-label="A"><span>A</span></button>
+        </div>
+        </div>
+        <div class="gb-pills">
+          <button type="button" class="pad-pill" data-input="select" aria-label="Select">SELECT</button>
+          <button type="button" class="pad-pill" data-input="start" aria-label="Start">START</button>
+        </div>
+      </div>
+      <div class="gb-speaker" aria-hidden="true"></div>
+    </div>
+  </div>
+
+<script src="../shared/dict-source.js?v=1"></script>
+<script src="../shared/hyphenation.js?v=1"></script>
+<script src="../shared/router.js?v=1"></script>
+<script type="module" src="../shared/oq-analysis.js?v=11"></script>
+<script src="../shared/decon-app.js?v=4"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>

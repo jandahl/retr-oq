@@ -154,6 +154,20 @@ real ES module if there's a reason to (e.g. actually consuming
 - **Cache-bust `nes/index.html`'s `?v=N`** for style.css/app.js on every
   change, same convention as every other theme.
 
+## `gb/` theme specifics
+
+Same console-not-desktop rules as `nes/` (one LCD at a time, one
+`handleInput()` path, router owns the screen, Konami is title-only,
+16px input floor, `html.is-keyboard` hides `#gb-controller`). Differences:
+
+- **No vendored framework.** Hand-drawn DMG chrome, like `c64/`. Don't
+  pull in a CSS-art Game Boy page as if it were NES.css.
+- **The pad is on the brick**, not a second slab under a TV. Don't
+  break it out into a separate controller strip.
+- **Font reuse.** `@font-face` points at `vendor/nes/fonts/PressStart2P-Regular.ttf`
+  rather than duplicating the TTF.
+- **Cache-bust `gb/index.html`'s `?v=N`.**
+
 ## Git workflow gotcha: stranded commits
 
 This repo's branch convention is "always restart the working branch from
@@ -174,10 +188,11 @@ landed in `master` once both show "merged".
 
 ## Testing
 
-`win98/` and `nes/` each have a Playwright/pytest suite under `tests/`
-(`tests/test_win98.py`, `tests/test_nes.py`, shared fixtures in
+`win98/`, `nes/`, and `gb/` each have a Playwright/pytest suite under `tests/`
+(`tests/test_win98.py`, `tests/test_nes.py`, `tests/test_gb.py`, shared fixtures in
 `tests/conftest.py`), wired into GitHub Actions
-(`.github/workflows/win98-tests.yml` / `.github/workflows/nes-tests.yml`)
+(`.github/workflows/win98-tests.yml` / `.github/workflows/nes-tests.yml` /
+`.github/workflows/gb-tests.yml`)
 on every push/PR that touches that theme. This is a deliberate,
 narrow reversal of an earlier version of this section, which said no test
 framework/CI was wired up at all, "deliberately decoupled from oq's CI"
