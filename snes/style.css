@@ -1,13 +1,13 @@
-/* retr-oq snes theme. Super NES (NA, 1991), hand-drawn -- there is no
-   drop-in CSS component library for this the way NES.css exists for nes/.
-   Two-tone purple/gray living-room chrome, four-color face buttons, L/R
-   shoulders. Press Start 2P is already vendored at vendor/nes/fonts/
-   (SIL OFL) for the NES theme; this file @font-face's the same TTF rather
-   than duplicating 118KB. Same "no real build step" constraint as every
-   other theme.
+/* retr-oq snes theme. PAL Super Nintendo (SNSP, 1992 look / 1991 hardware),
+   hand-drawn -- there is no drop-in CSS kit for this the way NES.css
+   exists for nes/. Gray dogbone, rainbow Y/X/B/A, not the NA purple
+   toaster. Press Start 2P is vendored at vendor/nes/fonts/ (SIL OFL);
+   "Super" on the title card is TeX Gyre Heros bold italic from
+   vendor/next/fonts/ (GFL) -- everything on this deck was Super, and
+   Super was never the pixel face. Same "no real build step" bar.
 
-   This is not a window manager. A real Super NES had one full screen at a
-   time and a physical controller. Screens swap via `hidden`, like nes/. */
+   This is not a window manager. A real Super Nintendo had one full
+   screen at a time and a physical controller. Screens swap via `hidden`. */
 
 @font-face {
   font-family: "Press Start 2P";
@@ -17,19 +17,26 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "TeXGyreHeros";
+  src: url("../vendor/next/fonts/texgyreheros-bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --snes-black: #0b0814;
-  --snes-navy: #1a1430;
-  --snes-purple: #5a4a9a;
-  --snes-lilac: #c4b4e8;
-  --snes-white: #f4f0ff;
-  --snes-gold: #ffd454;
-  --snes-pad: #4a4a52;
-  --snes-pad-light: #6a6a72;
-  --snes-a: #7a3a9a;
-  --snes-b: #6a2a8a;
-  --snes-x: #b8a0d8;
-  --snes-y: #a090c8;
+  --snes-black: #101014;
+  --snes-navy: #1c2430;
+  --snes-mist: #c8d0d8;
+  --snes-white: #f4f4f0;
+  --snes-gold: #f0c830;
+  --snes-pad: #c4c8cc;
+  --snes-pad-dark: #6a6e72;
+  --snes-a: #d03030;
+  --snes-b: #e8c030;
+  --snes-x: #3060d8;
+  --snes-y: #38a040;
   --snes-font-size: clamp(8px, 2.2vw, 12px);
 }
 
@@ -61,7 +68,7 @@ button:not(:disabled),
   height: var(--app-height, 100dvh);
   display: flex;
   flex-direction: column;
-  background: #120e1c;
+  background: #16181c;
 }
 
 .snes-tv {
@@ -69,12 +76,12 @@ button:not(:disabled),
   min-height: 0;
   position: relative;
   margin: 8px 8px 0;
-  background: #05040a;
-  border: 10px solid #3a3a48;
+  background: #05060a;
+  border: 10px solid #6a6e74;
   box-shadow:
-    inset 0 0 0 3px #1a1028,
-    0 4px 0 #1c1c24,
-    0 0 40px rgba(90, 74, 154, 0.22);
+    inset 0 0 0 3px #1a1c20,
+    0 4px 0 #2a2c30,
+    0 0 40px rgba(48, 96, 216, 0.12);
   overflow: hidden;
 }
 
@@ -97,7 +104,7 @@ button:not(:disabled),
   position: absolute;
   inset: 0;
   z-index: 7;
-  background: radial-gradient(ellipse at 50% 40%, rgba(90, 74, 154, 0.16), transparent 62%);
+  background: radial-gradient(ellipse at 50% 40%, rgba(48, 160, 220, 0.12), transparent 62%);
 }
 
 .snes-screen {
@@ -124,13 +131,31 @@ button:not(:disabled),
 }
 
 .title-logo {
-  margin: 0.35em 0 0.45em;
+  margin: 0.2em 0 0.45em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.12em;
   font-size: 3.2em;
+  line-height: 1;
+}
+.title-super {
+  font-family: "TeXGyreHeros", "Arial Black", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+  font-size: 0.42em;
+  letter-spacing: 0.16em;
+  color: #f2f0ea;
+  text-shadow:
+    3px 3px 0 #c4281c,
+    6px 6px 0 #181410;
+}
+.title-oq {
   letter-spacing: 0.08em;
   color: var(--snes-white);
   text-shadow:
-    4px 4px 0 #3a2068,
-    0 0 18px rgba(196, 180, 232, 0.55);
+    4px 4px 0 #181410,
+    0 0 18px rgba(240, 200, 48, 0.45);
   transform: perspective(280px) rotateX(26deg) scaleY(1.12);
   transform-origin: center 70%;
 }
@@ -141,7 +166,7 @@ button:not(:disabled),
 }
 .title-copy {
   margin: 0;
-  color: var(--snes-lilac);
+  color: var(--snes-mist);
   font-size: 0.85em;
 }
 .title-copy-bottom {
@@ -159,7 +184,7 @@ button:not(:disabled),
 @media (prefers-reduced-motion: reduce) {
   .press-start { animation: none; }
   .snes-scanlines, .snes-glow { display: none; }
-  .title-logo { transform: none; }
+  .title-oq { transform: none; }
 }
 
 .menu-box,
@@ -170,9 +195,9 @@ button:not(:disabled),
   max-height: 100%;
   box-sizing: border-box;
   margin-top: 0.4em;
-  border: 3px solid var(--snes-lilac);
+  border: 3px solid var(--snes-mist);
   background: var(--snes-navy);
-  box-shadow: 4px 4px 0 #2a1848;
+  box-shadow: 4px 4px 0 #0c1018;
   padding: 0.9em 0.8em 0.8em;
 }
 .oq-box,
@@ -226,7 +251,7 @@ button:not(:disabled),
 
 .hint {
   margin: 0.8em 0 0;
-  color: var(--snes-lilac);
+  color: var(--snes-mist);
   font-size: 0.8em;
 }
 
@@ -248,8 +273,8 @@ button:not(:disabled),
   font-size: 16px;
   line-height: 1.4;
   color: var(--snes-white);
-  background: #100c20;
-  border: 2px solid var(--snes-lilac);
+  background: #0c1018;
+  border: 2px solid var(--snes-mist);
   padding: 0.35em 0.4em;
   border-radius: 0;
   outline: none;
@@ -267,7 +292,7 @@ html.is-keyboard .snes-tv {
 
 .oq-status {
   margin: 0 0 0.5em;
-  color: var(--snes-lilac);
+  color: var(--snes-mist);
   min-height: 1.6em;
 }
 
@@ -316,7 +341,7 @@ html.is-keyboard .snes-tv {
 .oq-attribution {
   flex: none;
   margin: 0.7em 0 0;
-  color: var(--snes-lilac);
+  color: var(--snes-mist);
   font-size: 0.7em;
   line-height: 1.7;
   overflow-wrap: anywhere;
@@ -335,7 +360,7 @@ html.is-keyboard .snes-tv {
 .decon-card {
   margin-bottom: 0.8em;
   padding: 0.5em 0.4em;
-  border: 2px solid #3a3060;
+  border: 2px solid #343c48;
   text-align: left;
 }
 .decon-tag {
@@ -355,7 +380,7 @@ html.is-keyboard .snes-tv {
 .decon-breakdown {
   margin: 0.4em 0 0;
   overflow-wrap: anywhere;
-  color: var(--snes-lilac);
+  color: var(--snes-mist);
 }
 .decon-truncated {
   color: #e76e55;
@@ -374,7 +399,7 @@ html.is-keyboard .snes-tv {
 }
 .about-credit {
   margin: 0;
-  color: var(--snes-lilac);
+  color: var(--snes-mist);
   line-height: 1.8;
 }
 
@@ -390,11 +415,11 @@ html.is-keyboard .snes-tv {
   display: flex;
   flex-direction: column;
   margin: 8px;
-  padding: 6px 10px 10px;
-  background: linear-gradient(#5a5a64, var(--snes-pad) 40%, #3a3a44);
-  border: 4px solid #2e2e36;
-  border-radius: 18px 18px 28px 28px;
-  box-shadow: 0 4px 0 #1a1a20, inset 0 2px 0 #7a7a84;
+  padding: 8px 14px 12px;
+  background: linear-gradient(#e0e4e8, var(--snes-pad) 42%, #9aa0a6);
+  border: 3px solid #5a5e62;
+  border-radius: 44px;
+  box-shadow: 0 4px 0 #2a2c30, inset 0 2px 0 #f4f6f8;
   min-height: 0;
   box-sizing: border-box;
   -webkit-user-select: none;
@@ -405,21 +430,21 @@ html.is-keyboard .snes-tv {
 .pad-shoulders {
   display: flex;
   justify-content: space-between;
-  margin: 0 4px 6px;
+  margin: 0 10px 6px;
 }
 .pad-shoulder {
   -webkit-appearance: none;
   appearance: none;
-  width: 72px;
-  height: 18px;
+  width: 78px;
+  height: 16px;
   border: 0;
-  border-radius: 8px 8px 4px 4px;
-  background: #3a3a44;
-  color: #c8c8d0;
+  border-radius: 10px 10px 4px 4px;
+  background: #8a9096;
+  color: #2a2c30;
   font-family: inherit;
   font-size: 0.55em;
   letter-spacing: 0.08em;
-  box-shadow: 0 2px 0 #1a1a20;
+  box-shadow: 0 2px 0 #4a4e52;
 }
 .pad-shoulder:active {
   transform: translateY(1px);
@@ -439,14 +464,14 @@ html.is-keyboard .snes-tv {
   height: 110px;
   flex: none;
   border-radius: 50%;
-  background: #3e3e46;
-  box-shadow: inset 0 3px 0 #2a2a32, inset 0 -2px 0 #6a6a72;
+  background: #b0b4b8;
+  box-shadow: inset 0 3px 0 #8a8e92, inset 0 -2px 0 #d8dce0;
 }
 .pad-plus-v,
 .pad-plus-h {
   position: absolute;
-  background: #1c1c22;
-  box-shadow: inset 2px 2px 0 #3a3a44, inset -2px -2px 0 #0a0a0e;
+  background: #2a2c30;
+  box-shadow: inset 2px 2px 0 #4a4e52, inset -2px -2px 0 #101214;
   pointer-events: none;
   z-index: 1;
   border-radius: 4px;
@@ -471,7 +496,7 @@ html.is-keyboard .snes-tv {
   height: 12px;
   margin: -6px 0 0 -6px;
   border-radius: 50%;
-  background: #121216;
+  background: #181a1c;
   box-shadow: inset 0 2px 0 #000;
   pointer-events: none;
   z-index: 2;
@@ -516,8 +541,8 @@ html.is-keyboard .snes-tv {
 .pad-pill {
   -webkit-appearance: none;
   appearance: none;
-  background: #2a2a32;
-  color: #8a8a94;
+  background: #6a6e72;
+  color: #e8ecee;
   border: 0;
   border-radius: 999px;
   font-family: inherit;
@@ -526,7 +551,7 @@ html.is-keyboard .snes-tv {
   padding: 0.55em 0.9em;
   min-height: 26px;
   min-width: 62px;
-  box-shadow: 0 2px 0 #121216;
+  box-shadow: 0 2px 0 #3a3e42;
 }
 .pad-pill:active {
   transform: translateY(1px);
@@ -535,9 +560,12 @@ html.is-keyboard .snes-tv {
 
 .pad-face {
   position: relative;
-  width: 118px;
+  width: 124px;
   height: 118px;
   flex: none;
+  background: #3a3c40;
+  border-radius: 50%;
+  box-shadow: inset 0 3px 0 #2a2c30, 0 1px 0 #d0d4d8;
 }
 .pad-round {
   -webkit-appearance: none;
@@ -549,37 +577,38 @@ html.is-keyboard .snes-tv {
   border: 0;
   font-family: inherit;
   font-size: 0.65em;
-  color: #2a1438;
+  color: #0c0c10;
 }
 .pad-round:active {
   transform: translateY(2px);
-  box-shadow: 0 1px 0 #2a1438;
 }
 .pad-y {
-  left: 8px;
+  left: 10px;
   top: 38px;
   background: var(--snes-y);
-  box-shadow: 0 3px 0 #6a5a88;
+  color: #e8ffe8;
+  box-shadow: 0 3px 0 #1c6020;
 }
 .pad-x {
-  left: 38px;
+  left: 40px;
   top: 8px;
   background: var(--snes-x);
-  box-shadow: 0 3px 0 #7868a0;
+  color: #e8f0ff;
+  box-shadow: 0 3px 0 #183878;
 }
 .pad-b {
-  left: 38px;
+  left: 40px;
   top: 68px;
   background: var(--snes-b);
-  color: #f0e4ff;
-  box-shadow: 0 3px 0 #3a1848;
+  color: #3a2800;
+  box-shadow: 0 3px 0 #887010;
 }
 .pad-a {
-  left: 68px;
+  left: 70px;
   top: 38px;
   background: var(--snes-a);
-  color: #f0e4ff;
-  box-shadow: 0 3px 0 #4a2060;
+  color: #fff0f0;
+  box-shadow: 0 3px 0 #701818;
 }
 
 @media (min-width: 700px) {
@@ -597,7 +626,7 @@ html.is-keyboard .snes-tv {
 
 .snes-boot {
   padding: 1.2em;
-  background: #05040a;
+  background: #05060a;
 }
 .boot-flash {
   position: absolute;
@@ -615,7 +644,7 @@ html.is-keyboard .snes-tv {
 .boot-kicker {
   margin: 0 0 1.2em;
   letter-spacing: 0.28em;
-  color: var(--snes-lilac);
+  color: var(--snes-mist);
   animation: snes-boot-fade 0.35s 0.45s both;
 }
 .boot-pak {
@@ -639,3 +668,87 @@ html.is-keyboard .snes-tv {
   .boot-flash { display: none; }
   .boot-kicker, .boot-pak, .boot-bits { animation: none; }
 }
+
+/* NA toaster. Trigger is undocumented -- html.is-ntsc only. */
+html.is-ntsc {
+  --snes-black: #0b0814;
+  --snes-navy: #1a1430;
+  --snes-mist: #c4b4e8;
+  --snes-white: #f4f0ff;
+  --snes-gold: #ffd454;
+  --snes-pad: #4a4a52;
+  --snes-a: #7a3a9a;
+  --snes-b: #6a2a8a;
+  --snes-x: #b8a0d8;
+  --snes-y: #a090c8;
+}
+html.is-ntsc .snes-shell {
+  background: #120e1c;
+}
+html.is-ntsc .snes-tv {
+  border-color: #3a3a48;
+  box-shadow:
+    inset 0 0 0 3px #1a1028,
+    0 4px 0 #1c1c24,
+    0 0 40px rgba(90, 74, 154, 0.22);
+}
+html.is-ntsc .snes-tv::after {
+  content: "NTSC";
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  z-index: 9;
+  pointer-events: none;
+  font-size: 0.55em;
+  letter-spacing: 0.18em;
+  color: #c4b4e8;
+}
+html.is-ntsc .snes-glow {
+  background: radial-gradient(ellipse at 50% 40%, rgba(90, 74, 154, 0.16), transparent 62%);
+}
+html.is-ntsc .snes-controller {
+  background: linear-gradient(#5a5a64, var(--snes-pad) 40%, #3a3a44);
+  border: 4px solid #2e2e36;
+  border-radius: 18px 18px 28px 28px;
+  box-shadow: 0 4px 0 #1a1a20, inset 0 2px 0 #7a7a84;
+}
+html.is-ntsc .pad-shoulder {
+  background: #3a3a44;
+  color: #c8c8d0;
+  box-shadow: 0 2px 0 #1a1a20;
+}
+html.is-ntsc .pad-dpad {
+  background: #3e3e46;
+  box-shadow: inset 0 3px 0 #2a2a32, inset 0 -2px 0 #6a6a72;
+}
+html.is-ntsc .pad-plus-v,
+html.is-ntsc .pad-plus-h {
+  background: #1c1c22;
+  box-shadow: inset 2px 2px 0 #3a3a44, inset -2px -2px 0 #0a0a0e;
+}
+html.is-ntsc .pad-pill {
+  background: #2a2a32;
+  color: #8a8a94;
+  box-shadow: 0 2px 0 #121216;
+}
+html.is-ntsc .pad-face {
+  background: transparent;
+  box-shadow: none;
+}
+html.is-ntsc .pad-y {
+  color: #2a1438;
+  box-shadow: 0 3px 0 #6a5a88;
+}
+html.is-ntsc .pad-x {
+  color: #2a1438;
+  box-shadow: 0 3px 0 #7868a0;
+}
+html.is-ntsc .pad-b {
+  color: #f0e4ff;
+  box-shadow: 0 3px 0 #3a1848;
+}
+html.is-ntsc .pad-a {
+  color: #f0e4ff;
+  box-shadow: 0 3px 0 #4a2060;
+}
+

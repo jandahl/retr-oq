@@ -22,7 +22,7 @@ Each theme hosts OQ! / DECON via `shared/` (`?screen=oq&filter=`).
 | 1988 | [`amiga/`](amiga/) | Workbench 1.3. Four-pen chrome, OCS art, TopazPlus |
 | 1989 | [`gb/`](gb/) | DMG-01 brick. Hand-drawn; Press Start 2P from `vendor/nes/` |
 | 1990 | [`gg/`](gg/) | Game Gear. Pocket Master System: 160×144, 32/4096. Landscape; 1/2, no Select |
-| 1991 | [`snes/`](snes/) | Super NES living-room. Hand-drawn; four-color pad, Web Audio |
+| 1991 | [`snes/`](snes/) | Super Nintendo (PAL). Gray dogbone, rainbow YXBA, Super OQ! wordmark |
 | 1992 | [`win31/`](win31/) | Program Manager. Redmond WM; no Start, no X |
 | 1995 | [`next/`](next/) | NeXTSTEP 3.3 Workspace. Four grays, dock, TeX Gyre Heros |
 | 1998 | [`mac8/`](mac8/) | Mac OS 8.1 Platinum. [`classic.css`](https://github.com/npjg/classic.css) |

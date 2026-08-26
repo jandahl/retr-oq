@@ -76,15 +76,17 @@ plus undocumented `DOOM`. `BUILD`/`DECON` in `DIR` are placeholders.
 
 **`nes/` / `gb/` / `snes/` / `gg/`** — Console, not a desktop: no floating windows.
 Keyboard and on-screen pad both call `handleInput()`. 16px inputs;
-`html.is-keyboard` hides the pad. NES/SNES audio is Web Audio pulse/triangle/
-noise — no samples, no Nintendo tunes; don't `setMusic(null)` just
-because the screen isn't the title. GB and Game Gear reuse Press Start 2P from
+`html.is-keyboard` hides the pad. NES audio is Web Audio pulse/triangle/
+noise — no samples, no Nintendo tunes. SNES is sampled + echo, still
+original. Don't `setMusic(null)` just because the screen isn't the title. GB and Game Gear reuse Press Start 2P from
 `vendor/nes/fonts/`; GB's pad stays on the brick. Game Gear is a pocket
 Master System, not a color DMG: landscape slab, D-pad left of the LCD,
 1/2 right, Start under the glass, no Select (Tab still cycles). VDP chrome
 is navy/cyan/magenta/gold (32 from 4096) on 160×144 cells — washed teal as
-an LCD filter, not the UI. SNES is hand-drawn (no NES.css): four
-face buttons, L/R shoulders. X=A, Y=B, L=Select, R=Start.
+an LCD filter, not the UI. SNES is PAL Super Nintendo (no NES.css): gray
+dogbone, rainbow Y/X/B/A, not the NA purple toaster. Title wordmark is
+Super (TeX Gyre Heros italic) + OQ! (Press Start 2P). Audio is sampled +
+echo at a high clip, not NES pulse. X=A, Y=B, L=Select, R=Start.
 
 **`amiga/`** — Chrome is four Kickstart 1.3 pens (`#0055AA` white black
 `#FF8800`). Art (backdrop, icons, About, copper, Boing) is 12-bit OCS.

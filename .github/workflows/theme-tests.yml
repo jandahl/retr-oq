@@ -61,6 +61,7 @@ jobs:
             snes:
               - "snes/**"
               - "vendor/nes/fonts/**"
+              - "vendor/next/fonts/**"
               - "tests/test_snes.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"

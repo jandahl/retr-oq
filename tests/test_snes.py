@@ -2,9 +2,9 @@
 
 A console theme, not a window manager -- these tests cover the title
 screen, file-select menu, D-pad/A/B routing, shareable ?screen= URLs,
-and the undocumented Konami code. Super NES chrome; same verbs as nes/.
-Dictionary content itself is upstream data; we only assert the chrome
-around it actually opens.
+and the undocumented Konami code. PAL Super Nintendo chrome; same verbs
+as nes/. Dictionary content itself is upstream data; we only assert the
+chrome around it actually opens.
 """
 
 
@@ -36,7 +36,8 @@ def test_loads_without_errors(page, base_url):
     errors, console_errors, unexpected_404s = goto_snes(page, base_url)
     assert_clean(errors, console_errors, unexpected_404s)
     assert page.locator("#title-screen").is_visible()
-    assert page.locator(".title-logo").inner_text() == "OQ!"
+    assert "Super" in page.locator(".title-logo").inner_text()
+    assert "OQ!" in page.locator(".title-logo").inner_text()
     assert page.locator("#menu-screen").is_hidden()
 
 
