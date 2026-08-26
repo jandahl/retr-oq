@@ -220,11 +220,25 @@ looks like today.
   every other theme. Quit returns to the theme picker. Workbench >
   Execute Command… is this theme's undocumented `DOOM` / Hot Dog Stand:
   a Guru Meditation.
+- **`next/`** — a NeXTSTEP 3.3 Workspace Manager desktop. Chrome is the
+  four MegaPixel grays (black, `#555555`, `#AAAAAA`, white) and only
+  those: a black key-window title bar, miniaturize on the left, close on
+  the right, a full-width resize bar along the bottom, a vertical main
+  menu (not a Mac bar), and an application dock down the right edge. No
+  drop-in CSS framework is vendored, so the chrome is hand-drawn the
+  same way `amiga/` and `c64/` are. Icons are 16-bit-era 3D renders
+  (Display PostScript was anti-aliased — they stay smooth, not
+  pixel-crushed). TeX Gyre Heros (a Helvetica clone, GUST Font License)
+  is vendored at `vendor/next/fonts/`. Miniaturize leaves a miniwindow
+  on the desktop; Hide miniaturizes every open window. OQ!/DECON reuse
+  the same router/dict/decon stack. Quit returns to the theme picker.
+  Console command `panic` (or a triple-click on the dock cube) is this
+  theme's undocumented `DOOM` / Hot Dog Stand: a kernel panic.
 
 ## Prospective themes
 
 Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`),
-**Commodore 64** (`c64/`), **Amiga** (`amiga/`), **NES** (`nes/`), **Game Boy** (`gb/`), **Windows 98** (`win98/`),
+**Commodore 64** (`c64/`), **Amiga** (`amiga/`), **NeXT** (`next/`), **NES** (`nes/`), **Game Boy** (`gb/`), **Windows 98** (`win98/`),
 **Windows XP** (`xp/`), **Windows 7** (`win7/`), and **Mac OS 8.1**
 (`mac8/`), all above.
 `c64/` is a deliberate exception to
@@ -324,6 +338,9 @@ license from the framework, kept next to the TTF on purpose).
 `vendor/amiga/LICENSE` is the GPL-FE notice for TopazPlus a500
 (`rewtnull/amigafonts`) — only that one face is vendored, not the rest
 of the TrueSchool pack.
+`vendor/next/LICENSE` is the GUST Font License for TeX Gyre Heros
+(regular + bold), a Helvetica clone used here because real Helvetica
+can't be vendored.
 
 `shared/hyphenation.js` is the one file in this repo under a different
 license than the rest of its own code: MPL-2.0, not MIT. To be precise

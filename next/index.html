@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>retr-oq — NeXT Workspace 3.3 prototype</title>
+<link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <!-- NeXTSTEP 3.3 Workspace Manager prototype. Chrome is the four
+       MegaPixel grays (black / dark gray / light gray / white): a black
+       key-window title bar, miniaturize on the left, close on the right,
+       a full-width resize bar along the bottom, a vertical main menu,
+       a dock down the right edge. No drop-in CSS framework is vendored
+       (nothing with a real LICENSE is a 3.3 Workspace kit); chrome is
+       hand-drawn the same way amiga/ and c64/ are. Icons are 16-bit-era
+       3D renders — Display PostScript was anti-aliased, so they stay
+       smooth, not pixel-crushed. Font is TeX Gyre Heros (Helvetica
+       clone, GFL) at vendor/next/. Not Redmond, not Mac-lineage. -->
+
+  <nav class="nx-mainmenu" id="main-menu" aria-label="Workspace">
+    <div class="nx-titlebar" id="main-menu-titlebar">
+      <h1 class="nx-title">Workspace</h1>
+    </div>
+    <ul class="nx-menulist">
+      <li class="nx-menuitem has-sub" tabindex="0" aria-haspopup="true">
+        Info
+        <ul class="nx-submenu" role="menu">
+          <li role="menu-item" data-open="win-about"><a href="#">Info Panel...</a></li>
+          <li role="menu-item" data-open="win-console"><a href="#">Help...</a></li>
+          <li role="menu-item" class="divider" id="menu-legal"><a href="#">Legal...</a></li>
+        </ul>
+      </li>
+      <li class="nx-menuitem has-sub" tabindex="0" aria-haspopup="true">
+        File
+        <ul class="nx-submenu" role="menu">
+          <li role="menu-item" data-open="win-disk"><a href="#">Open...</a></li>
+          <li role="menu-item"><a href="#">New Folder</a></li>
+          <li role="menu-item" class="divider"><a href="#">Destroy</a></li>
+        </ul>
+      </li>
+      <li class="nx-menuitem has-sub" tabindex="0" aria-haspopup="true">
+        Windows
+        <ul class="nx-submenu" role="menu">
+          <li role="menu-item" id="menu-arrange"><a href="#">Arrange in Front</a></li>
+          <li role="menu-item" id="menu-miniall"><a href="#">Miniaturize All</a></li>
+        </ul>
+      </li>
+      <li class="nx-menuitem has-sub" tabindex="0" aria-haspopup="true">
+        Tools
+        <ul class="nx-submenu" role="menu">
+          <li role="menu-item" data-open="win-console"><a href="#">Console</a></li>
+          <li role="menu-item" data-open="win-oq"><a href="#">OQ!</a></li>
+          <li role="menu-item" data-open="win-decon"><a href="#">DECON</a></li>
+        </ul>
+      </li>
+      <li class="nx-menuitem" id="menu-hide"><a href="#">Hide</a></li>
+      <li class="nx-menuitem" id="menu-quit"><a href="#">Quit</a></li>
+    </ul>
+  </nav>
+
+  <aside class="nx-dock" id="dock" aria-label="Application dock">
+    <button type="button" class="nx-dock-icon" data-open="win-about" title="Workspace">
+      <img src="art/icon-cube.png" alt="" width="64" height="64" />
+    </button>
+    <button type="button" class="nx-dock-icon" data-open="win-oq" title="OQ!">
+      <img src="art/icon-oq.png" alt="" width="64" height="64" />
+    </button>
+    <button type="button" class="nx-dock-icon" data-open="win-decon" title="DECON">
+      <img src="art/icon-decon.png" alt="" width="64" height="64" />
+    </button>
+    <div class="nx-dock-clock" id="dock-clock" aria-hidden="true">12:00</div>
+    <button type="button" class="nx-dock-icon nx-dock-recycle" data-open="win-recycle" title="Recycle">
+      <img src="art/icon-recycle.png" alt="" width="64" height="64" />
+    </button>
+  </aside>
+
+  <div class="nx-desktop" id="desktop">
+    <div class="desktop-icons">
+      <button type="button" class="desktop-icon" data-open="win-disk">
+        <img src="art/icon-disk.png" alt="" width="64" height="64" />
+        <span class="desktop-icon-label">me</span>
+      </button>
+    </div>
+
+    <section class="nx-window closed" id="win-oq" style="top: 24px; left: 196px; width: 28rem; height: 22rem;">
+      <div class="nx-titlebar" id="win-oq-titlebar">
+        <button type="button" class="nx-btn nx-mini" id="win-oq-mini" aria-label="Miniaturize"></button>
+        <h1 class="nx-title">OQ!</h1>
+        <button type="button" class="nx-btn nx-close" id="win-oq-close" aria-label="Close"></button>
+      </div>
+      <div class="nx-body oq-body">
+        <div class="nx-field">
+          <input type="text" id="oq-filter" placeholder="Search…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <p class="nx-status" id="oq-status">Loading dictionary...</p>
+        <div class="nx-panel">
+          <table class="oq-table" id="oq-table">
+            <thead>
+              <tr><th>Lexeme</th><th>English</th></tr>
+            </thead>
+            <tbody id="oq-tbody"></tbody>
+          </table>
+        </div>
+        <p class="nx-attribution" id="oq-attribution"></p>
+      </div>
+      <div class="nx-resize" id="win-oq-resize"><span class="nx-dimple"></span></div>
+    </section>
+
+    <section class="nx-window closed" id="win-decon" style="top: 48px; left: 220px; width: 28rem; height: 22rem;">
+      <div class="nx-titlebar" id="win-decon-titlebar">
+        <button type="button" class="nx-btn nx-mini" id="win-decon-mini" aria-label="Miniaturize"></button>
+        <h1 class="nx-title">DECON</h1>
+        <button type="button" class="nx-btn nx-close" id="win-decon-close" aria-label="Close"></button>
+      </div>
+      <div class="nx-body decon-body">
+        <div class="nx-field">
+          <input type="text" id="decon-word" placeholder="Type a Kalaallisut word…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <div class="nx-field nx-checkrow">
+          <input type="checkbox" id="decon-root-first" checked />
+          <label for="decon-root-first">Root first</label>
+        </div>
+        <p class="nx-status" id="decon-status">Type a word, press Enter.</p>
+        <div class="nx-panel decon-results-panel" id="decon-results"></div>
+      </div>
+      <div class="nx-resize" id="win-decon-resize"><span class="nx-dimple"></span></div>
+    </section>
+
+    <section class="nx-window closed" id="win-disk" style="top: 72px; left: 212px; width: 22rem; height: 14rem;">
+      <div class="nx-titlebar" id="win-disk-titlebar">
+        <button type="button" class="nx-btn nx-mini" id="win-disk-mini" aria-label="Miniaturize"></button>
+        <h1 class="nx-title">me</h1>
+        <button type="button" class="nx-btn nx-close" id="win-disk-close" aria-label="Close"></button>
+      </div>
+      <div class="nx-body">
+        <p>Nothing to browse yet — no real file system behind this window,
+          same scope decision as every other theme's own disk window.</p>
+      </div>
+      <div class="nx-resize" id="win-disk-resize"><span class="nx-dimple"></span></div>
+    </section>
+
+    <section class="nx-window closed" id="win-about" style="top: 40px; left: 208px; width: 26rem; height: 24rem;">
+      <div class="nx-titlebar" id="win-about-titlebar">
+        <button type="button" class="nx-btn nx-mini" id="win-about-mini" aria-label="Miniaturize"></button>
+        <h1 class="nx-title">Info</h1>
+        <button type="button" class="nx-btn nx-close" id="win-about-close" aria-label="Close"></button>
+      </div>
+      <div class="nx-body about-body">
+        <img class="about-art" src="art/about.jpg" alt="" width="400" height="300" />
+        <p class="about-kicker">NeXTSTEP Release 3.3</p>
+        <p>A prototype Workspace Manager — four-gray MegaPixel chrome
+          (black key title, vertical menus, a dock) around 3D rendered
+          icons, the way a color NeXTstation actually looked: Display
+          PostScript in the type, industrial cube on the desk.</p>
+        <p>Miniaturize leaves a miniwindow. The resize bar along the
+          bottom grows the window. Quit returns to the theme picker.</p>
+      </div>
+      <div class="nx-resize" id="win-about-resize"><span class="nx-dimple"></span></div>
+    </section>
+
+    <section class="nx-window closed" id="win-recycle" style="top: 96px; left: 240px; width: 20rem; height: 12rem;">
+      <div class="nx-titlebar" id="win-recycle-titlebar">
+        <button type="button" class="nx-btn nx-mini" id="win-recycle-mini" aria-label="Miniaturize"></button>
+        <h1 class="nx-title">Recycle</h1>
+        <button type="button" class="nx-btn nx-close" id="win-recycle-close" aria-label="Close"></button>
+      </div>
+      <div class="nx-body">
+        <p>The recycler is empty.</p>
+      </div>
+      <div class="nx-resize" id="win-recycle-resize"><span class="nx-dimple"></span></div>
+    </section>
+
+    <section class="nx-window closed" id="win-console" style="top: 64px; left: 204px; width: 28rem; height: 16rem;">
+      <div class="nx-titlebar" id="win-console-titlebar">
+        <button type="button" class="nx-btn nx-mini" id="win-console-mini" aria-label="Miniaturize"></button>
+        <h1 class="nx-title">Console</h1>
+        <button type="button" class="nx-btn nx-close" id="win-console-close" aria-label="Close"></button>
+      </div>
+      <div class="nx-body console-body">
+        <pre id="console-log" class="nx-console">Mach 3.0 (retr-oq)
+Copyright 1992 Workspace
+CPU: 68040    Memory: 64MB
+Root on sd0a
+Workspace Manager ready.
+</pre>
+        <div class="nx-field">
+          <input type="text" id="console-cmd" placeholder="me>" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+      </div>
+      <div class="nx-resize" id="win-console-resize"><span class="nx-dimple"></span></div>
+    </section>
+  </div>
+
+  <div class="nx-overlay" id="quit-overlay" hidden>
+    <section class="nx-window nx-panel-window">
+      <div class="nx-titlebar">
+        <h1 class="nx-title">Attention</h1>
+      </div>
+      <div class="nx-body nx-attention">
+        <p>Are you sure you want to quit Workspace?</p>
+        <div class="nx-actions">
+          <button type="button" class="nx-push" id="quit-cancel">Cancel</button>
+          <button type="button" class="nx-push nx-default" id="quit-ok">OK</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="nx-overlay" id="legal-overlay" hidden>
+    <section class="nx-window nx-panel-window">
+      <div class="nx-titlebar">
+        <h1 class="nx-title">Legal</h1>
+        <button type="button" class="nx-btn nx-close" id="legal-close" aria-label="Close"></button>
+      </div>
+      <div class="nx-body nx-attention">
+        <p>retr-oq NeXT prototype. Theme chrome is original. TeX Gyre
+          Heros is GUST Font License. Dictionary data is Oqaasileriffik,
+          CC-BY-SA 4.0.</p>
+        <div class="nx-actions">
+          <button type="button" class="nx-push nx-default" id="legal-ok">OK</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="nx-panic" id="panic" hidden>
+    <pre>panic (cpu 0): wekit
+Debugger(panic)
+Copyright 1990-1995 retr-oq
+
+Record the message, then press the left mouse button to continue.</pre>
+  </div>
+
+  <script src="../shared/dict-source.js"></script>
+  <script src="../shared/hyphenation.js"></script>
+  <script src="../shared/router.js"></script>
+  <script type="module" src="../shared/oq-analysis.js"></script>
+  <script src="../shared/decon-app.js"></script>
+  <script src="app.js?v=2"></script>
+</body>
+</html>
