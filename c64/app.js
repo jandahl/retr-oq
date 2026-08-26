@@ -204,9 +204,11 @@
       renderMorphHud();
       setTimeout(() => resumeIfStillOnMorph(() => {
         if (result.gameOver) {
+          morphWordEl.textContent = "";
           morphStatusEl.textContent = `GAME OVER -- SCORE ${morphGame.getState().score}. RUN/STOP=EXIT, THEN RUN TO RETRY.`;
           morphOptionsEl.textContent = "";
           morphOptionCount = 0;
+          morphTimerFill.style.width = "0%";
           return;
         }
         renderMorphStep(morphGame.retryStep());
@@ -336,16 +338,21 @@
   // below, same as the initial listing markup in index.html.
   function printDirListing() {
     printLine('0 "OQ DISK       " 09 2A');
-    for (const [name, label] of [["DICT", '1   "DICT"'], ["MORPH", '1   "MORPH"']]) {
-      const line = document.createElement("div");
+    for (const [name, label, padding] of [["DICT", '1   "DICT"', "            PRG"], ["MORPH", '1   "MORPH"', "           PRG"]]) {
+      // Inline, not a block-level <div> -- a <div> here forces its own line
+      // box regardless of the "\n" text node already inserted before it,
+      // which with two such lines back to back produced a spurious blank
+      // row between them. The initial listing markup in index.html already
+      // gets this right (a plain inline <button> in the same text flow);
+      // matched here instead of reinventing it.
+      c64Output.appendChild(document.createTextNode("\n"));
       const link = document.createElement("button");
       link.type = "button";
       link.className = "c64-link";
       link.dataset.load = name;
       link.textContent = label;
-      line.append(link, document.createTextNode(name === "DICT" ? "            PRG" : "           PRG"));
-      c64Output.appendChild(document.createTextNode("\n"));
-      c64Output.appendChild(line);
+      c64Output.appendChild(link);
+      c64Output.appendChild(document.createTextNode(padding));
     }
     printLine('1   "DICT DAT"             SEQ');
     printLine('1   "BUILD"                PRG');
