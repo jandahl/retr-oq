@@ -393,6 +393,120 @@ button:not(:disabled),
   overflow-wrap: anywhere;
 }
 
+/* MORPH! -- WarioWare-pace morpheme minigame. Simple graphics: a blocky
+   sprite face built from CSS boxes (no art asset), simple square-wave
+   stings (see app.js sfx()), simple two-state animation (shock/happy). */
+.morph-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 0 0.4em;
+  font-size: 0.8em;
+}
+.morph-lives {
+  color: var(--gb-darkest);
+  letter-spacing: 0.1em;
+}
+.morph-score {
+  color: var(--gb-dark);
+}
+.morph-sprite-well {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  padding: 0.3em 0;
+}
+.morph-sprite {
+  position: relative;
+  width: 2.6em;
+  height: 2.6em;
+  background: var(--gb-darkest);
+  border-radius: 4px;
+}
+.morph-eye {
+  position: absolute;
+  top: 0.7em;
+  width: 0.4em;
+  height: 0.4em;
+  background: var(--gb-lightest);
+}
+.morph-eye-l { left: 0.5em; }
+.morph-eye-r { right: 0.5em; }
+.morph-mouth {
+  position: absolute;
+  left: 0.6em;
+  right: 0.6em;
+  bottom: 0.55em;
+  height: 0.25em;
+  background: var(--gb-lightest);
+}
+.morph-mouth.is-happy {
+  height: 0.5em;
+  border-radius: 0 0 0.6em 0.6em;
+}
+.morph-mouth.is-shocked {
+  height: 0.35em;
+  border-radius: 50%;
+  width: 0.35em;
+  margin: 0 auto;
+}
+.morph-sprite.is-happy {
+  animation: morph-bounce 0.5s ease-in-out;
+}
+.morph-sprite.is-shocked {
+  background: var(--gb-dark);
+  animation: morph-shake 0.4s steps(2, jump-none) 2;
+}
+@keyframes morph-bounce {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-0.35em); }
+}
+@keyframes morph-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-0.25em); }
+  75% { transform: translateX(0.25em); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .morph-sprite.is-happy, .morph-sprite.is-shocked { animation: none; }
+}
+.morph-word {
+  margin: 0.3em 0;
+  text-align: center;
+  font-size: 1.1em;
+  color: var(--gb-darkest);
+  overflow-wrap: anywhere;
+}
+.morph-status {
+  margin: 0 0 0.4em;
+  min-height: 2.4em;
+  color: var(--gb-dark);
+  font-size: 0.7em;
+  line-height: 1.5;
+}
+.morph-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3em;
+}
+.morph-option {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  background: var(--gb-light);
+  border: 2px solid var(--gb-darkest);
+  color: var(--gb-darkest);
+  font: inherit;
+  font-size: 0.85em;
+  text-align: left;
+  padding: 0.4em 0.5em;
+  box-sizing: border-box;
+}
+.morph-option.is-selected {
+  background: var(--gb-darkest);
+  color: var(--gb-lightest);
+}
+
 .about-copy {
   margin: 0 0 1em;
   text-align: left;
