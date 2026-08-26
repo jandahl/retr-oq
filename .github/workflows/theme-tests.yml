@@ -8,8 +8,9 @@ name: theme tests
 # workflow copies: win98-tests.yml had drifted to `pytest tests/ -v` (the
 # WHOLE suite) instead of just tests/test_win98.py, silently masked because
 # it still passed. Add a new console/desktop theme's own test suite here by
-# adding its own block to the `filters:` section and one entry to the
-# `theme:` matrix below -- no new workflow file, no new job to copy.
+# adding its own block to the `filters:` section below (its name becomes
+# both the matrix entry and the pytest file it runs, tests/test_<name>.py)
+# -- no new workflow file, no new job to copy.
 #
 # The `changes` job computes which themes' paths actually changed so an
 # unrelated PR (say, kde/ or docs) doesn't spin up five browser jobs for
@@ -22,12 +23,17 @@ on:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    # `changes` (not per-filter outputs.<name>) is dorny/paths-filter's own
+    # "which filters matched" JSON array -- e.g. '["gb","win98"]' -- built
+    # for exactly this: feeding a matrix so it's SIZED to just the changed
+    # themes. The alternative (a fixed 5-item matrix gated by a job-level
+    # `if: needs.changes.outputs[matrix.theme] == 'true'`) looks reasonable
+    # but is invalid: `matrix` isn't in the context GitHub allows inside
+    # `jobs.<job_id>.if` (only `strategy`/`runs-on`/`steps` can see it) --
+    # that mistake made the very first version of this file fail to parse
+    # at all (zero jobs scheduled, no code ever ran).
     outputs:
-      gb: ${{ steps.filter.outputs.gb }}
-      gg: ${{ steps.filter.outputs.gg }}
-      nes: ${{ steps.filter.outputs.nes }}
-      snes: ${{ steps.filter.outputs.snes }}
-      win98: ${{ steps.filter.outputs.win98 }}
+      themes: ${{ steps.filter.outputs.changes }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -67,11 +73,11 @@ jobs:
 
   test:
     needs: changes
+    if: needs.changes.outputs.themes != '[]'
     strategy:
       fail-fast: false
       matrix:
-        theme: [gb, gg, nes, snes, win98]
-    if: needs.changes.outputs[matrix.theme] == 'true'
+        theme: ${{ fromJSON(needs.changes.outputs.themes) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
