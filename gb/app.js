@@ -468,21 +468,32 @@
   }
 
   function settleMorphRound(result) {
+    // Every branch below resumes on a setTimeout, after which the player
+    // may have already left the MORPH! screen (B to menu mid-pause, say).
+    // Without this guard a stray timer -- now including startMorphTimer()'s
+    // own rAF loop, which the pre-timer version of this code didn't have
+    // to worry about -- would keep running in the background and could
+    // yank the player back into gameover-screen from wherever they'd
+    // navigated to, seconds later, for no visible reason.
+    const resumeIfStillOnMorph = (fn) => {
+      morphBusy = false;
+      if (currentScreen !== "morph") return;
+      fn();
+    };
     if (result.outcome === "wrong") {
       sfx("shock");
       renderMorphHud();
       morphSprite.classList.add("is-shocked");
       morphMouth.className = "morph-mouth is-shocked";
       morphStatusEl.textContent = `NOT THERE -- ${result.gloss}`;
-      setTimeout(() => {
-        morphBusy = false;
+      setTimeout(() => resumeIfStillOnMorph(() => {
         if (result.gameOver) {
           window.OqRouter.navigate({ screen: "gameover" });
           return;
         }
         morphSprite.classList.remove("is-shocked");
         renderMorphStep(morphGame.retryStep());
-      }, 900);
+      }), 900);
       return;
     }
     if (result.outcome === "timeout") {
@@ -491,15 +502,14 @@
       morphSprite.classList.add("is-shocked");
       morphMouth.className = "morph-mouth is-shocked";
       morphStatusEl.textContent = "TOO SLOW!";
-      setTimeout(() => {
-        morphBusy = false;
+      setTimeout(() => resumeIfStillOnMorph(() => {
         if (result.gameOver) {
           window.OqRouter.navigate({ screen: "gameover" });
           return;
         }
         morphSprite.classList.remove("is-shocked");
         renderMorphStep(morphGame.retryStep());
-      }, 900);
+      }), 900);
       return;
     }
     if (result.outcome === "win") {
@@ -508,19 +518,17 @@
       morphMouth.className = "morph-mouth is-happy";
       renderMorphHud();
       showMorphCard(result.word, result.resultGloss);
-      setTimeout(() => {
-        morphBusy = false;
+      setTimeout(() => resumeIfStillOnMorph(() => {
         morphCard.hidden = true;
         renderMorphStep(morphGame.advancePuzzle());
-      }, 2200);
+      }), 2200);
       return;
     }
     // "continue" -- a correct mid-chain affix
     sfx("ok");
-    setTimeout(() => {
-      morphBusy = false;
+    setTimeout(() => resumeIfStillOnMorph(() => {
       renderMorphStep(morphGame.advanceStep());
-    }, 350);
+    }), 350);
   }
 
   function handleMorphTimeout() {
