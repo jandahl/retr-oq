@@ -43,7 +43,7 @@ looks like today.
 ## What's here
 
 - **`index.html`** — landing page: a machine-icon picker, one distinctive pixel icon per theme (not a text list), with each machine's launch year, sorted oldest-first.
-- **`mac1984/`** — the first (and so far only) prototype: a real
+- **`mac1984/`** — the first prototype: a real
   fixed-size, fixed-position `.window` on a real full-viewport desktop for
   the original **1984 Macintosh 128K** (System 1.0) — not the 1987
   Macintosh II, not System 7. Internal scrolling that never moves the

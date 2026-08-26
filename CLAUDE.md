@@ -1,49 +1,75 @@
 # CLAUDE.md
 
-Guidance for AI agents working in this repo. Read this before touching
-`dos/` or `shared/` — it front-loads the conventions and gotchas that
-otherwise take a full session of discovery to relearn.
+How to work in this repo. Read this before editing anything. README.md
+is the product story and theme list; this file is the gotchas that
+otherwise cost a full session.
+
+## 0. First 60 seconds
+
+1. `git fetch origin master`. New branch from `origin/master`. Never
+   stack on a branch whose PR just merged. If the user says "rebase",
+   they mean restart from current master.
+2. The git repo is `/workspace/retr-oq` (`jandahl/retr-oq`). The live
+   preview serves `/workspace/public/` on `:8080`. After editing a
+   theme, copy that directory into `public/<theme>/` or the preview
+   stays stale. Hub tiles: GH Pages is `retr-oq/index.html`; the Vite
+   preview hub is `src/routes/index.tsx` + `src/components/machine-icons.tsx`
+   (workspace root, not this repo) — touch both if you add a machine.
+3. Cache-bust `?v=N` independently for every file you change
+   (`style.css`, `app.js`, `compositor.js`). A stale JS/CSS next to
+   fresh HTML is a shipped bug.
+4. `OqRouter.navigate()` owns OQ!/DECON. Do not call open/close from a
+   new UI trigger.
+5. Cursor is the arrow (`default`) on chrome, icons, menus, buttons,
+   and `a` / `a:link`. Resize handles keep the compass cursors. Do not
+   add `cursor: pointer`. Do not vendor period bitmap `.cur` files
+   (rejected: lots of work, invisible on touch, fussy hotspots).
+6. No bundler / transpiler / npm dep inside a theme. Vendor dist CSS +
+   fonts + LICENSE. `http(s)` hosting, not `file://`.
 
 ## What this repo is
 
-Static, no-build-step retro desktop/UI prototypes, one theme per top-level
-directory (`mac1984/`, `dos/`), each built on a real vendored CSS framework
-under `vendor/<theme>/`. Deployed as-is via GitHub Pages — see README.md
-for the full "why this repo exists" story and the theme roadmap. This file
-is about *how to work in the code*, not what it's for.
+Static, no-build-step retro desktop/UI prototypes, one theme per
+top-level directory (`mac1984/`, `dos/`, `c64/`, `nes/`, `gb/`,
+`amiga/`, `next/`, `win31/`, `win98/`, `xp/`, `kde/`, `win7/`,
+`mac8/`). Some vendor a real CSS framework under `vendor/<theme>/`;
+some are hand-drawn. Deployed as-is via GitHub Pages.
 
-**Not a `file://` target.** An earlier session in this repo's history read
-README's "open directly, no build step" as "must also work double-clicked
-off local disk," verified that `type="module"` really does break under
-`file://`, and then wrote that reading into a hard rule here — without it
-ever actually being asked for. It wasn't: this repo targets `http(s)`
-hosting (GitHub Pages, any static/dev server), not `file://`. If you find
-old comments in `dos/`/`shared/` justifying classic-script-only via
-`file://` compatibility, that reasoning no longer holds — don't treat it as
-a constraint, and feel free to correct a comment you're already touching
-for other reasons. Existing files still happen to be classic scripts
-sharing state via `window.<Namespace>` globals (`window.OqDictSource`,
-`window.OqHyphenation`, `window.OqRouter`) — that's just today's
-convention, not a rule to defend. Nothing stops a new file from being a
-real ES module if there's a reason to (e.g. actually consuming
-`jandahl/oq`'s `docs/public-api.js`, which is only importable as one).
+Classic scripts share state via `window.<Namespace>` globals
+(`window.OqDictSource`, `window.OqHyphenation`, `window.OqRouter`,
+`window.OqCompiz`). Load order in `<script>` tags *is* the dependency
+graph. ES modules are allowed if there's a reason (e.g. consuming
+`jandahl/oq`'s `docs/public-api.js`).
+
+**Not a `file://` target.** An earlier session read "no build step" as
+"must work double-clicked off disk," then wrote that into a hard rule
+nobody asked for. Ignore leftover comments that justify classic-script
+via `file://`.
+
+## House rules (every theme)
+
+- **Inputs ≥ 16px** on coarse/touch, or iOS Safari auto-zooms the page.
+- **`html, body { position: fixed; width: 100%; overflow: hidden; }`**
+  — `overflow: hidden` alone does not stop iOS from scrolling the
+  *document* to a focused input. See `dos/` / `kde/`.
+- **Original art.** No trademarked logos (Windows flag, KDE K, Apple).
+- **Easter eggs stay undocumented** (`DOOM`, Hot Dog Stand, Guru,
+  `panic`, `beryl`, teddy-bear credits).
+- **Pointer events:** listen for move/up on `window`. iOS
+  `setPointerCapture` is not a reliable source of truth.
+- **A tap is a tap.** Drag / Compiz grab starts only after the pointer
+  has actually moved (mouse ~2px, touch ~8px).
 
 ## Hard rules
 
-- **Load order in `<script>` tags is deliberate.** The classic-script
-  files here share state via `window.<Namespace>` globals instead of
-  imports, so a script that reads `window.OqDictSource` etc. has to load
-  after the script that sets it. Check what a new script depends on before
-  reordering.
-- **Cache-bust every change.** `dos/index.html` and `mac1984/index.html`
-  load their own CSS/JS with a `?v=N` query string. Bump the number for
-  *any* file you actually change (style.css and app.js version
-  independently) before committing — a stale cached file served alongside
-  fresh HTML is a real, previously-shipped bug, not a hypothetical.
-- **Never introduce a real build step.** README.md says "no build step"
-  for a reason: these pages need to open by double-clicking `index.html`.
-  If you're reaching for a bundler, transpiler, or npm dependency to solve
-  a problem, you're solving the wrong problem.
+- **Load order in `<script>` tags is deliberate.** A script that reads
+  `window.OqDictSource` has to load after the script that sets it.
+- **Cache-bust every change.** Every theme `index.html` loads CSS/JS
+  with `?v=N`. Bump the number for *each* file you actually change,
+  independently, before committing.
+- **Never introduce a real build step** inside a theme. If you're
+  reaching for a bundler to solve a problem, you're solving the wrong
+  problem.
 
 ## `dos/` theme specifics
 
@@ -211,7 +237,9 @@ Same console-not-desktop rules as `nes/` (one LCD at a time, one
   photograph are 16-bit-era 3D color, anti-aliased (Display PostScript).
   `image-rendering: pixelated` on those is a bug.
 - **Vertical main menu + right dock.** Not a Mac menu bar. Submenus fly
-  out to the right. The menu itself is a draggable window.
+  out to the right. The menu itself is a draggable window. Menu items
+  are `<a href="#">` — the UA hand cursor leaks unless `a:link` is
+  `cursor: default` (house rule).
 - **Miniaturize leaves a miniwindow** on the desktop; click restores.
   Hide / Miniaturize All miniaturizes every open window. Do not turn
   this into a Windows-style taskbar minimize.
@@ -252,39 +280,61 @@ Same console-not-desktop rules as `nes/` (one LCD at a time, one
 
 ## `kde/` theme specifics
 
-- **Not Redmond, not Mac-lineage.** `kde/app.js` has its own drag/resize/
-  focus/Kicker code. Do not route it through `shared/redmond/`.
-- **Compiz lives in `kde/compositor.js`.** Fine pointer (mouse): wobbly
-  drag, burn-on-close, and magic-lamp snapshot the live HTML window with
-  vendored html2canvas, then deform that bitmap on `#compositor`. Coarse
-  pointer / iOS Safari: the same plugins run as CSS transforms on the
-  live window — html2canvas stalls, blanks, and leaves windows
-  `opacity:0` there. Don't start a grab until the pointer has actually
-  moved (tap-to-focus must not snapshot). Honor `prefers-reduced-motion`
-  (skip the effects, keep the WM). Drag/resize listen on `window` for
-  move/up: iOS `setPointerCapture` is not a reliable source of truth.
+- **Not Redmond, not Mac-lineage.** `kde/app.js` has its own
+  drag/resize/focus/Kicker code. Do not route it through
+  `shared/redmond/`.
+- **Compiz is `kde/compositor.js` (`window.OqCompiz`).** Two paths,
+  same plugins (wobble / burn / lamp / cube / rain):
+  - Fine pointer + `html2canvas` available: snapshot the live HTML
+    window, deform a spring mesh on `#compositor`.
+  - Coarse pointer, iOS Safari, or `prefers-reduced-motion`: CSS
+    transforms on the live window. html2canvas on iOS is slow, often
+    blank, and leaves the window at `opacity: 0` if you hide it waiting
+    for the snapshot.
+- **Do not rediscover these** (each already shipped as a bug):
+  - Grab on `pointerdown`. Tap-to-focus must not snapshot. Threshold
+    first (mouse ~2px, touch ~8px); `Compiz.grab()` is fire-and-forget
+    (never `await` it on the pointer path).
+  - Trusting `setPointerCapture` for move/up. Listen on `window`.
+  - Axis-aligned neighbor springs (`p.x` wants `q.x + cellW`). That
+    fights shear, so the mesh stays a rectangle with corners on rubber
+    bands. Use *distance* springs + diagonal shear. Pin the grab
+    neighbourhood to the cursor; the far edge lags.
+  - Drawing each cell as a parallelogram from 3 vertices. Two textured
+    triangles so all four verts count.
+  - A 44px NE resize handle covering Close. Hide N/NE/NW on
+    `pointer: coarse`.
+  - Settle with no frame cap. Spring energy can hover; age-out (~36
+    frames) is the backstop, plus an energy threshold.
+  - `cursor: pointer` on Kicker / title-bar buttons / desktop icons.
 - **Plastik chrome, Crystal-style icons.** Title-bar gradient, Kicker
   along the bottom, DejaVu Sans at `vendor/kde/fonts/`. Don't swap the
-  font for a system sans, and don't paste the KDE K logo — the menu
-  button is an original crystal gem.
+  font. Don't paste the KDE K — the menu button is an original gem.
 - **Router owns OQ!/DECON.** Same rule as every other theme.
 - **Konsole `beryl` (and `compiz --replace`) is undocumented** on
   purpose, same as `dos/`'s `DOOM`. `rain` / `cube` are listed in
-  Konsole `help` because they're the advertised Compiz toys.
+  Konsole `help` because they're the advertised toys.
 - **Cache-bust `kde/index.html`'s `?v=N`** for style.css, app.js, and
   compositor.js independently.
+- **QA:** after copying `retr-oq/kde/` → `public/kde/`, run
+  `node /workspace/qa-kde.mjs`. Desktop must keep `WOBBLE_CAPTURED`
+  true and settle; mobile (`hasTouch`) must *not* snapshot
+  (`WOBBLE_CAPTURED` false), a tap must not capture, close must still
+  remove the window, inputs stay 16px, no document overflow.
 
 ## Git workflow gotcha: stranded commits
 
 This repo's branch convention is "always restart the working branch from
 current `master` after a merge, never stack on already-merged history."
-That already burned a set of commits once: a PR was merged into a
-*feature branch* (not `master`) after that feature branch's own earlier
-PR had *already* been merged into `master` — so the second PR's commits
-sat on a branch that continued to exist but was never itself merged again,
-and `master` silently never got them (a live regression — CLS and a
-scroll fix both vanished from production — went unnoticed for a full
-session). Before assuming "PR merged" means "commit is in `master`":
+The user saying "rebase" after a merge **means that**, not `git rebase`
+onto a dirty stacked branch. That already burned a set of commits once:
+a PR was merged into a *feature branch* (not `master`) after that feature
+branch's own earlier PR had *already* been merged into `master` — so the
+second PR's commits sat on a branch that continued to exist but was never
+itself merged again, and `master` silently never got them (a live
+regression — CLS and a scroll fix both vanished from production — went
+unnoticed for a full session). Before assuming "PR merged" means "commit
+is in `master`":
 `git log origin/master..origin/<branch> --oneline` — if that's non-empty,
 something didn't make it and needs a follow-up merge PR, exactly like
 `claude/dos-merge-stranded-fixes` did. If you stack a PR on another
@@ -299,8 +349,14 @@ landed in `master` once both show "merged".
 `tests/conftest.py`), wired into GitHub Actions
 (`.github/workflows/win98-tests.yml` / `.github/workflows/nes-tests.yml` /
 `.github/workflows/gb-tests.yml`)
-on every push/PR that touches that theme. This is a deliberate,
-narrow reversal of an earlier version of this section, which said no test
+on every push/PR that touches that theme.
+
+`kde/` is checked in the App Builder sandbox by `node /workspace/qa-kde.mjs`
+(desktop mesh + iOS-coarse CSS path). That script is not in this git
+repo; if it's missing, the assertions in the `kde/` section above are
+the contract — don't ship a Compiz change that fails them.
+
+This is a deliberate, narrow reversal of an earlier version of this section, which said no test
 framework/CI was wired up at all, "deliberately decoupled from oq's CI"
 (see README.md's "why this repo exists"). That reasoning about *oq's own*
 CI hasn't changed — this repo still can't break oq's dictionary, search,
