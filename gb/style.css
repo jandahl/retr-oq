@@ -400,8 +400,8 @@ button:not(:disabled),
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin: 0 0 0.4em;
-  font-size: 0.8em;
+  margin: 0 0 0.3em;
+  font-size: 0.85em;
 }
 .morph-lives {
   color: var(--gb-darkest);
@@ -409,6 +409,21 @@ button:not(:disabled),
 }
 .morph-score {
   color: var(--gb-dark);
+}
+/* Countdown bar -- ticks down over MORPH_STEP_MS via app.js's rAF loop,
+   not a CSS transition, so it can be read/reset from JS mid-flight. */
+.morph-timer {
+  flex: none;
+  height: 0.5em;
+  margin-bottom: 0.4em;
+  background: var(--gb-light);
+  border: 2px solid var(--gb-darkest);
+  box-sizing: border-box;
+}
+.morph-timer-fill {
+  height: 100%;
+  width: 100%;
+  background: var(--gb-darkest);
 }
 .morph-sprite-well {
   flex: none;
@@ -418,36 +433,57 @@ button:not(:disabled),
 }
 .morph-sprite {
   position: relative;
-  width: 2.6em;
-  height: 2.6em;
+  width: 5.2em;
+  height: 5.2em;
   background: var(--gb-darkest);
-  border-radius: 4px;
+  border-radius: 6px;
 }
+/* Eyes are round sockets, big enough that the pupil's travel actually
+   reads at a glance; the pupil inside tracks the selected option's row
+   via --look-y (0 = top option, 1 = bottom option), set from app.js --
+   "his attention on currently selected option". */
 .morph-eye {
   position: absolute;
-  top: 0.7em;
-  width: 0.4em;
-  height: 0.4em;
+  top: 1.1em;
+  width: 1.1em;
+  height: 1.1em;
+  border-radius: 50%;
   background: var(--gb-lightest);
+  overflow: hidden;
 }
-.morph-eye-l { left: 0.5em; }
-.morph-eye-r { right: 0.5em; }
+.morph-eye-l { left: 0.9em; }
+.morph-eye-r { right: 0.9em; }
+.morph-pupil {
+  position: absolute;
+  left: 50%;
+  top: 8%;
+  width: 0.5em;
+  height: 0.5em;
+  margin-left: -0.25em;
+  border-radius: 50%;
+  background: var(--gb-darkest);
+  transform: translateY(calc(var(--look-y, 0) * 0.62em));
+  transition: transform 0.15s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .morph-pupil { transition: none; }
+}
 .morph-mouth {
   position: absolute;
-  left: 0.6em;
-  right: 0.6em;
-  bottom: 0.55em;
-  height: 0.25em;
+  left: 1.1em;
+  right: 1.1em;
+  bottom: 1.1em;
+  height: 0.45em;
   background: var(--gb-lightest);
 }
 .morph-mouth.is-happy {
-  height: 0.5em;
-  border-radius: 0 0 0.6em 0.6em;
+  height: 0.9em;
+  border-radius: 0 0 1.1em 1.1em;
 }
 .morph-mouth.is-shocked {
-  height: 0.35em;
+  height: 0.6em;
   border-radius: 50%;
-  width: 0.35em;
+  width: 0.6em;
   margin: 0 auto;
 }
 .morph-sprite.is-happy {
@@ -472,39 +508,82 @@ button:not(:disabled),
 .morph-word {
   margin: 0.3em 0;
   text-align: center;
-  font-size: 1.1em;
+  font-size: 1.7em;
   color: var(--gb-darkest);
   overflow-wrap: anywhere;
 }
 .morph-status {
-  margin: 0 0 0.4em;
-  min-height: 2.4em;
+  margin: 0 0 0.5em;
+  min-height: 2.2em;
+  text-align: center;
   color: var(--gb-dark);
-  font-size: 0.7em;
+  font-size: 0.85em;
   line-height: 1.5;
 }
 .morph-options {
   display: flex;
   flex-direction: column;
-  gap: 0.3em;
+  gap: 0.5em;
 }
+/* "Bubbles": a pill per option, big legible text -- this is what the
+   player has maybe a couple seconds to read and act on, so it needs to
+   read at a glance, not at the same density as the OQ!/DECON screens. */
 .morph-option {
   -webkit-appearance: none;
   appearance: none;
   display: block;
   width: 100%;
   background: var(--gb-light);
-  border: 2px solid var(--gb-darkest);
+  border: 3px solid var(--gb-darkest);
+  border-radius: 999px;
   color: var(--gb-darkest);
   font: inherit;
-  font-size: 0.85em;
-  text-align: left;
-  padding: 0.4em 0.5em;
+  font-size: 1.3em;
+  text-align: center;
+  padding: 0.5em 0.6em;
   box-sizing: border-box;
 }
 .morph-option.is-selected {
   background: var(--gb-darkest);
   color: var(--gb-lightest);
+}
+
+/* Full-screen result card on a correct, chain-ending pick -- "a card with
+   border should take up the screen with the meaning of the word." Covers
+   everything below the HUD rather than the whole screen so score/lives
+   stay visible while it's up. */
+.morph-card {
+  position: absolute;
+  left: 0.6em;
+  right: 0.6em;
+  top: 2.4em;
+  bottom: 2.4em;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  padding: 0.8em;
+  background: var(--gb-lightest);
+  border: 4px solid var(--gb-darkest);
+  box-sizing: border-box;
+  text-align: center;
+}
+.morph-card[hidden] {
+  display: none;
+}
+.morph-card-word {
+  margin: 0;
+  font-size: 1.6em;
+  color: var(--gb-darkest);
+  overflow-wrap: anywhere;
+}
+.morph-card-meaning {
+  margin: 0;
+  font-size: 1em;
+  color: var(--gb-dark);
+  line-height: 1.5;
 }
 
 .about-copy {

@@ -20,6 +20,15 @@
 // stem; a verb mood ending cannot attach to a bare noun stem), not made up.
 // A step marked "suffix" is terminal (ends the word/round positively); a
 // step marked "affix" continues the chain to the next step.
+//
+// `resultWord` is the REAL final surface spelling (straight from the same
+// analyzeWordAsync() probe, m.word) -- not derived by concatenating this
+// file's own `marker` strings. Kalaallisut inserts epenthetic vowels at
+// some morpheme boundaries (angut + t surfaces as "angutit", not "angutt")
+// that the analyzer's phonology step handles and a naive string-join
+// can't; `marker` stays the plain per-step affix text shown on each
+// option bubble mid-round, `resultWord` is what the round-win card shows
+// as the completed word so it's never a spelling the game itself got wrong.
 (() => {
   "use strict";
 
@@ -43,6 +52,7 @@
         },
       ],
       // illu + qaq + voq
+      resultWord: "illoqarpoq",
       resultGloss: "he/she/it has a house",
     },
     {
@@ -57,6 +67,7 @@
         },
       ],
       // nuna + mi
+      resultWord: "nunami",
       resultGloss: "in/at the land",
     },
     {
@@ -70,7 +81,8 @@
           ],
         },
       ],
-      // angut + t
+      // angut + t (surfaces with an epenthetic vowel: angutit, not angutt)
+      resultWord: "angutit",
       resultGloss: "men",
     },
     {
@@ -85,6 +97,7 @@
         },
       ],
       // atuar + voq
+      resultWord: "atuarpoq",
       resultGloss: "he/she/it reads / is reading",
     },
   ];

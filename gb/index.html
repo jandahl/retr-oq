@@ -6,7 +6,7 @@
 <title>retr-oq — Game Boy prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=3" />
+<link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <!-- Original Game Boy (DMG-01), not a window manager and not the NES
@@ -79,10 +79,11 @@
               <span class="morph-lives" id="morph-lives" aria-label="Lives"></span>
               <span class="morph-score" id="morph-score">SCORE 0</span>
             </div>
+            <div class="morph-timer" aria-hidden="true"><div class="morph-timer-fill" id="morph-timer-fill"></div></div>
             <div class="morph-sprite-well">
               <div class="morph-sprite" id="morph-sprite" aria-hidden="true">
-                <span class="morph-eye morph-eye-l"></span>
-                <span class="morph-eye morph-eye-r"></span>
+                <span class="morph-eye morph-eye-l"><span class="morph-pupil"></span></span>
+                <span class="morph-eye morph-eye-r"><span class="morph-pupil"></span></span>
                 <span class="morph-mouth" id="morph-mouth"></span>
               </div>
             </div>
@@ -90,6 +91,10 @@
             <p class="morph-status" id="morph-status"></p>
             <div class="morph-options" id="morph-options" role="listbox" aria-label="Morpheme choices"></div>
             <p class="hint">D-PAD=CHOOSE  A=CONFIRM  B=MENU</p>
+            <div class="morph-card" id="morph-card" hidden>
+              <p class="morph-card-word" id="morph-card-word"></p>
+              <p class="morph-card-meaning" id="morph-card-meaning"></p>
+            </div>
           </div>
 
           <div class="gb-screen" id="about-screen" hidden>
@@ -150,6 +155,6 @@
 <script src="../shared/decon-app.js?v=4"></script>
 <script src="../shared/morph-game.js?v=1"></script>
 <script src="../shared/morph-puzzles.js?v=1"></script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>

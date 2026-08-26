@@ -355,11 +355,20 @@
   const morphScoreEl = document.getElementById("morph-score");
   const morphSprite = document.getElementById("morph-sprite");
   const morphMouth = document.getElementById("morph-mouth");
+  const morphPupils = document.querySelectorAll(".morph-pupil");
   const morphWordEl = document.getElementById("morph-word");
   const morphStatusEl = document.getElementById("morph-status");
   const morphOptionsEl = document.getElementById("morph-options");
+  const morphTimerFill = document.getElementById("morph-timer-fill");
+  const morphCard = document.getElementById("morph-card");
+  const morphCardWord = document.getElementById("morph-card-word");
+  const morphCardMeaning = document.getElementById("morph-card-meaning");
 
   const MORPH_START_LIVES = 3;
+  // Hectic-but-fair: long enough to read a Kalaallisut morpheme and its
+  // gloss once, short enough that the round still feels like a WarioWare
+  // beat rather than an untimed quiz.
+  const MORPH_STEP_MS = 6000;
   const morphGame = window.OqMorphGame.createGame({
     puzzles: window.OqMorphPuzzles.puzzles,
     startLives: MORPH_START_LIVES,
@@ -367,11 +376,22 @@
   let morphSelected = 0;
   let morphOptionCount = 0;
   let morphBusy = false; // true during the brief shock/win pause -- input ignored
+  let morphTimerRaf = 0;
+  let morphTimerDeadline = 0;
 
   function renderMorphHud() {
     const { lives, score } = morphGame.getState();
     morphLives.textContent = "♥".repeat(lives) + "♡".repeat(MORPH_START_LIVES - lives);
     morphScoreEl.textContent = `SCORE ${score}`;
+  }
+
+  // The sprite's eyes track toward the currently-selected option's row --
+  // "his attention on currently selected option" -- by shifting the pupils
+  // down proportionally to how far down the (vertically stacked) option
+  // list the selection is, 0 at the top option to 1 at the bottom one.
+  function updateMorphGaze() {
+    const t = morphOptionCount > 1 ? morphSelected / (morphOptionCount - 1) : 0;
+    morphPupils.forEach((p) => { p.style.setProperty("--look-y", t.toFixed(3)); });
   }
 
   function highlightMorphOptions() {
@@ -381,6 +401,28 @@
       node.classList.toggle("is-selected", on);
       node.setAttribute("aria-selected", on ? "true" : "false");
     });
+    updateMorphGaze();
+  }
+
+  function stopMorphTimer() {
+    if (morphTimerRaf) cancelAnimationFrame(morphTimerRaf);
+    morphTimerRaf = 0;
+  }
+
+  function startMorphTimer() {
+    stopMorphTimer();
+    morphTimerDeadline = performance.now() + MORPH_STEP_MS;
+    const tick = (now) => {
+      const remaining = Math.max(0, morphTimerDeadline - now);
+      morphTimerFill.style.width = `${(remaining / MORPH_STEP_MS) * 100}%`;
+      if (remaining <= 0) {
+        morphTimerRaf = 0;
+        handleMorphTimeout();
+        return;
+      }
+      morphTimerRaf = requestAnimationFrame(tick);
+    };
+    morphTimerRaf = requestAnimationFrame(tick);
   }
 
   // Renders a step handed back by the engine's start()/advanceStep()/
@@ -408,19 +450,24 @@
       morphOptionsEl.appendChild(btn);
     });
     highlightMorphOptions();
+    startMorphTimer();
   }
 
   function launchMorph() {
     showScreen("morph");
     morphBusy = false;
+    morphCard.hidden = true;
     renderMorphHud();
     renderMorphStep(morphGame.start());
   }
 
-  function chooseMorphOption() {
-    if (morphBusy || morphOptionCount === 0) return;
-    morphBusy = true;
-    const result = morphGame.choose(morphSelected);
+  function showMorphCard(word, meaning) {
+    morphCardWord.textContent = word.toUpperCase();
+    morphCardMeaning.textContent = meaning;
+    morphCard.hidden = false;
+  }
+
+  function settleMorphRound(result) {
     if (result.outcome === "wrong") {
       sfx("shock");
       renderMorphHud();
@@ -438,17 +485,34 @@
       }, 900);
       return;
     }
+    if (result.outcome === "timeout") {
+      sfx("shock");
+      renderMorphHud();
+      morphSprite.classList.add("is-shocked");
+      morphMouth.className = "morph-mouth is-shocked";
+      morphStatusEl.textContent = "TOO SLOW!";
+      setTimeout(() => {
+        morphBusy = false;
+        if (result.gameOver) {
+          window.OqRouter.navigate({ screen: "gameover" });
+          return;
+        }
+        morphSprite.classList.remove("is-shocked");
+        renderMorphStep(morphGame.retryStep());
+      }, 900);
+      return;
+    }
     if (result.outcome === "win") {
       sfx("roundwin");
       morphSprite.classList.add("is-happy");
       morphMouth.className = "morph-mouth is-happy";
-      morphWordEl.textContent = syllabify(result.word);
-      morphStatusEl.textContent = `${result.word.toUpperCase()} -- ${result.resultGloss}`;
       renderMorphHud();
+      showMorphCard(result.word, result.resultGloss);
       setTimeout(() => {
         morphBusy = false;
+        morphCard.hidden = true;
         renderMorphStep(morphGame.advancePuzzle());
-      }, 1100);
+      }, 2200);
       return;
     }
     // "continue" -- a correct mid-chain affix
@@ -457,6 +521,19 @@
       morphBusy = false;
       renderMorphStep(morphGame.advanceStep());
     }, 350);
+  }
+
+  function handleMorphTimeout() {
+    if (morphBusy) return;
+    morphBusy = true;
+    settleMorphRound(morphGame.timeout());
+  }
+
+  function chooseMorphOption() {
+    if (morphBusy || morphOptionCount === 0) return;
+    stopMorphTimer();
+    morphBusy = true;
+    settleMorphRound(morphGame.choose(morphSelected));
   }
 
   function moveMorphSelection(delta) {
@@ -524,10 +601,12 @@
       if (currentScreen !== "morph" || SCREENS.morph.hidden) launchMorph();
     } else if (dest === "menu" || dest === "about" || dest === "gameover" || dest === "title") {
       if (currentScreen === "decon") exitDecon();
+      if (currentScreen === "morph") stopMorphTimer();
       bootDone = true;
       showScreen(dest);
     } else {
       if (currentScreen === "decon") exitDecon();
+      if (currentScreen === "morph") stopMorphTimer();
       showScreen("title");
     }
   });
