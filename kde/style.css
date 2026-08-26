@@ -50,8 +50,19 @@
 
 html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
   height: 100%;
+  height: 100dvh;
   overflow: hidden;
+  /* overflow:hidden alone does not stop iOS Safari from scrolling the
+     document (focusing an input, rubber-banding a drag). position:fixed
+     takes the page out of flow — same trick dos/ already uses. */
+  position: fixed;
+  inset: 0;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
   font-family: var(--font);
   color: var(--kde-text);
   background: #0a2744;
@@ -60,14 +71,72 @@ html, body {
 .desktop {
   position: fixed;
   inset: 0;
-  bottom: var(--kicker-h);
+  bottom: calc(var(--kicker-h) + env(safe-area-inset-bottom, 0px));
   background: #0a2744 url("art/wallpaper.jpg") center / cover no-repeat;
   overflow: hidden;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .compiz-captured {
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+.compiz-wobbling {
+  will-change: transform;
+  transform-origin: top center;
+}
+
+.compiz-burning {
+  pointer-events: none;
+  transform-origin: 50% 40%;
+  animation: kde-burn 0.65s ease-in forwards;
+  z-index: 3000;
+}
+.compiz-burning::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(circle at 18% 82%, rgba(255, 170, 40, 0.85), transparent 42%),
+    radial-gradient(circle at 82% 70%, rgba(255, 60, 0, 0.75), transparent 48%),
+    linear-gradient(transparent 30%, rgba(255, 90, 0, 0.5));
+  animation: kde-flame 0.65s ease-in forwards;
+}
+@keyframes kde-burn {
+  0% { filter: brightness(1); opacity: 1; transform: scale(1); }
+  30% { filter: brightness(1.4) sepia(0.45) saturate(2.2) hue-rotate(-18deg); }
+  60% { filter: brightness(1.9) sepia(0.85) saturate(3) hue-rotate(-28deg); opacity: 0.8; transform: scale(0.96); }
+  100% { filter: brightness(3) sepia(1) hue-rotate(-40deg); opacity: 0; transform: scale(0.72); }
+}
+@keyframes kde-flame {
+  0% { opacity: 0.2; }
+  40% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.compiz-lamping {
+  pointer-events: none;
+  transition: transform 0.42s cubic-bezier(0.5, 0, 1, 0.3), opacity 0.38s ease-in;
+  will-change: transform, opacity;
+}
+
+.compiz-cube {
+  transform-origin: center center;
+  animation: kde-cube 0.8s ease-in-out;
+  backface-visibility: hidden;
+}
+@keyframes kde-cube {
+  0% { transform: perspective(900px) rotateY(0deg); }
+  45% { transform: perspective(900px) rotateY(88deg) scale(0.92); }
+  55% { transform: perspective(900px) rotateY(92deg) scale(0.92); }
+  100% { transform: perspective(900px) rotateY(0deg); }
 }
 
 #compositor {
@@ -131,12 +200,14 @@ html, body {
   flex-direction: column;
   min-width: 220px;
   min-height: 140px;
+  max-width: 100%;
   background: var(--kde-face);
   border-radius: 4px 4px 3px 3px;
   box-shadow:
     0 8px 18px rgba(0, 0, 0, 0.38),
     0 0 0 1px rgba(0, 0, 0, 0.35);
   z-index: 10;
+  touch-action: none;
 }
 .kde-window.closed,
 .kde-window.minimized {
@@ -190,7 +261,8 @@ html, body {
   display: flex;
   gap: 3px;
   position: relative;
-  z-index: 3;
+  z-index: 6;
+  touch-action: manipulation;
 }
 .title-bar-controls button {
   width: 16px;
@@ -206,6 +278,7 @@ html, body {
   font-size: 9px;
   line-height: 16px;
   text-align: center;
+  touch-action: manipulation;
 }
 .title-bar-controls button:active {
   background: linear-gradient(to bottom, #b0b0b8, #d8d8de);
@@ -228,6 +301,9 @@ html, body {
   background: var(--kde-face);
   font-size: 12px;
   line-height: 1.45;
+  touch-action: pan-y;
+  -webkit-user-select: text;
+  user-select: text;
 }
 .window-body p { margin: 0 0 8px; }
 
@@ -236,6 +312,7 @@ html, body {
 .kde-resize {
   position: absolute;
   z-index: 1;
+  touch-action: none;
 }
 .kde-resize-n, .kde-resize-s { left: 8px; right: 8px; height: 6px; cursor: ns-resize; }
 .kde-resize-n { top: -3px; }
@@ -254,20 +331,22 @@ html, body {
 
 @media (pointer: coarse) {
   .title-bar { height: 36px; }
-  .title-bar-controls button { width: 28px; height: 28px; font-size: 14px; }
-  .win-close::before { font-size: 18px; }
-  .kde-resize-n, .kde-resize-s { height: 28px; left: 28px; right: 28px; }
-  .kde-resize-n { top: -14px; }
-  .kde-resize-s { bottom: -14px; }
-  .kde-resize-e, .kde-resize-w { width: 28px; top: 28px; bottom: 28px; }
-  .kde-resize-e { right: -14px; }
-  .kde-resize-w { left: -14px; }
-  .kde-resize-ne, .kde-resize-nw, .kde-resize-se, .kde-resize-sw { width: 44px; height: 44px; }
-  .kde-resize-ne { top: -20px; right: -20px; }
-  .kde-resize-nw { top: -20px; left: -20px; }
-  .kde-resize-se { bottom: -20px; right: -20px; }
-  .kde-resize-sw { bottom: -20px; left: -20px; }
+  .title-bar-controls button { width: 36px; height: 32px; font-size: 16px; }
+  .win-close::before { font-size: 20px; }
+  /* Keep handles inside the frame so they don't overflow the viewport
+     (iOS rubber-band) or sit on top of Close/Max. Top-edge handles are
+     disabled in app.js on coarse; hide them here too. */
+  .kde-resize-n, .kde-resize-ne, .kde-resize-nw { display: none; }
+  .kde-resize-s { height: 22px; left: 28px; right: 28px; bottom: 0; }
+  .kde-resize-e { width: 22px; top: 36px; bottom: 22px; right: 0; }
+  .kde-resize-w { width: 22px; top: 36px; bottom: 22px; left: 0; }
+  .kde-resize-se { width: 32px; height: 32px; right: 0; bottom: 0; }
+  .kde-resize-sw { width: 32px; height: 32px; left: 0; bottom: 0; }
   :root { --kicker-h: 52px; }
+  input[type="text"],
+  .konsole-row input {
+    font-size: 16px !important; /* iOS auto-zoom on <16px fields */
+  }
 }
 
 /* ---------- Forms / OQ / DECON ---------- */
@@ -447,15 +526,16 @@ button.kde-btn.default {
   left: 0;
   right: 0;
   bottom: 0;
-  height: var(--kicker-h);
+  height: calc(var(--kicker-h) + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: stretch;
   gap: 4px;
   padding: 3px 6px;
-  padding-bottom: calc(3px + env(safe-area-inset-bottom));
+  padding-bottom: calc(3px + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(to bottom, #e8e8ee 0%, #c8c8d2 40%, #b4b4be 100%);
   box-shadow: inset 0 1px 0 #fff, 0 -1px 0 #6a6a74;
   z-index: 1000;
+  touch-action: manipulation;
 }
 
 .k-menu-btn {
@@ -572,7 +652,7 @@ button.kde-btn.default {
 .k-menu {
   position: fixed;
   left: 4px;
-  bottom: calc(var(--kicker-h) + 2px);
+  bottom: calc(var(--kicker-h) + env(safe-area-inset-bottom, 0px) + 2px);
   z-index: 1002;
   margin: 0;
   padding: 4px;
@@ -648,4 +728,8 @@ button:not(:disabled),
 
 @media (prefers-reduced-motion: reduce) {
   .kde-window { box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+  .compiz-burning, .compiz-lamping, .compiz-cube, .compiz-wobbling {
+    animation: none !important;
+    transition: none !important;
+  }
 }

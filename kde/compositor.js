@@ -1,21 +1,45 @@
 (() => {
   "use strict";
 
-  // Compiz-style compositor: snapshot a live HTML window (html2canvas)
-  // onto a full-viewport canvas, then deform that bitmap. This is the
-  // same trick Compiz used in 2006 — redirect the window to an OpenGL
-  // texture — just with a 2D canvas mesh instead of a GLX pixmap.
-  // Classic script, window.OqCompiz, loaded before kde/app.js.
+  // Compiz-style compositor.
+  //
+  // Fine pointer (mouse): snapshot the live HTML window with html2canvas
+  // onto #compositor and deform a spring mesh — the 2006 "redirect to
+  // texture" trick.
+  //
+  // Coarse pointer / iOS: html2canvas is a lottery (blank frames, 400ms+
+  // stalls, windows stuck opacity:0). Same plugins, live CSS transforms
+  // instead of a bitmap. Never wait on a snapshot before the window
+  // follows the finger.
 
   function reduceMotion() {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  function isCoarse() {
+    try {
+      if (window.matchMedia("(pointer: coarse)").matches) return true;
+      if (window.matchMedia("(hover: none)").matches) return true;
+    } catch (_) { /* matchMedia can throw in odd webviews */ }
+    const ua = navigator.userAgent || "";
+    if (/iP(hone|ad|od)/.test(ua)) return true;
+    // iPadOS 13+ desktop UA
+    if (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua)) return true;
+    return false;
+  }
+
+  function canCanvas() {
+    if (reduceMotion()) return false;
+    if (isCoarse()) return false;
+    return typeof html2canvas === "function";
   }
 
   const canvas = document.getElementById("compositor");
   const ctx = canvas.getContext("2d");
   let dpr = 1;
   let raf = 0;
-  let fx = null; // active window effect
+  let fx = null; // active window effect (canvas mesh)
+  let cssFx = null; // live-element wobble on coarse/iOS
   let rainOn = false;
   let rainDrops = [];
   let ripples = [];
@@ -24,12 +48,17 @@
 
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.round(window.innerWidth * dpr));
-    canvas.height = Math.max(1, Math.round(window.innerHeight * dpr));
-    canvas.style.width = `${window.innerWidth}px`;
-    canvas.style.height = `${window.innerHeight}px`;
+    const w = Math.max(1, Math.round(window.innerWidth));
+    const h = Math.max(1, Math.round(window.innerHeight));
+    canvas.width = Math.max(1, Math.round(w * dpr));
+    canvas.height = Math.max(1, Math.round(h * dpr));
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
   }
   window.addEventListener("resize", resize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", resize);
+  }
   resize();
 
   function fract(n) {
@@ -39,27 +68,55 @@
     return fract(Math.sin(i * 12.9898 + j * 78.233) * 43758.5453);
   }
 
-  async function snapshot(el) {
+  function onceDone(el, eventName, ms) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        el.removeEventListener(eventName, finish);
+        resolve();
+      };
+      el.addEventListener(eventName, finish);
+      setTimeout(finish, ms);
+    });
+  }
+
+  function clearLiveFx(el) {
+    if (!el) return;
+    el.classList.remove("compiz-captured", "compiz-wobbling", "compiz-burning", "compiz-lamping", "compiz-cube");
+    el.style.transform = "";
+    el.style.opacity = "";
+    el.style.transformOrigin = "";
+    el.style.filter = "";
+  }
+
+  function snapshot(el) {
     if (typeof html2canvas !== "function") {
-      throw new Error("html2canvas is required for Compiz effects");
+      return Promise.reject(new Error("html2canvas is required for Compiz effects"));
     }
     const rect = el.getBoundingClientRect();
     const w = Math.max(1, Math.round(rect.width));
     const h = Math.max(1, Math.round(rect.height));
-    return html2canvas(el, {
+    const shot = html2canvas(el, {
       backgroundColor: null,
       scale: Math.min(dpr, 1.25),
       logging: false,
       useCORS: true,
       allowTaint: true,
-      imageTimeout: 2000,
+      imageTimeout: 1200,
       width: w,
       height: h,
       windowWidth: w,
       windowHeight: h,
       ignoreElements: (node) =>
-        !!(node.classList && node.classList.contains("kde-resize")),
+        node.id === "compositor" ||
+        !!(node.classList && (node.classList.contains("kde-resize") || node.classList.contains("kicker"))),
     });
+    const timeout = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("snapshot timeout")), 1500);
+    });
+    return Promise.race([shot, timeout]);
   }
 
   function makeMesh(x, y, w, h, cols, rows) {
@@ -103,8 +160,6 @@
         let restX = originX + p.u * w;
         let restY = originY + p.v * h;
         if (extra && extra.lampT != null) {
-          // Compiz magic-lamp: bottom of the window collapses first,
-          // vertices stream toward the taskbar button.
           const t = extra.lampT;
           const along = Math.min(1, Math.max(0, t * 1.35 - p.v * 0.6));
           restX += (extra.tx - restX) * along;
@@ -152,7 +207,6 @@
   }
 
   function cellBurnAt(i, j, cols, rows) {
-    // Edges catch first, hash keeps the front ragged like the real plugin.
     const edge = Math.min(i / cols, 1 - i / cols, j / rows, 1 - j / rows) * 2;
     return edge * 0.78 + hash2(i, j) * 0.32;
   }
@@ -165,9 +219,6 @@
     const cssCellW = w / cols;
     const cssCellH = h / rows;
 
-    // Drop shadow as a dark offset copy of the outline — Compiz's
-    // "window decoration" shadow, not a CSS filter (the window is
-    // opacity:0 while captured).
     if (!opt || !opt.noShadow) {
       ctx.save();
       ctx.fillStyle = "rgba(0,0,0,0.32)";
@@ -320,7 +371,7 @@
       const zz = persp / (persp + z);
       return { x: cw / 2 + (x - cw / 2) * zz, s: zz };
     }
-    const half = (cw * 0.42);
+    const half = cw * 0.42;
     const top = ch * 0.12;
     const bot = ch * 0.78;
     const zL = Math.sin(ang) * half;
@@ -331,7 +382,6 @@
     const pR = project(xR, zR);
     ctx.save();
     ctx.globalAlpha = t < 0.15 ? t / 0.15 : t > 0.85 ? (1 - t) / 0.15 : 1;
-    // fake second face (wallpaper-colored) when the quad is edge-on
     ctx.fillStyle = "#0a2a4a";
     ctx.beginPath();
     ctx.moveTo(pL.x * dpr, top * dpr);
@@ -408,8 +458,6 @@
     const el = fx && fx.el;
     fx = null;
     sparks = [];
-    // onDone first so the WM can move/hide the live window before we
-    // un-capture it (avoids a one-frame pop at the old position).
     if (done) done();
     requestAnimationFrame(() => {
       if (el && !fx) el.classList.remove("compiz-captured");
@@ -417,7 +465,7 @@
   }
 
   function gridFor() {
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const coarse = isCoarse();
     const cols = coarse ? 10 : 16;
     const rows = coarse ? 7 : 10;
     return { cols, rows };
@@ -475,10 +523,115 @@
     return true;
   }
 
+  function clampNum(n, a, b) {
+    return Math.max(a, Math.min(b, n));
+  }
+
+  function startCssWobble(el, clientX, clientY) {
+    const rect = el.getBoundingClientRect();
+    cssFx = {
+      el,
+      skewX: 0,
+      skewY: 0,
+      grabOffX: clientX - rect.left,
+      originX: rect.left,
+      originY: rect.top,
+    };
+    el.style.transformOrigin = `${cssFx.grabOffX}px 0px`;
+    el.classList.add("compiz-wobbling");
+  }
+
+  function applyCssWobble(vx, vy) {
+    if (!cssFx) return;
+    cssFx.skewX = clampNum(cssFx.skewX * 0.6 + vx * 1.2, -26, 26);
+    cssFx.skewY = clampNum(cssFx.skewY * 0.6 + vy * 0.75, -16, 16);
+    const rot = cssFx.skewX * 0.16;
+    const squash = 1 + clampNum(vy * 0.004, -0.08, 0.08);
+    cssFx.el.style.transform = `skew(${cssFx.skewX}deg, ${cssFx.skewY}deg) rotate(${rot}deg) scaleY(${squash})`;
+  }
+
+  function cssSettle() {
+    const state = cssFx;
+    cssFx = null;
+    if (!state) return Promise.resolve(null);
+    const el = state.el;
+    const pos = { x: state.originX, y: state.originY };
+    return new Promise((resolve) => {
+      const t0 = performance.now();
+      function step() {
+        state.skewX *= 0.7;
+        state.skewY *= 0.7;
+        const done =
+          (Math.abs(state.skewX) < 0.2 && Math.abs(state.skewY) < 0.2) ||
+          performance.now() - t0 > 280;
+        if (done) {
+          el.style.transform = "";
+          el.style.transformOrigin = "";
+          el.classList.remove("compiz-wobbling");
+          resolve(pos);
+          return;
+        }
+        el.style.transform = `skew(${state.skewX}deg, ${state.skewY}deg) rotate(${state.skewX * 0.16}deg)`;
+        requestAnimationFrame(step);
+      }
+      step();
+    });
+  }
+
+  async function cssBurn(el) {
+    el.classList.remove("compiz-wobbling", "compiz-lamping");
+    el.style.transform = "";
+    el.classList.add("compiz-burning");
+    await onceDone(el, "animationend", 750);
+    el.classList.remove("compiz-burning");
+    el.style.filter = "";
+    el.style.opacity = "";
+    el.style.transform = "";
+  }
+
+  async function cssLamp(el, targetRect) {
+    const rect = el.getBoundingClientRect();
+    const tx = targetRect.left + targetRect.width / 2;
+    const ty = targetRect.top + targetRect.height / 2;
+    const ox = rect.width ? ((tx - rect.left) / rect.width) * 100 : 50;
+    const oy = rect.height ? ((ty - rect.top) / rect.height) * 100 : 100;
+    el.classList.remove("compiz-wobbling", "compiz-burning");
+    el.style.transform = "";
+    el.style.opacity = "1";
+    el.style.transformOrigin = `${ox}% ${oy}%`;
+    el.classList.add("compiz-lamping");
+    await new Promise((r) => requestAnimationFrame(r));
+    el.style.transform = "scale(0.04)";
+    el.style.opacity = "0";
+    await onceDone(el, "transitionend", 480);
+    el.classList.remove("compiz-lamping");
+    el.style.transform = "";
+    el.style.opacity = "";
+    el.style.transformOrigin = "";
+  }
+
+  async function cssCube(rootEl) {
+    rootEl.classList.add("compiz-cube");
+    await onceDone(rootEl, "animationend", 900);
+    rootEl.classList.remove("compiz-cube");
+  }
+
   async function grab(el, clientX, clientY) {
     if (reduceMotion()) return false;
     if (fx && (fx.kind === "burn" || fx.kind === "lamp")) return false;
+    if (cssFx && cssFx.el !== el) {
+      cssFx.el.classList.remove("compiz-wobbling");
+      cssFx.el.style.transform = "";
+      cssFx = null;
+    }
     if (fx) finishFx();
+
+    if (!canCanvas()) {
+      startCssWobble(el, clientX, clientY);
+      pendingMove = { x: clientX, y: clientY };
+      return true;
+    }
+
     const token = ++grabToken;
     grabInFlight = true;
     pendingRelease = null;
@@ -488,9 +641,12 @@
       img = await snapshot(el);
     } catch {
       grabInFlight = false;
+      if (token === grabToken) startCssWobble(el, clientX, clientY);
       if (pendingRelease) {
-        pendingRelease(null);
+        const resolve = pendingRelease;
         pendingRelease = null;
+        if (cssFx) cssSettle().then(resolve);
+        else resolve(null);
       }
       return false;
     }
@@ -502,10 +658,19 @@
       }
       return false;
     }
+    if (pendingRelease) {
+      // Finger already up — live window was moved by the WM. Skip the mesh.
+      const resolve = pendingRelease;
+      pendingRelease = null;
+      resolve(null);
+      return false;
+    }
     const rect = el.getBoundingClientRect();
     el.classList.add("compiz-captured");
     const { cols, rows } = gridFor();
     const mesh = makeMesh(rect.left, rect.top, rect.width, rect.height, cols, rows);
+    const gx = pendingMove ? pendingMove.x : clientX;
+    const gy = pendingMove ? pendingMove.y : clientY;
     fx = {
       kind: "wobble",
       img,
@@ -513,28 +678,34 @@
       el,
       originX: rect.left,
       originY: rect.top,
-      grabOffX: clientX - rect.left,
-      grabOffY: clientY - rect.top,
+      grabOffX: gx - rect.left,
+      grabOffY: gy - rect.top,
       age: 0,
       onDone: null,
     };
-    if (pendingMove) applyMove(pendingMove.x, pendingMove.y);
     startLoop();
-    if (pendingRelease) {
-      const resolve = pendingRelease;
-      pendingRelease = null;
-      beginSettle(resolve);
-    }
     return true;
   }
 
   function move(clientX, clientY) {
+    const vx = pendingMove ? clientX - pendingMove.x : 0;
+    const vy = pendingMove ? clientY - pendingMove.y : 0;
     pendingMove = { x: clientX, y: clientY };
+    if (cssFx) {
+      cssFx.originX += vx;
+      cssFx.originY += vy;
+      applyCssWobble(vx, vy);
+      return;
+    }
     applyMove(clientX, clientY);
   }
 
   function release() {
     return new Promise((resolve) => {
+      if (cssFx) {
+        cssSettle().then(resolve);
+        return;
+      }
       if (fx && fx.kind === "wobble") {
         beginSettle(resolve);
         return;
@@ -549,6 +720,15 @@
 
   async function burn(el) {
     if (reduceMotion()) return;
+    if (cssFx && cssFx.el === el) {
+      cssFx.el.classList.remove("compiz-wobbling");
+      cssFx.el.style.transform = "";
+      cssFx = null;
+    }
+    if (!canCanvas()) {
+      await cssBurn(el);
+      return;
+    }
     if (takeOver(el, "burn", { burnT: 0, onDone: null })) {
       return new Promise((resolve) => {
         fx.onDone = resolve;
@@ -560,6 +740,7 @@
     try {
       img = await snapshot(el);
     } catch {
+      await cssBurn(el);
       return;
     }
     el.classList.add("compiz-captured");
@@ -583,8 +764,17 @@
 
   async function lamp(el, targetRect) {
     if (reduceMotion()) return;
+    if (cssFx && cssFx.el === el) {
+      cssFx.el.classList.remove("compiz-wobbling");
+      cssFx.el.style.transform = "";
+      cssFx = null;
+    }
     const tx = targetRect.left + targetRect.width / 2;
     const ty = targetRect.top + targetRect.height / 2;
+    if (!canCanvas()) {
+      await cssLamp(el, targetRect);
+      return;
+    }
     if (takeOver(el, "lamp", { lampT: 0, tx, ty, onDone: null })) {
       return new Promise((resolve) => {
         fx.onDone = resolve;
@@ -596,6 +786,7 @@
     try {
       img = await snapshot(el);
     } catch {
+      await cssLamp(el, targetRect);
       return;
     }
     el.classList.add("compiz-captured");
@@ -621,10 +812,15 @@
 
   async function spinCube(rootEl) {
     if (reduceMotion() || cube) return;
+    if (!canCanvas()) {
+      await cssCube(rootEl);
+      return;
+    }
     let img;
     try {
       img = await snapshot(rootEl);
     } catch {
+      await cssCube(rootEl);
       return;
     }
     return new Promise((resolve) => {
@@ -646,7 +842,7 @@
   }
 
   function busy() {
-    return !!fx;
+    return !!(fx || cssFx);
   }
 
   function cancel() {
@@ -656,13 +852,19 @@
       pendingRelease(null);
       pendingRelease = null;
     }
-    if (fx && fx.el) fx.el.classList.remove("compiz-captured");
+    if (cssFx) {
+      clearLiveFx(cssFx.el);
+      cssFx = null;
+    }
+    if (fx && fx.el) clearLiveFx(fx.el);
     fx = null;
     sparks = [];
   }
 
   window.OqCompiz = {
     reduceMotion,
+    canCanvas,
+    isCoarse,
     snapshot,
     grab,
     move,
@@ -676,5 +878,6 @@
     isRaining: () => rainOn,
     busy,
     cancel,
+    clearLiveFx,
   };
 })();

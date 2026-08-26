@@ -99,6 +99,7 @@
     if (!Compiz.reduceMotion()) {
       try { await Compiz.burn(win); } catch { /* snapshot can fail; still close */ }
     }
+    clearWindowFx(win);
     win.classList.add("closed");
     win.classList.remove("maximized", "minimized");
     const s = state.get(win);
@@ -121,6 +122,7 @@
     if (!Compiz.reduceMotion() && btn) {
       try { await Compiz.lamp(win, btn.getBoundingClientRect()); } catch { /* still minimize */ }
     }
+    clearWindowFx(win);
     win.classList.add("minimized");
     win.classList.remove("maximized");
     if (btn) btn.classList.remove("active");
@@ -164,82 +166,114 @@
     win.style.top = `${top}px`;
   }
 
+  function clearWindowFx(win) {
+    if (Compiz.clearLiveFx) Compiz.clearLiveFx(win);
+    else {
+      win.classList.remove("compiz-captured", "compiz-wobbling", "compiz-burning", "compiz-lamping");
+      win.style.transform = "";
+      win.style.opacity = "";
+      win.style.transformOrigin = "";
+    }
+  }
+
+  function isPrimaryPointer(event) {
+    if (event.isPrimary === false) return false;
+    if (event.pointerType === "mouse" && event.button !== 0) return false;
+    return true;
+  }
+
+  function parentBox(el) {
+    const parent = el.offsetParent;
+    return parent ? parent.getBoundingClientRect() : { left: 0, top: 0 };
+  }
+
   function makeDraggable(handle, target) {
     let pid = null;
     let startX = 0, startY = 0, origX = 0, origY = 0;
-    let grabStarted = false;
+    let dragging = false;
+    let wobbling = false;
 
-    async function onDown(event) {
-      if (event.button !== 0) return;
+    function onDown(event) {
+      if (!isPrimaryPointer(event)) return;
       if (pid !== null) return;
       if (target.classList.contains("maximized")) return;
       if (event.target.closest("button, a, input, select, textarea")) return;
       pid = event.pointerId;
-      handle.setPointerCapture(event.pointerId);
-      event.preventDefault();
+      dragging = false;
+      wobbling = false;
+      const rect = target.getBoundingClientRect();
+      const parent = parentBox(target);
+      origX = rect.left - parent.left;
+      origY = rect.top - parent.top;
+      startX = event.clientX;
+      startY = event.clientY;
       focus(target);
-      grabStarted = false;
-      if (!Compiz.reduceMotion()) {
-        grabStarted = true;
-        const ok = await Compiz.grab(target, event.clientX, event.clientY);
-        if (!ok) grabStarted = false;
-      }
-      if (!grabStarted && pid !== null) {
-        const rect = target.getBoundingClientRect();
-        const parent = target.offsetParent.getBoundingClientRect();
-        origX = rect.left - parent.left;
-        origY = rect.top - parent.top;
-        startX = event.clientX;
-        startY = event.clientY;
-        target.classList.remove("compiz-captured");
-      }
+      try { handle.setPointerCapture(event.pointerId); } catch (_) { /* iOS Safari */ }
+      event.preventDefault();
     }
+
     function onMove(event) {
       if (event.pointerId !== pid) return;
-      if (grabStarted) Compiz.move(event.clientX, event.clientY);
-      else {
-        target.style.left = `${Math.max(0, origX + (event.clientX - startX))}px`;
-        target.style.top = `${Math.max(0, origY + (event.clientY - startY))}px`;
-      }
-    }
-    async function onUp(event) {
-      if (event.pointerId !== pid) return;
-      pid = null;
-      if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
-      if (grabStarted) {
-        const pos = await Compiz.release();
-        grabStarted = false;
-        if (pos && target.offsetParent) {
-          const parent = target.offsetParent.getBoundingClientRect();
-          target.style.left = `${Math.max(0, pos.x - parent.left)}px`;
-          target.style.top = `${Math.max(0, pos.y - parent.top)}px`;
+      const dx = event.clientX - startX;
+      const dy = event.clientY - startY;
+      if (!dragging) {
+        const thresh = event.pointerType === "mouse" ? 4 : 8;
+        if (dx * dx + dy * dy < thresh * thresh) return;
+        dragging = true;
+        if (!Compiz.reduceMotion()) {
+          wobbling = true;
+          // Fire-and-forget: never block the finger on html2canvas.
+          Compiz.grab(target, event.clientX, event.clientY);
         }
       }
+      target.style.left = `${Math.max(0, origX + dx)}px`;
+      target.style.top = `${Math.max(0, origY + dy)}px`;
+      if (wobbling) Compiz.move(event.clientX, event.clientY);
     }
+
+    async function onUp(event) {
+      if (pid === null) return;
+      if (event.pointerId !== pid && event.type !== "pointercancel" && event.type !== "lostpointercapture") return;
+      const id = pid;
+      pid = null;
+      try {
+        if (handle.hasPointerCapture && handle.hasPointerCapture(id)) handle.releasePointerCapture(id);
+      } catch (_) { /* already released */ }
+      if (wobbling) {
+        try { await Compiz.release(); } catch (_) { /* still clamp */ }
+        wobbling = false;
+      }
+      dragging = false;
+      clamp(target);
+    }
+
     handle.addEventListener("pointerdown", onDown);
-    handle.addEventListener("pointermove", onMove);
-    handle.addEventListener("pointerup", onUp);
-    handle.addEventListener("pointercancel", onUp);
+    // Window listeners: iOS Safari's setPointerCapture is unreliable, so
+    // move/up must not depend on the pointer staying over the title bar.
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    handle.addEventListener("lostpointercapture", onUp);
   }
 
   function makeResizable(handle, target, dir) {
     let pid = null;
     let startX = 0, startY = 0, startW = 0, startH = 0, startTop = 0, startLeft = 0;
-    handle.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0 || pid !== null) return;
+    function onDown(event) {
+      if (!isPrimaryPointer(event) || pid !== null) return;
       if (target.classList.contains("maximized")) return;
       pid = event.pointerId;
       const rect = target.getBoundingClientRect();
-      const parent = target.offsetParent.getBoundingClientRect();
+      const parent = parentBox(target);
       startW = rect.width; startH = rect.height;
       startTop = rect.top - parent.top; startLeft = rect.left - parent.left;
       startX = event.clientX; startY = event.clientY;
-      handle.setPointerCapture(event.pointerId);
+      try { handle.setPointerCapture(event.pointerId); } catch (_) { /* iOS Safari */ }
       event.preventDefault();
       event.stopPropagation();
       focus(target);
-    });
-    handle.addEventListener("pointermove", (event) => {
+    }
+    function onMove(event) {
       if (event.pointerId !== pid) return;
       const dx = event.clientX - startX;
       const dy = event.clientY - startY;
@@ -255,15 +289,25 @@
         target.style.height = `${newH}px`;
         target.style.top = `${startTop + (startH - newH)}px`;
       }
-    });
-    function end(event) {
-      if (event.pointerId !== pid) return;
-      pid = null;
-      if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
     }
-    handle.addEventListener("pointerup", end);
-    handle.addEventListener("pointercancel", end);
+    function end(event) {
+      if (pid === null) return;
+      if (event.pointerId !== pid && event.type !== "pointercancel" && event.type !== "lostpointercapture") return;
+      const id = pid;
+      pid = null;
+      try {
+        if (handle.hasPointerCapture && handle.hasPointerCapture(id)) handle.releasePointerCapture(id);
+      } catch (_) { /* already released */ }
+      clamp(target);
+    }
+    handle.addEventListener("pointerdown", onDown);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+    handle.addEventListener("lostpointercapture", end);
   }
+
+  const coarsePointer = window.matchMedia("(pointer: coarse)").matches || (Compiz.isCoarse && Compiz.isCoarse());
 
   for (const win of windows) {
     const title = win.querySelector(".title-bar");
@@ -286,16 +330,26 @@
       toggleMax(win);
     });
     for (const h of win.querySelectorAll(".kde-resize")) {
+      // Top-edge handles sit on the title-bar controls at coarse
+      // hit-targets — tapping Close started a NE resize on iPhone.
+      if (coarsePointer && h.dataset.dir.includes("n")) continue;
       makeResizable(h, win, h.dataset.dir);
     }
     clamp(win);
   }
-  window.addEventListener("resize", () => {
+  function clampAll() {
     for (const w of windows) clamp(w);
+  }
+  window.addEventListener("resize", clampAll);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", clampAll);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && Compiz.cancel) Compiz.cancel();
   });
 
   // ---------- Desktop icons ----------
-  const opensOnTap = window.matchMedia("(pointer: coarse)").matches;
+  const opensOnTap = coarsePointer;
   let selectedIcon = null;
   for (const icon of desktop.querySelectorAll(".desktop-icon[data-open]")) {
     icon.addEventListener("click", () => {

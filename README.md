@@ -257,7 +257,9 @@ looks like today.
   at `vendor/kde/html2canvas.min.js`) snapshots a live HTML window onto
   a bitmap, then a spring mesh wobbles it while dragging, a fire-front
   eats it on close, and minimize sucks it into Kicker with the magic
-  lamp. Click the empty desktop for water ripples; Konsole `rain` and
+  lamp. On coarse pointers (phones, iOS Safari) the same plugins run as
+  live CSS transforms instead — html2canvas stalls and blanks there.
+  Click the empty desktop for water ripples; Konsole `rain` and
   the pager's empty cell spin the desktop cube. DejaVu Sans / Sans Mono
   (Bitstream Vera descendant, the real mid-aughts KDE face) is vendored
   at `vendor/kde/fonts/`. Crystal-style icons and the wallpaper are
