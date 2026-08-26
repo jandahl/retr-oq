@@ -1,0 +1,49 @@
+name: html lint
+
+# Runs on every push/PR (unlike the per-theme Playwright suites, this has
+# no browser/JS behavior to exercise -- just markup validity and broken
+# local links) against the pages that currently pass html-validate:recommended
+# cleanly under the repo's root .htmlvalidate.json. Most other theme pages
+# do NOT pass yet -- a spot check found real pre-existing issues (icon-only
+# buttons with no accessible text, aria-label used on the wrong element,
+# hand-rolled widgets html-validate wants as native <button>/<select>) that
+# are each their own themed-fix PR, not something to silently mass-edit
+# from a CI-tooling change. Add a theme to PAGES below once its own
+# index.html passes `npx html-validate <theme>/index.html` with zero errors.
+#
+# Supersedes the old mac1984-ci.yml (manual-dispatch-only, mac1984 alone) --
+# same html-validate + linkinator recipe, generalized to a fixed page list
+# and running automatically instead of by hand.
+on:
+  push:
+    branches: [master]
+  pull_request: {}
+
+env:
+  PAGES: "index.html dos/index.html c64/index.html mac1984/index.html"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: HTML validate
+        run: npx --yes html-validate $PAGES
+
+      # --skip excludes anything not on localhost: this step is scoped to
+      # LOCAL asset links (a stale ?v= path, a moved shared/*.js) same as
+      # its name says. An external link's liveness is not this repo's to
+      # police -- index.html's github.com/jandahl/oq link 404s to an
+      # anonymous request (the repo is private) despite being a perfectly
+      # correct link for anyone with access, which is exactly the kind of
+      # false positive that would make people stop trusting this check.
+      - name: Check for broken local asset links
+        run: |
+          python3 -m http.server 8080 &
+          server_pid=$!
+          npx --yes wait-on http://localhost:8080/index.html
+          for page in $PAGES; do
+            npx --yes linkinator "http://localhost:8080/$page" --recurse false --skip "^https?://(?!localhost)"
+          done
+          kill "$server_pid"
