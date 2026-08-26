@@ -233,6 +233,14 @@ button:not(:disabled),
   width: 100%;
 }
 
+#menu-screen {
+  font-size: calc(var(--gb-font-size) * 2);
+  /* Same lesson as #morph-screen: a real mobile browser's chrome can
+     shrink the available height below what a full-screen test shows, so
+     scroll rather than silently clip instead of trusting a fixed size to
+     always fit every device. */
+  overflow-y: auto;
+}
 .menu-list {
   list-style: none;
   margin: 0;
@@ -404,6 +412,16 @@ button:not(:disabled),
    puzzle would silently clip on this one. */
 #morph-screen {
   font-size: clamp(14px, 5.2vw, 18px);
+  /* Safety net: a real mobile browser's own chrome (address bar, tab
+     strip) can shrink the AVAILABLE viewport height well below what a
+     full-screen headless browser test shows -- shared/app.js's own
+     syncAppHeight() already tracks that correctly via visualViewport,
+     but no fixed font-size/spacing tuning can promise it always fits
+     every real device's chrome state. Scroll, don't silently clip: the
+     .gb-screen base rule sets overflow:hidden, which would otherwise
+     make the lower options completely unreachable, not just uglier. */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 .morph-hud {
   display: flex;
@@ -438,12 +456,14 @@ button:not(:disabled),
   flex: none;
   display: flex;
   justify-content: center;
-  padding: 0.3em 0;
+  padding: 0.15em 0;
 }
+/* Purely decorative -- shrunk from an earlier 5.2em so it doesn't eat
+   space the options/hint actually need on a shorter real viewport. */
 .morph-sprite {
   position: relative;
-  width: 5.2em;
-  height: 5.2em;
+  width: 3.2em;
+  height: 3.2em;
   background: var(--gb-darkest);
   border-radius: 6px;
 }
@@ -453,9 +473,9 @@ button:not(:disabled),
    "his attention on currently selected option". */
 .morph-eye {
   position: absolute;
-  top: 1.1em;
-  width: 1.1em;
-  height: 1.1em;
+  top: 0.68em;
+  width: 0.68em;
+  height: 0.68em;
   /* Square notch, not a circle -- same reasoning as .morph-option. */
   clip-path: polygon(
     3px 0, calc(100% - 3px) 0,
@@ -466,17 +486,17 @@ button:not(:disabled),
   background: var(--gb-lightest);
   overflow: hidden;
 }
-.morph-eye-l { left: 0.9em; }
-.morph-eye-r { right: 0.9em; }
+.morph-eye-l { left: 0.55em; }
+.morph-eye-r { right: 0.55em; }
 .morph-pupil {
   position: absolute;
   left: 50%;
   top: 8%;
-  width: 0.5em;
-  height: 0.5em;
-  margin-left: -0.25em;
+  width: 0.31em;
+  height: 0.31em;
+  margin-left: -0.155em;
   background: var(--gb-darkest);
-  transform: translateY(calc(var(--look-y, 0) * 0.62em));
+  transform: translateY(calc(var(--look-y, 0) * 0.38em));
   transition: transform 0.15s ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
@@ -484,20 +504,20 @@ button:not(:disabled),
 }
 .morph-mouth {
   position: absolute;
-  left: 1.1em;
-  right: 1.1em;
-  bottom: 1.1em;
-  height: 0.45em;
+  left: 0.68em;
+  right: 0.68em;
+  bottom: 0.68em;
+  height: 0.28em;
   background: var(--gb-lightest);
 }
 .morph-mouth.is-happy {
-  height: 0.9em;
+  height: 0.55em;
   clip-path: polygon(0 0, 100% 0, 100% 60%, calc(100% - 4px) 60%, calc(100% - 4px) 100%, 4px 100%, 4px 60%, 0 60%);
 }
 .morph-mouth.is-shocked {
-  height: 0.6em;
+  height: 0.37em;
   border-radius: 50%;
-  width: 0.6em;
+  width: 0.37em;
   margin: 0 auto;
 }
 .morph-sprite.is-happy {
