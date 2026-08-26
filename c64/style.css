@@ -335,6 +335,64 @@ html, body {
   cursor: pointer;
 }
 
+/* MORPH.PRG -- shared/morph-game.js rendered as text mode: a numbered
+   option list (press 1-9) instead of gb/'s sprite + D-pad. Reuses
+   .c64-app/.c64-app-header/.c64-app-toolbar/.c64-app-results/
+   .c64-app-footer wholesale; only the pieces with no DICT.EXE equivalent
+   (HUD, timer bar, option list) get their own rules here. */
+.c64-morph-hud {
+  float: right;
+}
+.c64-morph-word {
+  margin: 0 0 0.25em;
+  font-weight: bold;
+}
+.c64-morph-timerbar {
+  /* A real C64 had no progress-bar widget -- this is just a row of reverse-
+     video cells shrinking left to right, the closest text-mode equivalent
+     to gb/style.css's pixel countdown fill. */
+  height: 1em;
+  background: var(--c64-blue);
+  border: 1px solid var(--c64-lightblue);
+  margin: 0.5em 0;
+  overflow: hidden;
+}
+.c64-morph-timerfill {
+  height: 100%;
+  width: 100%;
+  background: var(--c64-lightblue);
+  /* No CSS transition -- app.js's own rAF loop already steps this every
+     frame; a transition on top would just add lag between the two. */
+}
+.c64-morph-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.c64-morph-options li {
+  margin: 0.15em 0;
+}
+.c64-morph-option {
+  -webkit-appearance: none; /* same reasoning as .c64-link's identical rule */
+  appearance: none;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 0.1em 0.5ch;
+  cursor: pointer;
+}
+.c64-morph-option.is-selected,
+.c64-morph-option:hover,
+.c64-morph-option:focus-visible {
+  background: var(--c64-lightblue);
+  color: var(--c64-blue);
+  outline: none;
+}
+
 /* The RUN loading flicker (issue #27 piece 2) -- a real LOAD/RUN blanked
    the whole screen to the border color while the drive worked; there was
    no listing or prompt visible underneath, hence its own full-screen

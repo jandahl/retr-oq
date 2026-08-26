@@ -12,6 +12,7 @@
   const dictStatus = document.getElementById("dict-status");
   const dictTbody = document.getElementById("dict-tbody");
   const loadingScreen = document.getElementById("c64-loading");
+  const morphApp = document.getElementById("morph-app");
 
   document.getElementById("dict-attribution").textContent = petsciiSafe(DICT_ATTRIBUTION);
 
@@ -91,21 +92,186 @@
     dirScreen.hidden = false;
   }
 
+  // ---------- MORPH! (WarioWare-style morpheme minigame, text mode) ----------
+  // shared/morph-game.js owns the state machine (puzzle sequencing, lives,
+  // score, which option is correct) -- same split gb/app.js uses. There's
+  // no room for a D-pad-driven sprite in 40-column text mode, so this
+  // renders each step as a numbered BASIC-style option list: press 1-9 (or
+  // Up/Down + RETURN) to answer, same input idiom as the command line.
+  const morphHud = document.getElementById("morph-hud");
+  const morphWordEl = document.getElementById("morph-word");
+  const morphStatusEl = document.getElementById("morph-status");
+  const morphOptionsEl = document.getElementById("morph-options");
+  const morphTimerFill = document.getElementById("morph-timerfill");
+
+  const MORPH_START_LIVES = 3;
+  // Same pacing as gb/app.js's identical constant -- long enough to read a
+  // Kalaallisut morpheme and its gloss once, short enough to still feel
+  // like a WarioWare beat, not an untimed quiz.
+  const MORPH_STEP_MS = 6000;
+  const morphGame = window.OqMorphGame.createGame({
+    puzzles: window.OqMorphPuzzles.puzzles,
+    startLives: MORPH_START_LIVES,
+  });
+  let morphSelected = 0;
+  let morphOptionCount = 0;
+  let morphBusy = false; // true during the brief shock/win pause -- input ignored, same as gb/app.js
+  let morphTimerRaf = 0;
+  let morphTimerDeadline = 0;
+
+  function renderMorphHud() {
+    const { lives, score } = morphGame.getState();
+    morphHud.textContent = ` LIVES ${"*".repeat(lives)}${".".repeat(MORPH_START_LIVES - lives)}  SCORE ${score}`;
+  }
+
+  function highlightMorphOptions() {
+    const nodes = morphOptionsEl.querySelectorAll(".c64-morph-option");
+    nodes.forEach((node, i) => node.classList.toggle("is-selected", i === morphSelected));
+  }
+
+  function stopMorphTimer() {
+    if (morphTimerRaf) cancelAnimationFrame(morphTimerRaf);
+    morphTimerRaf = 0;
+  }
+
+  function startMorphTimer() {
+    stopMorphTimer();
+    morphTimerDeadline = performance.now() + MORPH_STEP_MS;
+    const tick = (now) => {
+      const remaining = Math.max(0, morphTimerDeadline - now);
+      morphTimerFill.style.width = `${(remaining / MORPH_STEP_MS) * 100}%`;
+      if (remaining <= 0) {
+        morphTimerRaf = 0;
+        handleMorphTimeout();
+        return;
+      }
+      morphTimerRaf = requestAnimationFrame(tick);
+    };
+    morphTimerRaf = requestAnimationFrame(tick);
+  }
+
+  // Renders a step handed back by the engine's start()/advanceStep()/
+  // advancePuzzle()/retryStep() -- they all return the same { word,
+  // stepType, options } shape, same as gb/app.js's renderMorphStep.
+  function renderMorphStep(step) {
+    morphOptionCount = step.options.length;
+    morphSelected = 0;
+    morphWordEl.textContent = petsciiSafe(syllabify(step.word)) + "-";
+    morphStatusEl.textContent = step.stepType === "suffix" ? "PICK THE ENDING." : "PICK THE NEXT AFFIX.";
+    morphOptionsEl.textContent = "";
+    step.options.forEach((opt, i) => {
+      const li = document.createElement("li");
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "c64-morph-option";
+      btn.textContent = `${i + 1}. -${petsciiSafe(opt.marker)}`;
+      btn.addEventListener("click", () => {
+        morphSelected = i;
+        highlightMorphOptions();
+        chooseMorphOption();
+      });
+      li.appendChild(btn);
+      morphOptionsEl.appendChild(li);
+    });
+    highlightMorphOptions();
+    startMorphTimer();
+  }
+
+  function launchMorph() {
+    dirScreen.hidden = true;
+    morphApp.hidden = false;
+    renderMorphHud();
+    renderMorphStep(morphGame.start());
+  }
+
+  function exitMorph() {
+    stopMorphTimer();
+    morphApp.hidden = true;
+    dirScreen.hidden = false;
+  }
+
+  function settleMorphRound(result) {
+    // Same "did the player already leave MORPH?" guard as gb/app.js's
+    // identical function -- RUN/STOP=EXIT mid-pause shouldn't have a stray
+    // timeout yank the player back in seconds later.
+    const resumeIfStillOnMorph = (fn) => {
+      morphBusy = false;
+      if (morphApp.hidden) return;
+      fn();
+    };
+    if (result.outcome === "wrong" || result.outcome === "timeout") {
+      morphStatusEl.textContent = result.outcome === "wrong" ? `NOT THERE -- ${result.gloss}` : "TOO SLOW!";
+      renderMorphHud();
+      setTimeout(() => resumeIfStillOnMorph(() => {
+        if (result.gameOver) {
+          morphStatusEl.textContent = `GAME OVER -- SCORE ${morphGame.getState().score}. RUN/STOP=EXIT, THEN RUN TO RETRY.`;
+          morphOptionsEl.textContent = "";
+          morphOptionCount = 0;
+          return;
+        }
+        renderMorphStep(morphGame.retryStep());
+      }), 900);
+      return;
+    }
+    if (result.outcome === "win") {
+      renderMorphHud();
+      morphStatusEl.textContent = `${petsciiSafe(result.word.toUpperCase())} -- ${petsciiSafe(result.resultGloss)}`;
+      morphOptionsEl.textContent = "";
+      morphOptionCount = 0;
+      setTimeout(() => resumeIfStillOnMorph(() => {
+        renderMorphStep(morphGame.advancePuzzle());
+      }), 2200);
+      return;
+    }
+    // "continue" -- a correct mid-chain affix
+    setTimeout(() => resumeIfStillOnMorph(() => {
+      renderMorphStep(morphGame.advanceStep());
+    }), 350);
+  }
+
+  function handleMorphTimeout() {
+    if (morphBusy) return;
+    morphBusy = true;
+    settleMorphRound(morphGame.timeout());
+  }
+
+  function chooseMorphOption() {
+    if (morphBusy || morphOptionCount === 0) return;
+    stopMorphTimer();
+    morphBusy = true;
+    settleMorphRound(morphGame.choose(morphSelected));
+  }
+
+  function moveMorphSelection(delta) {
+    if (morphOptionCount === 0) return;
+    morphSelected = (morphSelected + delta + morphOptionCount) % morphOptionCount;
+    highlightMorphOptions();
+  }
+
+  document.getElementById("morph-exit").addEventListener("click", () => {
+    window.OqRouter.navigate({ screen: null, filter: null });
+  });
+
   // window.OqRouter (shared/router.js) owns "which screen is open", same
   // reasoning as dos/app.js's identical block -- every user-facing trigger
   // (click, Esc, the LOAD/RUN command line) goes through navigate() instead
-  // of calling launchDict()/exitDict() directly.
+  // of calling launchDict()/exitDict()/launchMorph()/exitMorph() directly.
   window.OqRouter.onChange((params) => {
     const screen = params.get("screen");
     if (screen === "dict") {
+      if (!morphApp.hidden) exitMorph();
       if (dictApp.hidden) {
         launchDict(params.get("filter") || "");
       } else if (dictFilter.value !== (params.get("filter") || "")) {
         dictFilter.value = params.get("filter") || "";
         renderResults();
       }
-    } else if (!dictApp.hidden) {
-      exitDict();
+    } else if (screen === "morph") {
+      if (!dictApp.hidden) exitDict();
+      if (morphApp.hidden) launchMorph();
+    } else {
+      if (!dictApp.hidden) exitDict();
+      if (!morphApp.hidden) exitMorph();
     }
   });
 
@@ -120,9 +286,24 @@
     // RUN/STOP is the real C64 key for "abort whatever's running" -- Esc is
     // the closest a modern keyboard has, same substitution dos/app.js makes
     // for its own Esc=Exit footer.
-    if (event.key === "Escape" && !dictApp.hidden) {
+    if (event.key === "Escape" && (!dictApp.hidden || !morphApp.hidden)) {
       window.OqRouter.navigate({ screen: null, filter: null });
+      return;
     }
+    if (morphApp.hidden || morphBusy) return;
+    if (event.key >= "1" && event.key <= "9") {
+      const i = Number(event.key) - 1;
+      if (i < morphOptionCount) {
+        event.preventDefault();
+        morphSelected = i;
+        highlightMorphOptions();
+        chooseMorphOption();
+      }
+      return;
+    }
+    if (event.key === "ArrowUp") { event.preventDefault(); moveMorphSelection(-1); }
+    else if (event.key === "ArrowDown") { event.preventDefault(); moveMorphSelection(1); }
+    else if (event.key === "Enter") { event.preventDefault(); chooseMorphOption(); }
   });
 
   // The RUN loading-screen flicker (issue #27 piece 2): a real LOAD/RUN
@@ -155,19 +336,21 @@
   // below, same as the initial listing markup in index.html.
   function printDirListing() {
     printLine('0 "OQ DISK       " 09 2A');
-    const dictLine = document.createElement("div");
-    const dictLink = document.createElement("button");
-    dictLink.type = "button";
-    dictLink.className = "c64-link";
-    dictLink.dataset.load = "DICT";
-    dictLink.textContent = '1   "DICT"';
-    dictLine.append(dictLink, document.createTextNode("            PRG"));
-    c64Output.appendChild(document.createTextNode("\n"));
-    c64Output.appendChild(dictLine);
+    for (const [name, label] of [["DICT", '1   "DICT"'], ["MORPH", '1   "MORPH"']]) {
+      const line = document.createElement("div");
+      const link = document.createElement("button");
+      link.type = "button";
+      link.className = "c64-link";
+      link.dataset.load = name;
+      link.textContent = label;
+      line.append(link, document.createTextNode(name === "DICT" ? "            PRG" : "           PRG"));
+      c64Output.appendChild(document.createTextNode("\n"));
+      c64Output.appendChild(line);
+    }
     printLine('1   "DICT DAT"             SEQ');
     printLine('1   "BUILD"                PRG');
     printLine('2   "RUN"                  PRG');
-    printLine("664 BLOCKS FREE.");
+    printLine("662 BLOCKS FREE.");
   }
 
   let loadedProgram = null; // null until a LOAD succeeds -- what a bare RUN would start
@@ -208,6 +391,9 @@
     if (name === "DICT") {
       printLine("RUN");
       flickerThenRun(() => window.OqRouter.navigate({ screen: "dict", filter: null }));
+    } else if (name === "MORPH") {
+      printLine("RUN");
+      flickerThenRun(() => window.OqRouter.navigate({ screen: "morph", filter: null }));
     } else if (name === "BUILD") {
       printLine("BUILD: NOT YET IMPLEMENTED");
     } else {
@@ -238,7 +424,7 @@
     if (loadMatch) {
       const name = loadMatch[1];
       printLine(`SEARCHING FOR ${name}`);
-      if (name === "DICT" || name === "BUILD") {
+      if (name === "DICT" || name === "MORPH" || name === "BUILD") {
         loadedProgram = name;
         printLine("LOADING");
         printLine("READY.");

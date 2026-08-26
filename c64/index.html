@@ -6,7 +6,7 @@
 <title>retr-oq — C64 desktop prototype</title>
 <!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
-<link rel="stylesheet" href="style.css?v=8" />
+<link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <!-- The C64 booted straight into BASIC, no desktop, no icons -- same
@@ -29,10 +29,11 @@ LIST
 
 0 "OQ DISK       " 09 2A
 <button type="button" class="c64-link" data-load="DICT">1   "DICT"</button>            PRG
+<button type="button" class="c64-link" data-load="MORPH">1   "MORPH"</button>           PRG
 <span class="c64-dim">1   "DICT DAT"</span>        SEQ
 <span class="c64-dim">1   "BUILD"</span>            PRG
 2   "RUN"                  PRG
-664 BLOCKS FREE.
+662 BLOCKS FREE.
 </div>
     <!-- A real command line, same role as dos/'s #dos-cmd -- LOAD"NAME",8,1
          then RUN is the actual two-step C64 idiom (see app.js's runCommand),
@@ -74,6 +75,23 @@ LIST
     <button type="button" class="c64-app-footer" id="dict-exit">RUN/STOP=EXIT TO READY.</button>
   </div>
 
+  <!-- MORPH.PRG: same full-screen-takeover idiom as #dict-app above -- text
+       mode has no room for gb/'s sprite or D-pad, so this is the same
+       shared/morph-game.js state machine rendered as a numbered BASIC-style
+       option list instead: press 1-9 (or arrow keys + RETURN) to answer. -->
+  <div class="c64-app" id="morph-app" hidden>
+    <div class="c64-app-header">MORPH<span id="morph-hud" class="c64-morph-hud"></span></div>
+    <div class="c64-app-toolbar">
+      <p id="morph-word" class="c64-morph-word"></p>
+      <p class="c64-app-status" id="morph-status"></p>
+      <div class="c64-morph-timerbar"><div id="morph-timerfill" class="c64-morph-timerfill"></div></div>
+    </div>
+    <div class="c64-app-results">
+      <ol id="morph-options" class="c64-morph-options"></ol>
+    </div>
+    <button type="button" class="c64-app-footer" id="morph-exit">RUN/STOP=EXIT TO READY.</button>
+  </div>
+
   <!-- The RUN loading-screen flicker (issue #27 piece 2): a transient
        full-screen takeover of its own, not folded into #c64-dir, since a
        real LOAD/RUN blanked the screen to a solid border-cycling color
@@ -83,6 +101,8 @@ LIST
 <script src="../shared/dict-source.js?v=1"></script>
 <script src="../shared/hyphenation.js?v=1"></script>
 <script src="../shared/router.js?v=1"></script>
-<script src="app.js?v=4"></script>
+<script src="../shared/morph-puzzles.js?v=1"></script>
+<script src="../shared/morph-game.js?v=1"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>
