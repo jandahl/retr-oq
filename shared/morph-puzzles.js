@@ -14,12 +14,25 @@
 // later" version.
 //
 // Each puzzle is a chain: the player builds a real word one morpheme at a
-// time. Every step offers the correct next morpheme plus one or more real
-// Kalaallisut morphemes that are wrong AT THIS STEP -- verified wrong by a
-// real category rule (a noun case/plural ending cannot attach to a verb
-// stem; a verb mood ending cannot attach to a bare noun stem), not made up.
-// A step marked "suffix" is terminal (ends the word/round positively); a
-// step marked "affix" continues the chain to the next step.
+// time. Every step offers the correct next morpheme plus one or more other
+// real Kalaallisut morphemes that are wrong for the word THIS ROUND is
+// building. A step marked "suffix" is terminal (ends the word/round
+// positively); a step marked "affix" continues the chain to the next step.
+//
+// A wrong option's `gloss` is ONLY that morpheme's own real meaning --
+// never an invented claim about WHY it's wrong ("can't attach to a verb
+// stem", etc). An earlier version of this file did assert reasons like
+// that, checked only by hand, and got real Kalaallisut facts wrong twice:
+// (1) angut + voq was used as a "can't attach to a bare noun" distractor,
+// but root-final t + v assimilates in real Kalaallisut, and "anguvoq" is
+// a real dictionary word ("catches a seal") -- unrelated to "angut" in
+// origin, but a real, confusing collision to present as impossible.
+// (2) mi attached to a verb stem (atuar + mi) isn't the noun-locative
+// "in/at" sense at all -- the analyzer's own real parse of "atuarmi" gives
+// "what about ___?", a completely different morpheme that happens to
+// share the same spelling. Every wrong option below was re-verified
+// against the analyzer/dictionary for its EXACT root+marker pairing
+// (not just "this marker is real somewhere") before being kept.
 //
 // `resultWord` is the REAL final surface spelling (straight from the same
 // analyzeWordAsync() probe, m.word) -- not derived by concatenating this
@@ -39,15 +52,22 @@
       steps: [
         {
           correct: { marker: "qaq", type: "affix", gloss: "to have a ___" },
+          // illumi/illut are both real, complete words (illu already
+          // needs no ending of its own) -- genuinely wrong for THIS
+          // round only because they end the word on something other
+          // than "has a house", not because they're ungrammatical.
           wrong: [
-            { marker: "mi", gloss: "in/at (a noun case ending -- can't attach here, this isn't a complete noun yet)" },
-            { marker: "t", gloss: "plural (a noun ending -- can't attach here, this isn't a complete noun yet)" },
+            { marker: "mi", gloss: "in/at" },
+            { marker: "t", gloss: "plural" },
           ],
         },
         {
           correct: { marker: "voq", type: "suffix", gloss: "statement -- he/she/it" },
+          // "illuqaqt" has no valid parse at all (verified 0 matches) --
+          // a safe, non-colliding wrong pick, shown with -t's own plain
+          // meaning rather than any claim about why it fails here.
           wrong: [
-            { marker: "t", gloss: "plural (a noun ending -- can't attach to a verb stem)" },
+            { marker: "t", gloss: "plural" },
           ],
         },
       ],
@@ -61,8 +81,11 @@
       steps: [
         {
           correct: { marker: "mi", type: "suffix", gloss: "in/at" },
+          // "nunaqaq" is a real, verified chain (nuna + "to have a ___")
+          // -- genuinely wrong here only because -qaq is an affix, not an
+          // ending: it continues the word instead of finishing it.
           wrong: [
-            { marker: "voq", gloss: "statement, he/she/it (a verb ending -- can't attach to a bare noun stem)" },
+            { marker: "qaq", gloss: "to have a ___" },
           ],
         },
       ],
@@ -76,8 +99,14 @@
       steps: [
         {
           correct: { marker: "t", type: "suffix", gloss: "plural" },
+          // "angutqaq" has no valid parse (verified 0 matches) -- unlike
+          // this puzzle's very first draft, which used -voq here: angut's
+          // final t assimilates with a following v in real Kalaallisut,
+          // and "anguvoq" turned out to already be a real, unrelated
+          // dictionary word ("catches a seal") -- a genuinely bad
+          // distractor, not just a wording problem.
           wrong: [
-            { marker: "voq", gloss: "statement, he/she/it (a verb ending -- can't attach to a bare noun stem)" },
+            { marker: "qaq", gloss: "to have a ___" },
           ],
         },
       ],
@@ -91,8 +120,12 @@
       steps: [
         {
           correct: { marker: "voq", type: "suffix", gloss: "statement -- he/she/it" },
+          // "atuarmi" IS a real, verified chain -- just not the noun
+          // locative sense; on a verb stem this -mi is a different
+          // morpheme meaning "what about ___?". Shown with that real
+          // gloss, not the wrong one an earlier draft of this file used.
           wrong: [
-            { marker: "mi", gloss: "in/at (a noun case ending -- can't attach to a verb stem)" },
+            { marker: "mi", gloss: "what about ___?" },
           ],
         },
       ],
