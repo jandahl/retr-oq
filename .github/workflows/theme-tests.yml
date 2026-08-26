@@ -1,0 +1,90 @@
+name: theme tests
+
+# One workflow, not five copy-pasted ones -- gb-tests.yml, gg-tests.yml,
+# nes-tests.yml, snes-tests.yml, and win98-tests.yml were identical apart
+# from which theme/paths/test file they named, which is exactly the kind
+# of drift CLAUDE.md warns about for cache-bust versions ("stale JS next to
+# fresh HTML is a real shipped bug") -- the same risk applies to stale
+# workflow copies: win98-tests.yml had drifted to `pytest tests/ -v` (the
+# WHOLE suite) instead of just tests/test_win98.py, silently masked because
+# it still passed. Add a new console/desktop theme's own test suite here by
+# adding its own block to the `filters:` section and one entry to the
+# `theme:` matrix below -- no new workflow file, no new job to copy.
+#
+# The `changes` job computes which themes' paths actually changed so an
+# unrelated PR (say, kde/ or docs) doesn't spin up five browser jobs for
+# nothing; the `test` job's matrix then only runs for themes that changed.
+on:
+  push:
+    branches: [master]
+  pull_request: {}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      gb: ${{ steps.filter.outputs.gb }}
+      gg: ${{ steps.filter.outputs.gg }}
+      nes: ${{ steps.filter.outputs.nes }}
+      snes: ${{ steps.filter.outputs.snes }}
+      win98: ${{ steps.filter.outputs.win98 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            gb:
+              - "gb/**"
+              - "vendor/nes/fonts/**"
+              - "tests/test_gb.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
+            gg:
+              - "gg/**"
+              - "vendor/nes/fonts/**"
+              - "tests/test_gg.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
+            nes:
+              - "nes/**"
+              - "vendor/nes/**"
+              - "tests/test_nes.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
+            snes:
+              - "snes/**"
+              - "vendor/nes/fonts/**"
+              - "tests/test_snes.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
+            win98:
+              - "win98/**"
+              - "vendor/win98/**"
+              - "tests/test_win98.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
+
+  test:
+    needs: changes
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [gb, gg, nes, snes, win98]
+    if: needs.changes.outputs[matrix.theme] == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: pip install -r tests/requirements.txt
+
+      - name: Install Playwright's Chromium
+        run: playwright install --with-deps chromium
+
+      - name: Run ${{ matrix.theme }} test suite
+        run: python3 -m pytest tests/test_${{ matrix.theme }}.py -v
