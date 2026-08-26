@@ -1,0 +1,607 @@
+/* retr-oq next theme: NeXTSTEP 3.3 Workspace Manager. No vendored
+   framework — the candidate next.css / GNUstep kits are either whole
+   desktop simulators or have no drop-in LICENSE'd stylesheet. Chrome
+   is hand-drawn the same way amiga/ and c64/ are.
+
+   Four MegaPixel pens, and only those, for every piece of window
+   chrome (title bars, buttons, menus, dock well, resize bar):
+
+     --nx-black  #000000
+     --nx-dark   #555555
+     --nx-gray   #AAAAAA
+     --nx-white  #FFFFFF
+
+   Key window title bar is black (Application Kit highlight); inactive
+   windows are dark gray. Miniaturize is left, close is right — see
+   the 3.3 UI docs. Icons and the Info photograph are 16-bit-era 3D
+   color, anti-aliased (Display PostScript, not Amiga pixels). Font is
+   TeX Gyre Heros, a Helvetica clone, at vendor/next/fonts/. */
+
+@font-face {
+  font-family: "TeXGyreHeros";
+  src: url("../vendor/next/fonts/texgyreheros-regular.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "TeXGyreHeros";
+  src: url("../vendor/next/fonts/texgyreheros-bold.otf") format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --nx-black: #000000;
+  --nx-dark: #555555;
+  --nx-gray: #aaaaaa;
+  --nx-white: #ffffff;
+  --nx-font: "TeXGyreHeros", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --nx-title: 28px;
+  --nx-resize: 22px;
+  --nx-dock: 76px;
+  --nx-menu: 168px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  position: fixed;
+  width: 100%;
+  background: var(--nx-gray);
+  color: var(--nx-black);
+  font-family: var(--nx-font);
+  font-size: 14px;
+}
+
+button,
+.desktop-icon,
+.nx-dock-icon,
+.nx-menuitem,
+.nx-btn {
+  cursor: default;
+}
+
+/* ---------- Vertical main menu (not a Mac bar) ---------- */
+.nx-mainmenu {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 2000;
+  width: var(--nx-menu);
+  background: var(--nx-gray);
+  border: 2px solid var(--nx-black);
+  box-shadow: 3px 3px 0 var(--nx-black);
+  display: flex;
+  flex-direction: column;
+}
+.nx-mainmenu .nx-titlebar {
+  touch-action: none;
+}
+.nx-menulist {
+  list-style: none;
+  margin: 0;
+  padding: 2px 0 4px;
+}
+.nx-menuitem {
+  position: relative;
+  padding: 0 12px;
+  min-height: 28px;
+  line-height: 28px;
+  color: var(--nx-black);
+  white-space: nowrap;
+  user-select: none;
+}
+.nx-menuitem > a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+.nx-menuitem.has-sub::after {
+  content: "";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-left-color: var(--nx-black);
+}
+.nx-menuitem.is-open,
+.nx-menuitem:focus {
+  background: var(--nx-black);
+  color: var(--nx-white);
+}
+.nx-menuitem.is-open.has-sub::after {
+  border-left-color: var(--nx-white);
+}
+.nx-submenu {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: -2px;
+  z-index: 2001;
+  margin: 0;
+  padding: 2px 0;
+  min-width: 10.5rem;
+  list-style: none;
+  background: var(--nx-gray);
+  color: var(--nx-black);
+  border: 2px solid var(--nx-black);
+  box-shadow: 3px 3px 0 var(--nx-black);
+}
+.nx-menuitem.is-open > .nx-submenu {
+  display: block;
+}
+.nx-submenu li {
+  min-height: 28px;
+  line-height: 28px;
+  padding: 0 12px;
+}
+.nx-submenu li.divider {
+  border-top: 1px solid var(--nx-dark);
+  margin-top: 3px;
+  padding-top: 3px;
+}
+.nx-submenu a {
+  display: block;
+  color: var(--nx-black);
+  text-decoration: none;
+  min-height: 28px;
+}
+.nx-submenu li:hover,
+.nx-submenu a:hover,
+.nx-submenu a:focus-visible {
+  background: var(--nx-black);
+  color: var(--nx-white);
+}
+
+/* ---------- Dock (right edge) ---------- */
+.nx-dock {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1500;
+  width: var(--nx-dock);
+  background: var(--nx-dark);
+  border-left: 2px solid var(--nx-black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0 8px;
+  gap: 6px;
+}
+.nx-dock-icon {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border: 1px solid var(--nx-black);
+  background: var(--nx-gray);
+  box-shadow: inset 1px 1px 0 var(--nx-white), inset -1px -1px 0 var(--nx-black);
+}
+.nx-dock-icon img {
+  display: block;
+  width: 62px;
+  height: 62px;
+}
+.nx-dock-icon:active {
+  box-shadow: inset 1px 1px 0 var(--nx-black), inset -1px -1px 0 var(--nx-white);
+}
+.nx-dock-recycle {
+  margin-top: 0;
+}
+.nx-dock-clock {
+  margin-top: auto;
+  margin-bottom: 4px;
+  color: var(--nx-white);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Desktop ---------- */
+.nx-desktop {
+  position: fixed;
+  inset: 0;
+  right: var(--nx-dock);
+}
+.desktop-icons {
+  position: absolute;
+  top: 12px;
+  left: calc(var(--nx-menu) + 24px);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 5.5rem;
+  background: none;
+  border: none;
+  padding: 4px;
+  font-family: var(--nx-font);
+  font-size: 12px;
+  font-weight: 700;
+}
+.desktop-icon img {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+.desktop-icon-label {
+  color: var(--nx-black);
+  background: var(--nx-gray);
+  padding: 0 4px;
+}
+.desktop-icon.is-selected .desktop-icon-label,
+.desktop-icon:focus-visible .desktop-icon-label {
+  background: var(--nx-black);
+  color: var(--nx-white);
+}
+
+/* Miniwindows — miniaturize leaves these on the desktop */
+.miniwindow {
+  position: absolute;
+  z-index: 6;
+  width: 72px;
+  padding: 0;
+  border: 2px solid var(--nx-black);
+  background: var(--nx-black);
+  box-shadow: 3px 3px 0 var(--nx-black);
+  color: var(--nx-white);
+  font-family: var(--nx-font);
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+.miniwindow img {
+  display: block;
+  width: 48px;
+  height: 48px;
+  margin: 4px auto 0;
+  background: var(--nx-gray);
+}
+.miniwindow-title {
+  display: block;
+  padding: 2px 4px 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Windows ---------- */
+.nx-window {
+  position: absolute;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  min-height: 140px;
+  background: var(--nx-gray);
+  border: 2px solid var(--nx-black);
+  box-shadow: 3px 3px 0 var(--nx-black);
+}
+.nx-window.closed {
+  display: none;
+}
+.nx-titlebar {
+  height: var(--nx-title);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 4px;
+  background: var(--nx-black);
+  color: var(--nx-white);
+  touch-action: none;
+  flex-shrink: 0;
+}
+.nx-window.inactive .nx-titlebar {
+  background: var(--nx-dark);
+}
+.nx-title {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: var(--nx-title);
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.nx-btn {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--nx-black);
+  background: var(--nx-gray);
+  box-shadow: inset 1px 1px 0 var(--nx-white), inset -1px -1px 0 var(--nx-dark);
+  position: relative;
+}
+.nx-btn:active {
+  box-shadow: inset 1px 1px 0 var(--nx-dark), inset -1px -1px 0 var(--nx-white);
+}
+/* Miniaturize: a tiny window glyph */
+.nx-mini::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 6px;
+  width: 10px;
+  height: 8px;
+  border: 2px solid var(--nx-black);
+  border-top-width: 3px;
+  background: var(--nx-gray);
+}
+/* Close: an X */
+.nx-close::before,
+.nx-close::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 4px;
+  width: 2px;
+  height: 14px;
+  background: var(--nx-black);
+}
+.nx-close::before { transform: rotate(45deg); }
+.nx-close::after { transform: rotate(-45deg); }
+
+.nx-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--nx-white);
+  margin: 2px 2px 0;
+  border: 1px solid var(--nx-black);
+  color: var(--nx-black);
+  padding: 8px;
+}
+.nx-body > p:first-child { margin-top: 0; }
+.nx-body p {
+  margin: 0 0 0.6em;
+  line-height: 1.35;
+}
+
+.nx-resize {
+  height: var(--nx-resize);
+  flex-shrink: 0;
+  position: relative;
+  touch-action: none;
+  cursor: ns-resize;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--nx-gray) 0,
+    var(--nx-gray) 1px,
+    var(--nx-dark) 1px,
+    var(--nx-dark) 2px
+  );
+  border-top: 1px solid var(--nx-black);
+}
+.nx-dimple {
+  position: absolute;
+  right: 6px;
+  top: 3px;
+  width: 28px;
+  height: 14px;
+  border: 1px solid var(--nx-black);
+  background:
+    repeating-linear-gradient(
+      135deg,
+      var(--nx-white) 0,
+      var(--nx-white) 1px,
+      var(--nx-dark) 1px,
+      var(--nx-dark) 3px
+    );
+  cursor: nwse-resize;
+  pointer-events: none;
+}
+
+/* ---------- OQ / DECON ---------- */
+.nx-field { margin-bottom: 6px; }
+.nx-field input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--nx-font);
+  font-size: 16px;
+  padding: 4px 6px;
+  border: 1px solid var(--nx-black);
+  background: var(--nx-white);
+  color: var(--nx-black);
+  box-shadow: inset 1px 1px 0 var(--nx-dark);
+}
+.nx-checkrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.nx-checkrow input { margin: 0; }
+.nx-status {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--nx-dark);
+}
+.nx-panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--nx-white);
+  border: 1px solid var(--nx-black);
+  scrollbar-width: thin;
+  scrollbar-color: var(--nx-dark) var(--nx-gray);
+}
+.nx-attribution {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--nx-dark);
+}
+.oq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.oq-table th {
+  position: sticky;
+  top: 0;
+  background: var(--nx-gray);
+  border-bottom: 1px solid var(--nx-black);
+  text-align: left;
+  padding: 4px 8px;
+  font-weight: 700;
+}
+.oq-table td {
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--nx-gray);
+}
+.oq-table tbody tr.highlighted {
+  background: var(--nx-black);
+  color: var(--nx-white);
+}
+
+.decon-results-panel { padding: 8px; font-size: 13px; }
+.decon-card {
+  border: 1px solid var(--nx-black);
+  background: var(--nx-gray);
+  padding: 8px;
+  margin-bottom: 8px;
+}
+.decon-tag { font-size: 11px; font-weight: 700; }
+.decon-tag--approximate { color: var(--nx-dark); }
+.decon-word { font-weight: 700; }
+.decon-meaning { font-style: italic; margin: 4px 0; }
+.decon-truncated { background: var(--nx-gray); outline: 1px solid var(--nx-dark); }
+.decon-dict-match { font-size: 12px; margin: 8px 0 0; }
+
+.about-body { align-items: center; text-align: center; }
+.about-art {
+  width: min(360px, 100%);
+  height: auto;
+  display: block;
+  margin: 0 auto 10px;
+  border: 1px solid var(--nx-black);
+}
+.about-kicker { font-weight: 700; margin: 0 0 8px; }
+
+.nx-console {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0 0 8px;
+  overflow: auto;
+  font-family: ui-monospace, "TeXGyreHeros", monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  background: var(--nx-black);
+  color: var(--nx-white);
+  padding: 8px;
+}
+
+.console-body { padding: 0; }
+.console-body .nx-console { margin: 0; border: 0; }
+.console-body .nx-field { margin: 0; padding: 6px; background: var(--nx-gray); }
+.console-body .nx-field input { font-family: ui-monospace, monospace; }
+
+/* ---------- Panels / overlays ---------- */
+.nx-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+.nx-overlay[hidden] { display: none; }
+.nx-panel-window {
+  position: static;
+  width: min(22rem, 92vw);
+  min-height: 0;
+  box-shadow: 4px 4px 0 var(--nx-black);
+}
+.nx-attention { text-align: center; }
+.nx-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+.nx-push {
+  min-width: 72px;
+  min-height: 28px;
+  padding: 4px 14px;
+  font-family: var(--nx-font);
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid var(--nx-black);
+  background: var(--nx-gray);
+  color: var(--nx-black);
+  box-shadow: inset 1px 1px 0 var(--nx-white), inset -1px -1px 0 var(--nx-dark);
+}
+.nx-push:active {
+  box-shadow: inset 1px 1px 0 var(--nx-dark), inset -1px -1px 0 var(--nx-white);
+}
+.nx-default {
+  box-shadow:
+    0 0 0 3px var(--nx-gray),
+    0 0 0 5px var(--nx-black),
+    inset 1px 1px 0 var(--nx-white),
+    inset -1px -1px 0 var(--nx-dark);
+}
+
+.nx-panic {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: var(--nx-black);
+  color: var(--nx-white);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  font-family: ui-monospace, monospace;
+}
+.nx-panic[hidden] { display: none; }
+.nx-panic pre {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 640px) {
+  .nx-dock {
+    top: auto;
+    left: 0;
+    right: 0;
+    width: auto;
+    height: 72px;
+    flex-direction: row;
+    border-left: 0;
+    border-top: 2px solid var(--nx-black);
+    padding: 4px 8px;
+  }
+  .nx-dock-recycle { margin-top: 0; margin-left: auto; }
+  .nx-dock-clock { margin: 0 8px 0 auto; }
+  .nx-desktop { right: 0; bottom: 72px; }
+  .nx-mainmenu { width: 140px; }
+  .desktop-icons { left: 152px; top: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}

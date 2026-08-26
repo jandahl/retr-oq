@@ -198,6 +198,33 @@ Same console-not-desktop rules as `nes/` (one LCD at a time, one
 - **Font is TopazPlus a500** at `vendor/amiga/fonts/` (GPL-FE, see
   `vendor/amiga/LICENSE`). Don't swap it for a system mono.
 
+## `next/` theme specifics
+
+- **No vendored framework.** Hand-drawn Workspace 3.3 chrome, like
+  `amiga/` / `c64/` / `gb/`. Don't pull in a GNUstep theme pack as if
+  it were 98.css.
+- **Four MegaPixel pens for chrome, color for icons.** Title bars,
+  buttons, menus, dock well, resize bar: only `#000000` / `#555555` /
+  `#AAAAAA` / `#FFFFFF`. Key window title is black; inactive is dark
+  gray. Miniaturize left, close right, resize bar along the bottom —
+  not a Mac growbox, not Redmond min/max/close. Icons and the Info
+  photograph are 16-bit-era 3D color, anti-aliased (Display PostScript).
+  `image-rendering: pixelated` on those is a bug.
+- **Vertical main menu + right dock.** Not a Mac menu bar. Submenus fly
+  out to the right. The menu itself is a draggable window.
+- **Miniaturize leaves a miniwindow** on the desktop; click restores.
+  Hide / Miniaturize All miniaturizes every open window. Do not turn
+  this into a Windows-style taskbar minimize.
+- **Not Redmond, not Mac-lineage.** `next/app.js` has its own
+  drag/resize/focus/menu code. Do not share it with `mac8/` /
+  `mac1984/` / `amiga/`, and do not route it through `shared/redmond/`.
+- **Router owns OQ!/DECON.** Same rule as every other theme.
+- **Console `panic` (and triple-clicking the dock cube) is undocumented**
+  on purpose, same as `dos/`'s `DOOM` and `amiga/`'s Guru Meditation.
+- **Cache-bust `next/index.html`'s `?v=N`.**
+- **Font is TeX Gyre Heros** at `vendor/next/fonts/` (GFL, see
+  `vendor/next/LICENSE`). Don't swap it for a system Helvetica.
+
 ## Git workflow gotcha: stranded commits
 
 This repo's branch convention is "always restart the working branch from
