@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>retr-oq — Game Gear prototype</title>
+<!-- ?v= cache-busting, same convention as gb/index.html -- bump when
+     style.css or app.js actually changes. -->
+<link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body>
+  <!-- Sega Game Gear, not a window manager and not a portrait DMG brick.
+       Landscape handheld: color LCD in the middle, D-pad left, 1/2 right,
+       Start under the screen. Real hardware had no Select -- keyboard Tab
+       still cycles the menu. No drop-in CSS kit; chrome is hand-drawn the
+       same way gb/ is. Screens swap via hidden, like nes/ and gb/. -->
+  <div class="gg-shell" id="gg-shell">
+    <div class="gg-body">
+      <div class="gg-bezel">
+        <div class="gg-lcd" id="gg-lcd">
+          <div class="gg-screen gg-boot" id="boot-screen" hidden>
+            <h1 class="boot-drop">OQ!</h1>
+            <p class="boot-tag">COLOR</p>
+          </div>
+          <div class="gg-screen" id="title-screen">
+            <p class="title-copy">retr-oq</p>
+            <h1 class="title-logo">OQ!</h1>
+            <p class="title-sub">KALAALLISUT<br />DICTIONARY</p>
+            <p class="press-start" id="press-start">PRESS START</p>
+            <p class="title-copy title-copy-bottom">© 1990 OQAASILERIFFIK</p>
+          </div>
+
+          <div class="gg-screen" id="menu-screen" hidden>
+            <p class="screen-heading">SELECT</p>
+            <ul class="menu-list" id="menu-list">
+              <li><button type="button" class="menu-item is-selected" data-screen="oq" id="menu-oq"><span class="menu-cursor" aria-hidden="true">></span> OQ!</button></li>
+              <li><button type="button" class="menu-item" data-screen="decon" id="menu-decon"><span class="menu-cursor" aria-hidden="true">></span> DECON</button></li>
+              <li><button type="button" class="menu-item" data-screen="about" id="menu-about"><span class="menu-cursor" aria-hidden="true">></span> ABOUT</button></li>
+              <li><button type="button" class="menu-item" data-screen="quit" id="menu-quit"><span class="menu-cursor" aria-hidden="true">></span> QUIT</button></li>
+            </ul>
+            <p class="hint">D-PAD=CYCLE  START=CHOOSE  1=TITLE</p>
+          </div>
+
+          <div class="gg-screen gg-screen-app" id="oq-screen" hidden>
+            <p class="screen-heading">OQ!</p>
+            <label class="gg-field" for="oq-filter">SEARCH</label>
+            <input type="text" id="oq-filter" class="gg-input" placeholder="TYPE A WORD..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+            <p class="oq-status" id="oq-status"></p>
+            <div class="oq-results" id="oq-results" role="listbox" aria-label="Dictionary results"></div>
+            <p class="oq-attribution">
+              <a id="oq-attribution" href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer"></a>
+            </p>
+            <p class="hint">D-PAD=MOVE  1=MENU</p>
+          </div>
+
+          <div class="gg-screen gg-screen-app" id="decon-screen" hidden>
+            <p class="screen-heading">DECON</p>
+            <label class="gg-field" for="decon-word">WORD</label>
+            <input type="text" id="decon-word" class="gg-input" placeholder="TYPE, THEN 2..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+            <label class="decon-order">
+              <input type="checkbox" id="decon-root-first" checked />
+              <span>ROOT FIRST</span>
+            </label>
+            <p class="oq-status" id="decon-status"></p>
+            <div class="decon-results" id="decon-results"></div>
+            <p class="hint">2=ANALYZE  1=MENU</p>
+          </div>
+
+          <div class="gg-screen" id="about-screen" hidden>
+            <p class="screen-heading">ABOUT</p>
+            <p class="about-copy">
+              OQ! is a Kalaallisut dictionary in a color handheld.
+              DECON splits a word into its morphemes.
+            </p>
+            <p class="hint">A retr-oq theme.<br />1=MENU</p>
+          </div>
+
+          <div class="gg-screen" id="gameover-screen" hidden>
+            <p class="gameover-title">GAME OVER</p>
+            <p class="screen-heading">CONTINUE?</p>
+            <ul class="menu-list" id="gameover-list">
+              <li><button type="button" class="menu-item is-selected" data-continue="yes" id="continue-yes"><span class="menu-cursor" aria-hidden="true">></span> CONTINUE</button></li>
+              <li><button type="button" class="menu-item" data-continue="no" id="continue-no"><span class="menu-cursor" aria-hidden="true">></span> GIVE UP</button></li>
+            </ul>
+            <p class="title-copy">30 LIVES REMAINING</p>
+          </div>
+
+          <div class="gg-pixels" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="gg-controls" id="gg-controller">
+        <div class="pad-dpad" role="group" aria-label="D-pad">
+          <span class="pad-plus-v" aria-hidden="true"></span>
+          <span class="pad-plus-h" aria-hidden="true"></span>
+          <span class="pad-plus-nub" aria-hidden="true"></span>
+          <button type="button" class="pad-btn pad-up" data-input="up" aria-label="Up"></button>
+          <button type="button" class="pad-btn pad-left" data-input="left" aria-label="Left"></button>
+          <button type="button" class="pad-btn pad-right" data-input="right" aria-label="Right"></button>
+          <button type="button" class="pad-btn pad-down" data-input="down" aria-label="Down"></button>
+        </div>
+        <div class="gg-mid">
+          <span class="gg-brand">COLOR GEAR</span>
+          <button type="button" class="pad-pill" data-input="start" aria-label="Start">START</button>
+        </div>
+        <div class="pad-face" role="group" aria-label="Action buttons">
+          <button type="button" class="pad-round pad-2" data-input="a" aria-label="2"><span>2</span></button>
+          <button type="button" class="pad-round pad-1" data-input="b" aria-label="1"><span>1</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="../shared/dict-source.js?v=1"></script>
+<script src="../shared/hyphenation.js?v=1"></script>
+<script src="../shared/router.js?v=1"></script>
+<script type="module" src="../shared/oq-analysis.js?v=11"></script>
+<script src="../shared/decon-app.js?v=4"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>

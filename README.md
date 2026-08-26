@@ -21,6 +21,8 @@ Each theme hosts OQ! / DECON via `shared/` (`?screen=oq&filter=`).
 | 1985 | [`nes/`](nes/) | Title → file select → OQ!. [NES.css](https://github.com/nostalgic-css/NES.css); Web Audio APU |
 | 1988 | [`amiga/`](amiga/) | Workbench 1.3. Four-pen chrome, OCS art, TopazPlus |
 | 1989 | [`gb/`](gb/) | DMG-01 brick. Hand-drawn; Press Start 2P from `vendor/nes/` |
+| 1990 | [`gg/`](gg/) | Game Gear. Landscape color LCD. Hand-drawn; 1/2, no Select |
+| 1991 | [`snes/`](snes/) | Super NES living-room. Hand-drawn; four-color pad, Web Audio |
 | 1992 | [`win31/`](win31/) | Program Manager. Redmond WM; no Start, no X |
 | 1995 | [`next/`](next/) | NeXTSTEP 3.3 Workspace. Four grays, dock, TeX Gyre Heros |
 | 1998 | [`mac8/`](mac8/) | Mac OS 8.1 Platinum. [`classic.css`](https://github.com/npjg/classic.css) |
@@ -35,7 +37,7 @@ Not yet: modern macOS, Norton Commander.
 `decon-app.js`, `redmond/window-manager.js` (win31/98/XP/7).
 
 **`vendor/<theme>/`** — upstream dist + LICENSE, not SCSS sources.
-**`tests/`** — Playwright/pytest for `win98/`, `nes/`, `gb/`.
+**`tests/`** — Playwright/pytest for `win98/`, `nes/`, `gb/`, `snes/`, `gg/`.
 
 ## License
 

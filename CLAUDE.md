@@ -44,7 +44,7 @@ Don't mix window managers across families.
 | Mac-lineage | `mac1984/` `mac8/` `amiga/` | each theme's own `app.js` — do not share |
 | Own WM | `next/` `kde/` | each theme's own `app.js` — not Redmond |
 | Text mode | `dos/` `c64/` | no overlapping windows; full-screen takeovers |
-| Console | `nes/` `gb/` | one screen, one `handleInput()` |
+| Console | `nes/` `gb/` `snes/` `gg/` | one screen, one `handleInput()` |
 
 ## `shared/`
 
@@ -74,12 +74,14 @@ plus undocumented `DOOM`. `BUILD`/`DECON` in `DIR` are placeholders.
 `LOAD"NAME",8` then `RUN`. Hand-drawn chrome; C64 Pro Mono at
 `vendor/c64/fonts/`.
 
-**`nes/` / `gb/`** — Console, not a desktop: no floating windows.
+**`nes/` / `gb/` / `snes/` / `gg/`** — Console, not a desktop: no floating windows.
 Keyboard and on-screen pad both call `handleInput()`. 16px inputs;
-`html.is-keyboard` hides the pad. NES audio is Web Audio pulse/triangle/
+`html.is-keyboard` hides the pad. NES/SNES audio is Web Audio pulse/triangle/
 noise — no samples, no Nintendo tunes; don't `setMusic(null)` just
-because the screen isn't the title. GB reuses Press Start 2P from
-`vendor/nes/fonts/`; the pad stays on the brick.
+because the screen isn't the title. GB and Game Gear reuse Press Start 2P from
+`vendor/nes/fonts/`; GB's pad stays on the brick, Game Gear is landscape
+(1/2, no Select — Tab still cycles). SNES is hand-drawn (no NES.css): four
+face buttons, L/R shoulders. X=A, Y=B, L=Select, R=Start.
 
 **`amiga/`** — Chrome is four Kickstart 1.3 pens (`#0055AA` white black
 `#FF8800`). Art (backdrop, icons, About, copper, Boing) is 12-bit OCS.
@@ -123,8 +125,8 @@ an open PR, say so in the description and check both actually reached
 
 ## Tests
 
-`tests/test_win98.py`, `test_nes.py`, `test_gb.py` run in GitHub
-Actions when those themes change.
+`tests/test_win98.py`, `test_nes.py`, `test_gb.py`, `test_snes.py`,
+`test_gg.py` run in GitHub Actions when those themes change.
 
 ```bash
 pip install -r tests/requirements.txt
