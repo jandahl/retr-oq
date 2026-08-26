@@ -113,10 +113,27 @@
       wordSoFar += opt.marker;
       if (opt.type === "suffix") {
         score += 10 * (stepIndex + 1);
-        return { outcome: "win", word: wordSoFar, resultGloss: puzzle.resultGloss, score };
+        // resultWord (the puzzle's verified real spelling) over the
+        // naively-concatenated wordSoFar -- Kalaallisut's epenthetic
+        // vowels mean the two can genuinely differ (angut+t is spelled
+        // "angutit", not "angutt"); fall back to wordSoFar only if a
+        // puzzle hasn't got one.
+        return { outcome: "win", word: puzzle.resultWord || wordSoFar, resultGloss: puzzle.resultGloss, score };
       }
       stepIndex += 1;
       return { outcome: "continue", word: wordSoFar };
+    }
+
+    /**
+     * The clock ran out on the current step without a pick -- same
+     * lives/game-over consequence as a wrong choose(), so the WarioWare
+     * pressure (a timer that can end the round) doesn't need its own
+     * separate life-tracking logic, just its own outcome label so the
+     * caller can show "TOO SLOW" instead of "NOT THERE".
+     */
+    function timeout() {
+      lives -= 1;
+      return { outcome: "timeout", lives, gameOver: lives <= 0 };
     }
 
     /** Re-presents the current step (reshuffled) after a wrong pick. */
@@ -138,7 +155,7 @@
       return { lives, score, word: wordSoFar };
     }
 
-    return { start, choose, retryStep, advanceStep, advancePuzzle, getState };
+    return { start, choose, timeout, retryStep, advanceStep, advancePuzzle, getState };
   }
 
   window.OqMorphGame = { createGame };
