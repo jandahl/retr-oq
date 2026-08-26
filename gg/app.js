@@ -4,9 +4,10 @@
   // Plain classic script sharing state via window.<Namespace> globals, same
   // convention as gb/app.js -- see CLAUDE.md. The chrome is hand-drawn
   // Game Gear plastic (no vendored kit); this file is the "game" the same way
-  // nes/app.js is: which screen is up, D-pad focus, OQ!/DECON. Real hardware
-  // labeled the face buttons 1 and 2 -- markup maps 2→A and 1→B so Enter
-  // still confirms.
+  // nes/app.js is: which screen is up, D-pad focus, OQ!/DECON. Hardware is a
+  // pocket Master System, not a color DMG: same Z80 + SN76489 family as the
+  // living-room deck. Face buttons are labeled 1 and 2 -- markup maps 2→A
+  // and 1→B so Enter still confirms.
   const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
   const { syllabify } = window.OqHyphenation;
   const { getStoredRootFirst, setStoredRootFirst, createController } = window.OqDecon;
@@ -114,9 +115,9 @@
     return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
   }
 
-  // Square-wave bloops. The Game Gear PSG was SN76489 pulse + noise --
-  // same trick as gb/, no sample pack. Silent until the first pad/key
-  // gesture; typing in SEARCH/WORD is silent on purpose.
+  // Square-wave bloops. Game Gear's PSG is the Master System SN76489:
+  // three pulse channels + noise. Not the GB's two pulse + wave. Silent
+  // until the first pad/key gesture; typing in SEARCH/WORD is silent.
   let audioCtx = null;
   function unlockAudio() {
     try {
@@ -142,6 +143,21 @@
     osc.start(when);
     osc.stop(when + dur + 0.02);
   }
+  function noise(when, dur, gain) {
+    if (!audioCtx) return;
+    const length = Math.max(1, Math.floor(audioCtx.sampleRate * dur));
+    const buffer = audioCtx.createBuffer(1, length, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+    const src = audioCtx.createBufferSource();
+    const g = audioCtx.createGain();
+    src.buffer = buffer;
+    g.gain.setValueAtTime(gain, when);
+    g.gain.exponentialRampToValueAtTime(0.001, when + dur);
+    src.connect(g);
+    g.connect(audioCtx.destination);
+    src.start(when);
+  }
   function sfx(kind) {
     const ctx = unlockAudio();
     if (!ctx) return;
@@ -160,11 +176,15 @@
       tone(523.25, t + 0.07, 0.06, vol);
       tone(659.25, t + 0.14, 0.11, vol);
     } else if (kind === "boot") {
-      // Rising fifths across a short stereo ping, not a licensed jingle.
-      tone(196, t, 0.1, vol);
-      tone(294, t + 0.11, 0.1, vol);
-      tone(392, t + 0.22, 0.12, vol);
-      tone(587, t + 0.36, 0.28, vol * 1.15);
+      // Three-voice PSG fanfare + noise, not a licensed BIOS jingle.
+      tone(196, t, 0.18, vol);
+      tone(247, t, 0.18, vol * 0.7);
+      tone(294, t, 0.18, vol * 0.55);
+      tone(392, t + 0.18, 0.22, vol);
+      tone(494, t + 0.18, 0.22, vol * 0.7);
+      tone(587, t + 0.4, 0.32, vol * 1.1);
+      tone(784, t + 0.4, 0.32, vol * 0.6);
+      noise(t + 0.38, 0.12, vol * 0.35);
     } else if (kind === "konami") {
       [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, t + i * 0.07, 0.09, vol));
     }
@@ -327,7 +347,7 @@
     deconController.reset();
     showScreen("decon");
     deconWord.value = initialWord;
-    deconStatus.textContent = "TYPE A WORD, PRESS A.";
+    deconStatus.textContent = "TYPE A WORD, PRESS 2.";
     deconWord.focus();
     if (initialWord.trim()) await deconController.search(initialWord);
   }
@@ -571,7 +591,7 @@
     handleInput(action);
   });
 
-  document.getElementById("gg-controller").addEventListener("pointerdown", (event) => {
+  document.querySelector(".gg-body").addEventListener("pointerdown", (event) => {
     const btn = event.target.closest("[data-input]");
     if (!btn) return;
     event.preventDefault();
