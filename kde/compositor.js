@@ -35,7 +35,9 @@
   }
 
   const canvas = document.getElementById("compositor");
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { alpha: true });
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = "high";
   let dpr = 1;
   let raf = 0;
   let fx = null; // active window effect (canvas mesh)
@@ -142,20 +144,36 @@
     return mesh.verts[j * (mesh.cols + 1) + i];
   }
 
-  // Jacobi spring step. In-place Gauss-Seidel was injecting energy via a
-  // left-to-right wave, so settle never dropped below the threshold.
+  // Distance springs (not axis-aligned). The old (q.x + cellW - p.x)
+  // neighbor term fought shear, so the mesh stayed a rectangle with
+  // corners yanked on straight lines. Compiz is a jelly sheet: edges
+  // keep length, diagonals keep the face from folding, rest pose
+  // slowly restores the window rect.
+  let springFx = new Float64Array(0);
+  let springFy = new Float64Array(0);
+
   function stepSprings(mesh, originX, originY, extra) {
     const { cols, rows, w, h, verts } = mesh;
-    const k = extra && extra.k != null ? extra.k : 0.16;
-    const damp = extra && extra.damp != null ? extra.damp : 0.86;
-    const nK = extra && extra.nK != null ? extra.nK : 0.1;
+    const k = extra && extra.k != null ? extra.k : 0.07;
+    const damp = extra && extra.damp != null ? extra.damp : 0.91;
+    const nK = extra && extra.nK != null ? extra.nK : 0.22;
+    const dK = extra && extra.dK != null ? extra.dK : nK * 0.45;
     const cellW = w / cols;
     const cellH = h / rows;
-    const fxBuf = new Float64Array(verts.length);
-    const fyBuf = new Float64Array(verts.length);
+    const diag = Math.hypot(cellW, cellH);
+    const n = verts.length;
+    if (springFx.length !== n) {
+      springFx = new Float64Array(n);
+      springFy = new Float64Array(n);
+    } else {
+      springFx.fill(0);
+      springFy.fill(0);
+    }
+    const stride = cols + 1;
+
     for (let j = 0; j <= rows; j++) {
       for (let i = 0; i <= cols; i++) {
-        const idx = j * (cols + 1) + i;
+        const idx = j * stride + i;
         const p = verts[idx];
         let restX = originX + p.u * w;
         let restY = originY + p.v * h;
@@ -165,36 +183,44 @@
           restX += (extra.tx - restX) * along;
           restY += (extra.ty - restY) * along;
         }
-        let fxx = (restX - p.x) * k;
-        let fyy = (restY - p.y) * k;
-        if (i > 0) {
-          const q = verts[idx - 1];
-          fxx += (q.x + cellW - p.x) * nK;
-          fyy += (q.y - p.y) * nK;
-        }
-        if (i < cols) {
-          const q = verts[idx + 1];
-          fxx += (q.x - cellW - p.x) * nK;
-          fyy += (q.y - p.y) * nK;
-        }
-        if (j > 0) {
-          const q = verts[idx - (cols + 1)];
-          fxx += (q.x - p.x) * nK;
-          fyy += (q.y + cellH - p.y) * nK;
-        }
-        if (j < rows) {
-          const q = verts[idx + (cols + 1)];
-          fxx += (q.x - p.x) * nK;
-          fyy += (q.y - cellH - p.y) * nK;
-        }
-        fxBuf[idx] = fxx;
-        fyBuf[idx] = fyy;
+        springFx[idx] += (restX - p.x) * k;
+        springFy[idx] += (restY - p.y) * k;
       }
     }
-    for (let n = 0; n < verts.length; n++) {
-      const p = verts[n];
-      p.vx = (p.vx + fxBuf[n]) * damp;
-      p.vy = (p.vy + fyBuf[n]) * damp;
+
+    function edge(ia, ib, rest, stiff) {
+      const pa = verts[ia];
+      const pb = verts[ib];
+      const dx = pb.x - pa.x;
+      const dy = pb.y - pa.y;
+      const len = Math.hypot(dx, dy) || rest;
+      const f = ((len - rest) * stiff) / len;
+      const fxv = dx * f;
+      const fyv = dy * f;
+      springFx[ia] += fxv;
+      springFy[ia] += fyv;
+      springFx[ib] -= fxv;
+      springFy[ib] -= fyv;
+    }
+
+    for (let j = 0; j <= rows; j++) {
+      for (let i = 0; i < cols; i++) edge(j * stride + i, j * stride + i + 1, cellW, nK);
+    }
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i <= cols; i++) edge(j * stride + i, (j + 1) * stride + i, cellH, nK);
+    }
+    for (let j = 0; j < rows; j++) {
+      for (let i = 0; i < cols; i++) {
+        const a = j * stride + i;
+        edge(a, a + stride + 1, diag, dK);
+        edge(a + 1, a + stride, diag, dK);
+      }
+    }
+
+    for (let i = 0; i < n; i++) {
+      const p = verts[i];
+      p.vx = (p.vx + springFx[i]) * damp;
+      p.vy = (p.vy + springFy[i]) * damp;
       p.x += p.vx;
       p.y += p.vy;
     }
@@ -209,6 +235,48 @@
   function cellBurnAt(i, j, cols, rows) {
     const edge = Math.min(i / cols, 1 - i / cols, j / rows, 1 - j / rows) * 2;
     return edge * 0.78 + hash2(i, j) * 0.32;
+  }
+
+  // Affine-map a textured triangle. Each mesh cell is two of these so all
+  // four vertices count — a parallelogram (3 verts) is what made the
+  // wobble look like corners on rubber bands.
+  function drawTexTriangle(img, x0, y0, x1, y1, x2, y2, u0, v0, u1, v1, u2, v2) {
+    x0 *= dpr;
+    y0 *= dpr;
+    x1 *= dpr;
+    y1 *= dpr;
+    x2 *= dpr;
+    y2 *= dpr;
+    const det = u0 * (v1 - v2) + u1 * (v2 - v0) + u2 * (v0 - v1);
+    if (Math.abs(det) < 1e-4) return;
+    const a = (x0 * (v1 - v2) + x1 * (v2 - v0) + x2 * (v0 - v1)) / det;
+    const b = (y0 * (v1 - v2) + y1 * (v2 - v0) + y2 * (v0 - v1)) / det;
+    const c = (x0 * (u2 - u1) + x1 * (u0 - u2) + x2 * (u1 - u0)) / det;
+    const d = (y0 * (u2 - u1) + y1 * (u0 - u2) + y2 * (u1 - u0)) / det;
+    const e = (x0 * (u1 * v2 - u2 * v1) + x1 * (u2 * v0 - u0 * v2) + x2 * (u0 * v1 - u1 * v0)) / det;
+    const f = (y0 * (u1 * v2 - u2 * v1) + y1 * (u2 * v0 - u0 * v2) + y2 * (u0 * v1 - u1 * v0)) / det;
+    // Inflate the clip a fraction of a pixel so adjacent triangles don't gap.
+    const cx = (x0 + x1 + x2) / 3;
+    const cy = (y0 + y1 + y2) / 3;
+    function out(x, y) {
+      const dx = x - cx;
+      const dy = y - cy;
+      const len = Math.hypot(dx, dy) || 1;
+      return [x + (dx / len) * dpr, y + (dy / len) * dpr];
+    }
+    const p0 = out(x0, y0);
+    const p1 = out(x1, y1);
+    const p2 = out(x2, y2);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(p0[0], p0[1]);
+    ctx.lineTo(p1[0], p1[1]);
+    ctx.lineTo(p2[0], p2[1]);
+    ctx.closePath();
+    ctx.clip();
+    ctx.setTransform(a, b, c, d, e, f);
+    ctx.drawImage(img, 0, 0);
+    ctx.restore();
   }
 
   function drawMesh(img, mesh, opt) {
@@ -252,30 +320,34 @@
         const a = vert(mesh, i, j);
         const b = vert(mesh, i + 1, j);
         const c = vert(mesh, i, j + 1);
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const ex = c.x - a.x;
-        const ey = c.y - a.y;
-        ctx.save();
-        ctx.setTransform(
-          (dx * dpr) / sw,
-          (dy * dpr) / sw,
-          (ex * dpr) / sh,
-          (ey * dpr) / sh,
-          a.x * dpr,
-          a.y * dpr,
-        );
+        const d = vert(mesh, i + 1, j + 1);
         if (burnT != null && burnAt < burnT + 0.16) {
           const f = (burnAt - burnT) / 0.16;
           ctx.fillStyle =
             f > 0.55
               ? `rgba(255, ${Math.floor(170 + f * 80)}, ${Math.floor(30 + f * 40)}, 0.95)`
               : "rgba(255, 70, 0, 0.92)";
-          ctx.fillRect(0, 0, sw, sh);
+          ctx.beginPath();
+          ctx.moveTo(a.x * dpr, a.y * dpr);
+          ctx.lineTo(b.x * dpr, b.y * dpr);
+          ctx.lineTo(d.x * dpr, d.y * dpr);
+          ctx.lineTo(c.x * dpr, c.y * dpr);
+          ctx.closePath();
+          ctx.fill();
         } else {
-          ctx.drawImage(img, i * sw, j * sh, sw, sh, 0, 0, sw, sh);
+          const sx = i * sw;
+          const sy = j * sh;
+          drawTexTriangle(
+            img,
+            a.x, a.y, b.x, b.y, c.x, c.y,
+            sx, sy, sx + sw, sy, sx, sy + sh,
+          );
+          drawTexTriangle(
+            img,
+            d.x, d.y, c.x, c.y, b.x, b.y,
+            sx + sw, sy + sh, sx, sy + sh, sx + sw, sy,
+          );
         }
-        ctx.restore();
         if (burnT != null && burnAt >= burnT && burnAt < burnT + 0.16 && Math.random() < 0.22) {
           sparks.push({
             x: a.x + cssCellW * 0.5,
@@ -417,7 +489,8 @@
     if (fx) {
       fx.age = (fx.age || 0) + 1;
       if (fx.kind === "wobble") {
-        stepSprings(fx.mesh, fx.originX, fx.originY);
+        stepSprings(fx.mesh, fx.originX, fx.originY, { k: 0.055, damp: 0.92, nK: 0.24, dK: 0.1 });
+        stepSprings(fx.mesh, fx.originX, fx.originY, { k: 0.055, damp: 0.92, nK: 0.24, dK: 0.1 });
         drawMesh(fx.img, fx.mesh);
       } else if (fx.kind === "burn") {
         fx.burnT += 0.038;
@@ -439,9 +512,9 @@
         ctx.globalAlpha = 1;
         if (fx.lampT >= 1.12 || fx.age > 48) finishFx();
       } else if (fx.kind === "settle") {
-        stepSprings(fx.mesh, fx.originX, fx.originY, { k: 0.42, damp: 0.58, nK: 0.08 });
+        stepSprings(fx.mesh, fx.originX, fx.originY, { k: 0.22, damp: 0.78, nK: 0.16, dK: 0.07 });
         drawMesh(fx.img, fx.mesh);
-        if (energy(fx.mesh) < 0.18 || fx.age > 28) finishFx();
+        if (energy(fx.mesh) < 0.22 || fx.age > 36) finishFx();
       }
     } else {
       drawSparks();
@@ -466,8 +539,8 @@
 
   function gridFor() {
     const coarse = isCoarse();
-    const cols = coarse ? 10 : 16;
-    const rows = coarse ? 7 : 10;
+    const cols = coarse ? 10 : 20;
+    const rows = coarse ? 7 : 13;
     return { cols, rows };
   }
 
@@ -487,11 +560,17 @@
     const { w, h } = fx.mesh;
     const gx = w ? fx.grabOffX / w : 0;
     const gy = h ? fx.grabOffY / h : 0;
+    // Pin the grab neighbourhood to the cursor; the far edge stays put
+    // this frame and the springs catch up — that's the jelly. Title-bar
+    // grabs fall off slower horizontally so the whole top comes along.
     for (const p of fx.mesh.verts) {
-      const dist = Math.hypot(p.u - gx, p.v - gy);
-      const fall = Math.max(0, 1 - dist * 1.15);
-      p.vx += dx * 0.5 * fall;
-      p.vy += dy * 0.5 * fall;
+      const dist = Math.hypot((p.u - gx) * 0.95, (p.v - gy) * 1.35);
+      const pin = Math.max(0, 1 - dist);
+      const pin2 = pin * pin;
+      p.x += dx * (0.2 + 0.8 * pin2);
+      p.y += dy * (0.2 + 0.8 * pin2);
+      p.vx += dx * 0.65 * pin2;
+      p.vy += dy * 0.65 * pin2;
     }
   }
 

@@ -217,7 +217,7 @@
       const dx = event.clientX - startX;
       const dy = event.clientY - startY;
       if (!dragging) {
-        const thresh = event.pointerType === "mouse" ? 4 : 8;
+        const thresh = event.pointerType === "mouse" ? 2 : 8;
         if (dx * dx + dy * dy < thresh * thresh) return;
         dragging = true;
         if (!Compiz.reduceMotion()) {
