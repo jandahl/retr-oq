@@ -15,11 +15,12 @@
     menu: document.getElementById("menu-screen"),
     oq: document.getElementById("oq-screen"),
     decon: document.getElementById("decon-screen"),
+    morph: document.getElementById("morph-screen"),
     about: document.getElementById("about-screen"),
     gameover: document.getElementById("gameover-screen"),
   };
 
-  const MENU_ORDER = ["oq", "decon", "about", "quit"];
+  const MENU_ORDER = ["oq", "decon", "morph", "about", "quit"];
   const menuButtons = MENU_ORDER.map((id) => document.getElementById(`menu-${id}`));
   const continueYes = document.getElementById("continue-yes");
   const continueNo = document.getElementById("continue-no");
@@ -94,6 +95,10 @@
       window.OqRouter.navigate({ screen: "decon", word: null, filter: null });
       return;
     }
+    if (id === "morph") {
+      window.OqRouter.navigate({ screen: "morph", filter: null, word: null });
+      return;
+    }
     if (id === "about") {
       window.OqRouter.navigate({ screen: "about", filter: null, word: null });
     }
@@ -165,6 +170,13 @@
       tone(440, t + 0.4, 0.3, vol * 1.15);
     } else if (kind === "konami") {
       [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, t + i * 0.07, 0.09, vol));
+    } else if (kind === "shock") {
+      // A harsh detuned buzz for the wrong-morpheme jolt -- distinct from
+      // "back" (which is a calm two-note descend), this one clashes.
+      tone(110, t, 0.09, vol * 1.3);
+      tone(98, t + 0.02, 0.11, vol * 1.1);
+    } else if (kind === "roundwin") {
+      [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, i) => tone(f, t + i * 0.06, 0.1, vol));
     }
   }
 
@@ -334,6 +346,148 @@
     deconController.abort();
   }
 
+  // ---------- MORPH! (WarioWare-style morpheme minigame) ----------
+  const morphLives = document.getElementById("morph-lives");
+  const morphScoreEl = document.getElementById("morph-score");
+  const morphSprite = document.getElementById("morph-sprite");
+  const morphMouth = document.getElementById("morph-mouth");
+  const morphWordEl = document.getElementById("morph-word");
+  const morphStatusEl = document.getElementById("morph-status");
+  const morphOptionsEl = document.getElementById("morph-options");
+
+  const MORPH_START_LIVES = 3;
+  let morphQueue = []; // shuffled remaining puzzle indices, refilled when empty
+  let morphPuzzle = null;
+  let morphStepIndex = 0;
+  let morphWordSoFar = "";
+  let morphLivesLeft = MORPH_START_LIVES;
+  let morphScore = 0;
+  let morphOptions = [];
+  let morphSelected = 0;
+  let morphBusy = false; // true during the brief shock/win pause -- input ignored
+
+  function shuffled(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function nextMorphPuzzle() {
+    const { puzzles } = window.OqMorphGame;
+    if (morphQueue.length === 0) morphQueue = shuffled(puzzles.map((_, i) => i));
+    return puzzles[morphQueue.pop()];
+  }
+
+  function renderMorphHud() {
+    morphLives.textContent = "♥".repeat(morphLivesLeft) + "♡".repeat(MORPH_START_LIVES - morphLivesLeft);
+    morphScoreEl.textContent = `SCORE ${morphScore}`;
+  }
+
+  function renderMorphOptions() {
+    morphOptionsEl.textContent = "";
+    morphOptions.forEach((opt, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "morph-option" + (i === morphSelected ? " is-selected" : "");
+      btn.setAttribute("role", "option");
+      btn.setAttribute("aria-selected", i === morphSelected ? "true" : "false");
+      btn.textContent = `-${opt.marker}`;
+      btn.addEventListener("click", () => {
+        morphSelected = i;
+        highlightMorphOptions();
+        chooseMorphOption();
+      });
+      morphOptionsEl.appendChild(btn);
+    });
+    highlightMorphOptions();
+  }
+
+  function highlightMorphOptions() {
+    const nodes = morphOptionsEl.querySelectorAll(".morph-option");
+    nodes.forEach((node, i) => node.classList.toggle("is-selected", i === morphSelected));
+  }
+
+  function startMorphStep() {
+    const step = morphPuzzle.steps[morphStepIndex];
+    morphOptions = shuffled([{ ...step.correct, isCorrect: true }, ...step.wrong.map((w) => ({ ...w, isCorrect: false }))]);
+    morphSelected = 0;
+    morphSprite.classList.remove("is-shocked", "is-happy");
+    morphMouth.className = "morph-mouth";
+    morphWordEl.textContent = syllabify(morphWordSoFar) + "-";
+    morphStatusEl.textContent = step.correct.type === "suffix" ? "PICK THE ENDING." : "PICK THE NEXT AFFIX.";
+    renderMorphOptions();
+  }
+
+  function startMorphPuzzle() {
+    morphPuzzle = nextMorphPuzzle();
+    morphStepIndex = 0;
+    morphWordSoFar = morphPuzzle.root;
+    startMorphStep();
+  }
+
+  function launchMorph() {
+    showScreen("morph");
+    morphLivesLeft = MORPH_START_LIVES;
+    morphScore = 0;
+    morphBusy = false;
+    renderMorphHud();
+    startMorphPuzzle();
+  }
+
+  function chooseMorphOption() {
+    if (morphBusy || morphOptions.length === 0) return;
+    const opt = morphOptions[morphSelected];
+    morphBusy = true;
+    if (!opt.isCorrect) {
+      sfx("shock");
+      morphLivesLeft -= 1;
+      renderMorphHud();
+      morphSprite.classList.add("is-shocked");
+      morphMouth.className = "morph-mouth is-shocked";
+      morphStatusEl.textContent = `NOT THERE -- ${opt.gloss}`;
+      setTimeout(() => {
+        morphBusy = false;
+        if (morphLivesLeft <= 0) {
+          window.OqRouter.navigate({ screen: "gameover" });
+          return;
+        }
+        morphSprite.classList.remove("is-shocked");
+        startMorphStep();
+      }, 900);
+      return;
+    }
+    morphWordSoFar += opt.marker;
+    if (opt.type === "suffix") {
+      sfx("roundwin");
+      morphScore += 10 * (morphStepIndex + 1);
+      morphSprite.classList.add("is-happy");
+      morphMouth.className = "morph-mouth is-happy";
+      morphWordEl.textContent = syllabify(morphWordSoFar);
+      morphStatusEl.textContent = `${morphWordSoFar.toUpperCase()} -- ${morphPuzzle.resultGloss}`;
+      renderMorphHud();
+      setTimeout(() => {
+        morphBusy = false;
+        startMorphPuzzle();
+      }, 1100);
+      return;
+    }
+    sfx("ok");
+    morphStepIndex += 1;
+    setTimeout(() => {
+      morphBusy = false;
+      startMorphStep();
+    }, 350);
+  }
+
+  function moveMorphSelection(delta) {
+    if (morphOptions.length === 0) return;
+    morphSelected = (morphSelected + delta + morphOptions.length) % morphOptions.length;
+    highlightMorphOptions();
+  }
+
   // window.OqRouter owns "which screen is open", same reasoning as
   // dos/app.js -- every user-facing trigger (D-pad, A/B, click, the
   // on-screen pad) goes through navigate() instead of calling
@@ -389,6 +543,8 @@
         deconWord.value = params.get("word") || "";
         deconController.search(deconWord.value);
       }
+    } else if (dest === "morph") {
+      if (currentScreen !== "morph" || SCREENS.morph.hidden) launchMorph();
     } else if (dest === "menu" || dest === "about" || dest === "gameover" || dest === "title") {
       if (currentScreen === "decon") exitDecon();
       bootDone = true;
@@ -527,6 +683,19 @@
         window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
         deconController.search(deconWord.value);
       }
+      return;
+    }
+
+    if (currentScreen === "morph") {
+      if (action === "b") {
+        sfx("back");
+        goMenu();
+        return;
+      }
+      if (morphBusy) return;
+      if (action === "up") { sfx("move"); moveMorphSelection(-1); }
+      else if (action === "down") { sfx("move"); moveMorphSelection(1); }
+      else if (action === "a" || action === "start") { chooseMorphOption(); }
     }
   }
 

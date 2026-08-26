@@ -6,7 +6,7 @@
 <title>retr-oq — Game Boy prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=2" />
+<link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <!-- Original Game Boy (DMG-01), not a window manager and not the NES
@@ -41,6 +41,7 @@
             <ul class="menu-list" id="menu-list">
               <li><button type="button" class="menu-item is-selected" data-screen="oq" id="menu-oq"><span class="menu-cursor" aria-hidden="true">></span> OQ!</button></li>
               <li><button type="button" class="menu-item" data-screen="decon" id="menu-decon"><span class="menu-cursor" aria-hidden="true">></span> DECON</button></li>
+              <li><button type="button" class="menu-item" data-screen="morph" id="menu-morph"><span class="menu-cursor" aria-hidden="true">></span> MORPH!</button></li>
               <li><button type="button" class="menu-item" data-screen="about" id="menu-about"><span class="menu-cursor" aria-hidden="true">></span> ABOUT</button></li>
               <li><button type="button" class="menu-item" data-screen="quit" id="menu-quit"><span class="menu-cursor" aria-hidden="true">></span> QUIT</button></li>
             </ul>
@@ -70,6 +71,25 @@
             <p class="oq-status" id="decon-status"></p>
             <div class="decon-results" id="decon-results"></div>
             <p class="hint">A=ANALYZE  B=MENU</p>
+          </div>
+
+          <div class="gb-screen gb-screen-app" id="morph-screen" hidden>
+            <p class="screen-heading">MORPH!</p>
+            <div class="morph-hud">
+              <span class="morph-lives" id="morph-lives" aria-label="Lives"></span>
+              <span class="morph-score" id="morph-score">SCORE 0</span>
+            </div>
+            <div class="morph-sprite-well">
+              <div class="morph-sprite" id="morph-sprite" aria-hidden="true">
+                <span class="morph-eye morph-eye-l"></span>
+                <span class="morph-eye morph-eye-r"></span>
+                <span class="morph-mouth" id="morph-mouth"></span>
+              </div>
+            </div>
+            <p class="morph-word" id="morph-word"></p>
+            <p class="morph-status" id="morph-status"></p>
+            <div class="morph-options" id="morph-options" role="listbox" aria-label="Morpheme choices"></div>
+            <p class="hint">D-PAD=CHOOSE  A=CONFIRM  B=MENU</p>
           </div>
 
           <div class="gb-screen" id="about-screen" hidden>
@@ -128,6 +148,7 @@
 <script src="../shared/router.js?v=1"></script>
 <script type="module" src="../shared/oq-analysis.js?v=11"></script>
 <script src="../shared/decon-app.js?v=4"></script>
-<script src="app.js?v=2"></script>
+<script src="morph-data.js?v=1"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

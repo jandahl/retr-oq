@@ -174,4 +174,7 @@ def test_select_cycles_menu(page, base_url):
     assert "is-selected" in page.locator("#menu-decon").get_attribute("class")
     page.keyboard.press("Tab")
     page.wait_for_timeout(40)
+    assert "is-selected" in page.locator("#menu-morph").get_attribute("class")
+    page.keyboard.press("Tab")
+    page.wait_for_timeout(40)
     assert "is-selected" in page.locator("#menu-about").get_attribute("class")
