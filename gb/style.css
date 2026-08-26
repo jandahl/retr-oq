@@ -396,6 +396,15 @@ button:not(:disabled),
 /* MORPH! -- WarioWare-pace morpheme minigame. Simple graphics: a blocky
    sprite face built from CSS boxes (no art asset), simple square-wave
    stings (see app.js sfx()), simple two-state animation (shock/happy). */
+/* Bumped from the theme's base --gb-font-size (tuned for the dense OQ!/
+   DECON rows) to the largest size that still fits this screen's worst
+   case: the illu puzzle's first step, which has 3 options plus a
+   2-line "PICK THE NEXT AFFIX." status -- verified directly, not
+   guessed, since a size that only looks right on a lucky 2-option
+   puzzle would silently clip on this one. */
+#morph-screen {
+  font-size: clamp(14px, 5.2vw, 18px);
+}
 .morph-hud {
   display: flex;
   justify-content: space-between;
@@ -447,7 +456,13 @@ button:not(:disabled),
   top: 1.1em;
   width: 1.1em;
   height: 1.1em;
-  border-radius: 50%;
+  /* Square notch, not a circle -- same reasoning as .morph-option. */
+  clip-path: polygon(
+    3px 0, calc(100% - 3px) 0,
+    100% 3px, 100% calc(100% - 3px),
+    calc(100% - 3px) 100%, 3px 100%,
+    0 calc(100% - 3px), 0 3px
+  );
   background: var(--gb-lightest);
   overflow: hidden;
 }
@@ -460,7 +475,6 @@ button:not(:disabled),
   width: 0.5em;
   height: 0.5em;
   margin-left: -0.25em;
-  border-radius: 50%;
   background: var(--gb-darkest);
   transform: translateY(calc(var(--look-y, 0) * 0.62em));
   transition: transform 0.15s ease-out;
@@ -478,7 +492,7 @@ button:not(:disabled),
 }
 .morph-mouth.is-happy {
   height: 0.9em;
-  border-radius: 0 0 1.1em 1.1em;
+  clip-path: polygon(0 0, 100% 0, 100% 60%, calc(100% - 4px) 60%, calc(100% - 4px) 100%, 4px 100%, 4px 60%, 0 60%);
 }
 .morph-mouth.is-shocked {
   height: 0.6em;
@@ -525,9 +539,15 @@ button:not(:disabled),
   flex-direction: column;
   gap: 0.5em;
 }
-/* "Bubbles": a pill per option, big legible text -- this is what the
-   player has maybe a couple seconds to read and act on, so it needs to
-   read at a glance, not at the same density as the OQ!/DECON screens. */
+/* "Bubbles": a chamfered rect per option, big legible text -- this is what
+   the player has maybe a couple seconds to read and act on, so it needs
+   to read at a glance, not at the same density as the OQ!/DECON screens. */
+/* Chamfered corners on a fixed PIXEL cut (not %, not em) -- a real corner
+   notch, not border-radius faking roundness: border-radius draws a smooth
+   vector arc no matter what image-rendering hint you throw at it, so it
+   can never look like it's following a pixel grid. This clips the same
+   corner off regardless of the button's own size, matching how pixel-art
+   rounded rects actually work (a constant notch, not one that scales). */
 .morph-option {
   -webkit-appearance: none;
   appearance: none;
@@ -535,7 +555,12 @@ button:not(:disabled),
   width: 100%;
   background: var(--gb-light);
   border: 3px solid var(--gb-darkest);
-  border-radius: 999px;
+  clip-path: polygon(
+    8px 0, calc(100% - 8px) 0,
+    100% 8px, 100% calc(100% - 8px),
+    calc(100% - 8px) 100%, 8px 100%,
+    0 calc(100% - 8px), 0 8px
+  );
   color: var(--gb-darkest);
   font: inherit;
   font-size: 1.3em;
