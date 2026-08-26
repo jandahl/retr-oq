@@ -73,14 +73,7 @@
   function setMenuIndex(next) {
     const len = menuButtons.length;
     menuIndex = ((next % len) + len) % len;
-    menuButtons.forEach((btn, i) => {
-      const on = i === menuIndex;
-      btn.classList.toggle("is-selected", on);
-      // #menu-screen scrolls now (bigger text can outgrow a real mobile
-      // browser's chrome-shrunk viewport height) -- keep D-pad cycling
-      // able to reach an item currently scrolled out of view.
-      if (on) btn.scrollIntoView({ block: "nearest" });
-    });
+    menuButtons.forEach((btn, i) => btn.classList.toggle("is-selected", i === menuIndex));
   }
 
   function setContinueIndex(next) {
@@ -407,11 +400,6 @@
       const on = i === morphSelected;
       node.classList.toggle("is-selected", on);
       node.setAttribute("aria-selected", on ? "true" : "false");
-      // #morph-screen scrolls now (a real mobile browser's chrome can
-      // shrink the available height below what fits) -- D-pad selection
-      // has to be able to reach an option that's currently scrolled out
-      // of view, not just a mouse/touch scroll.
-      if (on) node.scrollIntoView({ block: "nearest" });
     });
     updateMorphGaze();
   }
@@ -419,17 +407,6 @@
   function stopMorphTimer() {
     if (morphTimerRaf) cancelAnimationFrame(morphTimerRaf);
     morphTimerRaf = 0;
-  }
-
-  // #morph-card lives outside #morph-screen in the DOM now (see
-  // gb/index.html's comment: it needs to anchor to the non-scrolling LCD,
-  // not #morph-screen's scrollable content), so hiding #morph-screen no
-  // longer automatically hides the card too -- leaving the screen while
-  // it's up (B during the win-card pause, say) needs to hide it explicitly
-  // or it would keep covering whatever screen the player navigated to.
-  function exitMorph() {
-    stopMorphTimer();
-    morphCard.hidden = true;
   }
 
   function startMorphTimer() {
@@ -632,12 +609,12 @@
       if (currentScreen !== "morph" || SCREENS.morph.hidden) launchMorph();
     } else if (dest === "menu" || dest === "about" || dest === "gameover" || dest === "title") {
       if (currentScreen === "decon") exitDecon();
-      if (currentScreen === "morph") exitMorph();
+      if (currentScreen === "morph") stopMorphTimer();
       bootDone = true;
       showScreen(dest);
     } else {
       if (currentScreen === "decon") exitDecon();
-      if (currentScreen === "morph") exitMorph();
+      if (currentScreen === "morph") stopMorphTimer();
       showScreen("title");
     }
   });

@@ -6,7 +6,7 @@
 <title>retr-oq — Game Boy prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=6" />
+<link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <!-- Original Game Boy (DMG-01), not a window manager and not the NES
@@ -91,17 +91,10 @@
             <p class="morph-status" id="morph-status"></p>
             <div class="morph-options" id="morph-options" role="listbox" aria-label="Morpheme choices"></div>
             <p class="hint">D-PAD=CHOOSE  A=CONFIRM  B=MENU</p>
-          </div>
-          <!-- A sibling of #morph-screen, not a child: #morph-screen scrolls
-               (a real mobile browser's chrome can shrink the available
-               height below what fits), but this overlay needs to cover the
-               actual visible LCD, not #morph-screen's full scrollable
-               content height -- as a child, its position:absolute insets
-               were resolving against the latter, leaving scrolled-past
-               option text peeking out from behind it. -->
-          <div class="morph-card" id="morph-card" hidden>
-            <p class="morph-card-word" id="morph-card-word"></p>
-            <p class="morph-card-meaning" id="morph-card-meaning"></p>
+            <div class="morph-card" id="morph-card" hidden>
+              <p class="morph-card-word" id="morph-card-word"></p>
+              <p class="morph-card-meaning" id="morph-card-meaning"></p>
+            </div>
           </div>
 
           <div class="gb-screen" id="about-screen" hidden>
@@ -162,6 +155,6 @@
 <script src="../shared/decon-app.js?v=4"></script>
 <script src="../shared/morph-game.js?v=1"></script>
 <script src="../shared/morph-puzzles.js?v=1"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>

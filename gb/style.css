@@ -125,6 +125,15 @@ button:not(:disabled),
   color: var(--gb-darkest);
   overflow: hidden;
   box-shadow: inset 0 0 0 3px var(--gb-light), inset 0 0 18px rgba(15, 56, 15, 0.28);
+  /* Query container for #morph-screen/#menu-screen's font-size: their
+     size already comes from the flex layout above, not their own
+     content, so container-type: size costs nothing here and lets those
+     screens scale text off the LCD's ACTUAL rendered height (cqh) --
+     which already reflects a real mobile browser's chrome eating into
+     --app-height -- instead of vw, which only reacts to width and stays
+     blind to vertical chrome eating the available height. */
+  container-type: size;
+  container-name: gb-lcd;
 }
 
 .gb-pixels {
@@ -233,13 +242,11 @@ button:not(:disabled),
   width: 100%;
 }
 
+/* Same cqh reasoning as #morph-screen -- scales with the LCD's actual
+   rendered height instead of vw, so it fits by construction instead of
+   overflowing on a real mobile browser's chrome-shrunk height. */
 #menu-screen {
-  font-size: calc(var(--gb-font-size) * 2);
-  /* Same lesson as #morph-screen: a real mobile browser's chrome can
-     shrink the available height below what a full-screen test shows, so
-     scroll rather than silently clip instead of trusting a fixed size to
-     always fit every device. */
-  overflow-y: auto;
+  font-size: clamp(14px, 3.6cqh, 22px);
 }
 .menu-list {
   list-style: none;
@@ -410,18 +417,15 @@ button:not(:disabled),
    2-line "PICK THE NEXT AFFIX." status -- verified directly, not
    guessed, since a size that only looks right on a lucky 2-option
    puzzle would silently clip on this one. */
+/* Sized off the LCD's own rendered height (container query units), not
+   vw -- vw only reacts to width, so it stayed the same size even when a
+   real mobile browser's chrome ate into the AVAILABLE height, silently
+   overflowing this screen's worst case (3 options + a 2-line status)
+   off the bottom on a real phone despite fitting every headless test.
+   cqh scales with the LCD's actual height, chrome included, so this
+   fits by construction instead of by guessing a viewport to test at. */
 #morph-screen {
-  font-size: clamp(14px, 5.2vw, 18px);
-  /* Safety net: a real mobile browser's own chrome (address bar, tab
-     strip) can shrink the AVAILABLE viewport height well below what a
-     full-screen headless browser test shows -- shared/app.js's own
-     syncAppHeight() already tracks that correctly via visualViewport,
-     but no fixed font-size/spacing tuning can promise it always fits
-     every real device's chrome state. Scroll, don't silently clip: the
-     .gb-screen base rule sets overflow:hidden, which would otherwise
-     make the lower options completely unreachable, not just uglier. */
-  overflow-y: auto;
-  overflow-x: hidden;
+  font-size: clamp(11px, 3.3cqh, 18px);
 }
 .morph-hud {
   display: flex;
