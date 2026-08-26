@@ -1,10 +1,17 @@
-// MORPH! puzzle set for the gb/ theme's minigame. Real morphemes, not
-// invented ones: every root/marker/gloss pair below was checked against
-// jandahl/oq's actual grammarian analysis engine (analyzeWordAsync via
-// public-api.js) rather than hand-guessed -- see the game plan discussion
-// for the probe method. TODO: this precomputation belongs in grammarian
-// itself eventually (a puzzle-set endpoint any theme could pull from), not
-// hand-picked here; this is the "start here, move it later" version.
+// Puzzle data for shared/morph-game.js's MORPH! engine -- not tied to gb/
+// or any theme: it's just real dictionary/grammar facts (a root, a chain of
+// morphemes, their glosses), the same kind of reusable, render-agnostic
+// data shared/dict-source.js already provides. Any theme wiring up the
+// minigame (gb/ today, a future console theme tomorrow) loads this before
+// its own app.js the same way it loads shared/morph-game.js.
+//
+// Real morphemes, not invented ones: every root/marker/gloss pair below was
+// checked against jandahl/oq's actual grammarian analysis engine
+// (analyzeWordAsync via public-api.js) rather than hand-guessed -- see the
+// game plan discussion for the probe method. TODO: this precomputation
+// belongs in grammarian itself eventually (a puzzle-set endpoint any theme
+// could pull from), not hand-picked here; this is the "start here, move it
+// later" version.
 //
 // Each puzzle is a chain: the player builds a real word one morpheme at a
 // time. Every step offers the correct next morpheme plus one or more real
@@ -82,5 +89,5 @@
     },
   ];
 
-  window.OqMorphGame = { puzzles };
+  window.OqMorphPuzzles = { puzzles };
 })();
