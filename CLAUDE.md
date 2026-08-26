@@ -225,6 +225,31 @@ Same console-not-desktop rules as `nes/` (one LCD at a time, one
 - **Font is TeX Gyre Heros** at `vendor/next/fonts/` (GFL, see
   `vendor/next/LICENSE`). Don't swap it for a system Helvetica.
 
+## `win31/` theme specifics
+
+- **Redmond family, 3.1 chrome.** Drag/resize/focus/min/max/close come
+  from `shared/redmond/window-manager.js` — same module `win98/` / `xp/`
+  / `win7/` use. Do not give 3.1 a Start button or a gray taskbar; the
+  shared WM's `taskbarWindows` slot is restyled as a minimized-icon
+  strip on the teal desktop (only `.is-minimized` buttons are visible).
+- **Program Manager is the shell.** It opens on boot. Closing it (Control-
+  menu > Close, or File > Exit Windows) ends the session (`../`), same
+  as a real 3.1 Exit Windows dialog. Group windows (Main / Accessories /
+  Games) are ordinary windows; don't special-case their close.
+- **No X button.** Title bar is Control-menu left, min/max right.
+  `.win-close` lives in the Control-menu so the shared WM can still
+  bind it. Double-clicking the Control-menu box closes, authentic 3.1.
+  Don't add a title-bar close button to "help" touch — the menu Close
+  item is already a 44px target on coarse pointers.
+- **No vendored 3.1 CSS framework.** Hand-rolled chrome, like `c64/` /
+  `gb/` / `amiga/`. Font is reused from `vendor/win98/fonts/` (MS Sans
+  Serif) — don't duplicate the woff files.
+- **Router owns OQ!/DECON.** Same rule as every other theme.
+- **Teddy-bear credits are undocumented** on purpose (Help > About, then
+  Ctrl+Shift-click the icon), same as `dos/`'s `DOOM` and `win98/`'s
+  Hot Dog Stand.
+- **Cache-bust `win31/index.html`'s `?v=N`.**
+
 ## Git workflow gotcha: stranded commits
 
 This repo's branch convention is "always restart the working branch from

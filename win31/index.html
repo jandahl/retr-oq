@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>retr-oq — Windows 3.1 Program Manager</title>
+<link rel="stylesheet" href="style.css?v=2" />
+</head>
+<body>
+  <!-- Windows 3.1 Program Manager prototype. The shell is Program
+       Manager, not a desktop-with-icons and not a Start/taskbar (those
+       arrived with 95). Chrome is hand-rolled to match
+       shared/redmond/window-manager.js's DOM so drag/resize/focus/min/
+       max/close can be reused; the "taskbar" slot is restyled as the
+       3.1 minimized-icon strip. Font reused from vendor/win98/.
+       Close a window via its Control-menu (left of the title) or by
+       double-clicking that box — there is no X. Closing Program
+       Manager ends the session (back to the theme picker). -->
+  <div class="desktop" id="desktop">
+
+    <section class="window win31-window" id="win-progman" data-icon="progman" style="top: 1.5rem; left: 1.5rem; width: 22rem; height: 16rem;">
+      <div class="title-bar">
+        <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
+        <div class="title-bar-text">Program Manager</div>
+        <div class="title-bar-controls">
+          <button type="button" aria-label="Minimize" class="win-minimize"></button>
+          <button type="button" aria-label="Maximize" class="win-maximize"></button>
+        </div>
+      </div>
+      <div class="window-body" style="display:flex;flex-direction:column;overflow:hidden;padding:0 2px 4px;">
+        <ul class="menubar" id="progman-menubar">
+          <li class="menu-root">
+            <button type="button">File</button>
+            <ul class="menu-drop" hidden>
+              <li><button type="button" disabled>New...</button></li>
+              <li><button type="button" disabled>Open</button></li>
+              <li><button type="button" disabled>Move</button></li>
+              <li><button type="button" disabled>Copy</button></li>
+              <li><button type="button" disabled>Delete</button></li>
+              <li><button type="button" disabled>Properties</button></li>
+              <li class="divider"></li>
+              <li><button type="button" disabled>Run...</button></li>
+              <li class="divider"></li>
+              <li><button type="button" id="menu-exit">Exit Windows...</button></li>
+            </ul>
+          </li>
+          <li class="menu-root">
+            <button type="button">Options</button>
+            <ul class="menu-drop" hidden>
+              <li><button type="button" disabled>Auto Arrange</button></li>
+              <li><button type="button" id="menu-min-on-use">Minimize on Use</button></li>
+              <li><button type="button" disabled>Save Settings on Exit</button></li>
+            </ul>
+          </li>
+          <li class="menu-root">
+            <button type="button">Window</button>
+            <ul class="menu-drop" hidden>
+              <li><button type="button" id="menu-cascade">Cascade</button></li>
+              <li><button type="button" id="menu-tile">Tile</button></li>
+              <li><button type="button" disabled>Arrange Icons</button></li>
+            </ul>
+          </li>
+          <li class="menu-root">
+            <button type="button">Help</button>
+            <ul class="menu-drop" hidden>
+              <li><button type="button" disabled>Contents</button></li>
+              <li><button type="button" disabled>Search for Help on...</button></li>
+              <li><button type="button" disabled>How to Use Help</button></li>
+              <li class="divider"></li>
+              <li><button type="button" id="menu-about">About Program Manager...</button></li>
+            </ul>
+          </li>
+        </ul>
+        <div class="group-icons">
+          <button type="button" class="prog-icon" data-open="win-group-main">
+            <span class="prog-icon-glyph icon-group" aria-hidden="true"></span>
+            <span class="prog-icon-label">Main</span>
+          </button>
+          <button type="button" class="prog-icon" data-open="win-group-acc">
+            <span class="prog-icon-glyph icon-group" aria-hidden="true"></span>
+            <span class="prog-icon-label">Accessories</span>
+          </button>
+          <button type="button" class="prog-icon" data-open="win-group-games">
+            <span class="prog-icon-glyph icon-group" aria-hidden="true"></span>
+            <span class="prog-icon-label">Games</span>
+          </button>
+        </div>
+      </div>
+      <ul class="sysmenu" hidden>
+        <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
+        <li><button type="button" disabled>Move</button></li>
+        <li><button type="button" disabled>Size</button></li>
+        <li><button type="button" class="sysmenu-min">Minimize</button></li>
+        <li><button type="button" class="sysmenu-max">Maximize</button></li>
+        <li class="sysmenu-divider"></li>
+        <li><button type="button" class="win-close">Close</button></li>
+      </ul>
+      <div class="win31-resize-handle win31-resize-n" data-dir="n"></div>
+      <div class="win31-resize-handle win31-resize-s" data-dir="s"></div>
+      <div class="win31-resize-handle win31-resize-e" data-dir="e"></div>
+      <div class="win31-resize-handle win31-resize-w" data-dir="w"></div>
+      <div class="win31-resize-handle win31-resize-ne" data-dir="ne"></div>
+      <div class="win31-resize-handle win31-resize-nw" data-dir="nw"></div>
+      <div class="win31-resize-handle win31-resize-se" data-dir="se"></div>
+      <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win31-window" id="win-group-main" data-icon="group" style="top: 3.5rem; left: 10rem; width: 18rem; height: 12rem;">
+      <div class="title-bar">
+        <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
+        <div class="title-bar-text">Main</div>
+        <div class="title-bar-controls">
+          <button type="button" aria-label="Minimize" class="win-minimize"></button>
+          <button type="button" aria-label="Maximize" class="win-maximize"></button>
+        </div>
+      </div>
+      <div class="window-body" style="padding:4px;">
+        <div class="group-icons">
+          <button type="button" class="prog-icon" data-open="win-oq">
+            <span class="prog-icon-glyph icon-oq" aria-hidden="true"></span>
+            <span class="prog-icon-label">OQ!</span>
+          </button>
+          <button type="button" class="prog-icon" data-open="win-decon">
+            <span class="prog-icon-glyph icon-decon" aria-hidden="true"></span>
+            <span class="prog-icon-label">DECON</span>
+          </button>
+        </div>
+      </div>
+      <ul class="sysmenu" hidden>
+        <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
+        <li><button type="button" disabled>Move</button></li>
+        <li><button type="button" disabled>Size</button></li>
+        <li><button type="button" class="sysmenu-min">Minimize</button></li>
+        <li><button type="button" class="sysmenu-max">Maximize</button></li>
+        <li class="sysmenu-divider"></li>
+        <li><button type="button" class="win-close">Close</button></li>
+      </ul>
+      <div class="win31-resize-handle win31-resize-n" data-dir="n"></div>
+      <div class="win31-resize-handle win31-resize-s" data-dir="s"></div>
+      <div class="win31-resize-handle win31-resize-e" data-dir="e"></div>
+      <div class="win31-resize-handle win31-resize-w" data-dir="w"></div>
+      <div class="win31-resize-handle win31-resize-ne" data-dir="ne"></div>
+      <div class="win31-resize-handle win31-resize-nw" data-dir="nw"></div>
+      <div class="win31-resize-handle win31-resize-se" data-dir="se"></div>
+      <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win31-window" id="win-group-acc" data-icon="group" style="top: 5rem; left: 12rem; width: 18rem; height: 12rem;">
+      <div class="title-bar">
+        <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
+        <div class="title-bar-text">Accessories</div>
+        <div class="title-bar-controls">
+          <button type="button" aria-label="Minimize" class="win-minimize"></button>
+          <button type="button" aria-label="Maximize" class="win-maximize"></button>
+        </div>
+      </div>
+      <div class="window-body" style="padding:4px;">
+        <div class="group-icons">
+          <button type="button" class="prog-icon" data-open="win-clock">
+            <span class="prog-icon-glyph icon-clock" aria-hidden="true"></span>
+            <span class="prog-icon-label">Clock</span>
+          </button>
+          <button type="button" class="prog-icon" id="acc-about">
+            <span class="prog-icon-glyph icon-about" aria-hidden="true"></span>
+            <span class="prog-icon-label">About retr-oq</span>
+          </button>
+        </div>
+      </div>
+      <ul class="sysmenu" hidden>
+        <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
+        <li><button type="button" disabled>Move</button></li>
+        <li><button type="button" disabled>Size</button></li>
+        <li><button type="button" class="sysmenu-min">Minimize</button></li>
+        <li><button type="button" class="sysmenu-max">Maximize</button></li>
+        <li class="sysmenu-divider"></li>
+        <li><button type="button" class="win-close">Close</button></li>
+      </ul>
+      <div class="win31-resize-handle win31-resize-n" data-dir="n"></div>
+      <div class="win31-resize-handle win31-resize-s" data-dir="s"></div>
+      <div class="win31-resize-handle win31-resize-e" data-dir="e"></div>
+      <div class="win31-resize-handle win31-resize-w" data-dir="w"></div>
+      <div class="win31-resize-handle win31-resize-ne" data-dir="ne"></div>
+      <div class="win31-resize-handle win31-resize-nw" data-dir="nw"></div>
+      <div class="win31-resize-handle win31-resize-se" data-dir="se"></div>
+      <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win31-window" id="win-group-games" data-icon="group" style="top: 6rem; left: 14rem; width: 16rem; height: 11rem;">
+      <div class="title-bar">
+        <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
+        <div class="title-bar-text">Games</div>
+        <div class="title-bar-controls">
+          <button type="button" aria-label="Minimize" class="win-minimize"></button>
+          <button type="button" aria-label="Maximize" class="win-maximize"></button>
+        </div>
+      </div>
+      <div class="window-body" style="padding:4px;">
+        <div class="group-icons">
+          <button type="button" class="prog-icon" data-open="win-solitaire">
+            <span class="prog-icon-glyph icon-solitaire" aria-hidden="true"></span>
+            <span class="prog-icon-label">Solitaire</span>
+          </button>
+        </div>
+      </div>
+      <ul class="sysmenu" hidden>
+        <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
+        <li><button type="button" disabled>Move</button></li>
+        <li><button type="button" disabled>Size</button></li>
+        <li><button type="button" class="sysmenu-min">Minimize</button></li>
+        <li><button type="button" class="sysmenu-max">Maximize</button></li>
+        <li class="sysmenu-divider"></li>
+        <li><button type="button" class="win-close">Close</button></li>
+      </ul>
+      <div class="win31-resize-handle win31-resize-n" data-dir="n"></div>
+      <div class="win31-resize-handle win31-resize-s" data-dir="s"></div>
+      <div class="win31-resize-handle win31-resize-e" data-dir="e"></div>
+      <div class="win31-resize-handle win31-resize-w" data-dir="w"></div>
+      <div class="win31-resize-handle win31-resize-ne" data-dir="ne"></div>
+      <div class="win31-resize-handle win31-resize-nw" data-dir="nw"></div>
+      <div class="win31-resize-handle win31-resize-se" data-dir="se"></div>
+      <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win31-window" id="win-oq" data-icon="oq" style="top: 2.5rem; left: 4rem; width: 28rem; height: 20rem;">
+      <div class="title-bar">
+        <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
+        <div class="title-bar-text">OQ!</div>
+        <div class="title-bar-controls">
+          <button type="button" aria-label="Minimize" class="win-minimize"></button>
+          <button type="button" aria-label="Maximize" class="win-maximize"></button>
+        </div>
+      </div>
+      <div class="window-body oq-body">
+        <div class="field-row oq-filter-row">
+          <input type="text" id="oq-filter" placeholder="Type to search..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <p class="oq-status" id="oq-status">Loading dictionary...</p>
+        <div class="sunken-panel oq-results-panel">
+          <table class="interactive" id="oq-table">
+            <thead>
+              <tr><th>Lexeme</th><th>English</th></tr>
+            </thead>
+            <tbody id="oq-tbody"></tbody>
+          </table>
+        </div>
+        <p class="oq-attribution" id="oq-attribution"></p>
+      </div>
+      <ul class="sysmenu" hidden>
+        <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
+        <li><button type="button" disabled>Move</button></li>
+        <li><button type="button" disabled>Size</button></li>
+        <li><button type="button" class="sysmenu-min">Minimize</button></li>
+        <li><button type="button" class="sysmenu-max">Maximize</button></li>
+        <li class="sysmenu-divider"></li>
+        <li><button type="button" class="win-close">Close</button></li>
+      </ul>
+      <div class="win31-resize-handle win31-resize-n" data-dir="n"></div>
+      <div class="win31-resize-handle win31-resize-s" data-dir="s"></div>
+      <div class="win31-resize-handle win31-resize-e" data-dir="e"></div>
+      <div class="win31-resize-handle win31-resize-w" data-dir="w"></div>
+      <div class="win31-resize-handle win31-resize-ne" data-dir="ne"></div>
+      <div class="win31-resize-handle win31-resize-nw" data-dir="nw"></div>
+      <div class="win31-resize-handle win31-resize-se" data-dir="se"></div>
+      <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win31-window" id="win-decon" data-icon="decon" style="top: 3rem; left: 8rem; width: 30rem; height: 22rem;">
+      <div class="title-bar">
+        <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
+        <div class="title-bar-text">DECON</div>
+        <div class="title-bar-controls">
+          <button type="button" aria-label="Minimize" class="win-minimize"></button>
+          <button type="button" aria-label="Maximize" class="win-maximize"></button>
+        </div>
+      </div>
+      <div class="window-body decon-body">
+        <div class="field-row decon-word-row">
+          <input type="text" id="decon-word" placeholder="Type a Kalaallisut word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+        <div class="field-row decon-order-row">
+          <input type="checkbox" id="decon-root-first" checked />
+          <label for="decon-root-first">Root first</label>
+        </div>
+        <p class="decon-status" id="decon-status">Type a word, press Enter.</p>
+        <div class="sunken-panel decon-results-panel" id="decon-results"></div>
+      </div>
+      <ul class="sysmenu" hidden>
+        <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
+        <li><button type="button" disabled>Move</button></li>
+        <li><button type="button" disabled>Size</button></li>
+        <li><button type="button" class="sysmenu-min">Minimize</button></li>
+        <li><button type="button" class="sysmenu-max">Maximize</button></li>
+        <li class="sysmenu-divider"></li>
+        <li><button type="button" class="win-close">Close</button></li>
+      </ul>
+      <div class="win31-resize-handle win31-resize-n" data-dir="n"></div>
+      <div class="win31-resize-handle win31-resize-s" data-dir="s"></div>
+      <div class="win31-resize-handle win31-resize-e" data-dir="e"></div>
+      <div class="win31-resize-handle win31-resize-w" data-dir="w"></div>
+      <div class="win31-resize-handle win31-resize-ne" data-dir="ne"></div>
+      <div class="win31-resize-handle win31-resize-nw" data-dir="nw"></div>
+      <div class="win31-resize-handle win31-resize-se" data-dir="se"></div>
+      <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win31-window" id="win-clock" data-icon="clock" style="top: 4rem; left: 16rem; width: 16rem; height: 18rem;">
+      <div class="title-bar">
+        <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
+        <div class="title-bar-text">Clock</div>
+        <div class="title-bar-controls">
+          <button type="button" aria-label="Minimize" class="win-minimize"></button>
+          <button type="button" aria-label="Maximize" class="win-maximize"></button>
+        </div>
+      </div>
+      <div class="window-body clock-body">
+        <canvas id="clock-canvas" width="200" height="200" aria-hidden="true"></canvas>
+      </div>
+      <ul class="sysmenu" hidden>
+        <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
+        <li><button type="button" disabled>Move</button></li>
+        <li><button type="button" disabled>Size</button></li>
+        <li><button type="button" class="sysmenu-min">Minimize</button></li>
+        <li><button type="button" class="sysmenu-max">Maximize</button></li>
+        <li class="sysmenu-divider"></li>
+        <li><button type="button" class="win-close">Close</button></li>
+      </ul>
+      <div class="win31-resize-handle win31-resize-n" data-dir="n"></div>
+      <div class="win31-resize-handle win31-resize-s" data-dir="s"></div>
+      <div class="win31-resize-handle win31-resize-e" data-dir="e"></div>
+      <div class="win31-resize-handle win31-resize-w" data-dir="w"></div>
+      <div class="win31-resize-handle win31-resize-ne" data-dir="ne"></div>
+      <div class="win31-resize-handle win31-resize-nw" data-dir="nw"></div>
+      <div class="win31-resize-handle win31-resize-se" data-dir="se"></div>
+      <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="window win31-window" id="win-solitaire" data-icon="solitaire" style="top: 5rem; left: 6rem; width: 18rem; height: 12rem;">
+      <div class="title-bar">
+        <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
+        <div class="title-bar-text">Solitaire</div>
+        <div class="title-bar-controls">
+          <button type="button" aria-label="Minimize" class="win-minimize"></button>
+          <button type="button" aria-label="Maximize" class="win-maximize"></button>
+        </div>
+      </div>
+      <div class="window-body solitaire-body">
+        <div class="solitaire-card" aria-hidden="true"></div>
+        <p>Insufficient memory<br>to run Solitaire.</p>
+      </div>
+      <ul class="sysmenu" hidden>
+        <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
+        <li><button type="button" disabled>Move</button></li>
+        <li><button type="button" disabled>Size</button></li>
+        <li><button type="button" class="sysmenu-min">Minimize</button></li>
+        <li><button type="button" class="sysmenu-max">Maximize</button></li>
+        <li class="sysmenu-divider"></li>
+        <li><button type="button" class="win-close">Close</button></li>
+      </ul>
+      <div class="win31-resize-handle win31-resize-n" data-dir="n"></div>
+      <div class="win31-resize-handle win31-resize-s" data-dir="s"></div>
+      <div class="win31-resize-handle win31-resize-e" data-dir="e"></div>
+      <div class="win31-resize-handle win31-resize-w" data-dir="w"></div>
+      <div class="win31-resize-handle win31-resize-ne" data-dir="ne"></div>
+      <div class="win31-resize-handle win31-resize-nw" data-dir="nw"></div>
+      <div class="win31-resize-handle win31-resize-se" data-dir="se"></div>
+      <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
+    </section>
+  </div>
+
+  <!-- Restyled by CSS as a 3.1 minimized-icon strip, not a 95 taskbar.
+       The shared window manager appends buttons here on open. -->
+  <div id="icon-strip" class="taskbar" aria-label="Minimized windows">
+    <div class="taskbar-windows" id="taskbar-windows"></div>
+  </div>
+
+  <div class="win31-dialog-overlay" id="exit-overlay" hidden>
+    <section class="win31-dialog">
+      <div class="title-bar">
+        <div class="title-bar-text">Exit Windows</div>
+      </div>
+      <div class="win31-dialog-body">
+        <p>This will end your Windows session.</p>
+        <div class="win31-dialog-actions">
+          <button type="button" class="default" id="exit-ok">OK</button>
+          <button type="button" id="exit-cancel">Cancel</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="win31-dialog-overlay" id="about-overlay" hidden>
+    <section class="win31-dialog">
+      <div class="title-bar">
+        <div class="title-bar-text">About Program Manager</div>
+      </div>
+      <div class="win31-dialog-body">
+        <div class="win31-dialog-row">
+          <button type="button" class="win31-dialog-icon icon-progman" id="about-icon" aria-label="About icon"></button>
+          <div>
+            <p style="margin:0 0 6px;font-weight:700;">retr-oq</p>
+            <p style="margin:0 0 6px;">Windows 3.1<br>Program Manager</p>
+            <p style="margin:0;">A Kalaallisut dictionary prototype. No Microsoft code lives here.</p>
+          </div>
+        </div>
+        <div class="win31-dialog-actions">
+          <button type="button" class="default" id="about-ok">OK</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="win31-dialog-overlay" id="credits-overlay" hidden>
+    <section class="win31-dialog">
+      <div class="title-bar">
+        <div class="title-bar-text">Credits</div>
+      </div>
+      <div class="win31-dialog-body">
+        <div class="win31-dialog-row">
+          <svg class="credits-bear" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" shape-rendering="crispEdges">
+            <rect x="2" y="2" width="3" height="3" fill="#6b3a1f"/>
+            <rect x="11" y="2" width="3" height="3" fill="#6b3a1f"/>
+            <rect x="3" y="4" width="10" height="9" fill="#8a5230"/>
+            <rect x="5" y="8" width="6" height="4" fill="#d4b48a"/>
+            <rect x="6" y="6" width="1" height="1" fill="#1a0a00"/>
+            <rect x="9" y="6" width="1" height="1" fill="#1a0a00"/>
+            <rect x="7" y="9" width="2" height="1" fill="#1a0a00"/>
+            <rect x="6" y="11" width="4" height="1" fill="#1a0a00"/>
+          </svg>
+          <ul class="credits-list">
+            <li>The programmers of retr-oq</li>
+            <li>present a teddy bear.</li>
+            <li>&nbsp;</li>
+            <li>Oqaasileriffik dictionary data</li>
+            <li>MS Sans Serif via 98.css</li>
+          </ul>
+        </div>
+        <div class="win31-dialog-actions">
+          <button type="button" class="default" id="credits-ok">OK</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="../shared/dict-source.js"></script>
+  <script src="../shared/hyphenation.js"></script>
+  <script src="../shared/router.js"></script>
+  <script src="../shared/redmond/window-manager.js"></script>
+  <script type="module" src="../shared/oq-analysis.js"></script>
+  <script src="../shared/decon-app.js"></script>
+  <script src="app.js?v=1"></script>
+</body>
+</html>

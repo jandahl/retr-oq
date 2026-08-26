@@ -42,7 +42,7 @@ looks like today.
 
 ## What's here
 
-- **`index.html`** — landing page: a machine-icon picker, one distinctive pixel icon per theme (not a text list).
+- **`index.html`** — landing page: a machine-icon picker, one distinctive pixel icon per theme (not a text list), with each machine's launch year, sorted oldest-first.
 - **`mac1984/`** — the first (and so far only) prototype: a real
   fixed-size, fixed-position `.window` on a real full-viewport desktop for
   the original **1984 Macintosh 128K** (System 1.0) — not the 1987
@@ -234,11 +234,27 @@ looks like today.
   the same router/dict/decon stack. Quit returns to the theme picker.
   Console command `panic` (or a triple-click on the dock cube) is this
   theme's undocumented `DOOM` / Hot Dog Stand: a kernel panic.
+- **`win31/`** — a Windows 3.1 Program Manager desktop, the fourth
+  member of the "Redmond" window-chrome family alongside `win98/` /
+  `xp/` / `win7/`, sharing `shared/redmond/window-manager.js` for
+  drag/resize/focus/minimize/maximize/close. 3.1 is not 95: there is
+  no Start button and no taskbar. Program Manager is the shell (open
+  on boot; File > Exit Windows, or closing it, ends the session and
+  returns to the theme picker). Groups (Main, Accessories, Games)
+  hold OQ!, DECON, Clock, and Solitaire. Minimize drops a 32x32 icon
+  onto the teal desktop, not a taskbar pill. The title bar has a
+  Control-menu on the left and min/max triangles on the right — no X;
+  close lives in that menu, and double-clicking the Control-menu box
+  closes the window (touch gets a real Close item in the same menu).
+  Chrome is hand-rolled to keep the Redmond DOM class names; MS Sans
+  Serif is reused from `vendor/win98/fonts/` the same way `gb/` reuses
+  NES fonts. Help > About, then Ctrl+Shift-click the icon, is this
+  theme's undocumented teddy-bear credits.
 
 ## Prospective themes
 
 Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`),
-**Commodore 64** (`c64/`), **Amiga** (`amiga/`), **NeXT** (`next/`), **NES** (`nes/`), **Game Boy** (`gb/`), **Windows 98** (`win98/`),
+**Commodore 64** (`c64/`), **Amiga** (`amiga/`), **NeXT** (`next/`), **NES** (`nes/`), **Game Boy** (`gb/`), **Windows 3.1** (`win31/`), **Windows 98** (`win98/`),
 **Windows XP** (`xp/`), **Windows 7** (`win7/`), and **Mac OS 8.1**
 (`mac8/`), all above.
 `c64/` is a deliberate exception to
@@ -318,7 +334,6 @@ vendoring time since none of these have been vendored yet:
 | --- | --- | --- |
 | Modern macOS | [`Puppertino`](https://github.com/brayanjeshua/Puppertino) | check upstream |
 | Norton Commander | *no drop-in CSS framework found* — closest is [`victorantos/NC`](https://github.com/victorantos/NC), a full JS file-manager clone, not a CSS library. Would likely need to be hand-built from the 8x16 DOS box-drawing look, closer to how `mac1984/`'s desktop icons/menu bar were added on top of `@sakun/system.css`. |
-| Windows 3.1 | *no drop-in CSS framework found* — closest is [`karol-kiersnowski/win31`](https://github.com/karol-kiersnowski/win31), a full simulator, not a CSS library. Same situation as Norton Commander. |
 
 ## License
 
