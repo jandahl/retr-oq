@@ -1,0 +1,555 @@
+/* retr-oq gg theme. Sega Game Gear (1990), hand-drawn -- landscape color
+   handheld, not a window manager and not the portrait DMG brick. No drop-in
+   CSS kit exists for this (same bar as gb/). Color LCD with a washed teal
+   backlight; charcoal body; 1/2 face buttons, Start under the screen, no
+   Select (the real hardware didn't have one).
+
+   Press Start 2P is already vendored at vendor/nes/fonts/ (SIL OFL) for
+   the NES theme; this file @font-face's the same TTF rather than
+   duplicating 118KB. Same "no real build step" constraint as every
+   other theme.
+
+   This is not a window manager. A real Game Gear had one LCD and the
+   buttons were part of the same piece of plastic. Screens swap via
+   `hidden`, like nes/ and gb/. */
+
+@font-face {
+  font-family: "Press Start 2P";
+  src: url("../vendor/nes/fonts/PressStart2P-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --gg-lcd: #8fd4c8;
+  --gg-lcd-deep: #5aa89c;
+  --gg-ink: #142028;
+  --gg-muted: #2a4850;
+  --gg-gold: #c45a18;
+  --gg-body: #2a2c32;
+  --gg-body-hi: #3e424a;
+  --gg-body-lo: #1a1c20;
+  --gg-btn: #c43a3a;
+  --gg-btn-dark: #7a2020;
+  --gg-font-size: clamp(8px, 2.1vw, 11px);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  position: fixed;
+  width: 100%;
+  background: #0e1014;
+  color: var(--gg-ink);
+  font-family: "Press Start 2P", ui-monospace, "Courier New", monospace;
+  font-size: var(--gg-font-size);
+  line-height: 1.55;
+}
+
+button:not(:disabled),
+[role="button"]:not(:disabled) {
+  cursor: pointer;
+}
+
+.gg-shell {
+  position: fixed;
+  top: var(--app-top, 0);
+  left: 0;
+  right: 0;
+  height: var(--app-height, 100dvh);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: #0e1014;
+}
+
+.gg-body {
+  width: min(640px, 100%);
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(#3a3e46, var(--gg-body) 38%, var(--gg-body-lo));
+  border-radius: 28px 28px 40px 40px;
+  box-shadow:
+    inset 0 2px 0 #5a5e66,
+    inset 0 -4px 0 #121418,
+    0 12px 0 #08090c,
+    0 16px 32px rgba(0, 0, 0, 0.6);
+  padding: 14px 16px 16px;
+  position: relative;
+}
+
+.gg-bezel {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  background: #1a1c22;
+  border-radius: 12px;
+  padding: 10px 12px;
+  box-shadow: inset 0 2px 0 #0a0c10, 0 2px 0 #4a4e56;
+}
+
+.gg-lcd {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  background: var(--gg-lcd);
+  color: var(--gg-ink);
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 0 3px var(--gg-lcd-deep),
+    inset 0 0 28px rgba(20, 32, 40, 0.22);
+}
+
+.gg-pixels {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(20, 32, 40, 0.07) 0px,
+      rgba(20, 32, 40, 0.07) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      to right,
+      rgba(20, 32, 40, 0.05) 0px,
+      rgba(20, 32, 40, 0.05) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(180deg, rgba(180, 230, 220, 0.18), transparent 40%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .gg-pixels { display: none; }
+  .press-start { animation: none; }
+}
+
+.gg-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 10px 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-align: center;
+}
+.gg-screen[hidden] {
+  display: none;
+}
+.gg-screen-app {
+  justify-content: flex-start;
+  align-items: stretch;
+  text-align: left;
+}
+
+.title-logo {
+  margin: 0.3em 0 0.4em;
+  font-size: 2.6em;
+  letter-spacing: 0.06em;
+  color: var(--gg-ink);
+  text-shadow: 3px 3px 0 #3a8890;
+}
+.title-sub {
+  margin: 0 0 1.2em;
+  line-height: 1.7;
+  color: var(--gg-gold);
+}
+.title-copy {
+  margin: 0;
+  color: var(--gg-muted);
+  font-size: 0.75em;
+}
+.title-copy-bottom {
+  margin-top: 1.4em;
+}
+.press-start {
+  margin: 0;
+  color: var(--gg-ink);
+  animation: gg-blink 1.2s steps(1) infinite;
+}
+@keyframes gg-blink {
+  0%, 74% { opacity: 1; }
+  75%, 100% { opacity: 0; }
+}
+
+.screen-heading {
+  margin: 0 0 0.6em;
+  font-size: 0.9em;
+  letter-spacing: 0.08em;
+  color: var(--gg-ink);
+  text-align: left;
+  width: 100%;
+}
+
+.menu-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+.menu-item {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  padding: 0.5em 0.3em;
+}
+.menu-cursor {
+  visibility: hidden;
+  display: inline-block;
+  width: 1.2em;
+}
+.menu-item.is-selected {
+  background: var(--gg-ink);
+  color: var(--gg-lcd);
+}
+.menu-item.is-selected .menu-cursor {
+  visibility: visible;
+}
+
+.hint {
+  margin: 0.7em 0 0;
+  color: var(--gg-muted);
+  font-size: 0.7em;
+  width: 100%;
+  text-align: left;
+}
+
+.gg-field {
+  display: block;
+  margin-bottom: 0.3em;
+  color: var(--gg-muted);
+  font-size: 0.75em;
+}
+.gg-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  /* 16px floor: iOS Safari auto-zooms focused controls under 16px.
+     Same lesson as nes/ and gb/. */
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--gg-ink);
+  background: #7ec8bc;
+  border: 2px solid var(--gg-ink);
+  padding: 0.35em 0.4em;
+  border-radius: 0;
+  outline: none;
+}
+.gg-input:focus {
+  background: #a8e8dc;
+}
+
+.oq-status {
+  margin: 0.4em 0;
+  color: var(--gg-muted);
+  min-height: 1.4em;
+  font-size: 0.75em;
+}
+
+.oq-results,
+.decon-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  text-align: left;
+}
+
+.oq-row {
+  -webkit-appearance: none;
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.2em;
+  width: 100%;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--gg-font-size);
+  text-align: left;
+  padding: 0.4em 0.3em 0.45em;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+.oq-gloss-line {
+  color: var(--gg-gold);
+  line-height: 1.45;
+}
+.oq-row.is-selected {
+  background: var(--gg-ink);
+  color: var(--gg-lcd);
+}
+.oq-row.is-selected .oq-gloss-line {
+  color: #e8c070;
+}
+
+.oq-attribution {
+  flex: none;
+  margin: 0.5em 0 0;
+  color: var(--gg-muted);
+  font-size: 0.6em;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.oq-attribution a {
+  color: inherit;
+}
+
+.decon-order {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0.4em 0;
+  color: var(--gg-ink);
+  font-size: 0.75em;
+}
+.decon-card {
+  margin-bottom: 0.6em;
+  padding: 0.4em 0;
+  border-bottom: 2px solid var(--gg-muted);
+  text-align: left;
+}
+.decon-tag { color: var(--gg-ink); }
+.decon-tag--approximate { color: var(--gg-gold); }
+.decon-word { color: var(--gg-ink); }
+.decon-meaning {
+  margin: 0.3em 0;
+  color: var(--gg-gold);
+  overflow-wrap: anywhere;
+}
+.decon-breakdown {
+  margin: 0.3em 0 0;
+  overflow-wrap: anywhere;
+  color: var(--gg-muted);
+  font-size: 0.85em;
+}
+.decon-truncated { color: var(--gg-ink); text-decoration: underline; }
+.decon-dict-match {
+  margin: 0.5em 0 0;
+  color: var(--gg-ink);
+  overflow-wrap: anywhere;
+}
+
+.about-copy {
+  margin: 0 0 1em;
+  text-align: left;
+  line-height: 1.7;
+  color: var(--gg-ink);
+}
+.gameover-title {
+  margin: 0 0 0.6em;
+  font-size: 1.2em;
+  color: #a02020;
+  letter-spacing: 0.06em;
+}
+
+.gg-controls {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 0 4px;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.gg-mid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+}
+.gg-brand {
+  font-style: italic;
+  font-family: "Times New Roman", Times, serif;
+  font-size: 1.05em;
+  letter-spacing: 0.12em;
+  color: #d8dde4;
+  text-shadow: 0 1px 0 #000;
+}
+
+.pad-dpad {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  flex: none;
+  border-radius: 50%;
+  background: #3a3e46;
+  box-shadow: inset 0 3px 0 #1a1c22, inset 0 -2px 0 #5a5e66;
+}
+.pad-plus-v,
+.pad-plus-h {
+  position: absolute;
+  background: #121418;
+  box-shadow: inset 2px 2px 0 #3a3e46, inset -2px -2px 0 #000;
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 3px;
+}
+.pad-plus-v {
+  left: 39px;
+  top: 10px;
+  width: 32px;
+  height: 90px;
+}
+.pad-plus-h {
+  left: 10px;
+  top: 39px;
+  width: 90px;
+  height: 32px;
+}
+.pad-plus-nub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  background: #08090c;
+  pointer-events: none;
+  z-index: 2;
+}
+.pad-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  box-shadow: none;
+  z-index: 3;
+}
+.pad-btn:active { background: rgba(0, 0, 0, 0.28); }
+.pad-up, .pad-down { left: 39px; width: 32px; height: 48px; }
+.pad-up { top: 8px; }
+.pad-down { bottom: 8px; }
+.pad-left, .pad-right { top: 39px; width: 48px; height: 32px; }
+.pad-left { left: 8px; }
+.pad-right { right: 8px; }
+
+.pad-face {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 4px 0 0;
+}
+.pad-round {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--gg-btn);
+  color: #3a0000;
+  font-family: inherit;
+  font-size: 0.7em;
+  box-shadow: 0 3px 0 var(--gg-btn-dark);
+}
+.pad-round:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--gg-btn-dark);
+}
+.pad-2 { margin-left: 18px; }
+.pad-1 { margin-right: 18px; }
+
+.pad-pill {
+  -webkit-appearance: none;
+  appearance: none;
+  background: #1a1c22;
+  color: #8a9098;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.5em;
+  letter-spacing: 0.08em;
+  padding: 0.5em 0.95em;
+  min-height: 26px;
+  min-width: 64px;
+  box-shadow: 0 2px 0 #08090c;
+}
+.pad-pill:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+html.is-keyboard .gg-controls {
+  display: none;
+}
+html.is-keyboard .gg-body {
+  border-radius: 16px;
+  padding-bottom: 10px;
+}
+
+@media (min-width: 700px) {
+  .gg-shell {
+    padding: 16px 0;
+    box-sizing: border-box;
+  }
+  .gg-body {
+    height: min(560px, 100%);
+    align-self: center;
+    border-radius: 36px;
+  }
+}
+
+.gg-boot {
+  background: var(--gg-lcd);
+  gap: 0.8em;
+}
+.boot-drop {
+  margin: 0;
+  font-size: 2.8em;
+  letter-spacing: 0.06em;
+  color: var(--gg-ink);
+  animation: gg-logo-drop 1.15s cubic-bezier(0.22, 0.82, 0.28, 1.18) both;
+}
+@keyframes gg-logo-drop {
+  0% { transform: translateY(-160%); }
+  72% { transform: translateY(10%); }
+  100% { transform: translateY(0); }
+}
+.boot-tag {
+  margin: 0;
+  font-size: 0.7em;
+  letter-spacing: 0.35em;
+  color: var(--gg-gold);
+  animation: gg-boot-fade 0.3s 1.15s both;
+}
+@keyframes gg-boot-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot-drop, .boot-tag { animation: none; }
+}
