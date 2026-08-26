@@ -3,8 +3,8 @@
 
   // Plain classic script sharing state via window.<Namespace> globals, same
   // convention as nes/app.js -- see CLAUDE.md. The chrome is hand-drawn
-  // Super NES plastic (no vendored kit); this file is the "game" the same way
-  // nes/app.js is: which screen is up, D-pad focus, OQ!/DECON.
+  // PAL Super Nintendo plastic (no vendored kit); this file is the "game"
+  // the same way nes/app.js is: which screen is up, D-pad focus, OQ!/DECON.
   const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
   const { syllabify } = window.OqHyphenation;
   const { getStoredRootFirst, setStoredRootFirst, createController } = window.OqDecon;
@@ -55,6 +55,50 @@
     "up", "up", "down", "down", "left", "right", "left", "right", "b", "a",
   ];
   let konamiProgress = 0;
+
+  // Region jumper. PAL dogbone is the default; the NA toaster is the
+  // other CIC. Undocumented, same shelf as Konami / Hot Dog Stand.
+  const REGION_KEY = "retr-oq:snes-region";
+  const shouldersHeld = new Set();
+
+  function getStoredRegion() {
+    try {
+      return localStorage.getItem(REGION_KEY) === "ntsc" ? "ntsc" : "pal";
+    } catch {
+      return "pal";
+    }
+  }
+
+  function applyRegion(region) {
+    const ntsc = region === "ntsc";
+    document.documentElement.classList.toggle("is-ntsc", ntsc);
+    try {
+      localStorage.setItem(REGION_KEY, ntsc ? "ntsc" : "pal");
+    } catch {
+      /* sandboxed iframe -- scheme still applies for this visit */
+    }
+  }
+
+  function toggleRegion() {
+    applyRegion(document.documentElement.classList.contains("is-ntsc") ? "pal" : "ntsc");
+    sfx("konami");
+  }
+
+  function shoulderDown(side) {
+    const was = shouldersHeld.has("l") && shouldersHeld.has("r");
+    shouldersHeld.add(side);
+    if (!was && shouldersHeld.has("l") && shouldersHeld.has("r")) {
+      toggleRegion();
+      return true;
+    }
+    return false;
+  }
+
+  function shoulderUp(side) {
+    shouldersHeld.delete(side);
+  }
+
+  applyRegion(getStoredRegion());
 
   function showScreen(name) {
     currentScreen = name;
@@ -113,37 +157,41 @@
     return el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
   }
 
-  // SNES APU-ish bed, not a sample pack -- two pulse channels with a
-  // slight chorus detune (the 16-bit tell), a triangle, and LFSR noise.
-  // Same "no real build step" bar as the rest of this theme; nothing here
-  // is a ripped Nintendo track. Silent until the first pad/key gesture
-  // (autoplay policy). Typing in SEARCH/WORD stays silent on purpose.
+  // SNES S-SMP-ish bed: pitched samples (10.5 kHz hold-upsample, 6-bit
+  // crunch), ADSR, hardware echo. Not pulse/triangle NES leftovers and
+  // not a ripped Nintendo track. High-paced -- 168 BPM, the kind of
+  // tempo the 8-channel sampler was bought to carry. Silent until the
+  // first pad/key gesture (autoplay policy). Typing in SEARCH/WORD
+  // stays silent on purpose.
   let audioCtx = null;
+  let masterGain = null;
   let musicGain = null;
   let sfxGain = null;
-  let noiseBuf = null;
-  const pulseWaves = Object.create(null);
+  let echoIn = null;
+  let samples = null;
   let musicTrack = null;
   let musicGen = 0;
   let musicNext = 0;
   let musicTimer = 0;
   let musicStep = 0;
-  const BPM = 126;
+  const BPM = 168;
   const SIXTEENTH = 60 / BPM / 4;
+  const BASS0 = 110;
+  const LEAD0 = 440;
+  const BRASS0 = 220;
 
   function unlockAudio() {
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
       if (!audioCtx) {
-        audioCtx = new AC();
-        musicGain = audioCtx.createGain();
-        musicGain.gain.value = 0.0001;
-        musicGain.connect(audioCtx.destination);
-        sfxGain = audioCtx.createGain();
-        sfxGain.gain.value = 0.45;
-        sfxGain.connect(audioCtx.destination);
-        noiseBuf = makeNoiseBuffer(audioCtx);
+        try {
+          audioCtx = new AC({ latencyHint: "interactive" });
+        } catch (err) {
+          audioCtx = new AC();
+        }
+        buildGraph();
+        samples = buildSamples(audioCtx);
       }
       if (audioCtx.state === "suspended") audioCtx.resume();
       // Always (re)attach the bed for the current screen -- an earlier
@@ -156,166 +204,200 @@
     }
   }
 
-  function pulseWave(duty) {
-    const key = String(duty);
-    if (pulseWaves[key]) return pulseWaves[key];
-    const n = 64;
-    const real = new Float32Array(n);
-    const imag = new Float32Array(n);
-    for (let i = 1; i < n; i++) {
-      real[i] = (2 / (i * Math.PI)) * Math.sin(i * Math.PI * duty);
-    }
-    pulseWaves[key] = audioCtx.createPeriodicWave(real, imag);
-    return pulseWaves[key];
+  function buildGraph() {
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.85;
+    masterGain.connect(audioCtx.destination);
+
+    const echoFilter = audioCtx.createBiquadFilter();
+    echoFilter.type = "lowpass";
+    echoFilter.frequency.value = 3200;
+    echoFilter.Q.value = 0.4;
+    const delay = audioCtx.createDelay(0.4);
+    delay.delayTime.value = 0.148;
+    const echoFb = audioCtx.createGain();
+    echoFb.gain.value = 0.42;
+    echoIn = audioCtx.createGain();
+    echoIn.gain.value = 1;
+    echoIn.connect(delay);
+    delay.connect(echoFilter);
+    echoFilter.connect(echoFb);
+    echoFb.connect(delay);
+    echoFilter.connect(masterGain);
+
+    const air = audioCtx.createBiquadFilter();
+    air.type = "lowpass";
+    air.frequency.value = 11000;
+    air.connect(masterGain);
+
+    musicGain = audioCtx.createGain();
+    musicGain.gain.value = 0.0001;
+    musicGain.connect(air);
+    const musicEcho = audioCtx.createGain();
+    musicEcho.gain.value = 0.55;
+    musicGain.connect(musicEcho);
+    musicEcho.connect(echoIn);
+
+    sfxGain = audioCtx.createGain();
+    sfxGain.gain.value = 0.7;
+    sfxGain.connect(air);
+    const sfxEcho = audioCtx.createGain();
+    sfxEcho.gain.value = 0.28;
+    sfxGain.connect(sfxEcho);
+    sfxEcho.connect(echoIn);
   }
 
-  function makeNoiseBuffer(ctx) {
-    const len = ctx.sampleRate;
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const data = buf.getChannelData(0);
-    let reg = 1;
-    for (let i = 0; i < len; i++) {
-      const bit = (reg ^ (reg >> 1)) & 1;
-      reg = (reg >> 1) | (bit << 14);
-      data[i] = bit ? 0.55 : -0.55;
+  function crunch(x) {
+    return Math.round(Math.max(-1, Math.min(1, x)) * 40) / 40;
+  }
+
+  function makeToneSample(ctx, seconds, render) {
+    const sr = ctx.sampleRate;
+    const srcRate = 10547;
+    const srcN = Math.max(2, Math.floor(srcRate * seconds));
+    const src = new Float32Array(srcN);
+    for (let i = 0; i < srcN; i++) src[i] = crunch(render(i / srcRate));
+    const n = Math.max(2, Math.floor(sr * seconds));
+    const buf = ctx.createBuffer(1, n, sr);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) {
+      const t = (i * srcRate) / sr;
+      const j = Math.min(srcN - 2, Math.floor(t));
+      const f = t - j;
+      d[i] = src[j] * (1 - f) + src[j + 1] * f;
     }
     return buf;
   }
 
-  function envGain(dest, when, dur, peak, hold) {
-    const g = audioCtx.createGain();
-    g.connect(dest);
-    const h = hold == null ? 0.012 : hold;
-    g.gain.setValueAtTime(0.0001, when);
-    g.gain.exponentialRampToValueAtTime(peak, when + Math.min(h, dur * 0.2));
-    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-    return g;
+  function buildSamples(ctx) {
+    const bass = makeToneSample(ctx, 0.45, (t) => {
+      let s = 0;
+      for (let h = 1; h <= 7; h++) s += Math.sin(2 * Math.PI * BASS0 * h * t) / h;
+      return s * 0.45 * Math.exp(-t * 6.5);
+    });
+    const lead = makeToneSample(ctx, 0.28, (t) => {
+      const duty = t % (1 / LEAD0) < 0.35 / LEAD0 ? 1 : -1;
+      const saw = 2 * ((LEAD0 * t) % 1) - 1;
+      return (duty * 0.55 + saw * 0.2) * Math.exp(-t * 9);
+    });
+    const brass = makeToneSample(ctx, 0.32, (t) => {
+      const a = Math.sin(2 * Math.PI * BRASS0 * t);
+      const b = Math.sin(2 * Math.PI * BRASS0 * 2 * t) * 0.4;
+      const c = Math.sin(2 * Math.PI * BRASS0 * 3 * t) * 0.18;
+      return (a + b + c) * 0.5 * Math.exp(-t * 7);
+    });
+    const kick = makeToneSample(ctx, 0.22, (t) => {
+      const f = 150 * Math.exp(-t * 22);
+      return Math.sin(2 * Math.PI * f * t) * Math.exp(-t * 14);
+    });
+    const snare = makeToneSample(ctx, 0.16, (t) => {
+      const n = (Math.random() * 2 - 1) * Math.exp(-t * 22);
+      const tone = Math.sin(2 * Math.PI * 196 * t) * Math.exp(-t * 18);
+      return n * 0.7 + tone * 0.35;
+    });
+    const hat = makeToneSample(ctx, 0.05, (t) => {
+      return (Math.random() * 2 - 1) * Math.exp(-t * 70);
+    });
+    return { bass, lead, brass, kick, snare, hat };
   }
 
-  function playPulse(freq, when, dur, peak, duty, dest) {
-    if (!freq || !audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    osc.setPeriodicWave(pulseWave(duty));
-    osc.frequency.setValueAtTime(freq, when);
-    osc.connect(envGain(dest, when, dur, peak));
-    osc.start(when);
-    osc.stop(when + dur + 0.02);
-    // Chorus twin -- a few cents sharp. That's the 16-bit bed, not a
-    // second melody voice.
-    const twin = audioCtx.createOscillator();
-    twin.setPeriodicWave(pulseWave(duty));
-    twin.frequency.setValueAtTime(freq * 1.004, when);
-    twin.connect(envGain(dest, when, dur, peak * 0.35));
-    twin.start(when);
-    twin.stop(when + dur + 0.02);
-  }
-
-  function playTriangle(freq, when, dur, peak, dest) {
-    if (!freq || !audioCtx) return;
-    const osc = audioCtx.createOscillator();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(freq, when);
-    const g = audioCtx.createGain();
-    g.connect(dest);
-    g.gain.setValueAtTime(peak, when);
-    g.gain.setValueAtTime(peak, when + dur * 0.85);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
-    osc.connect(g);
-    osc.start(when);
-    osc.stop(when + dur + 0.02);
-  }
-
-  function playNoise(when, dur, peak, dest, playback) {
-    if (!audioCtx || !noiseBuf) return;
+  function playSample(buf, when, dur, peak, dest, rate) {
+    if (!buf || !audioCtx) return;
     const src = audioCtx.createBufferSource();
-    src.buffer = noiseBuf;
-    src.loop = true;
-    src.playbackRate.setValueAtTime(playback || 1.4, when);
-    src.connect(envGain(dest, when, dur, peak, 0.004));
+    src.buffer = buf;
+    src.playbackRate.setValueAtTime(rate || 1, when);
+    const g = audioCtx.createGain();
+    g.connect(dest);
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), when + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
+    src.connect(g);
+    src.onended = () => {
+      try { src.disconnect(); g.disconnect(); } catch (err) { /* already gone */ }
+    };
     src.start(when);
-    src.stop(when + dur + 0.02);
+    src.stop(when + dur + 0.03);
   }
 
   function sfx(kind) {
     const ctx = unlockAudio();
-    if (!ctx || !sfxGain) return;
+    if (!ctx || !sfxGain || !samples) return;
     const t = ctx.currentTime + 0.01;
     const dest = sfxGain;
     if (kind === "move") {
-      playPulse(392, t, 0.05, 0.7, 0.125, dest);
-      playNoise(t, 0.035, 0.28, dest, 3);
+      playSample(samples.hat, t, 0.05, 0.55, dest, 1.6);
+      playSample(samples.lead, t, 0.07, 0.35, dest, 392 / LEAD0);
     } else if (kind === "ok") {
-      playPulse(523.25, t, 0.08, 0.8, 0.25, dest);
-      playPulse(783.99, t + 0.06, 0.12, 0.75, 0.25, dest);
-      playTriangle(130.81, t, 0.18, 0.55, dest);
+      playSample(samples.lead, t, 0.1, 0.55, dest, 523.25 / LEAD0);
+      playSample(samples.lead, t + 0.05, 0.14, 0.5, dest, 783.99 / LEAD0);
+      playSample(samples.brass, t, 0.16, 0.4, dest, 261.63 / BRASS0);
     } else if (kind === "back") {
-      playPulse(330, t, 0.08, 0.65, 0.5, dest);
-      playPulse(196, t + 0.055, 0.11, 0.55, 0.5, dest);
-      playTriangle(98, t, 0.18, 0.45, dest);
+      playSample(samples.lead, t, 0.09, 0.4, dest, 330 / LEAD0);
+      playSample(samples.bass, t + 0.05, 0.14, 0.45, dest, 98 / BASS0);
     } else if (kind === "start") {
-      playPulse(392, t, 0.09, 0.75, 0.25, dest);
-      playPulse(523.25, t + 0.08, 0.09, 0.75, 0.25, dest);
-      playPulse(659.25, t + 0.16, 0.11, 0.8, 0.25, dest);
-      playPulse(784, t + 0.26, 0.2, 0.7, 0.5, dest);
-      playTriangle(130.81, t, 0.24, 0.5, dest);
-      playTriangle(196, t + 0.16, 0.3, 0.55, dest);
+      playSample(samples.brass, t, 0.12, 0.5, dest, 196 / BRASS0);
+      playSample(samples.lead, t + 0.06, 0.1, 0.5, dest, 523.25 / LEAD0);
+      playSample(samples.lead, t + 0.13, 0.1, 0.5, dest, 659.25 / LEAD0);
+      playSample(samples.lead, t + 0.2, 0.18, 0.55, dest, 880 / LEAD0);
+      playSample(samples.kick, t, 0.16, 0.7, dest, 1);
     } else if (kind === "boot") {
-      // CRT power-on: noise burst, then a rising chord that is not the
-      // Famicom jingle -- original, short.
-      playNoise(t, 0.14, 0.55, dest, 0.45);
-      playTriangle(82, t + 0.06, 0.35, 0.4, dest);
-      playPulse(262, t + 0.18, 0.14, 0.7, 0.5, dest);
-      playPulse(330, t + 0.32, 0.14, 0.7, 0.5, dest);
-      playPulse(392, t + 0.46, 0.28, 0.8, 0.25, dest);
-      playTriangle(131, t + 0.46, 0.35, 0.5, dest);
+      playSample(samples.snare, t, 0.12, 0.45, dest, 0.7);
+      playSample(samples.bass, t + 0.05, 0.28, 0.5, dest, 82 / BASS0);
+      playSample(samples.brass, t + 0.16, 0.16, 0.45, dest, 196 / BRASS0);
+      playSample(samples.lead, t + 0.28, 0.14, 0.5, dest, 392 / LEAD0);
+      playSample(samples.lead, t + 0.4, 0.22, 0.55, dest, 523.25 / LEAD0);
     } else if (kind === "konami") {
       const seq = [523.25, 659.25, 783.99, 1046.5, 783.99, 1318.5];
       seq.forEach((f, i) => {
-        playPulse(f, t + i * 0.07, 0.11, 0.75, 0.25, dest);
-        playTriangle(f / 4, t + i * 0.07, 0.13, 0.4, dest);
+        playSample(samples.lead, t + i * 0.06, 0.1, 0.5, dest, f / LEAD0);
       });
     }
   }
 
-  // Original 4-bar title / 2-bar menu vamp. Frequencies in Hz, 0 = rest.
-  // 16th-note grid. Pulse2 is the same melody delayed two 16ths.
-  const TITLE_P1 = [
-    659, 0, 659, 784, 0, 784, 1047, 0, 784, 0, 659, 0, 587, 659, 698, 0,
-    587, 0, 587, 698, 0, 698, 880, 0, 698, 0, 587, 0, 523, 587, 659, 0,
-    523, 0, 523, 659, 0, 659, 784, 0, 659, 0, 523, 0, 392, 523, 659, 784,
-    784, 698, 659, 587, 523, 0, 659, 0, 784, 0, 1047, 0, 784, 0, 0, 0,
+  // Original 2-bar vamps, 16th grid. Not a licensed track.
+  const TITLE_LEAD = [
+    659, 0, 784, 880, 0, 880, 1047, 0, 880, 784, 659, 0, 587, 659, 784, 0,
+    523, 0, 659, 784, 0, 880, 784, 659, 587, 523, 440, 0, 523, 659, 784, 880,
   ];
   const TITLE_BASS = [
-    131, 131, 98, 98, 131, 131, 165, 165, 175, 175, 131, 131, 175, 175, 110, 110,
-    131, 131, 98, 98, 110, 110, 87, 87, 98, 98, 147, 147, 131, 131, 131, 131,
+    110, 110, 130.8, 146.8, 164.8, 146.8, 130.8, 110,
+    98, 98, 110, 123.5, 130.8, 146.8, 164.8, 110,
   ];
-  const MENU_P1 = [
-    523, 0, 659, 0, 784, 0, 659, 0, 698, 0, 587, 0, 784, 0, 0, 0,
-    523, 0, 392, 0, 523, 0, 659, 0, 587, 523, 392, 330, 262, 0, 0, 0,
+  const TITLE_BRASS = [
+    0, 0, 0, 0, 261.6, 0, 0, 0, 0, 0, 0, 0, 329.6, 0, 0, 0,
+    0, 0, 0, 0, 220, 0, 0, 0, 0, 0, 0, 0, 196, 0, 261.6, 0,
+  ];
+  const MENU_LEAD = [
+    523, 0, 659, 0, 784, 0, 659, 0, 587, 0, 784, 0, 880, 0, 0, 0,
+    523, 0, 440, 0, 523, 0, 659, 0, 587, 523, 440, 392, 330, 0, 0, 0,
   ];
   const MENU_BASS = [
-    131, 131, 98, 98, 131, 131, 98, 98, 175, 175, 131, 131, 98, 98, 98, 98,
+    110, 110, 82.4, 82.4, 110, 110, 98, 98,
+    130.8, 130.8, 110, 110, 82.4, 82.4, 110, 110,
   ];
 
   function scheduleStep(track, step, when) {
+    if (!samples || !musicGain) return;
     const dest = musicGain;
+    const i = step % 32;
+    playSample(samples.hat, when, 0.045, i % 2 === 0 ? 0.09 : 0.05, dest, i % 4 === 0 ? 1.15 : 1.4);
+    if (i % 4 === 0) playSample(samples.kick, when, 0.14, 0.55, dest, 1);
+    if (i % 8 === 4) playSample(samples.snare, when, 0.12, 0.42, dest, 1);
+    if (i % 16 === 14) playSample(samples.kick, when, 0.1, 0.35, dest, 1.08);
+
     if (track === "title") {
-      const i = step % TITLE_P1.length;
-      const p1 = TITLE_P1[i];
-      const p2 = TITLE_P1[(i + TITLE_P1.length - 2) % TITLE_P1.length];
+      const lead = TITLE_LEAD[i];
       const bass = TITLE_BASS[Math.floor(i / 2) % TITLE_BASS.length];
-      playPulse(p1, when, SIXTEENTH * 1.15, 0.22, 0.25, dest);
-      playPulse(p2, when, SIXTEENTH * 1.05, 0.09, 0.5, dest);
-      if (i % 2 === 0) playTriangle(bass, when, SIXTEENTH * 2.05, 0.2, dest);
-      if (i % 4 === 2) playNoise(when, 0.04, 0.045, dest, 2.6);
-      if (i % 16 === 0) playNoise(when, 0.07, 0.07, dest, 0.7);
-    } else if (track === "menu") {
-      const i = step % MENU_P1.length;
-      const p1 = MENU_P1[i];
+      const brass = TITLE_BRASS[i];
+      if (lead) playSample(samples.lead, when, SIXTEENTH * 1.35, 0.22, dest, lead / LEAD0);
+      if (i % 2 === 0) playSample(samples.bass, when, SIXTEENTH * 2.1, 0.32, dest, bass / BASS0);
+      if (brass) playSample(samples.brass, when, SIXTEENTH * 2.4, 0.2, dest, brass / BRASS0);
+    } else {
+      const lead = MENU_LEAD[i];
       const bass = MENU_BASS[Math.floor(i / 2) % MENU_BASS.length];
-      playPulse(p1, when, SIXTEENTH * 1.1, 0.16, 0.125, dest);
-      if (i % 2 === 0) playTriangle(bass, when, SIXTEENTH * 2.05, 0.16, dest);
-      if (i % 8 === 4) playNoise(when, 0.035, 0.04, dest, 2.8);
+      if (lead) playSample(samples.lead, when, SIXTEENTH * 1.2, 0.16, dest, lead / LEAD0);
+      if (i % 2 === 0) playSample(samples.bass, when, SIXTEENTH * 2.1, 0.28, dest, bass / BASS0);
+      if (i % 8 === 0) playSample(samples.brass, when, SIXTEENTH * 3, 0.12, dest, 220 / BRASS0);
     }
   }
 
@@ -339,13 +421,13 @@
   }
 
   function levelForScreen(name) {
-    if (name === "title") return 0.2;
-    if (name === "menu" || name === "gameover") return 0.16;
-    return 0.08;
+    if (name === "title") return 0.22;
+    if (name === "menu" || name === "gameover") return 0.18;
+    return 0.1;
   }
 
   function setMusic(track, level) {
-    const lvl = level == null ? 0.16 : level;
+    const lvl = level == null ? 0.18 : level;
     if (!audioCtx || !musicGain) return;
     const now = audioCtx.currentTime;
     musicGain.gain.cancelScheduledValues(now);
@@ -388,6 +470,7 @@
     if (document.hidden && window.top === window) audioCtx.suspend();
     else audioCtx.resume();
   });
+
 
 
   // ---------- OQ! (dictionary) ----------
@@ -681,10 +764,13 @@
           konamiProgress = KONAMI[0] === action ? 1 : 0;
         }
       }
-      if (action === "start" || action === "select") {
+      if (action === "start") {
         konamiProgress = 0;
         sfx("start");
         goMenu();
+        return;
+      }
+      if (action === "select") {
         return;
       }
       if (action === "a" && konamiProgress === 0) {
@@ -776,6 +862,20 @@
       if (event.key === "a" || event.key === "A") keyMap[event.key] = "a";
       if (event.key === "b" || event.key === "B") keyMap[event.key] = "b";
     }
+    if (!event.repeat) {
+      const isL = event.key === "Tab" || event.key === "l" || event.key === "L";
+      const isR = event.key === " " || event.key === "r" || event.key === "R";
+      if (!inputFocused() && (isL || isR)) {
+        if (shoulderDown(isL ? "l" : "r")) {
+          event.preventDefault();
+          return;
+        }
+        if (event.key === "l" || event.key === "L" || event.key === "r" || event.key === "R") {
+          event.preventDefault();
+          return;
+        }
+      }
+    }
     const action = keyMap[event.key];
     if (!action) return;
     if (inputFocused() && action === "select") return;
@@ -795,16 +895,35 @@
     handleInput(action);
   });
 
+  document.addEventListener("keyup", (event) => {
+    if (event.key === "Tab" || event.key === "l" || event.key === "L") shoulderUp("l");
+    if (event.key === " " || event.key === "r" || event.key === "R") shoulderUp("r");
+  });
+
   document.getElementById("snes-controller").addEventListener("pointerdown", (event) => {
     const btn = event.target.closest("[data-input]");
     if (!btn) return;
     event.preventDefault();
+    const raw = btn.dataset.input;
+    if (raw === "l" || raw === "r") {
+      try { btn.setPointerCapture(event.pointerId); } catch (err) { /* old browser */ }
+      if (shoulderDown(raw)) return;
+    }
     // Face diamond extras: X confirms like A, Y backs out like B.
     // Shoulders: L cycles (Select), R starts. Convenience mapping, not
     // a second set of verbs -- handleInput() still only sees the six
     // actions nes/ uses.
     const alias = { x: "a", y: "b", l: "select", r: "start" };
-    handleInput(alias[btn.dataset.input] || btn.dataset.input);
+    handleInput(alias[raw] || raw);
+  });
+  window.addEventListener("pointerup", (event) => {
+    const btn = event.target && event.target.closest && event.target.closest("[data-input]");
+    const raw = (btn && btn.dataset.input) || "";
+    if (raw === "l" || raw === "r") shoulderUp(raw);
+  });
+  window.addEventListener("pointercancel", () => {
+    shoulderUp("l");
+    shoulderUp("r");
   });
 
   // Same visualViewport tracking as dos/app.js / c64/app.js -- a mobile

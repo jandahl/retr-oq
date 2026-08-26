@@ -3,17 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>retr-oq — Super NES cartridge prototype</title>
+<title>retr-oq — Super Nintendo cartridge prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=1" />
+<link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
-  <!-- Super NES was a living-room console, not a window manager: one CRT
-       owns the whole screen at a time, then a four-color pad below it.
-       No drop-in CSS kit exists for this the way NES.css does for nes/,
-       so the chrome is hand-drawn -- NA two-tone purple/gray, four face
-       buttons, L/R shoulders. Screens swap via hidden, like nes/. -->
+  <!-- PAL Super Nintendo, not the NA purple toaster and not a window
+       manager: one CRT owns the whole screen, then a gray dogbone with
+       rainbow Y/X/B/A. No Nintendo logos. Screens swap via hidden. -->
   <div class="snes-shell" id="snes-shell">
     <div class="snes-tv" id="snes-tv">
       <div class="snes-screen snes-boot" id="boot-screen" hidden>
@@ -24,7 +22,10 @@
       </div>
       <div class="snes-screen" id="title-screen">
         <p class="title-copy">retr-oq</p>
-        <h1 class="title-logo">OQ!</h1>
+        <h1 class="title-logo">
+          <span class="title-super">Super</span>
+          <span class="title-oq">OQ!</span>
+        </h1>
         <p class="title-sub">KALAALLISUT<br />DICTIONARY</p>
         <p class="press-start" id="press-start">PRESS START</p>
         <p class="title-copy title-copy-bottom">© 1991 OQAASILERIFFIK</p>
@@ -34,7 +35,7 @@
         <section class="menu-box">
           <h2 class="screen-heading">SELECT</h2>
           <ul class="menu-list" id="menu-list">
-            <li><button type="button" class="menu-item is-selected" data-screen="oq" id="menu-oq"><span class="menu-cursor" aria-hidden="true">></span> OQ!</button></li>
+            <li><button type="button" class="menu-item is-selected" data-screen="oq" id="menu-oq"><span class="menu-cursor" aria-hidden="true">></span> SUPER OQ!</button></li>
             <li><button type="button" class="menu-item" data-screen="decon" id="menu-decon"><span class="menu-cursor" aria-hidden="true">></span> DECON</button></li>
             <li><button type="button" class="menu-item" data-screen="about" id="menu-about"><span class="menu-cursor" aria-hidden="true">></span> ABOUT</button></li>
             <li><button type="button" class="menu-item" data-screen="quit" id="menu-quit"><span class="menu-cursor" aria-hidden="true">></span> QUIT</button></li>
@@ -45,7 +46,7 @@
 
       <div class="snes-screen snes-screen-app" id="oq-screen" hidden>
         <section class="oq-box">
-          <h2 class="screen-heading">OQ!</h2>
+          <h2 class="screen-heading">SUPER OQ!</h2>
           <div class="snes-field">
             <label for="oq-filter">SEARCH</label>
             <input type="text" id="oq-filter" class="snes-input" placeholder="TYPE A WORD..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
@@ -80,7 +81,7 @@
         <section class="about-box">
           <h2 class="screen-heading">ABOUT</h2>
           <p class="about-copy">
-            OQ! is a Kalaallisut dictionary in a 16-bit cartridge.
+            Super OQ! is a Kalaallisut dictionary in a 16-bit cartridge.
             DECON splits a word into its morphemes.
           </p>
           <p class="about-credit">A retr-oq theme.<br />B=MENU</p>
@@ -103,9 +104,9 @@
       <div class="snes-glow" aria-hidden="true"></div>
     </div>
 
-    <!-- On-screen Super NES pad. A real SNES had no mouse; this is the
-         touch equivalent of plugging in a controller. Keyboard arrows /
-         Enter / Esc still drive the same handleInput() path. X acts as A,
+    <!-- On-screen PAL Super Nintendo pad. A real deck had no mouse; this
+         is the touch equivalent of plugging in a controller. Keyboard
+         arrows / Enter / Esc still drive handleInput(). X acts as A,
          Y as B, L as Select, R as Start -- convenience, not a second GUI. -->
     <div class="snes-controller" id="snes-controller">
       <div class="pad-shoulders">
@@ -141,6 +142,6 @@
 <script src="../shared/router.js?v=1"></script>
 <script type="module" src="../shared/oq-analysis.js?v=11"></script>
 <script src="../shared/decon-app.js?v=4"></script>
-<script src="app.js?v=1"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
