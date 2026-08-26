@@ -62,7 +62,12 @@ button,
 .desktop-icon,
 .nx-dock-icon,
 .nx-menuitem,
-.nx-btn {
+.nx-btn,
+a,
+a:link,
+a:visited,
+a:hover,
+a:active {
   cursor: default;
 }
 

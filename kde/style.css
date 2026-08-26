@@ -48,6 +48,22 @@
 
 * { box-sizing: border-box; }
 
+/* House convention (amiga/, mac8/, next/): no hand cursor. Classic
+   desktops used the arrow for chrome; the pointing hand is a web link. */
+button,
+a,
+a:link,
+a:visited,
+a:hover,
+a:active,
+[role="button"],
+.desktop-icon,
+.home-item,
+.k-menu-btn,
+.task-btn {
+  cursor: default;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -66,6 +82,7 @@ html, body {
   font-family: var(--font);
   color: var(--kde-text);
   background: #0a2744;
+  cursor: default;
 }
 
 .desktop {
@@ -167,7 +184,7 @@ html, body {
   background: transparent;
   border: none;
   color: #f4f7ff;
-  cursor: pointer;
+  cursor: default;
   padding: 6px 4px;
   -webkit-tap-highlight-color: transparent;
   outline: none;
@@ -272,7 +289,7 @@ html, body {
   border-radius: 2px;
   background: linear-gradient(to bottom, #f4f4f8, #c8c8d0);
   box-shadow: inset 0 1px 0 #fff, 0 0 0 1px #5a5a66;
-  cursor: pointer;
+  cursor: default;
   -webkit-tap-highlight-color: transparent;
   color: #2a2a32;
   font-size: 9px;
@@ -381,7 +398,7 @@ button.kde-btn {
   border-radius: 3px;
   background: linear-gradient(to bottom, #fafafa, #d0d0d6);
   box-shadow: inset 0 1px 0 #fff;
-  cursor: pointer;
+  cursor: default;
 }
 button.kde-btn:active {
   background: linear-gradient(to bottom, #c8c8d0, #e8e8ee);
@@ -470,7 +487,7 @@ button.kde-btn.default {
   width: 72px;
   background: transparent;
   border: none;
-  cursor: pointer;
+  cursor: default;
   font-family: var(--font);
   font-size: 11px;
   color: var(--kde-text);
@@ -551,7 +568,7 @@ button.kde-btn.default {
   font-size: 12px;
   font-weight: 700;
   color: var(--kde-text);
-  cursor: pointer;
+  cursor: default;
   -webkit-tap-highlight-color: transparent;
 }
 .k-menu-btn img { width: 22px; height: 22px; object-fit: contain; }
@@ -573,7 +590,7 @@ button.kde-btn.default {
   padding: 2px;
   border: none;
   background: transparent;
-  cursor: pointer;
+  cursor: default;
   border-radius: 2px;
 }
 .quicklaunch button:hover { background: rgba(255,255,255,0.4); }
@@ -600,7 +617,7 @@ button.kde-btn.default {
   border: none;
   border-radius: 3px;
   box-shadow: inset 0 1px 0 #fff, 0 0 0 1px #8a8a94;
-  cursor: pointer;
+  cursor: default;
   min-width: 0;
 }
 .task-btn.active {
@@ -628,7 +645,7 @@ button.kde-btn.default {
   border: 1px solid #6a6a74;
   background: #9aaa9a;
   padding: 0;
-  cursor: pointer;
+  cursor: default;
   min-height: 10px;
 }
 .pager button.current { background: #c8e0a8; }
@@ -675,7 +692,7 @@ button.kde-btn.default {
   font-size: 12px;
   text-align: left;
   padding: 6px 8px;
-  cursor: pointer;
+  cursor: default;
   border-radius: 2px;
 }
 .k-menu button:hover,
@@ -723,7 +740,7 @@ button.kde-btn.default {
 
 button:not(:disabled),
 [role="button"]:not(:disabled) {
-  cursor: pointer;
+  cursor: default;
 }
 
 @media (prefers-reduced-motion: reduce) {
