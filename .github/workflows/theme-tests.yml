@@ -83,8 +83,20 @@ jobs:
       - name: Install test dependencies
         run: pip install -r tests/requirements.txt
 
+      # Retried: --with-deps runs apt-get update/install under the hood, and
+      # Google's own Chrome apt repo has been observed serving a stale/
+      # mismatched Packages.gz mid-mirror-sync ("Hash Sum mismatch"), which
+      # fails apt before Playwright ever gets to installing the browser
+      # itself -- nothing wrong with this repo's code, just a transient
+      # upstream mirror hiccup. Three attempts with a short backoff clears
+      # it without needing a human to notice and click "Re-run failed jobs".
       - name: Install Playwright's Chromium
-        run: playwright install --with-deps chromium
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 15
+          command: playwright install --with-deps chromium
 
       - name: Run ${{ matrix.theme }} test suite
         run: python3 -m pytest tests/test_${{ matrix.theme }}.py -v
