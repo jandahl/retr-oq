@@ -31,12 +31,19 @@ jobs:
       - name: HTML validate
         run: npx --yes html-validate $PAGES
 
+      # --skip excludes anything not on localhost: this step is scoped to
+      # LOCAL asset links (a stale ?v= path, a moved shared/*.js) same as
+      # its name says. An external link's liveness is not this repo's to
+      # police -- index.html's github.com/jandahl/oq link 404s to an
+      # anonymous request (the repo is private) despite being a perfectly
+      # correct link for anyone with access, which is exactly the kind of
+      # false positive that would make people stop trusting this check.
       - name: Check for broken local asset links
         run: |
           python3 -m http.server 8080 &
           server_pid=$!
           npx --yes wait-on http://localhost:8080/index.html
           for page in $PAGES; do
-            npx --yes linkinator "http://localhost:8080/$page" --recurse false
+            npx --yes linkinator "http://localhost:8080/$page" --recurse false --skip "^https?://(?!localhost)"
           done
           kill "$server_pid"
