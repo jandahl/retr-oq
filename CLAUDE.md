@@ -250,6 +250,30 @@ Same console-not-desktop rules as `nes/` (one LCD at a time, one
   Hot Dog Stand.
 - **Cache-bust `win31/index.html`'s `?v=N`.**
 
+## `kde/` theme specifics
+
+- **Not Redmond, not Mac-lineage.** `kde/app.js` has its own drag/resize/
+  focus/Kicker code. Do not route it through `shared/redmond/`.
+- **Compiz lives in `kde/compositor.js`.** Fine pointer (mouse): wobbly
+  drag, burn-on-close, and magic-lamp snapshot the live HTML window with
+  vendored html2canvas, then deform that bitmap on `#compositor`. Coarse
+  pointer / iOS Safari: the same plugins run as CSS transforms on the
+  live window — html2canvas stalls, blanks, and leaves windows
+  `opacity:0` there. Don't start a grab until the pointer has actually
+  moved (tap-to-focus must not snapshot). Honor `prefers-reduced-motion`
+  (skip the effects, keep the WM). Drag/resize listen on `window` for
+  move/up: iOS `setPointerCapture` is not a reliable source of truth.
+- **Plastik chrome, Crystal-style icons.** Title-bar gradient, Kicker
+  along the bottom, DejaVu Sans at `vendor/kde/fonts/`. Don't swap the
+  font for a system sans, and don't paste the KDE K logo — the menu
+  button is an original crystal gem.
+- **Router owns OQ!/DECON.** Same rule as every other theme.
+- **Konsole `beryl` (and `compiz --replace`) is undocumented** on
+  purpose, same as `dos/`'s `DOOM`. `rain` / `cube` are listed in
+  Konsole `help` because they're the advertised Compiz toys.
+- **Cache-bust `kde/index.html`'s `?v=N`** for style.css, app.js, and
+  compositor.js independently.
+
 ## Git workflow gotcha: stranded commits
 
 This repo's branch convention is "always restart the working branch from
