@@ -1,17 +1,17 @@
-/* retr-oq gg theme. Sega Game Gear (1990), hand-drawn -- landscape color
-   handheld, not a window manager and not the portrait DMG brick. No drop-in
-   CSS kit exists for this (same bar as gb/). Color LCD with a washed teal
-   backlight; charcoal body; 1/2 face buttons, Start under the screen, no
-   Select (the real hardware didn't have one).
+/* retr-oq gg theme. Sega Game Gear (1990) as a pocket Master System --
+   not a window manager, and not a color Game Boy. Same Z80 + VDP family
+   as the living-room deck: 32 on-screen colors from a 4096 (12-bit) palette,
+   160×144 (NES is 256×240 -- more pixels, fewer choices). Landscape slab:
+   D-pad left of the glass, 1/2 right, Start under the screen, no Select.
 
    Press Start 2P is already vendored at vendor/nes/fonts/ (SIL OFL) for
    the NES theme; this file @font-face's the same TTF rather than
    duplicating 118KB. Same "no real build step" constraint as every
-   other theme.
+   other theme. The typeface is shared; the palette is not. GB is four
+   olives. This is navy / cyan / magenta / gold -- SMS game chrome on a
+   backlit LCD, with a light teal wash as a filter, not as the UI.
 
-   This is not a window manager. A real Game Gear had one LCD and the
-   buttons were part of the same piece of plastic. Screens swap via
-   `hidden`, like nes/ and gb/. */
+   Screens swap via `hidden`, like nes/ and gb/. */
 
 @font-face {
   font-family: "Press Start 2P";
@@ -22,17 +22,25 @@
 }
 
 :root {
-  --gg-lcd: #8fd4c8;
-  --gg-lcd-deep: #5aa89c;
-  --gg-ink: #142028;
-  --gg-muted: #2a4850;
-  --gg-gold: #c45a18;
+  /* 12-bit-ish VDP pens. NES palettes cannot land cyan + magenta + gold
+     together this cleanly; that is the whole argument of the theme. */
+  --gg-navy: #001060;
+  --gg-navy-hi: #0020a0;
+  --gg-window: #0038c8;
+  --gg-cyan: #58d8f8;
+  --gg-gold: #f8d030;
+  --gg-magenta: #f83078;
+  --gg-orange: #f87820;
+  --gg-white: #f8f8f8;
+  --gg-ink: #f8f8f8;
+  --gg-muted: #80b0e0;
   --gg-body: #2a2c32;
   --gg-body-hi: #3e424a;
   --gg-body-lo: #1a1c20;
   --gg-btn: #c43a3a;
   --gg-btn-dark: #7a2020;
-  --gg-font-size: clamp(8px, 2.1vw, 11px);
+  /* Chunkier than NES: 160x144 cells are bigger on the glass than 256x240. */
+  --gg-font-size: clamp(8px, 2.15vw, 11px);
 }
 
 html, body {
@@ -62,48 +70,126 @@ button:not(:disabled),
   right: 0;
   height: var(--app-height, 100dvh);
   display: flex;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   background: #0e1014;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .gg-body {
-  width: min(640px, 100%);
-  height: 100%;
+  width: min(920px, 100%);
+  height: min(520px, 100%);
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 84px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "left screen right"
+    "left start  right";
   background: linear-gradient(#3a3e46, var(--gg-body) 38%, var(--gg-body-lo));
-  border-radius: 28px 28px 40px 40px;
+  border-radius: 28px;
   box-shadow:
     inset 0 2px 0 #5a5e66,
     inset 0 -4px 0 #121418,
     0 12px 0 #08090c,
     0 16px 32px rgba(0, 0, 0, 0.6);
-  padding: 14px 16px 16px;
+  padding: 12px 10px 10px;
   position: relative;
+}
+
+.gg-left {
+  grid-area: left;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 8px;
+  min-width: 0;
+}
+.gg-center {
+  grid-area: screen;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.gg-under {
+  grid-area: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 4px 2px;
+}
+.gg-right {
+  grid-area: right;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0 8px;
+  min-width: 0;
+}
+
+.gg-speaker {
+  display: grid;
+  grid-template-columns: repeat(4, 6px);
+  gap: 5px 6px;
+  padding: 4px;
+}
+.gg-speaker span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #121418;
+  box-shadow: inset 0 1px 0 #000, 0 1px 0 #4a4e56;
+}
+
+.gg-led {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e03030;
+  box-shadow: 0 0 8px #e03030, inset 0 1px 0 #ff8080;
+  animation: gg-led 2.4s steps(1) infinite;
+}
+@keyframes gg-led {
+  0%, 86% { opacity: 1; }
+  87%, 100% { opacity: 0.45; }
+}
+
+.gg-sliders {
+  display: flex;
+  gap: 6px;
+}
+.gg-sliders span {
+  width: 5px;
+  height: 28px;
+  border-radius: 2px;
+  background: #121418;
+  box-shadow: inset 1px 1px 0 #000, 1px 0 0 #4a4e56;
 }
 
 .gg-bezel {
   flex: 1 1 auto;
   min-height: 0;
   display: flex;
-  background: #1a1c22;
-  border-radius: 12px;
-  padding: 10px 12px;
-  box-shadow: inset 0 2px 0 #0a0c10, 0 2px 0 #4a4e56;
+  background: #0a0c10;
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: inset 0 2px 0 #000, 0 2px 0 #4a4e56;
 }
 
 .gg-lcd {
   flex: 1 1 auto;
   min-height: 0;
   position: relative;
-  background: var(--gg-lcd);
+  /* The game is a Master System picture. The glass is a backlit LCD. */
+  background: var(--gg-navy);
   color: var(--gg-ink);
   overflow: hidden;
-  box-shadow:
-    inset 0 0 0 3px var(--gg-lcd-deep),
-    inset 0 0 28px rgba(20, 32, 40, 0.22);
+  box-shadow: inset 0 0 0 2px #000830;
 }
 
 .gg-pixels {
@@ -111,26 +197,36 @@ button:not(:disabled),
   position: absolute;
   inset: 0;
   z-index: 8;
+  /* 160x144 cells -- chunkier than NES scanlines. */
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(20, 32, 40, 0.07) 0px,
-      rgba(20, 32, 40, 0.07) 1px,
+      rgba(0, 0, 16, 0.22) 0px,
+      rgba(0, 0, 16, 0.22) 1px,
       transparent 1px,
-      transparent 3px
+      transparent 4px
     ),
     repeating-linear-gradient(
       to right,
-      rgba(20, 32, 40, 0.05) 0px,
-      rgba(20, 32, 40, 0.05) 1px,
+      rgba(0, 16, 48, 0.12) 0px,
+      rgba(0, 16, 48, 0.12) 1px,
       transparent 1px,
-      transparent 3px
-    ),
-    linear-gradient(180deg, rgba(180, 230, 220, 0.18), transparent 40%);
+      transparent 4px
+    );
+  image-rendering: pixelated;
 }
-@media (prefers-reduced-motion: reduce) {
-  .gg-pixels { display: none; }
-  .press-start { animation: none; }
+.gg-lcd-wash {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  background: linear-gradient(
+    180deg,
+    rgba(160, 230, 220, 0.14),
+    rgba(40, 160, 150, 0.05) 42%,
+    rgba(0, 0, 20, 0.12)
+  );
+  mix-blend-mode: screen;
 }
 
 .gg-screen {
@@ -155,15 +251,50 @@ button:not(:disabled),
   text-align: left;
 }
 
+.title-tiles,
+.title-tiles-bottom {
+  flex: none;
+  height: 8px;
+  width: 100%;
+  image-rendering: pixelated;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--gg-magenta) 0 8px,
+    var(--gg-gold) 8px 16px,
+    var(--gg-cyan) 16px 24px,
+    #40d040 24px 32px,
+    var(--gg-white) 32px 40px,
+    var(--gg-orange) 40px 48px,
+    #b060f8 48px 56px,
+    #2060f8 56px 64px
+  );
+}
+.title-tiles-bottom {
+  margin-top: auto;
+}
+
+.title-hud {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin: 6px 0 8px;
+  color: var(--gg-white);
+  font-size: 0.7em;
+  letter-spacing: 0.04em;
+}
+
 .title-logo {
-  margin: 0.3em 0 0.4em;
-  font-size: 2.6em;
-  letter-spacing: 0.06em;
-  color: var(--gg-ink);
-  text-shadow: 3px 3px 0 #3a8890;
+  margin: 0.2em 0 0.35em;
+  font-size: 2.5em;
+  letter-spacing: 0.08em;
+  color: var(--gg-white);
+  text-shadow:
+    -2px -2px 0 var(--gg-cyan),
+    3px 3px 0 var(--gg-magenta),
+    6px 6px 0 #000830;
 }
 .title-sub {
-  margin: 0 0 1.2em;
+  margin: 0 0 1em;
   line-height: 1.7;
   color: var(--gg-gold);
 }
@@ -173,11 +304,12 @@ button:not(:disabled),
   font-size: 0.75em;
 }
 .title-copy-bottom {
-  margin-top: 1.4em;
+  margin-top: 1.1em;
+  margin-bottom: 8px;
 }
 .press-start {
   margin: 0;
-  color: var(--gg-ink);
+  color: var(--gg-cyan);
   animation: gg-blink 1.2s steps(1) infinite;
 }
 @keyframes gg-blink {
@@ -185,11 +317,31 @@ button:not(:disabled),
   75%, 100% { opacity: 0; }
 }
 
+.vdp-window {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--gg-window);
+  color: var(--gg-white);
+  border: 4px solid var(--gg-white);
+  box-shadow:
+    0 0 0 2px #000830,
+    inset 0 0 0 2px var(--gg-cyan);
+  padding: 10px 10px 8px;
+  text-align: left;
+  min-height: 0;
+}
+.vdp-window-fill {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .screen-heading {
-  margin: 0 0 0.6em;
+  margin: 0 0 0.55em;
   font-size: 0.9em;
   letter-spacing: 0.08em;
-  color: var(--gg-ink);
+  color: var(--gg-gold);
   text-align: left;
   width: 100%;
 }
@@ -217,19 +369,21 @@ button:not(:disabled),
   visibility: hidden;
   display: inline-block;
   width: 1.2em;
+  color: var(--gg-magenta);
 }
 .menu-item.is-selected {
-  background: var(--gg-ink);
-  color: var(--gg-lcd);
+  background: var(--gg-gold);
+  color: #180818;
 }
 .menu-item.is-selected .menu-cursor {
   visibility: visible;
+  color: #180818;
 }
 
 .hint {
   margin: 0.7em 0 0;
   color: var(--gg-muted);
-  font-size: 0.7em;
+  font-size: 0.65em;
   width: 100%;
   text-align: left;
 }
@@ -237,7 +391,7 @@ button:not(:disabled),
 .gg-field {
   display: block;
   margin-bottom: 0.3em;
-  color: var(--gg-muted);
+  color: var(--gg-cyan);
   font-size: 0.75em;
 }
 .gg-input {
@@ -249,15 +403,19 @@ button:not(:disabled),
      Same lesson as nes/ and gb/. */
   font-size: 16px;
   line-height: 1.4;
-  color: var(--gg-ink);
-  background: #7ec8bc;
-  border: 2px solid var(--gg-ink);
+  color: var(--gg-white);
+  background: #001848;
+  border: 2px solid var(--gg-cyan);
   padding: 0.35em 0.4em;
   border-radius: 0;
   outline: none;
 }
 .gg-input:focus {
-  background: #a8e8dc;
+  background: #002878;
+  border-color: var(--gg-gold);
+}
+.gg-input::placeholder {
+  color: #4878b0;
 }
 
 .oq-status {
@@ -300,11 +458,11 @@ button:not(:disabled),
   line-height: 1.45;
 }
 .oq-row.is-selected {
-  background: var(--gg-ink);
-  color: var(--gg-lcd);
+  background: var(--gg-gold);
+  color: #180818;
 }
 .oq-row.is-selected .oq-gloss-line {
-  color: #e8c070;
+  color: var(--gg-magenta);
 }
 
 .oq-attribution {
@@ -324,18 +482,18 @@ button:not(:disabled),
   align-items: center;
   gap: 0.5em;
   margin: 0.4em 0;
-  color: var(--gg-ink);
+  color: var(--gg-white);
   font-size: 0.75em;
 }
 .decon-card {
   margin-bottom: 0.6em;
   padding: 0.4em 0;
-  border-bottom: 2px solid var(--gg-muted);
+  border-bottom: 2px solid var(--gg-navy-hi);
   text-align: left;
 }
-.decon-tag { color: var(--gg-ink); }
+.decon-tag { color: var(--gg-cyan); }
 .decon-tag--approximate { color: var(--gg-gold); }
-.decon-word { color: var(--gg-ink); }
+.decon-word { color: var(--gg-white); }
 .decon-meaning {
   margin: 0.3em 0;
   color: var(--gg-gold);
@@ -347,50 +505,31 @@ button:not(:disabled),
   color: var(--gg-muted);
   font-size: 0.85em;
 }
-.decon-truncated { color: var(--gg-ink); text-decoration: underline; }
+.decon-truncated { color: var(--gg-magenta); text-decoration: underline; }
 .decon-dict-match {
   margin: 0.5em 0 0;
-  color: var(--gg-ink);
+  color: var(--gg-cyan);
   overflow-wrap: anywhere;
 }
 
 .about-copy {
-  margin: 0 0 1em;
+  margin: 0;
   text-align: left;
   line-height: 1.7;
-  color: var(--gg-ink);
+  color: var(--gg-white);
 }
 .gameover-title {
-  margin: 0 0 0.6em;
-  font-size: 1.2em;
-  color: #a02020;
+  margin: 0 0 0.7em;
+  font-size: 1.15em;
+  color: var(--gg-magenta);
   letter-spacing: 0.06em;
+  text-shadow: 2px 2px 0 #000830;
 }
 
-.gg-controls {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 10px;
-  padding: 0 4px;
-  -webkit-user-select: none;
-  user-select: none;
-  touch-action: manipulation;
-}
-
-.gg-mid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  flex: 1 1 auto;
-}
 .gg-brand {
   font-style: italic;
   font-family: "Times New Roman", Times, serif;
-  font-size: 1.05em;
+  font-size: 1em;
   letter-spacing: 0.12em;
   color: #d8dde4;
   text-shadow: 0 1px 0 #000;
@@ -398,8 +537,8 @@ button:not(:disabled),
 
 .pad-dpad {
   position: relative;
-  width: 110px;
-  height: 110px;
+  width: 72px;
+  height: 72px;
   flex: none;
   border-radius: 50%;
   background: #3a3e46;
@@ -415,24 +554,24 @@ button:not(:disabled),
   border-radius: 3px;
 }
 .pad-plus-v {
-  left: 39px;
-  top: 10px;
-  width: 32px;
-  height: 90px;
+  left: 26px;
+  top: 6px;
+  width: 20px;
+  height: 60px;
 }
 .pad-plus-h {
-  left: 10px;
-  top: 39px;
-  width: 90px;
-  height: 32px;
+  left: 6px;
+  top: 26px;
+  width: 60px;
+  height: 20px;
 }
 .pad-plus-nub {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 11px;
-  height: 11px;
-  margin: -5.5px 0 0 -5.5px;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
   border-radius: 50%;
   background: #08090c;
   pointer-events: none;
@@ -449,25 +588,25 @@ button:not(:disabled),
   z-index: 3;
 }
 .pad-btn:active { background: rgba(0, 0, 0, 0.28); }
-.pad-up, .pad-down { left: 39px; width: 32px; height: 48px; }
-.pad-up { top: 8px; }
-.pad-down { bottom: 8px; }
-.pad-left, .pad-right { top: 39px; width: 48px; height: 32px; }
-.pad-left { left: 8px; }
-.pad-right { right: 8px; }
+.pad-up, .pad-down { left: 26px; width: 20px; height: 32px; }
+.pad-up { top: 4px; }
+.pad-down { bottom: 4px; }
+.pad-left, .pad-right { top: 26px; width: 32px; height: 20px; }
+.pad-left { left: 4px; }
+.pad-right { right: 4px; }
 
 .pad-face {
   display: flex;
   flex-direction: column;
   gap: 10px;
   align-items: center;
-  padding: 4px 4px 0 0;
+  padding: 0;
 }
 .pad-round {
   -webkit-appearance: none;
   appearance: none;
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 0;
   background: var(--gg-btn);
@@ -480,8 +619,8 @@ button:not(:disabled),
   transform: translateY(2px);
   box-shadow: 0 1px 0 var(--gg-btn-dark);
 }
-.pad-2 { margin-left: 18px; }
-.pad-1 { margin-right: 18px; }
+.pad-2 { margin-left: 14px; }
+.pad-1 { margin-right: 14px; }
 
 .pad-pill {
   -webkit-appearance: none;
@@ -507,49 +646,100 @@ html.is-keyboard .gg-controls {
   display: none;
 }
 html.is-keyboard .gg-body {
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "screen";
   border-radius: 16px;
-  padding-bottom: 10px;
+  padding: 8px;
+  height: 100%;
+}
+html.is-keyboard .gg-center {
+  grid-area: screen;
+}
+
+@media (max-width: 520px) {
+  .gg-shell { padding: 6px; }
+  .gg-body {
+    height: min(460px, 100%);
+    grid-template-columns: 70px minmax(0, 1fr) 70px;
+    padding: 10px 6px 8px;
+    border-radius: 22px;
+  }
+  .pad-dpad { width: 64px; height: 64px; }
+  .pad-plus-v { left: 22px; top: 5px; width: 20px; height: 54px; }
+  .pad-plus-h { left: 5px; top: 22px; width: 54px; height: 20px; }
+  .pad-up, .pad-down { left: 22px; width: 20px; height: 28px; }
+  .pad-left, .pad-right { top: 22px; width: 28px; height: 20px; }
+  .pad-round { width: 40px; height: 40px; }
+  .title-logo { font-size: 2em; }
 }
 
 @media (min-width: 700px) {
-  .gg-shell {
-    padding: 16px 0;
-    box-sizing: border-box;
-  }
   .gg-body {
-    height: min(560px, 100%);
-    align-self: center;
+    height: min(480px, 100%);
     border-radius: 36px;
   }
 }
 
 .gg-boot {
-  background: var(--gg-lcd);
-  gap: 0.8em;
+  background: var(--gg-navy);
+  gap: 0.6em;
 }
+.boot-bars {
+  display: flex;
+  width: 100%;
+  height: 12px;
+  flex: none;
+  margin-bottom: 0.4em;
+}
+.boot-bars span { flex: 1; }
+.boot-bars span:nth-child(1) { background: #f83078; }
+.boot-bars span:nth-child(2) { background: #f87820; }
+.boot-bars span:nth-child(3) { background: #f8d030; }
+.boot-bars span:nth-child(4) { background: #40d040; }
+.boot-bars span:nth-child(5) { background: #58d8f8; }
+.boot-bars span:nth-child(6) { background: #2060f8; }
+.boot-bars span:nth-child(7) { background: #b060f8; }
+.boot-bars span:nth-child(8) { background: #f8f8f8; }
+
 .boot-drop {
   margin: 0;
   font-size: 2.8em;
-  letter-spacing: 0.06em;
-  color: var(--gg-ink);
-  animation: gg-logo-drop 1.15s cubic-bezier(0.22, 0.82, 0.28, 1.18) both;
+  letter-spacing: 0.08em;
+  color: var(--gg-white);
+  text-shadow:
+    -2px -2px 0 var(--gg-cyan),
+    3px 3px 0 var(--gg-magenta);
+  animation: gg-logo-slam 0.7s cubic-bezier(0.12, 0.8, 0.3, 1.15) both;
 }
-@keyframes gg-logo-drop {
-  0% { transform: translateY(-160%); }
-  72% { transform: translateY(10%); }
-  100% { transform: translateY(0); }
+@keyframes gg-logo-slam {
+  0% { transform: scale(2.6); filter: brightness(3); opacity: 0; }
+  55% { opacity: 1; }
+  100% { transform: scale(1); filter: brightness(1); }
 }
 .boot-tag {
   margin: 0;
   font-size: 0.7em;
-  letter-spacing: 0.35em;
+  letter-spacing: 0.28em;
   color: var(--gg-gold);
-  animation: gg-boot-fade 0.3s 1.15s both;
+  animation: gg-boot-fade 0.3s 0.7s both;
+}
+.boot-spec {
+  margin: 0;
+  font-size: 0.6em;
+  letter-spacing: 0.08em;
+  color: var(--gg-cyan);
+  animation: gg-boot-fade 0.3s 0.95s both;
 }
 @keyframes gg-boot-fade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .boot-drop, .boot-tag { animation: none; }
+  .gg-pixels,
+  .gg-lcd-wash { display: none; }
+  .press-start,
+  .gg-led { animation: none; }
+  .boot-drop, .boot-tag, .boot-spec { animation: none; }
 }

@@ -1,9 +1,10 @@
 """gg/ regression suite.
 
-A handheld theme, not a window manager -- Game Gear, landscape color
-LCD. Same verbs as gb/ (face buttons 1/2 map to B/A). No on-screen Select;
-Tab still cycles the menu. Dictionary content itself is upstream
-data; we only assert the chrome around it actually opens.
+A handheld theme, not a window manager -- Game Gear as a pocket Master
+System (landscape color VDP, 160×144, 32/4096). Same verbs as gb/
+(face buttons 1/2 map to B/A). No on-screen Select; Tab still cycles
+the menu. Dictionary content itself is upstream data; we only assert
+the chrome around it actually opens.
 """
 
 
@@ -153,7 +154,7 @@ def test_search_input_is_at_least_16px(page, base_url):
 
 def test_controller_hides_while_search_focused(page, base_url):
     goto_gg(page, base_url, "?screen=oq")
-    pad = page.locator("#gg-controller")
+    pad = page.locator(".pad-dpad")
     # launchOq focuses SEARCH on open -- pad should already be gone.
     assert pad.is_hidden()
     page.locator("#oq-filter").blur()

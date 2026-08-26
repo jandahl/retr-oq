@@ -79,8 +79,11 @@ Keyboard and on-screen pad both call `handleInput()`. 16px inputs;
 `html.is-keyboard` hides the pad. NES/SNES audio is Web Audio pulse/triangle/
 noise — no samples, no Nintendo tunes; don't `setMusic(null)` just
 because the screen isn't the title. GB and Game Gear reuse Press Start 2P from
-`vendor/nes/fonts/`; GB's pad stays on the brick, Game Gear is landscape
-(1/2, no Select — Tab still cycles). SNES is hand-drawn (no NES.css): four
+`vendor/nes/fonts/`; GB's pad stays on the brick. Game Gear is a pocket
+Master System, not a color DMG: landscape slab, D-pad left of the LCD,
+1/2 right, Start under the glass, no Select (Tab still cycles). VDP chrome
+is navy/cyan/magenta/gold (32 from 4096) on 160×144 cells — washed teal as
+an LCD filter, not the UI. SNES is hand-drawn (no NES.css): four
 face buttons, L/R shoulders. X=A, Y=B, L=Select, R=Start.
 
 **`amiga/`** — Chrome is four Kickstart 1.3 pens (`#0055AA` white black
