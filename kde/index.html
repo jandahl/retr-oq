@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>retr-oq — KDE 3.5 / Compiz Fusion</title>
+<link rel="stylesheet" href="style.css?v=1" />
+</head>
+<body>
+  <!-- KDE 3.5 + Compiz Fusion (2006) prototype. Plastik window chrome
+       and Kicker are hand-drawn (no drop-in CSS kit). Compiz's wobbly
+       windows / burn-on-close / magic-lamp live in compositor.js:
+       html2canvas snapshots a live HTML window onto a canvas mesh,
+       the same "redirect to texture" Compiz did with OpenGL. Font is
+       DejaVu Sans (Bitstream Vera descendant) at vendor/kde/. Not
+       Redmond, not Mac-lineage. -->
+
+  <div class="desktop" id="desktop">
+    <div class="desktop-icons">
+      <button type="button" class="desktop-icon" data-open="win-home">
+        <img src="art/icon-home.png" alt="" width="48" height="48" />
+        <span class="desktop-icon-label">Home</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-oq">
+        <img src="art/icon-oq.png" alt="" width="48" height="48" />
+        <span class="desktop-icon-label">OQ!</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-decon">
+        <img src="art/icon-decon.png" alt="" width="48" height="48" />
+        <span class="desktop-icon-label">DECON</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-konsole">
+        <img src="art/icon-konsole.png" alt="" width="48" height="48" />
+        <span class="desktop-icon-label">Konsole</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-trash">
+        <img src="art/icon-trash.png" alt="" width="48" height="48" />
+        <span class="desktop-icon-label">Trash</span>
+      </button>
+    </div>
+
+    <section class="kde-window closed" id="win-oq" data-icon="oq" style="top: 24px; left: 110px; width: 28rem; height: 22rem;">
+      <div class="title-bar">
+        <img class="title-bar-icon" src="art/icon-oq.png" alt="" />
+        <div class="title-bar-text">OQ!</div>
+        <div class="title-bar-controls">
+          <button type="button" class="win-minimize" aria-label="Minimize"></button>
+          <button type="button" class="win-maximize" aria-label="Maximize"></button>
+          <button type="button" class="win-close" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body oq-body">
+        <input type="text" id="oq-filter" placeholder="Search the dictionary…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <p class="oq-status" id="oq-status">Loading dictionary...</p>
+        <div class="sunken oq-results">
+          <table id="oq-table">
+            <thead><tr><th>Lexeme</th><th>English</th></tr></thead>
+            <tbody id="oq-tbody"></tbody>
+          </table>
+        </div>
+        <p class="oq-attribution" id="oq-attribution"></p>
+      </div>
+      <div class="kde-resize kde-resize-n" data-dir="n"></div>
+      <div class="kde-resize kde-resize-s" data-dir="s"></div>
+      <div class="kde-resize kde-resize-e" data-dir="e"></div>
+      <div class="kde-resize kde-resize-w" data-dir="w"></div>
+      <div class="kde-resize kde-resize-ne" data-dir="ne"></div>
+      <div class="kde-resize kde-resize-nw" data-dir="nw"></div>
+      <div class="kde-resize kde-resize-se" data-dir="se"></div>
+      <div class="kde-resize kde-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="kde-window closed" id="win-decon" data-icon="decon" style="top: 48px; left: 140px; width: 28rem; height: 22rem;">
+      <div class="title-bar">
+        <img class="title-bar-icon" src="art/icon-decon.png" alt="" />
+        <div class="title-bar-text">DECON</div>
+        <div class="title-bar-controls">
+          <button type="button" class="win-minimize" aria-label="Minimize"></button>
+          <button type="button" class="win-maximize" aria-label="Maximize"></button>
+          <button type="button" class="win-close" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body decon-body">
+        <input type="text" id="decon-word" placeholder="Type a Kalaallisut word…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        <div class="decon-order-row">
+          <input type="checkbox" id="decon-root-first" checked />
+          <label for="decon-root-first">Root first</label>
+        </div>
+        <p class="decon-status" id="decon-status">Type a word, press Enter.</p>
+        <div class="sunken decon-results" id="decon-results"></div>
+      </div>
+      <div class="kde-resize kde-resize-n" data-dir="n"></div>
+      <div class="kde-resize kde-resize-s" data-dir="s"></div>
+      <div class="kde-resize kde-resize-e" data-dir="e"></div>
+      <div class="kde-resize kde-resize-w" data-dir="w"></div>
+      <div class="kde-resize kde-resize-ne" data-dir="ne"></div>
+      <div class="kde-resize kde-resize-nw" data-dir="nw"></div>
+      <div class="kde-resize kde-resize-se" data-dir="se"></div>
+      <div class="kde-resize kde-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="kde-window closed" id="win-home" data-icon="home" style="top: 36px; left: 160px; width: 24rem; height: 16rem;">
+      <div class="title-bar">
+        <img class="title-bar-icon" src="art/icon-home.png" alt="" />
+        <div class="title-bar-text">Home — retr-oq</div>
+        <div class="title-bar-controls">
+          <button type="button" class="win-minimize" aria-label="Minimize"></button>
+          <button type="button" class="win-maximize" aria-label="Maximize"></button>
+          <button type="button" class="win-close" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="home-list">
+          <button type="button" class="home-item" data-open="win-oq">
+            <img src="art/icon-oq.png" alt="" /><span>OQ!</span>
+          </button>
+          <button type="button" class="home-item" data-open="win-decon">
+            <img src="art/icon-decon.png" alt="" /><span>DECON</span>
+          </button>
+          <button type="button" class="home-item" data-open="win-konsole">
+            <img src="art/icon-konsole.png" alt="" /><span>Konsole</span>
+          </button>
+          <button type="button" class="home-item" data-open="win-about">
+            <img src="art/icon-kmenu.png" alt="" /><span>About</span>
+          </button>
+        </div>
+      </div>
+      <div class="kde-resize kde-resize-n" data-dir="n"></div>
+      <div class="kde-resize kde-resize-s" data-dir="s"></div>
+      <div class="kde-resize kde-resize-e" data-dir="e"></div>
+      <div class="kde-resize kde-resize-w" data-dir="w"></div>
+      <div class="kde-resize kde-resize-ne" data-dir="ne"></div>
+      <div class="kde-resize kde-resize-nw" data-dir="nw"></div>
+      <div class="kde-resize kde-resize-se" data-dir="se"></div>
+      <div class="kde-resize kde-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="kde-window closed" id="win-konsole" data-icon="konsole" style="top: 56px; left: 120px; width: 32rem; height: 18rem;">
+      <div class="title-bar">
+        <img class="title-bar-icon" src="art/icon-konsole.png" alt="" />
+        <div class="title-bar-text">Konsole — user@retr-oq</div>
+        <div class="title-bar-controls">
+          <button type="button" class="win-minimize" aria-label="Minimize"></button>
+          <button type="button" class="win-maximize" aria-label="Maximize"></button>
+          <button type="button" class="win-close" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body konsole-body">
+        <pre class="konsole-log" id="konsole-log">Konsole 1.6.4 (KDE 3.5)
+Compiz Fusion 0.5.2 on retr-oq
+Type `help` for a list of commands.
+</pre>
+        <div class="konsole-row">
+          <span>user@retr-oq:~$</span>
+          <input type="text" id="konsole-cmd" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+        </div>
+      </div>
+      <div class="kde-resize kde-resize-n" data-dir="n"></div>
+      <div class="kde-resize kde-resize-s" data-dir="s"></div>
+      <div class="kde-resize kde-resize-e" data-dir="e"></div>
+      <div class="kde-resize kde-resize-w" data-dir="w"></div>
+      <div class="kde-resize kde-resize-ne" data-dir="ne"></div>
+      <div class="kde-resize kde-resize-nw" data-dir="nw"></div>
+      <div class="kde-resize kde-resize-se" data-dir="se"></div>
+      <div class="kde-resize kde-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="kde-window closed" id="win-about" data-icon="kmenu" style="top: 28px; left: 100px; width: 28rem; height: 24rem;">
+      <div class="title-bar">
+        <img class="title-bar-icon" src="art/icon-kmenu.png" alt="" />
+        <div class="title-bar-text">About retr-oq — KDE 3.5</div>
+        <div class="title-bar-controls">
+          <button type="button" class="win-minimize" aria-label="Minimize"></button>
+          <button type="button" class="win-maximize" aria-label="Maximize"></button>
+          <button type="button" class="win-close" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <img class="about-art" src="art/about.jpg" alt="" width="640" height="360" />
+        <p class="about-kicker">KDE 3.5 + Compiz Fusion</p>
+        <p>A prototype Plastik desktop. Drag a window — it wobbles.
+          Close one and it burns. Minimize sucks it into Kicker with
+          the magic lamp. Click the empty desktop for water. None of
+          this is Microsoft or Apple chrome, and the cube on the
+          about-card is original art, not a screenshot of anyone's WM.</p>
+        <p>Leave returns to the theme picker.</p>
+      </div>
+      <div class="kde-resize kde-resize-n" data-dir="n"></div>
+      <div class="kde-resize kde-resize-s" data-dir="s"></div>
+      <div class="kde-resize kde-resize-e" data-dir="e"></div>
+      <div class="kde-resize kde-resize-w" data-dir="w"></div>
+      <div class="kde-resize kde-resize-ne" data-dir="ne"></div>
+      <div class="kde-resize kde-resize-nw" data-dir="nw"></div>
+      <div class="kde-resize kde-resize-se" data-dir="se"></div>
+      <div class="kde-resize kde-resize-sw" data-dir="sw"></div>
+    </section>
+
+    <section class="kde-window closed" id="win-trash" data-icon="trash" style="top: 80px; left: 200px; width: 20rem; height: 12rem;">
+      <div class="title-bar">
+        <img class="title-bar-icon" src="art/icon-trash.png" alt="" />
+        <div class="title-bar-text">Trash</div>
+        <div class="title-bar-controls">
+          <button type="button" class="win-minimize" aria-label="Minimize"></button>
+          <button type="button" class="win-maximize" aria-label="Maximize"></button>
+          <button type="button" class="win-close" aria-label="Close"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <p>The trash is empty. Compiz already burned everything.</p>
+      </div>
+      <div class="kde-resize kde-resize-n" data-dir="n"></div>
+      <div class="kde-resize kde-resize-s" data-dir="s"></div>
+      <div class="kde-resize kde-resize-e" data-dir="e"></div>
+      <div class="kde-resize kde-resize-w" data-dir="w"></div>
+      <div class="kde-resize kde-resize-ne" data-dir="ne"></div>
+      <div class="kde-resize kde-resize-nw" data-dir="nw"></div>
+      <div class="kde-resize kde-resize-se" data-dir="se"></div>
+      <div class="kde-resize kde-resize-sw" data-dir="sw"></div>
+    </section>
+  </div>
+
+  <canvas id="compositor" aria-hidden="true"></canvas>
+
+  <footer class="kicker" id="kicker">
+    <button type="button" class="k-menu-btn" id="k-menu-btn" aria-haspopup="true" aria-expanded="false">
+      <img src="art/icon-kmenu.png" alt="" />
+      Menu
+    </button>
+    <div class="quicklaunch">
+      <button type="button" data-open="win-home" title="Home"><img src="art/icon-home.png" alt="" /></button>
+      <button type="button" data-open="win-oq" title="OQ!"><img src="art/icon-oq.png" alt="" /></button>
+      <button type="button" data-open="win-decon" title="DECON"><img src="art/icon-decon.png" alt="" /></button>
+      <button type="button" data-open="win-konsole" title="Konsole"><img src="art/icon-konsole.png" alt="" /></button>
+    </div>
+    <div class="tasks" id="tasks"></div>
+    <div class="pager" aria-label="Desktops">
+      <button type="button" class="current" title="Desktop 1"></button>
+      <button type="button" id="pager-cube" title="Rotate cube"></button>
+      <button type="button" title="Desktop 3"></button>
+      <button type="button" title="Desktop 4"></button>
+    </div>
+    <div class="kicker-clock" id="kicker-clock">12:00</div>
+  </footer>
+
+  <ul class="k-menu" id="k-menu" hidden>
+    <li><button type="button" data-open="win-oq"><img src="art/icon-oq.png" alt="" /> OQ!</button></li>
+    <li><button type="button" data-open="win-decon"><img src="art/icon-decon.png" alt="" /> DECON</button></li>
+    <li><button type="button" data-open="win-konsole"><img src="art/icon-konsole.png" alt="" /> Konsole</button></li>
+    <li><button type="button" data-open="win-home"><img src="art/icon-home.png" alt="" /> Home</button></li>
+    <li><button type="button" data-open="win-about"><img src="art/icon-kmenu.png" alt="" /> About retr-oq</button></li>
+    <li class="k-sep"></li>
+    <li><button type="button" id="menu-leave">Leave…</button></li>
+  </ul>
+
+  <div class="overlay" id="leave-overlay" hidden>
+    <section class="kde-window dialog">
+      <div class="title-bar">
+        <div class="title-bar-text">End session</div>
+      </div>
+      <div class="window-body">
+        <p>Do you want to leave this desktop and return to the theme picker?</p>
+        <div class="dialog-actions">
+          <button type="button" class="kde-btn" id="leave-cancel">Cancel</button>
+          <button type="button" class="kde-btn default" id="leave-ok">Leave</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="../shared/dict-source.js"></script>
+  <script src="../shared/hyphenation.js"></script>
+  <script src="../shared/router.js"></script>
+  <script src="../vendor/kde/html2canvas.min.js"></script>
+  <script type="module" src="../shared/oq-analysis.js"></script>
+  <script src="../shared/decon-app.js"></script>
+  <script src="compositor.js?v=2"></script>
+  <script src="app.js?v=2"></script>
+</body>
+</html>

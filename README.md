@@ -250,12 +250,26 @@ looks like today.
   Serif is reused from `vendor/win98/fonts/` the same way `gb/` reuses
   NES fonts. Help > About, then Ctrl+Shift-click the icon, is this
   theme's undocumented teddy-bear credits.
+- **`kde/`** — a KDE 3.5 + Compiz Fusion desktop (2006). Not Redmond
+  and not Mac-lineage: Plastik window chrome and Kicker are hand-drawn
+  (there is no drop-in Plastik CSS kit). Compiz's over-the-top bit is
+  a canvas compositor (`kde/compositor.js`): `html2canvas` (MIT, vendored
+  at `vendor/kde/html2canvas.min.js`) snapshots a live HTML window onto
+  a bitmap, then a spring mesh wobbles it while dragging, a fire-front
+  eats it on close, and minimize sucks it into Kicker with the magic
+  lamp. Click the empty desktop for water ripples; Konsole `rain` and
+  the pager's empty cell spin the desktop cube. DejaVu Sans / Sans Mono
+  (Bitstream Vera descendant, the real mid-aughts KDE face) is vendored
+  at `vendor/kde/fonts/`. Crystal-style icons and the wallpaper are
+  original art, not a copy of the KDE K or anyone's stock wallpaper.
+  Konsole command `beryl` is this theme's undocumented `DOOM` / Hot Dog
+  Stand. Leave returns to the theme picker.
 
 ## Prospective themes
 
 Shipped so far: **1984 Mac** (`mac1984/`), **DOS** (`dos/`),
 **Commodore 64** (`c64/`), **Amiga** (`amiga/`), **NeXT** (`next/`), **NES** (`nes/`), **Game Boy** (`gb/`), **Windows 3.1** (`win31/`), **Windows 98** (`win98/`),
-**Windows XP** (`xp/`), **Windows 7** (`win7/`), and **Mac OS 8.1**
+**Windows XP** (`xp/`), **KDE** (`kde/`), **Windows 7** (`win7/`), and **Mac OS 8.1**
 (`mac8/`), all above.
 `c64/` is a deliberate exception to
 the "vendor a real framework" pattern the other two follow: the candidate
@@ -356,6 +370,10 @@ of the TrueSchool pack.
 `vendor/next/LICENSE` is the GUST Font License for TeX Gyre Heros
 (regular + bold), a Helvetica clone used here because real Helvetica
 can't be vendored.
+`vendor/kde/LICENSE` is the Bitstream Vera / DejaVu fonts license for
+DejaVu Sans, DejaVu Sans Bold, and DejaVu Sans Mono; `vendor/kde/html2canvas.LICENSE`
+is html2canvas 1.4.1's own MIT license, kept next to the minified dist
+the compositor uses to snapshot windows.
 
 `shared/hyphenation.js` is the one file in this repo under a different
 license than the rest of its own code: MPL-2.0, not MIT. To be precise
