@@ -539,9 +539,9 @@ button:not(:disabled),
   flex-direction: column;
   gap: 0.5em;
 }
-/* "Bubbles": a pill per option, big legible text -- this is what the
-   player has maybe a couple seconds to read and act on, so it needs to
-   read at a glance, not at the same density as the OQ!/DECON screens. */
+/* "Bubbles": a chamfered rect per option, big legible text -- this is what
+   the player has maybe a couple seconds to read and act on, so it needs
+   to read at a glance, not at the same density as the OQ!/DECON screens. */
 /* Chamfered corners on a fixed PIXEL cut (not %, not em) -- a real corner
    notch, not border-radius faking roundness: border-radius draws a smooth
    vector arc no matter what image-rendering hint you throw at it, so it
