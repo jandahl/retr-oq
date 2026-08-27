@@ -105,13 +105,21 @@
      * Returns { overflowed: boolean, gameOver } so the caller can flash/sfx
      * an overflow without polling getState() every frame.
      */
+    const MIN_GAP = 0.12; // minimum well-progress gap kept between queued tiles
+
     function tick(dtSeconds) {
       if (gameOver) return { overflowed: false, gameOver: true };
       let overflowed = false;
       for (let c = 0; c < cols.length; c++) {
         const column = cols[c];
-        for (const tile of column) {
+        for (let i = 0; i < column.length; i++) {
+          const tile = column[i];
           if (tile.y < 1) tile.y = Math.min(1, tile.y + riseSpeed * dtSeconds);
+          // The front tile clamps at y=1 while it waits out its overflow
+          // grace; without this, a tile queued behind it -- rising at the
+          // same speed -- would keep closing the gap and could reach y=1
+          // itself, stacking two tiles on the exact same spot in the well.
+          if (i > 0) tile.y = Math.min(tile.y, column[i - 1].y - MIN_GAP);
           tile.ready = tile.y >= 1;
         }
         if (!column.length) continue;

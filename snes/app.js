@@ -646,11 +646,13 @@
     deconController.abort();
   }
 
-  // ---------- RISING MORPHEMES (KLAX!) ----------
+  // ---------- KAL-Q (Klax, upside down) ----------
   // Game state lives in shared/klax-game.js (window.OqKlaxGame) so it's
   // reusable by any future console theme -- this section is only
   // rendering, input, and pacing, same split as shared/morph-game.js gets
-  // from gb/app.js's MORPH! screen.
+  // from gb/app.js's MORPH! screen. "klax" stays the internal/file-level
+  // codename (genre lineage, matches the shared engine's name); KAL-Q is
+  // only the on-screen title.
   const klaxCanvas = document.getElementById("klax-canvas");
   const klaxCtx = klaxCanvas.getContext("2d");
   const KLAX_TILE_COLOR = { root: "#e7c23f", "affix-correct": "#4f9e5c", "affix-wrong": "#cf4a3d" };
@@ -748,6 +750,7 @@
 
     klaxPx(0, 0, 256, 12, "#232551");
     klaxText(`SCORE ${state.score}`, 6, 3, 1, "#efeae0", "left");
+    klaxText("KAL-Q", 128, 3, 1, "#e7c23f", "center");
     klaxText(`LIVES ${state.lives}`, 250, 3, 1, "#cf4a3d", "right");
 
     klaxPx(KLAX_WELL.x - 2, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
