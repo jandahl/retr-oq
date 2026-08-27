@@ -136,6 +136,18 @@ def test_on_screen_start_opens_menu(touch_page, base_url):
     assert touch_page.locator("#menu-screen").is_visible()
 
 
+def test_deeplink_morph_shows_sprite(page, base_url):
+    errors, console_errors, unexpected_404s = goto_gb(page, base_url, "?screen=morph")
+    assert_clean(errors, console_errors, unexpected_404s)
+    assert page.locator("#morph-screen").is_visible()
+    img = page.locator("#morph-sprite-img")
+    assert img.is_visible()
+    src = img.get_attribute("src") or ""
+    assert "fox-" in src
+    hearts = page.locator("#morph-lives .morph-heart")
+    assert hearts.count() == 3
+
+
 def test_about_deeplink(page, base_url):
     goto_gb(page, base_url, "?screen=about")
     assert page.locator("#about-screen").is_visible()

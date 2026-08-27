@@ -201,10 +201,12 @@ button:not(:disabled),
   letter-spacing: 0.06em;
   color: var(--gb-darkest);
 }
-.title-sub {
-  margin: 0 0 1.2em;
-  line-height: 1.7;
-  color: var(--gb-dark);
+.title-fox {
+  width: 4.4em;
+  height: 4.4em;
+  margin: 0.35em 0 0.45em;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 .title-copy {
   margin: 0;
@@ -393,9 +395,10 @@ button:not(:disabled),
   overflow-wrap: anywhere;
 }
 
-/* MORPH! -- WarioWare-pace morpheme minigame. Simple graphics: a blocky
-   sprite face built from CSS boxes (no art asset), simple square-wave
-   stings (see app.js sfx()), simple two-state animation (shock/happy). */
+/* MORPH! -- WarioWare-pace morpheme minigame. Original 4-shade DMG pixel
+   art (an arctic-fox-cub word-spirit, not a licensed character): idle /
+   breathe / happy / shocked / win poses in sprites/, overlay pupils so
+   the gaze still tracks the selected option, pixel hearts for lives. */
 /* Bumped from the theme's base --gb-font-size (tuned for the dense OQ!/
    DECON rows) to the largest size that still fits this screen's worst
    case: the illu puzzle's first step, which has 3 options plus a
@@ -414,7 +417,17 @@ button:not(:disabled),
 }
 .morph-lives {
   color: var(--gb-darkest);
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+}
+.morph-heart {
+  width: 1.15em;
+  height: 1.15em;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  flex: none;
 }
 .morph-score {
   color: var(--gb-dark);
@@ -442,42 +455,59 @@ button:not(:disabled),
 }
 .morph-sprite {
   position: relative;
-  width: 5.2em;
-  height: 5.2em;
-  background: var(--gb-darkest);
-  border-radius: 6px;
+  width: 5.8em;
+  height: 5.8em;
+  background: transparent;
 }
-/* Eyes are round sockets, big enough that the pupil's travel actually
-   reads at a glance; the pupil inside tracks the selected option's row
-   via --look-y (0 = top option, 1 = bottom option), set from app.js --
-   "his attention on currently selected option". */
+.morph-sprite-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+/* Overlay pupils sit in the fox's empty eye-whites so gaze can still
+   track the selected option -- same mechanic as the old CSS-box face,
+   now on a real sprite. Socket positions were measured off fox-idle.png. */
 .morph-eye {
   position: absolute;
-  top: 1.1em;
-  width: 1.1em;
-  height: 1.1em;
-  /* Square notch, not a circle -- same reasoning as .morph-option. */
-  clip-path: polygon(
-    3px 0, calc(100% - 3px) 0,
-    100% 3px, 100% calc(100% - 3px),
-    calc(100% - 3px) 100%, 3px 100%,
-    0 calc(100% - 3px), 0 3px
-  );
-  background: var(--gb-lightest);
+  top: 27%;
+  width: 20%;
+  height: 20%;
+  background: transparent;
   overflow: hidden;
+  z-index: 2;
+  pointer-events: none;
 }
-.morph-eye-l { left: 0.9em; }
-.morph-eye-r { right: 0.9em; }
+.morph-eye-l { left: 26%; }
+.morph-eye-r { left: 51%; }
 .morph-pupil {
   position: absolute;
-  left: 50%;
-  top: 8%;
-  width: 0.5em;
-  height: 0.5em;
-  margin-left: -0.25em;
+  left: 30%;
+  top: calc(12% + var(--look-y, 0) * 40%);
+  width: 40%;
+  height: 40%;
+  margin: 0;
   background: var(--gb-darkest);
-  transform: translateY(calc(var(--look-y, 0) * 0.62em));
-  transition: transform 0.15s ease-out;
+  transition: top 0.15s ease-out;
+}
+.morph-sprite:not(.is-gazing) .morph-eye {
+  visibility: hidden;
+}
+.morph-fx {
+  position: absolute;
+  right: -0.35em;
+  top: -0.25em;
+  width: 1.7em;
+  height: 1.7em;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+.morph-fx[hidden] {
+  display: none;
 }
 @media (prefers-reduced-motion: reduce) {
   .morph-pupil { transition: none; }
@@ -504,7 +534,6 @@ button:not(:disabled),
   animation: morph-bounce 0.5s ease-in-out;
 }
 .morph-sprite.is-shocked {
-  background: var(--gb-dark);
   animation: morph-shake 0.4s steps(2, jump-none) 2;
 }
 @keyframes morph-bounce {
@@ -597,6 +626,12 @@ button:not(:disabled),
 }
 .morph-card[hidden] {
   display: none;
+}
+.morph-card-fox {
+  width: 3.4em;
+  height: 3.4em;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 .morph-card-word {
   margin: 0;

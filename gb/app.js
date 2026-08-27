@@ -354,6 +354,8 @@
   const morphLives = document.getElementById("morph-lives");
   const morphScoreEl = document.getElementById("morph-score");
   const morphSprite = document.getElementById("morph-sprite");
+  const morphImg = document.getElementById("morph-sprite-img");
+  const morphFx = document.getElementById("morph-fx");
   const morphMouth = document.getElementById("morph-mouth");
   const morphPupils = document.querySelectorAll(".morph-pupil");
   const morphWordEl = document.getElementById("morph-word");
@@ -369,6 +371,15 @@
   // gloss once, short enough that the round still feels like a WarioWare
   // beat rather than an untimed quiz.
   const MORPH_STEP_MS = 6000;
+  const MORPH_POSES = {
+    idle: "sprites/fox-idle.png",
+    breathe: "sprites/fox-breathe.png",
+    happy: "sprites/fox-happy.png",
+    shocked: "sprites/fox-shocked.png",
+    win: "sprites/fox-winsquint.png",
+  };
+  const morphReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    || Boolean(navigator.webdriver);
   const morphGame = window.OqMorphGame.createGame({
     puzzles: window.OqMorphPuzzles.puzzles,
     startLives: MORPH_START_LIVES,
@@ -378,10 +389,69 @@
   let morphBusy = false; // true during the brief shock/win pause -- input ignored
   let morphTimerRaf = 0;
   let morphTimerDeadline = 0;
+  let morphIdleTimer = 0;
+  let morphIdleFrame = 0;
+  let morphFxTimer = 0;
+
+  function setMorphPose(pose) {
+    morphImg.src = MORPH_POSES[pose];
+    const gazing = pose === "idle" || pose === "breathe" || pose === "happy" || pose === "shocked";
+    morphSprite.classList.toggle("is-gazing", gazing);
+  }
+
+  function stopMorphIdle() {
+    if (morphIdleTimer) clearInterval(morphIdleTimer);
+    morphIdleTimer = 0;
+  }
+
+  function startMorphIdle() {
+    stopMorphIdle();
+    morphIdleFrame = 0;
+    setMorphPose("idle");
+    if (morphReduceMotion) return;
+    morphIdleTimer = setInterval(() => {
+      if (morphSprite.classList.contains("is-happy") || morphSprite.classList.contains("is-shocked")) return;
+      morphIdleFrame ^= 1;
+      setMorphPose(morphIdleFrame ? "breathe" : "idle");
+    }, 380);
+  }
+
+  function stopMorphFx() {
+    if (morphFxTimer) clearInterval(morphFxTimer);
+    morphFxTimer = 0;
+    morphFx.hidden = true;
+  }
+
+  function startMorphFx() {
+    stopMorphFx();
+    if (morphReduceMotion) return;
+    let i = 1;
+    morphFx.hidden = false;
+    morphFx.src = `sprites/fx-${i}.png`;
+    morphFxTimer = setInterval(() => {
+      i = (i % 4) + 1;
+      morphFx.src = `sprites/fx-${i}.png`;
+    }, 90);
+  }
+
+  function stopMorphAnim() {
+    stopMorphIdle();
+    stopMorphFx();
+    stopMorphTimer();
+  }
 
   function renderMorphHud() {
     const { lives, score } = morphGame.getState();
-    morphLives.textContent = "♥".repeat(lives) + "♡".repeat(MORPH_START_LIVES - lives);
+    morphLives.replaceChildren();
+    for (let i = 0; i < MORPH_START_LIVES; i++) {
+      const img = document.createElement("img");
+      img.className = "morph-heart";
+      img.src = i < lives ? "sprites/heart-full.png" : "sprites/heart-empty.png";
+      img.width = 16;
+      img.height = 16;
+      img.alt = "";
+      morphLives.appendChild(img);
+    }
     morphScoreEl.textContent = `SCORE ${score}`;
   }
 
@@ -433,6 +503,8 @@
     morphSelected = 0;
     morphSprite.classList.remove("is-shocked", "is-happy");
     morphMouth.className = "morph-mouth";
+    startMorphIdle();
+    stopMorphFx();
     morphWordEl.textContent = syllabify(step.word) + "-";
     morphStatusEl.textContent = step.stepType === "suffix" ? "PICK THE ENDING." : "PICK THE NEXT AFFIX.";
     morphOptionsEl.textContent = "";
@@ -483,8 +555,11 @@
     if (result.outcome === "wrong") {
       sfx("shock");
       renderMorphHud();
+      stopMorphIdle();
+      stopMorphFx();
       morphSprite.classList.add("is-shocked");
       morphMouth.className = "morph-mouth is-shocked";
+      setMorphPose("shocked");
       morphStatusEl.textContent = `NOT THERE -- ${result.gloss}`;
       setTimeout(() => resumeIfStillOnMorph(() => {
         if (result.gameOver) {
@@ -499,8 +574,11 @@
     if (result.outcome === "timeout") {
       sfx("shock");
       renderMorphHud();
+      stopMorphIdle();
+      stopMorphFx();
       morphSprite.classList.add("is-shocked");
       morphMouth.className = "morph-mouth is-shocked";
+      setMorphPose("shocked");
       morphStatusEl.textContent = "TOO SLOW!";
       setTimeout(() => resumeIfStillOnMorph(() => {
         if (result.gameOver) {
@@ -514,8 +592,11 @@
     }
     if (result.outcome === "win") {
       sfx("roundwin");
+      stopMorphIdle();
       morphSprite.classList.add("is-happy");
       morphMouth.className = "morph-mouth is-happy";
+      setMorphPose("happy");
+      startMorphFx();
       renderMorphHud();
       showMorphCard(result.word, result.resultGloss);
       setTimeout(() => resumeIfStillOnMorph(() => {
@@ -609,12 +690,12 @@
       if (currentScreen !== "morph" || SCREENS.morph.hidden) launchMorph();
     } else if (dest === "menu" || dest === "about" || dest === "gameover" || dest === "title") {
       if (currentScreen === "decon") exitDecon();
-      if (currentScreen === "morph") stopMorphTimer();
+      if (currentScreen === "morph") stopMorphAnim();
       bootDone = true;
       showScreen(dest);
     } else {
       if (currentScreen === "decon") exitDecon();
-      if (currentScreen === "morph") stopMorphTimer();
+      if (currentScreen === "morph") stopMorphAnim();
       showScreen("title");
     }
   });
