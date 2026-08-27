@@ -277,10 +277,18 @@ def test_morph_sprite_scales_with_font_size(browser, base_url):
 def test_morph_cards_fit_when_shown(browser, base_url):
     """The win card and the Start-pause card are both absolutely positioned
     overlays with fixed em insets -- force each visible (independent of
-    actually winning a round or pausing) and check neither overflows."""
+    actually winning a round or pausing) and check neither overflows. The
+    win card is filled with the longest real word/gloss pair in
+    shared/morph-puzzles.js rather than left empty, since an empty card
+    wouldn't exercise the wrapping that could actually push it past its
+    fixed top/bottom insets."""
     context = browser.new_context(viewport=SHORT_VIEWPORT)
     page = context.new_page()
     goto_gb(page, base_url, "?screen=morph")
+    page.evaluate(
+        "() => { document.getElementById('morph-card-word').textContent = 'ILLOQARPOQ';"
+        " document.getElementById('morph-card-meaning').textContent = 'he/she/it has a house'; }"
+    )
     for card_id in ["morph-card", "morph-pause-card"]:
         page.evaluate(f"document.getElementById('{card_id}').hidden = false")
         _assert_screen_fits(page, "morph-screen", card_id)
