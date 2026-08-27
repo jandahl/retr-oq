@@ -260,8 +260,20 @@ button:not(:disabled),
   align-items: center;
 }
 .klax-canvas {
-  width: min(100%, 48em);
+  /* width:auto (with a max-width cap) sizes a flex item to its own
+     intrinsic content size and never grows past that -- max-* only
+     clamps downward, so the canvas sat at native 256x224 with acres of
+     TV bezel around it. width:100% makes it actually fill the screen;
+     max-height + aspect-ratio then shrink it back down (and, per the
+     CSS aspect-ratio transferred-sizing algorithm, shrink the width to
+     match) on a wide-but-short browser window where 100% width would
+     otherwise compute a height taller than the available screen --
+     that's what silently got clipped by .snes-screen's overflow:hidden
+     before this rule existed at all. */
+  width: 100%;
   height: auto;
+  max-height: 100%;
+  aspect-ratio: 256 / 224;
   border: 3px solid var(--snes-mist);
   box-shadow: 4px 4px 0 #0c1018;
   image-rendering: pixelated;
@@ -427,29 +439,46 @@ html.is-keyboard .snes-tv {
 .snes-controller {
   flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
   margin: 8px;
-  padding: 8px 14px 12px;
-  background: linear-gradient(#e0e4e8, var(--snes-pad) 42%, #9aa0a6);
-  border: 3px solid #5a5e62;
-  border-radius: 44px;
-  box-shadow: 0 4px 0 #2a2c30, inset 0 2px 0 #f4f6f8;
   min-height: 0;
-  box-sizing: border-box;
   -webkit-user-select: none;
   user-select: none;
   touch-action: manipulation;
 }
 
-.pad-shoulders {
-  display: flex;
-  justify-content: space-between;
-  margin: 0 10px 6px;
+/* Each cluster is its own gamepad half now -- the gray gradient shell
+   that used to wrap the whole controller lives here instead, so
+   splitting them apart (the wide-screen row layout below) doesn't
+   need to fake a shell that no longer has one box to draw. Each owns
+   its face buttons plus the one extra pill that sits toward the
+   screen: Select up-and-right of the D-pad, Start up-and-left of
+   ABXY, instead of a shared center Select/Start column. */
+.pad-cluster {
+  position: relative;
+  flex: 0 0 auto;
+  padding: 22px 14px 14px;
+  background: linear-gradient(#e0e4e8, var(--snes-pad) 42%, #9aa0a6);
+  border: 3px solid #5a5e62;
+  border-radius: 44px;
+  box-shadow: 0 4px 0 #2a2c30, inset 0 2px 0 #f4f6f8;
+  box-sizing: border-box;
 }
+.pad-cluster-left {
+  padding-right: 40px;
+}
+.pad-cluster-right {
+  padding-left: 40px;
+}
+
 .pad-shoulder {
   -webkit-appearance: none;
   appearance: none;
-  width: 78px;
+  position: absolute;
+  top: 0;
+  width: 62px;
   height: 16px;
   border: 0;
   border-radius: 10px 10px 4px 4px;
@@ -460,16 +489,37 @@ html.is-keyboard .snes-tv {
   letter-spacing: 0.08em;
   box-shadow: 0 2px 0 #4a4e52;
 }
+.pad-shoulder-l { left: 0; }
+.pad-shoulder-r { right: 0; }
 .pad-shoulder:active {
   transform: translateY(1px);
   box-shadow: none;
 }
 
-.pad-body {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
+.pad-pill {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  top: 6px;
+  background: #6a6e72;
+  color: #e8ecee;
+  border: 0;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.5em;
+  letter-spacing: 0.08em;
+  padding: 0.55em 0.9em;
+  min-height: 26px;
+  min-width: 62px;
+  box-shadow: 0 2px 0 #3a3e42;
+}
+/* Above and to the right of the D-pad -- inward, toward the screen. */
+.pad-select { right: 0; }
+/* Above and to the left of the ABXY island -- inward, toward the screen. */
+.pad-start { left: 0; }
+.pad-pill:active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 .pad-dpad {
@@ -545,33 +595,6 @@ html.is-keyboard .snes-tv {
 .pad-left { left: 8px; }
 .pad-right { right: 8px; }
 
-.pad-mid {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  align-items: center;
-  flex: 1 1 auto;
-}
-.pad-pill {
-  -webkit-appearance: none;
-  appearance: none;
-  background: #6a6e72;
-  color: #e8ecee;
-  border: 0;
-  border-radius: 999px;
-  font-family: inherit;
-  font-size: 0.5em;
-  letter-spacing: 0.08em;
-  padding: 0.55em 0.9em;
-  min-height: 26px;
-  min-width: 62px;
-  box-shadow: 0 2px 0 #3a3e42;
-}
-.pad-pill:active {
-  transform: translateY(1px);
-  box-shadow: none;
-}
-
 .pad-face {
   position: relative;
   width: 124px;
@@ -635,6 +658,40 @@ html.is-keyboard .snes-tv {
   .snes-controller {
     margin: 8px auto 12px;
     width: min(720px, calc(100% - 24px));
+  }
+}
+
+/* Wide enough to flank the screen instead of stacking under it: the TV
+   was capped at 720px above and sat on a big unused black background
+   either side of it on a wide window -- that's real "TV" real estate
+   the split controller can give back. .snes-controller turns invisible
+   as a box (display:contents) so its two .pad-cluster children become
+   direct flex items of .snes-shell, placed either side of the TV via
+   `order` regardless of DOM order. */
+@media (min-width: 1040px) {
+  .snes-shell {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 0 16px;
+  }
+  .snes-tv {
+    order: 0;
+    flex: 1 1 auto;
+    align-self: stretch;
+    width: auto;
+    max-width: 1100px;
+    margin: 12px 0;
+  }
+  .snes-controller {
+    display: contents;
+  }
+  .pad-cluster-left {
+    order: -1;
+  }
+  .pad-cluster-right {
+    order: 1;
   }
 }
 
@@ -720,7 +777,7 @@ html.is-ntsc .snes-tv::after {
 html.is-ntsc .snes-glow {
   background: radial-gradient(ellipse at 50% 40%, rgba(90, 74, 154, 0.16), transparent 62%);
 }
-html.is-ntsc .snes-controller {
+html.is-ntsc .pad-cluster {
   background: linear-gradient(#5a5a64, var(--snes-pad) 40%, #3a3a44);
   border: 4px solid #2e2e36;
   border-radius: 18px 18px 28px 28px;
