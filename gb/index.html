@@ -6,7 +6,7 @@
 <title>retr-oq — Game Boy prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=9" />
+<link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
   <!-- Original Game Boy (DMG-01), not a window manager and not the NES
@@ -75,13 +75,9 @@
           </div>
 
           <div class="gb-screen gb-screen-app" id="morph-screen" hidden>
-            <p class="screen-heading">MORPH!</p>
+            <div class="morph-timer" aria-hidden="true"><div class="morph-timer-fill" id="morph-timer-fill"></div></div>
             <div class="morph-hud">
               <span class="morph-lives" id="morph-lives" aria-label="Lives"></span>
-              <span class="morph-score" id="morph-score">SCORE 0</span>
-            </div>
-            <div class="morph-timer" aria-hidden="true"><div class="morph-timer-fill" id="morph-timer-fill"></div></div>
-            <div class="morph-sprite-well">
               <div class="morph-sprite is-gazing" id="morph-sprite" aria-hidden="true">
                 <img class="morph-sprite-img" id="morph-sprite-img" src="sprites/fox-idle.png?v=8" width="16" height="16" alt="" />
                 <span class="morph-eye morph-eye-l"><span class="morph-pupil"></span></span>
@@ -89,6 +85,7 @@
                 <span class="morph-mouth" id="morph-mouth" hidden></span>
                 <img class="morph-fx" id="morph-fx" alt="" hidden />
               </div>
+              <span class="morph-score" id="morph-score">SCORE 0</span>
             </div>
             <p class="morph-word" id="morph-word"></p>
             <p class="morph-status" id="morph-status"></p>

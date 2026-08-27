@@ -198,22 +198,27 @@ def test_select_cycles_menu(page, base_url):
 # toolbar chrome shrinks the *available* height below what any headless
 # viewport test normally uses, and a fixed-px element (a sprite image, a
 # vw-only font-size) doesn't shrink with it -- so a screen that looks fine
-# at 844px silently clips content at, say, 560px. This bit twice: once for
-# MORPH!'s options/hint text, and again when a fixed-px sprite image was
-# dropped in without switching to the em-based sizing the rest of the
-# screen already uses. `.gb-lcd` has `overflow: hidden`, so a regression
-# doesn't show up as a visible scrollbar -- it shows up as content quietly
-# missing -- which is exactly why this needs an automated check rather
-# than an eyeballed screenshot.
+# at 844px silently clips content at, say, 560px. This bit three times now:
+# MORPH!'s options/hint text, a fixed-px sprite image dropped in without
+# switching to the em-based sizing the rest of the screen already uses, and
+# then again on the very fix for that -- the first version of this guard
+# checked #gb-lcd's own scrollHeight/clientHeight, but every .gb-screen is
+# absolutely positioned with inset:0 (a fixed size, not shrink-to-fit) and
+# clips its own overflow before it ever reaches #gb-lcd, so #gb-lcd never
+# overflows regardless of how badly a screen's *content* does -- that
+# version passed even against a real screenshot showing 1.5 of 3 MORPH!
+# options. Checking each `.gb-screen`'s own scrollHeight against its own
+# clientHeight is what actually catches it.
 SHORT_VIEWPORT = {"width": 390, "height": 560}
 
 
-def _assert_lcd_fits(page, label):
-    box = page.locator("#gb-lcd").evaluate(
+def _assert_screen_fits(page, screen_id, label=None):
+    box = page.locator(f"#{screen_id}").evaluate(
         "el => ({sh: el.scrollHeight, ch: el.clientHeight, sw: el.scrollWidth, cw: el.clientWidth})"
     )
-    assert box["sh"] <= box["ch"] + 1, f"{label}: content overflows #gb-lcd vertically ({box})"
-    assert box["sw"] <= box["cw"] + 1, f"{label}: content overflows #gb-lcd horizontally ({box})"
+    label = label or screen_id
+    assert box["sh"] <= box["ch"] + 1, f"{label}: content overflows #{screen_id} vertically ({box})"
+    assert box["sw"] <= box["cw"] + 1, f"{label}: content overflows #{screen_id} horizontally ({box})"
 
 
 def test_no_overflow_at_short_viewport(browser, base_url):
@@ -221,7 +226,7 @@ def test_no_overflow_at_short_viewport(browser, base_url):
     page = context.new_page()
     for screen in ["title", "menu", "oq", "decon", "about", "gameover"]:
         goto_gb(page, base_url, f"?screen={screen}")
-        _assert_lcd_fits(page, screen)
+        _assert_screen_fits(page, f"{screen}-screen")
     context.close()
 
 
@@ -239,7 +244,7 @@ def test_morph_worst_case_no_overflow(browser, base_url):
         page.reload()
         page.wait_for_timeout(300)
     assert page.locator(".morph-option").count() == 3, "couldn't roll the 3-option puzzle to test against"
-    _assert_lcd_fits(page, "morph (3-option worst case)")
+    _assert_screen_fits(page, "morph-screen", "morph (3-option worst case)")
     context.close()
 
 
@@ -258,15 +263,15 @@ def _sprite_to_font_ratio(browser, base_url, viewport):
 def test_morph_sprite_scales_with_font_size(browser, base_url):
     """Guards against a fixed-px sprite (e.g. `width: 96px`) that doesn't
     shrink along with #morph-screen's own responsive font-size the way an
-    em-sized sprite does. #morph-screen's font-size is a vw clamp
-    (clamp(14px, 5.2vw, 18px)), so 300px and 390px widths land on either
-    side of its floor/ceiling and actually produce different font sizes --
-    an em-sized sprite keeps the same sprite-height/font-size ratio at
-    both; a fixed-px sprite's ratio visibly drifts."""
-    ratio_narrow = _sprite_to_font_ratio(browser, base_url, {"width": 300, "height": 600})
-    ratio_wide = _sprite_to_font_ratio(browser, base_url, {"width": 390, "height": 600})
-    assert ratio_narrow < 6, ratio_narrow
-    assert abs(ratio_narrow - ratio_wide) / ratio_wide < 0.05, (ratio_narrow, ratio_wide)
+    em-sized sprite does. #morph-screen's font-size is a cqh clamp
+    (clamp(11px, 3.3cqh, 18px)) tied to #gb-lcd's rendered height, so a
+    short and a tall viewport actually produce different font sizes -- an
+    em-sized sprite keeps the same sprite-height/font-size ratio at both;
+    a fixed-px sprite's ratio visibly drifts."""
+    ratio_short = _sprite_to_font_ratio(browser, base_url, {"width": 390, "height": 500})
+    ratio_tall = _sprite_to_font_ratio(browser, base_url, {"width": 390, "height": 844})
+    assert ratio_short < 8, ratio_short
+    assert abs(ratio_short - ratio_tall) / ratio_tall < 0.05, (ratio_short, ratio_tall)
 
 
 def test_morph_cards_fit_when_shown(browser, base_url):
@@ -278,6 +283,6 @@ def test_morph_cards_fit_when_shown(browser, base_url):
     goto_gb(page, base_url, "?screen=morph")
     for card_id in ["morph-card", "morph-pause-card"]:
         page.evaluate(f"document.getElementById('{card_id}').hidden = false")
-        _assert_lcd_fits(page, card_id)
+        _assert_screen_fits(page, "morph-screen", card_id)
         page.evaluate(f"document.getElementById('{card_id}').hidden = true")
     context.close()
