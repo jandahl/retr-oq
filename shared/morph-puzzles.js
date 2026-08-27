@@ -133,6 +133,77 @@
       resultWord: "atuarpoq",
       resultGloss: "he/she/it reads / is reading",
     },
+    // The three puzzles below were supplied directly (root + chain +
+    // resultWord), not independently probed against analyzeWordAsync the
+    // way every entry above was -- there was no access to the analyzer to
+    // re-check them here. Kept as given rather than guessed at, but their
+    // wrong-distractor picks reuse only already-established markers from
+    // this same file (mi/t/qaq) on the working assumption that they're
+    // safe here too; that assumption is exactly the kind of thing this
+    // file's own history (see the header comment) says has been wrong
+    // before. Treat these three as pending re-verification, not yet held
+    // to the same bar as the rest of the file.
+    {
+      root: "qimmeq",
+      rootGloss: "dog",
+      steps: [
+        {
+          correct: { marker: "qaq", type: "affix", gloss: "to have a ___" },
+          wrong: [
+            { marker: "mi", gloss: "in/at" },
+          ],
+        },
+        {
+          correct: { marker: "vunga", type: "suffix", gloss: "statement -- I" },
+          wrong: [
+            { marker: "t", gloss: "plural" },
+          ],
+        },
+      ],
+      // qimmeq + qaq + vunga
+      resultWord: "qimmeqarpunga",
+      resultGloss: "I have a dog",
+    },
+    {
+      root: "inuk",
+      rootGloss: "person",
+      steps: [
+        {
+          correct: { marker: "t", type: "suffix", gloss: "plural" },
+          wrong: [
+            { marker: "qaq", gloss: "to have a ___" },
+          ],
+        },
+      ],
+      // inuk + t (surfaces with the same k+t epenthesis pattern as angut + t -> angutit)
+      resultWord: "inuit",
+      resultGloss: "people, Inuit",
+    },
+    {
+      // Composition and gloss less certain than the rest of this file --
+      // "inuuik" itself wasn't independently confirmed as a standalone
+      // form, and "sior"/"soq" glosses below are general-knowledge best
+      // guesses, not analyzer-checked for this exact root.
+      root: "inuuik",
+      rootGloss: "(uncertain -- please confirm)",
+      steps: [
+        {
+          correct: { marker: "sior", type: "affix", gloss: "to deal with / get ___ (uncertain gloss)" },
+          wrong: [
+            { marker: "qaq", gloss: "to have a ___" },
+          ],
+        },
+        {
+          correct: { marker: "soq", type: "suffix", gloss: "the one who/that ___s" },
+          wrong: [
+            { marker: "mi", gloss: "in/at" },
+          ],
+        },
+      ],
+      // inuuik + sior + soq
+      resultWord: "inuuissiortoq",
+      resultGloss: "(uncertain -- please confirm)",
+    },
   ];
 
   window.OqMorphPuzzles = { puzzles };

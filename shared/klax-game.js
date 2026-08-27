@@ -30,6 +30,15 @@
 (() => {
   "use strict";
 
+  // Spawn-weighting constants -- named so a tuning pass never has to go
+  // hunting through spawnActive() for a bare 0.6 or 0.05 to figure out
+  // what it actually controls.
+  const PILL_CHANCE = 1 / 20; // how often a spawn is a pill instead of a real morpheme tile
+  const PILL_LANE_VS_SCREEN_CHANCE = 0.5; // even split between the two pill kinds
+  const PITY_AFFIX_CHANCE = 0.6; // odds a spawn is forced to be a pending root's correct affix
+  const ROOT_VS_AFFIX_CHANCE = 0.5; // odds a non-pity, non-pill spawn is the round's root (vs. an affix)
+  const CORRECT_VS_WRONG_AFFIX_CHANCE = 0.55; // odds that affix is the correct one (vs. a real wrong one)
+
   /**
    * @param {{
    *   puzzles: Array<{ root: string, steps: Array<{ correct: { marker: string }, wrong: Array<{ marker: string }> }> }>,
@@ -78,8 +87,8 @@
       // logic below. Caught and carried in the paddle just like any other
       // tile -- "stored for later" falls out of that for free -- but
       // placing one never occupies a lane; it clears one instead.
-      if (Math.random() < 0.05) {
-        const isLane = Math.random() < 0.5;
+      if (Math.random() < PILL_CHANCE) {
+        const isLane = Math.random() < PILL_LANE_VS_SCREEN_CHANCE;
         active = {
           roundId: null,
           kind: isLane ? "power-lane" : "power-screen",
@@ -93,7 +102,7 @@
       // hand the player a long run of tiles that can't complete anything
       // they're already holding. Once a root is on the board waiting for
       // its affix, most spawns bias toward finally giving it to them.
-      if (pendingRoots.size > 0 && Math.random() < 0.6) {
+      if (pendingRoots.size > 0 && Math.random() < PITY_AFFIX_CHANCE) {
         const ids = Array.from(pendingRoots);
         const roundId = ids[Math.floor(Math.random() * ids.length)];
         const round = rounds[roundId];
@@ -104,10 +113,10 @@
       // Every other spawn is a coin flip between the round's root and one
       // of its affixes (correct or a real wrong one) -- the player never
       // knows which half of a pair they're catching until they read it.
-      const wantsRoot = Math.random() < 0.5;
+      const wantsRoot = Math.random() < ROOT_VS_AFFIX_CHANCE;
       const marker = wantsRoot
         ? round.root
-        : Math.random() < 0.55
+        : Math.random() < CORRECT_VS_WRONG_AFFIX_CHANCE
           ? round.correct
           : round.wrong[Math.floor(Math.random() * round.wrong.length)];
       active = {
