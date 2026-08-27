@@ -1,12 +1,13 @@
-// Shared KLAX! game engine -- Klax turned upside down: morpheme tiles rise
-// from the well floor instead of dropping from the sky, a paddle at the top
-// catches them, and matching a root with its correct affix clears the pair.
-// Classic script exposing window.OqKlaxGame, same convention as
-// shared/morph-game.js: this file owns pure game state (which tiles are
-// rising in which column, what the paddle is holding, lives, score) and
-// renders nothing itself -- no DOM, no canvas, no timers. A theme's own
-// app.js drives tick()/catchTile()/rotateHolder()/commit() from its own
-// input handling and render loop, the same split morph-game.js uses.
+// Shared KLAX! game engine -- Klax turned upside down: one morpheme tile at
+// a time rises from the well floor instead of dropping from the sky. Line
+// the paddle up under its column before it reaches the top and it's caught
+// automatically -- miss the column and it overflows. Catching a root and
+// its correct affix (same puzzle) auto-matches the instant the second one
+// lands, clearing the pair and scoring. Classic script exposing
+// window.OqKlaxGame, same convention as shared/morph-game.js: this file
+// owns pure game state and renders nothing itself -- no DOM, no canvas, no
+// timers. A theme's own app.js drives tick()/discard() from its own input
+// handling and render loop, the same split morph-game.js uses.
 //
 // Reuses shared/morph-puzzles.js puzzle data as-is (real, verified
 // Kalaallisut morphemes) rather than inventing new tile text -- but only
@@ -18,17 +19,6 @@
 (() => {
   "use strict";
 
-  function shuffled(arr) {
-    const a = arr.slice();
-    for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [a[i], a[j]] = [a[j], a[i]];
-    }
-    return a;
-  }
-
-  let nextTileId = 1;
-
   /**
    * @param {{
    *   puzzles: Array<{ root: string, steps: Array<{ correct: { marker: string }, wrong: Array<{ marker: string }> }> }>,
@@ -38,7 +28,7 @@
    *   riseSpeed?: number, // 0..1 well progress per second
    * }} config
    */
-  function createGame({ puzzles, columns = 4, holderSize = 3, startLives = 3, riseSpeed = 0.18 }) {
+  function createGame({ puzzles, columns = 4, holderSize = 3, startLives = 3, riseSpeed = 0.22 }) {
     if (!puzzles || puzzles.length === 0) throw new Error("createGame requires at least one puzzle");
 
     // Each round is one puzzle reduced to its first step: a root tile, the
@@ -50,13 +40,16 @@
       wrong: p.steps[0].wrong.map((w) => w.marker),
     }));
 
-    let cols = []; // cols[c] = array of tiles, index 0 is the frontmost (closest to the paddle)
+    // A single rising tile at a time -- not one per column -- is the whole
+    // fix for "getting 8 at once": the player reads and reacts to one
+    // block, resolves it (caught or missed), then the next one spawns.
+    let active = null;
     let holder = [];
     let lives = startLives;
     let score = 0;
     let gameOver = false;
 
-    function spawnTile() {
+    function spawnActive() {
       const round = rounds[Math.floor(Math.random() * rounds.length)];
       // Every spawn is a coin flip between the round's root and one of its
       // affixes (correct or a real wrong one) -- the player never knows
@@ -67,23 +60,13 @@
         : Math.random() < 0.55
           ? round.correct
           : round.wrong[Math.floor(Math.random() * round.wrong.length)];
-      return {
-        tileId: nextTileId++,
+      active = {
         roundId: round.id,
         kind: wantsRoot ? "root" : marker === round.correct ? "affix-correct" : "affix-wrong",
         marker,
+        col: Math.floor(Math.random() * columns),
         y: 0,
-        ready: false,
       };
-    }
-
-    function refillColumn(c) {
-      // Stagger new tiles behind whatever's already rising so a column
-      // never looks like it spawned a wall of tiles at once.
-      const back = cols[c][cols[c].length - 1];
-      const tile = spawnTile();
-      tile.y = back ? Math.max(-0.6, back.y - 0.55 - Math.random() * 0.35) : -Math.random() * 0.4;
-      cols[c].push(tile);
     }
 
     function start() {
@@ -91,102 +74,73 @@
       score = 0;
       gameOver = false;
       holder = [];
-      cols = Array.from({ length: columns }, () => []);
-      for (let c = 0; c < columns; c++) {
-        for (let n = 0; n < 3; n++) refillColumn(c);
-      }
+      active = null;
+      spawnActive();
       return getState();
     }
 
     /**
-     * Advances every rising tile by `dtSeconds` worth of well progress.
-     * A tile that crosses y=1 uncaught overflows the well: it's removed,
-     * costs a life, and a fresh tile refills the column from the back.
-     * Returns { overflowed: boolean, gameOver } so the caller can flash/sfx
-     * an overflow without polling getState() every frame.
+     * If the newest catch completes a root + its correct affix from the
+     * same round, clears that pair and scores. Runs automatically after
+     * every catch -- there's no separate "commit" step, so a matching pair
+     * always resolves the moment it's caught rather than waiting on a
+     * button the player has to discover.
      */
-    const MIN_GAP = 0.12; // minimum well-progress gap kept between queued tiles
-
-    function tick(dtSeconds) {
-      if (gameOver) return { overflowed: false, gameOver: true };
-      let overflowed = false;
-      for (let c = 0; c < cols.length; c++) {
-        const column = cols[c];
-        for (let i = 0; i < column.length; i++) {
-          const tile = column[i];
-          if (tile.y < 1) tile.y = Math.min(1, tile.y + riseSpeed * dtSeconds);
-          // The front tile clamps at y=1 while it waits out its overflow
-          // grace; without this, a tile queued behind it -- rising at the
-          // same speed -- would keep closing the gap and could reach y=1
-          // itself, stacking two tiles on the exact same spot in the well.
-          if (i > 0) tile.y = Math.min(tile.y, column[i - 1].y - MIN_GAP);
-          tile.ready = tile.y >= 1;
-        }
-        if (!column.length) continue;
-        const front = column[0];
-        if (front.ready && front.overflowGrace === undefined) {
-          // Only the front tile can overflow, same as only the front tile
-          // can be caught -- it gets one grace window to be caught before
-          // the well counts it as a miss.
-          front.overflowGrace = 0.35;
-        }
-        if (front.overflowGrace !== undefined) {
-          front.overflowGrace -= dtSeconds;
-          if (front.overflowGrace <= 0) {
-            column.shift();
-            refillColumn(c);
-            lives -= 1;
-            overflowed = true;
-          }
-        }
-      }
-      if (lives <= 0) gameOver = true;
-      return { overflowed, gameOver, lives };
-    }
-
-    /** Pulls the frontmost ready tile in column `c` into the paddle's holder, if there's room. */
-    function catchTile(c) {
-      if (gameOver) return { caught: false };
-      const column = cols[c];
-      if (!column || !column.length || !column[0].ready) return { caught: false };
-      if (holder.length >= holderSize) return { caught: false, holderFull: true };
-      const [tile] = column.splice(0, 1);
-      delete tile.overflowGrace;
-      holder.push(tile);
-      refillColumn(c);
-      return { caught: true, tile: { marker: tile.marker, kind: tile.kind } };
-    }
-
-    /** Cycles the holder order (front tile moves to the back) so the player can line up a pair for commit(). */
-    function rotateHolder() {
-      if (holder.length > 1) holder.push(holder.shift());
-      return getState();
-    }
-
-    /**
-     * Attempts a match: if any two held tiles are a root + its correct
-     * affix from the same round, they clear and score. Otherwise the
-     * whole holder is discarded and a life is lost -- committing on a
-     * bad guess is the risk, same as dropping a bad line in Klax.
-     */
-    function commit() {
-      if (gameOver) return { outcome: "gameover" };
+    function tryAutoMatch() {
       for (let i = 0; i < holder.length; i++) {
         for (let j = 0; j < holder.length; j++) {
           if (i === j) continue;
           const a = holder[i], b = holder[j];
           if (a.roundId === b.roundId && a.kind === "root" && b.kind === "affix-correct") {
-            const cleared = [a, b];
             holder = holder.filter((t) => t !== a && t !== b);
             score += 20;
-            return { outcome: "match", cleared: cleared.map((t) => t.marker), score };
+            return { marker: a.marker, other: b.marker };
           }
         }
       }
-      holder = [];
+      return null;
+    }
+
+    /**
+     * Advances the one active tile by `dtSeconds` worth of well progress.
+     * The instant it reaches the top, it resolves immediately -- caught if
+     * the paddle is already sitting in its column, missed otherwise. There
+     * is no grace window and no way for it to hang around the catch line:
+     * a tile that "passes through" the paddle instead of resolving was the
+     * bug, not a feature.
+     * @param {number} paddleCol which column the paddle is currently over
+     */
+    function tick(dtSeconds, paddleCol) {
+      if (gameOver) return { event: "gameover" };
+      if (!active) {
+        spawnActive();
+        return { event: "spawned" };
+      }
+      active.y = Math.min(1, active.y + riseSpeed * dtSeconds);
+      if (active.y < 1) return { event: "rising" };
+
+      if (active.col === paddleCol) {
+        const caught = active;
+        active = null;
+        if (holder.length < holderSize) holder.push(caught);
+        const matched = tryAutoMatch();
+        spawnActive();
+        return matched
+          ? { event: "match", cleared: [matched.marker, matched.other], score }
+          : { event: "caught", tile: { marker: caught.marker, kind: caught.kind } };
+      }
+
+      active = null;
       lives -= 1;
       if (lives <= 0) gameOver = true;
-      return { outcome: "miss", lives, gameOver };
+      spawnActive();
+      return { event: "missed", lives, gameOver };
+    }
+
+    /** Clears the holder with no penalty -- the escape hatch when it's stuck holding pieces that can't pair up. */
+    function discard() {
+      holder = [];
+      return getState();
     }
 
     function getState() {
@@ -195,13 +149,12 @@
         score,
         gameOver,
         holder: holder.map((t) => ({ marker: t.marker, kind: t.kind })),
-        columns: cols.map((column) =>
-          column.map((t) => ({ marker: t.marker, kind: t.kind, y: t.y, ready: t.ready })),
-        ),
+        holderSize,
+        active: active && { marker: active.marker, kind: active.kind, col: active.col, y: active.y },
       };
     }
 
-    return { start, tick, catchTile, rotateHolder, commit, getState };
+    return { start, tick, discard, getState };
   }
 
   window.OqKlaxGame = { createGame };
