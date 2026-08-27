@@ -7,7 +7,10 @@
 // them. Pressing place() pops the most recently caught tile and puts it
 // atop a stacking lane (the same four lanes, at the ceiling above the
 // well). Placing a root or its correct affix next to its other half --
-// wherever in the stacks it is -- clears the pair and scores. Classic
+// wherever in the stacks it is -- clears the pair and scores. A rare
+// (1 in 20) spawn is a Dr. Mario-style pill instead of a real morpheme
+// tile: caught and carried the same as anything else, but placing one
+// clears a whole lane or the whole board instead of stacking. Classic
 // script exposing window.OqKlaxGame, same convention as
 // shared/morph-game.js: this file owns pure game state and renders nothing
 // itself -- no DOM, no canvas, no timers. A theme's own app.js drives
@@ -71,6 +74,21 @@
     let gameOver = false;
 
     function spawnActive() {
+      // Dr. Mario-style pill: 1 in 20 spawns, unrelated to the round pity
+      // logic below. Caught and carried in the paddle just like any other
+      // tile -- "stored for later" falls out of that for free -- but
+      // placing one never occupies a lane; it clears one instead.
+      if (Math.random() < 0.05) {
+        const isLane = Math.random() < 0.5;
+        active = {
+          roundId: null,
+          kind: isLane ? "power-lane" : "power-screen",
+          marker: isLane ? "LANE" : "ALL",
+          col: Math.floor(Math.random() * columns),
+          y: 0,
+        };
+        return;
+      }
       // Fairness: blind uniform spawning could -- and did, in testing --
       // hand the player a long run of tiles that can't complete anything
       // they're already holding. Once a root is on the board waiting for
@@ -171,15 +189,38 @@
     }
 
     /**
-     * Pops the most recently caught tile (LIFO) and places it atop the
-     * stacking lane `col`. No-ops if the paddle is empty or that lane is
-     * already full -- the player has to pick another lane rather than
-     * losing the piece.
+     * Pops the most recently caught tile (LIFO). A wrong affix can never
+     * complete a match (only a root + its correct affix can), so placing
+     * one doesn't occupy a lane at all -- it's just discarded, freeing the
+     * paddle slot. Without this, a caught dud would sit in a stack forever
+     * with no way to ever clear it, since match-by-meaning (unlike Klax's
+     * match-by-color) gives it no path to completing anything. A root or
+     * correct affix still needs an actual open lane -- no-ops if the
+     * chosen one is already full, same as before.
      */
     function place(col) {
       if (!paddle.length || gameOver) return { placed: false };
+      const tile = paddle[paddle.length - 1];
+      if (tile.kind === "power-lane") {
+        paddle.pop();
+        for (const t of stacks[col]) if (t.kind === "root") pendingRoots.delete(t.roundId);
+        const cleared = stacks[col].map((t) => t.marker);
+        stacks[col] = [];
+        return { placed: true, event: "power-lane", col, cleared };
+      }
+      if (tile.kind === "power-screen") {
+        paddle.pop();
+        const cleared = stacks.flat().map((t) => t.marker);
+        stacks = stacks.map(() => []);
+        pendingRoots = new Set();
+        return { placed: true, event: "power-screen", cleared };
+      }
+      if (tile.kind === "affix-wrong") {
+        paddle.pop();
+        return { placed: true, event: "discarded", tile: { marker: tile.marker, kind: tile.kind } };
+      }
       if (stacks[col].length >= stackCap) return { placed: false, full: true };
-      const tile = paddle.pop();
+      paddle.pop();
       stacks[col].push(tile);
       if (tile.kind === "root") pendingRoots.add(tile.roundId);
       const matched = tryMatch();

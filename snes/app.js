@@ -656,7 +656,15 @@
   // only the on-screen title.
   const klaxCanvas = document.getElementById("klax-canvas");
   const klaxCtx = klaxCanvas.getContext("2d");
-  const KLAX_TILE_COLOR = { root: "#e7c23f", "affix-correct": "#4f9e5c", "affix-wrong": "#cf4a3d" };
+  const KLAX_TILE_COLOR = {
+    root: "#e7c23f",
+    "affix-correct": "#4f9e5c",
+    "affix-wrong": "#cf4a3d",
+    // Pills get colors from outside the morpheme-tile palette (yellow/
+    // green/red) so they read as a different kind of object at a glance.
+    "power-lane": "#3f7fd6",
+    "power-screen": "#b06fd6",
+  };
 
   // 4x5 bitmap font -- drawn one fillRect per pixel, same technique as the
   // concept-art pass, so canvas text never falls back to anti-aliased
@@ -665,6 +673,7 @@
     " ": ["....", "....", "....", "....", "...."],
     ".": ["....", "....", "....", "....", ".#.."],
     "-": ["....", "....", "####", "....", "...."],
+    "=": ["....", "####", "....", "####", "...."],
     "0": [".##.", "#..#", "#..#", "#..#", ".##."],
     "1": ["..#.", ".##.", "..#.", "..#.", ".###"],
     "2": [".##.", "#..#", "..#.", ".#..", "####"],
@@ -739,6 +748,7 @@
   let klaxUpHeld = false;
   const KLAX_FAST_MULT = 2;
   let klaxFlash = 0; // seconds remaining on a match/miss/overflow flash
+  let klaxPaused = false;
 
   const KLAX_COLS = 4;
   // Klax's bin sits at the floor because that's where its tiles fall to.
@@ -834,6 +844,13 @@
       klaxCtx.fillRect(0, 0, 256, 224);
     }
 
+    if (klaxPaused) {
+      klaxCtx.fillStyle = "rgba(10,10,20,.75)";
+      klaxCtx.fillRect(0, 0, 256, 224);
+      klaxText("PAUSED", 128, 100, 2, "#efeae0", "center");
+      klaxText("START=RESUME  B=MENU", 128, 120, 1, "#8a8db8", "center");
+    }
+
     if (state.gameOver) {
       klaxCtx.fillStyle = "rgba(10,10,20,.75)";
       klaxCtx.fillRect(0, 0, 256, 224);
@@ -844,12 +861,18 @@
   }
 
   function klaxLoop(t) {
+    // klaxLastT keeps advancing every frame even while paused, so dt
+    // doesn't spike on resume -- only the game-state tick() call is
+    // skipped, same as gb/'s MORPH! freezing the step timer in place.
     const dt = klaxLastT ? Math.min(0.1, (t - klaxLastT) / 1000) : 0;
     klaxLastT = t;
-    if (klaxFlash > 0) klaxFlash -= dt;
-    const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
-    if (result.event === "caught") { sfx("move"); }
-    else if (result.event === "missed") { klaxFlash = 0.12; sfx("back"); }
+    if (!klaxPaused) {
+      if (klaxFlash > 0) klaxFlash -= dt;
+      const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
+      if (result.event === "caught") {
+        sfx(result.tile.kind === "power-lane" || result.tile.kind === "power-screen" ? "konami" : "move");
+      } else if (result.event === "missed") { klaxFlash = 0.12; sfx("back"); }
+    }
     renderKlax();
     klaxRaf = requestAnimationFrame(klaxLoop);
   }
@@ -867,6 +890,7 @@
     klaxCol = 0;
     klaxFlash = 0;
     klaxUpHeld = false;
+    klaxPaused = false;
     stopKlaxLoop();
     klaxRaf = requestAnimationFrame(klaxLoop);
   }
@@ -874,6 +898,7 @@
   function exitKlax() {
     stopKlaxLoop();
     klaxUpHeld = false;
+    klaxPaused = false;
   }
 
   function handleKlaxInput(action) {
@@ -883,6 +908,12 @@
       else if (action === "b") { sfx("back"); goMenu(); }
       return;
     }
+    if (klaxPaused) {
+      if (action === "start") resumeKlax();
+      else if (action === "b") { resumeKlax(); sfx("back"); goMenu(); }
+      return;
+    }
+    if (action === "start") { pauseKlax(); return; }
     // Left/right always just move the paddle -- what that means depends on
     // whether the catcher is empty-handed (lining up under the rising
     // tile) or carrying one (choosing a stacking lane to place it in).
@@ -892,6 +923,9 @@
       if (!state.paddle.length) return;
       const res = klaxGame.place(klaxCol);
       if (res.event === "match") { klaxFlash = 0.12; sfx("ok"); }
+      else if (res.event === "power-screen") { klaxFlash = 0.25; sfx("konami"); }
+      else if (res.event === "power-lane") { klaxFlash = 0.16; sfx("ok"); }
+      else if (res.event === "discarded") { sfx("back"); }
       else if (res.placed) { sfx("move"); }
       else { sfx("back"); }
     } else if (action === "down") {
@@ -901,6 +935,24 @@
       sfx("back");
       goMenu();
     }
+  }
+
+  // Start pauses mid-round, same as gb/'s MORPH! -- freezes the well and
+  // paddle exactly where they stood and puts up a blocking card, with its
+  // own distinct music (the title theme, not the in-round bed) so it's
+  // unmistakably a different state, not just a quiet moment.
+  function pauseKlax() {
+    if (klaxPaused || klaxGame.getState().gameOver) return;
+    klaxPaused = true;
+    sfx("start");
+    setMusic("title", levelForScreen("title"));
+  }
+
+  function resumeKlax() {
+    if (!klaxPaused) return;
+    klaxPaused = false;
+    sfx("start");
+    syncMusic();
   }
 
   function finishBoot() {
