@@ -6,7 +6,7 @@
 <title>retr-oq — Super Nintendo cartridge prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=5" />
+<link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <!-- PAL Super Nintendo, not the NA purple toaster and not a window
@@ -113,13 +113,16 @@
     <!-- On-screen PAL Super Nintendo pad. A real deck had no mouse; this
          is the touch equivalent of plugging in a controller. Keyboard
          arrows / Enter / Esc still drive handleInput(). X acts as A,
-         Y as B, L as Select, R as Start -- convenience, not a second GUI. -->
+         Y as B, L as Select, R as Start -- convenience, not a second GUI.
+
+         Split into two clusters (D-pad+Select on the left, ABXY+Start on
+         the right) rather than one center-Select/Start bar: on wide
+         screens .snes-shell turns into a row and the TV sits between the
+         two clusters instead of a boxed screen with unused space either
+         side of it -- see the min-width:900px block in style.css. -->
     <div class="snes-controller" id="snes-controller">
-      <div class="pad-shoulders">
-        <button type="button" class="pad-shoulder" data-input="l" aria-label="L">L</button>
-        <button type="button" class="pad-shoulder" data-input="r" aria-label="R">R</button>
-      </div>
-      <div class="pad-body">
+      <div class="pad-cluster pad-cluster-left">
+        <button type="button" class="pad-shoulder pad-shoulder-l" data-input="l" aria-label="L">L</button>
         <div class="pad-dpad" role="group" aria-label="D-pad">
           <span class="pad-plus-v" aria-hidden="true"></span>
           <span class="pad-plus-h" aria-hidden="true"></span>
@@ -129,16 +132,17 @@
           <button type="button" class="pad-btn pad-right" data-input="right" aria-label="Right"></button>
           <button type="button" class="pad-btn pad-down" data-input="down" aria-label="Down"></button>
         </div>
-        <div class="pad-mid">
-          <button type="button" class="pad-pill" data-input="select" aria-label="Select">SELECT</button>
-          <button type="button" class="pad-pill" data-input="start" aria-label="Start">START</button>
-        </div>
+        <button type="button" class="pad-pill pad-select" data-input="select" aria-label="Select">SELECT</button>
+      </div>
+      <div class="pad-cluster pad-cluster-right">
+        <button type="button" class="pad-shoulder pad-shoulder-r" data-input="r" aria-label="R">R</button>
         <div class="pad-face" role="group" aria-label="Action buttons">
           <button type="button" class="pad-round pad-y" data-input="y" aria-label="Y">Y</button>
           <button type="button" class="pad-round pad-x" data-input="x" aria-label="X">X</button>
           <button type="button" class="pad-round pad-b" data-input="b" aria-label="B">B</button>
           <button type="button" class="pad-round pad-a" data-input="a" aria-label="A">A</button>
         </div>
+        <button type="button" class="pad-pill pad-start" data-input="start" aria-label="Start">START</button>
       </div>
     </div>
   </div>
