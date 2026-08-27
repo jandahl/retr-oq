@@ -34,7 +34,9 @@ Each theme hosts OQ! / DECON via `shared/` (`?screen=oq&filter=`).
 Not yet: modern macOS, Norton Commander.
 
 **`shared/`** — `dict-source.js`, `hyphenation.js`, `router.js`,
-`decon-app.js`, `redmond/window-manager.js` (win31/98/XP/7).
+`decon-app.js`, `redmond/window-manager.js` (win31/98/XP/7),
+`art/fox/` (MORPH! mascot source: first-gen illustrations + 128px
+hires frames — not GB-locked; theme sprites stay in the theme dir).
 
 **`vendor/<theme>/`** — upstream dist + LICENSE, not SCSS sources.
 **`tests/`** — Playwright/pytest for `win98/`, `nes/`, `gb/`, `snes/`, `gg/`.
