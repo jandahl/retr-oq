@@ -255,6 +255,20 @@ button:not(:disabled),
   font-size: 0.8em;
 }
 
+.klax-screen {
+  justify-content: center;
+  align-items: center;
+}
+.klax-canvas {
+  width: min(100%, 48em);
+  height: auto;
+  border: 3px solid var(--snes-mist);
+  box-shadow: 4px 4px 0 #0c1018;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: #14152b;
+}
+
 .snes-field {
   margin-bottom: 0.6em;
 }

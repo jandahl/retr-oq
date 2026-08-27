@@ -15,11 +15,12 @@
     menu: document.getElementById("menu-screen"),
     oq: document.getElementById("oq-screen"),
     decon: document.getElementById("decon-screen"),
+    klax: document.getElementById("klax-screen"),
     about: document.getElementById("about-screen"),
     gameover: document.getElementById("gameover-screen"),
   };
 
-  const MENU_ORDER = ["oq", "decon", "about", "quit"];
+  const MENU_ORDER = ["oq", "decon", "about", "klax", "quit"];
   const menuButtons = MENU_ORDER.map((id) => document.getElementById(`menu-${id}`));
   const continueYes = document.getElementById("continue-yes");
   const continueNo = document.getElementById("continue-no");
@@ -137,6 +138,10 @@
     }
     if (id === "decon") {
       window.OqRouter.navigate({ screen: "decon", word: null, filter: null });
+      return;
+    }
+    if (id === "klax") {
+      window.OqRouter.navigate({ screen: "klax" });
       return;
     }
     if (id === "about") {
@@ -641,6 +646,224 @@
     deconController.abort();
   }
 
+  // ---------- KAL-Q (Klax, upside down) ----------
+  // Game state lives in shared/klax-game.js (window.OqKlaxGame) so it's
+  // reusable by any future console theme -- this section is only
+  // rendering, input, and pacing, same split as shared/morph-game.js gets
+  // from gb/app.js's MORPH! screen. "klax" stays the internal/file-level
+  // codename (genre lineage, matches the shared engine's name); KAL-Q is
+  // only the on-screen title.
+  const klaxCanvas = document.getElementById("klax-canvas");
+  const klaxCtx = klaxCanvas.getContext("2d");
+  const KLAX_TILE_COLOR = { root: "#e7c23f", "affix-correct": "#4f9e5c", "affix-wrong": "#cf4a3d" };
+
+  // 4x5 bitmap font -- drawn one fillRect per pixel, same technique as the
+  // concept-art pass, so canvas text never falls back to anti-aliased
+  // browser glyph rendering at this resolution.
+  const KLAX_FONT = {
+    " ": ["....", "....", "....", "....", "...."],
+    ".": ["....", "....", "....", "....", ".#.."],
+    "-": ["....", "....", "####", "....", "...."],
+    "0": [".##.", "#..#", "#..#", "#..#", ".##."],
+    "1": ["..#.", ".##.", "..#.", "..#.", ".###"],
+    "2": [".##.", "#..#", "..#.", ".#..", "####"],
+    "3": ["###.", "...#", "..#.", "...#", "###."],
+    "4": ["#..#", "#..#", "####", "...#", "...#"],
+    "5": ["####", "#...", "###.", "...#", "###."],
+    "6": [".##.", "#...", "###.", "#..#", ".##."],
+    "7": ["####", "...#", "..#.", ".#..", ".#.."],
+    "8": [".##.", "#..#", ".##.", "#..#", ".##."],
+    "9": [".##.", "#..#", ".###", "...#", ".##."],
+    A: [".##.", "#..#", "####", "#..#", "#..#"],
+    B: ["###.", "#..#", "###.", "#..#", "###."],
+    C: [".##.", "#...", "#...", "#...", ".##."],
+    D: ["###.", "#..#", "#..#", "#..#", "###."],
+    E: ["####", "#...", "###.", "#...", "####"],
+    F: ["####", "#...", "###.", "#...", "#..."],
+    G: [".##.", "#...", "#.##", "#..#", ".##."],
+    H: ["#..#", "#..#", "####", "#..#", "#..#"],
+    I: [".##.", "..#.", "..#.", "..#.", ".##."],
+    J: ["..##", "...#", "...#", "#..#", ".##."],
+    K: ["#..#", "#.#.", "##..", "#.#.", "#..#"],
+    L: ["#...", "#...", "#...", "#...", "####"],
+    M: ["#..#", "####", "####", "#..#", "#..#"],
+    N: ["#..#", "##.#", "#.##", "#..#", "#..#"],
+    O: [".##.", "#..#", "#..#", "#..#", ".##."],
+    P: ["###.", "#..#", "###.", "#...", "#..."],
+    Q: [".##.", "#..#", "#..#", ".##.", "...#"],
+    R: ["###.", "#..#", "###.", "#.#.", "#..#"],
+    S: [".###", "#...", ".##.", "...#", "###."],
+    T: ["####", "..#.", "..#.", "..#.", "..#."],
+    U: ["#..#", "#..#", "#..#", "#..#", ".##."],
+    V: ["#..#", "#..#", "#..#", ".##.", ".##."],
+    W: ["#..#", "#..#", "####", "####", "#..#"],
+    X: ["#..#", ".##.", ".##.", "#..#", "#..#"],
+    Y: ["#..#", ".##.", "..#.", "..#.", "..#."],
+    Z: ["####", "...#", "..#.", ".#..", "####"],
+  };
+
+  function klaxPx(x, y, w, h, c) {
+    klaxCtx.fillStyle = c;
+    klaxCtx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+  }
+
+  function klaxText(str, x, y, scale, color, align) {
+    const w = String(str).length * 5 * scale - scale;
+    let ox = align === "center" ? x - w / 2 : align === "right" ? x - w : x;
+    for (const ch of String(str).toUpperCase()) {
+      const glyph = KLAX_FONT[ch] || KLAX_FONT[" "];
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 4; col++) {
+          if (glyph[row][col] === "#") klaxPx(ox + col * scale, y + row * scale, scale, scale, color);
+        }
+      }
+      ox += 5 * scale;
+    }
+  }
+
+  function klaxBevel(x, y, w, h, fill, hi, lo) {
+    klaxPx(x, y, w, h, fill);
+    klaxPx(x, y, w, 1, hi);
+    klaxPx(x, y, 1, h, hi);
+    klaxPx(x, y + h - 1, w, 1, lo);
+    klaxPx(x + w - 1, y, 1, h, lo);
+  }
+
+  let klaxGame = null;
+  let klaxCol = 0;
+  let klaxRaf = 0;
+  let klaxLastT = 0;
+  let klaxFlash = 0; // seconds remaining on a match/miss/overflow flash
+
+  const KLAX_COLS = 4;
+  const KLAX_WELL = { x: 20, top: 18, bottom: 176, w: 216 };
+
+  function klaxColumnX(c) {
+    const colW = KLAX_WELL.w / KLAX_COLS;
+    return KLAX_WELL.x + c * colW + colW / 2;
+  }
+
+  function renderKlax() {
+    const state = klaxGame.getState();
+    klaxCtx.fillStyle = "#0c0d1e";
+    klaxCtx.fillRect(0, 0, 256, 224);
+
+    klaxPx(0, 0, 256, 12, "#232551");
+    klaxText(`SCORE ${state.score}`, 6, 3, 1, "#efeae0", "left");
+    klaxText("KAL-Q", 128, 3, 1, "#e7c23f", "center");
+    klaxText(`LIVES ${state.lives}`, 250, 3, 1, "#cf4a3d", "right");
+
+    klaxPx(KLAX_WELL.x - 2, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
+    klaxPx(KLAX_WELL.x + KLAX_WELL.w, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
+    klaxPx(KLAX_WELL.x, KLAX_WELL.bottom, KLAX_WELL.w, 1, "#e7c23f");
+
+    // Clipped to the well: tiles still queued far behind the front one
+    // have negative y and would otherwise draw past the floor, into the
+    // HUD/holder area below.
+    klaxCtx.save();
+    klaxCtx.beginPath();
+    klaxCtx.rect(KLAX_WELL.x, KLAX_WELL.top, KLAX_WELL.w, KLAX_WELL.bottom - KLAX_WELL.top);
+    klaxCtx.clip();
+    const colW = KLAX_WELL.w / KLAX_COLS;
+    state.columns.forEach((column, c) => {
+      const cx = klaxColumnX(c);
+      column.forEach((tile) => {
+        const ty = KLAX_WELL.bottom - tile.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 12;
+        const color = KLAX_TILE_COLOR[tile.kind];
+        klaxBevel(cx - colW / 2 + 3, ty, colW - 6, 22, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+        klaxText(tile.marker, cx, ty + 8, 1, "#14152b", "center");
+      });
+    });
+    klaxCtx.restore();
+
+    // Paddle: highlights the column it's over, shows a caret when that
+    // column's front tile is ready to catch.
+    const paddleX = klaxColumnX(klaxCol);
+    klaxBevel(paddleX - colW / 2 + 2, KLAX_WELL.top - 2, colW - 4, 10, "#efeae0", "#ffffff", "#867d6d");
+    const front = state.columns[klaxCol][0];
+    if (front && front.ready) klaxText("v", paddleX, KLAX_WELL.top - 12, 1, "#e7c23f", "center");
+
+    // Holder: up to 3 caught tiles waiting to be matched with A. Its own
+    // solid panel below the floor keeps it visually distinct from the
+    // rising well above (see the clip region there).
+    klaxPx(0, KLAX_WELL.bottom + 1, 256, 224 - KLAX_WELL.bottom - 1, "#1a1c3c");
+    const holderY = 188;
+    klaxText("HOLDING", 6, holderY, 1, "#8a8db8", "left");
+    state.holder.forEach((tile, i) => {
+      const hx = 60 + i * 40;
+      klaxBevel(hx, holderY - 3, 34, 12, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      klaxText(tile.marker, hx + 17, holderY, 1, "#14152b", "center");
+    });
+
+    if (klaxFlash > 0) {
+      klaxCtx.fillStyle = "rgba(255,255,255,.12)";
+      klaxCtx.fillRect(0, 0, 256, 224);
+    }
+
+    if (state.gameOver) {
+      klaxCtx.fillStyle = "rgba(10,10,20,.75)";
+      klaxCtx.fillRect(0, 0, 256, 224);
+      klaxText("GAME OVER", 128, 96, 2, "#cf4a3d", "center");
+      klaxText(`SCORE ${state.score}`, 128, 116, 1, "#efeae0", "center");
+      klaxText("A=RETRY  B=MENU", 128, 132, 1, "#8a8db8", "center");
+    }
+  }
+
+  function klaxLoop(t) {
+    const dt = klaxLastT ? Math.min(0.1, (t - klaxLastT) / 1000) : 0;
+    klaxLastT = t;
+    if (klaxFlash > 0) klaxFlash -= dt;
+    const result = klaxGame.tick(dt);
+    if (result.overflowed) { klaxFlash = 0.12; sfx("back"); }
+    renderKlax();
+    klaxRaf = requestAnimationFrame(klaxLoop);
+  }
+
+  function stopKlaxLoop() {
+    if (klaxRaf) cancelAnimationFrame(klaxRaf);
+    klaxRaf = 0;
+    klaxLastT = 0;
+  }
+
+  function launchKlax() {
+    showScreen("klax");
+    if (!klaxGame) klaxGame = window.OqKlaxGame.createGame({ puzzles: window.OqMorphPuzzles.puzzles, columns: KLAX_COLS });
+    klaxGame.start();
+    klaxCol = 0;
+    klaxFlash = 0;
+    stopKlaxLoop();
+    klaxRaf = requestAnimationFrame(klaxLoop);
+  }
+
+  function exitKlax() {
+    stopKlaxLoop();
+  }
+
+  function handleKlaxInput(action) {
+    const state = klaxGame.getState();
+    if (state.gameOver) {
+      if (action === "a" || action === "start") { sfx("ok"); klaxGame.start(); }
+      else if (action === "b") { sfx("back"); goMenu(); }
+      return;
+    }
+    if (action === "left") { sfx("move"); klaxCol = (klaxCol - 1 + KLAX_COLS) % KLAX_COLS; }
+    else if (action === "right") { sfx("move"); klaxCol = (klaxCol + 1) % KLAX_COLS; }
+    else if (action === "up") {
+      const res = klaxGame.catchTile(klaxCol);
+      sfx(res.caught ? "move" : "back");
+    } else if (action === "down") {
+      klaxGame.rotateHolder();
+      sfx("move");
+    } else if (action === "a") {
+      const res = klaxGame.commit();
+      klaxFlash = 0.12;
+      sfx(res.outcome === "match" ? "ok" : "back");
+    } else if (action === "b") {
+      sfx("back");
+      goMenu();
+    }
+  }
+
   function finishBoot() {
     if (bootDone) return;
     bootDone = true;
@@ -696,12 +919,17 @@
         deconWord.value = params.get("word") || "";
         deconController.search(deconWord.value);
       }
+    } else if (dest === "klax") {
+      if (currentScreen === "decon") exitDecon();
+      if (currentScreen !== "klax" || SCREENS.klax.hidden) launchKlax();
     } else if (dest === "menu" || dest === "about" || dest === "gameover" || dest === "title") {
       if (currentScreen === "decon") exitDecon();
+      if (currentScreen === "klax") exitKlax();
       bootDone = true;
       showScreen(dest);
     } else {
       if (currentScreen === "decon") exitDecon();
+      if (currentScreen === "klax") exitKlax();
       showScreen("title");
     }
   });
@@ -838,6 +1066,12 @@
         window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
         deconController.search(deconWord.value);
       }
+      return;
+    }
+
+    if (currentScreen === "klax") {
+      handleKlaxInput(action);
+      return;
     }
   }
 
