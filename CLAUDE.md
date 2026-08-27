@@ -57,6 +57,10 @@ Don't mix window managers across families.
 - `redmond/window-manager.js` — drag/resize/focus/min/max/close/taskbar
   for the Redmond family only.
 - `decon-app.js` — DECON UI, reused as-is.
+- `art/fox/` — MORPH! mascot source (first-gen illustrations, 128px
+  hires frames). Theme-sized sprites stay in the theme dir (`gb/sprites/`
+  is 16×16 DMG). SNES / NES / GG can retarget these; don't copy the GB
+  sheet.
 
 ## Theme invariants
 
