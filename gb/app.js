@@ -372,11 +372,11 @@
   // beat rather than an untimed quiz.
   const MORPH_STEP_MS = 6000;
   const MORPH_POSES = {
-    idle: "sprites/fox-idle.png",
-    breathe: "sprites/fox-breathe.png",
-    happy: "sprites/fox-happy.png",
-    shocked: "sprites/fox-shocked.png",
-    win: "sprites/fox-winsquint.png",
+    idle: "sprites/fox-idle.png?v=8",
+    breathe: "sprites/fox-breathe.png?v=8",
+    happy: "sprites/fox-happy.png?v=8",
+    shocked: "sprites/fox-shocked.png?v=8",
+    win: "sprites/fox-winsquint.png?v=8",
   };
   const morphReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     || Boolean(navigator.webdriver);
@@ -427,10 +427,10 @@
     if (morphReduceMotion) return;
     let i = 1;
     morphFx.hidden = false;
-    morphFx.src = `sprites/fx-${i}.png`;
+    morphFx.src = `sprites/fx-${i}.png?v=8`;
     morphFxTimer = setInterval(() => {
       i = (i % 4) + 1;
-      morphFx.src = `sprites/fx-${i}.png`;
+      morphFx.src = `sprites/fx-${i}.png?v=8`;
     }, 90);
   }
 
@@ -446,9 +446,9 @@
     for (let i = 0; i < MORPH_START_LIVES; i++) {
       const img = document.createElement("img");
       img.className = "morph-heart";
-      img.src = i < lives ? "sprites/heart-full.png" : "sprites/heart-empty.png";
-      img.width = 16;
-      img.height = 16;
+      img.src = i < lives ? "sprites/heart-full.png?v=8" : "sprites/heart-empty.png?v=8";
+      img.width = 8;
+      img.height = 8;
       img.alt = "";
       morphLives.appendChild(img);
     }

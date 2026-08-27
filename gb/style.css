@@ -202,8 +202,8 @@ button:not(:disabled),
   color: var(--gb-darkest);
 }
 .title-fox {
-  width: 4.4em;
-  height: 4.4em;
+  width: 48px;
+  height: 48px;
   margin: 0.35em 0 0.45em;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -396,9 +396,11 @@ button:not(:disabled),
 }
 
 /* MORPH! -- WarioWare-pace morpheme minigame. Original 4-shade DMG pixel
-   art (an arctic-fox-cub word-spirit, not a licensed character): idle /
-   breathe / happy / shocked / win poses in sprites/, overlay pupils so
-   the gaze still tracks the selected option, pixel hearts for lives. */
+   art (an arctic-fox-cub word-spirit, not a licensed character). Hardware
+   OBJ is 8×8 or 8×16; the fox is two 8×16 tiles (16×16), HUD hearts/FX
+   are 8×8. Palette is the LCD BGP: #9BBC0F transparent (shows through),
+   #8BAC0F / #306230 / #0F380F opaque. Overlay pupils track the selected
+   option. */
 /* Bumped from the theme's base --gb-font-size (tuned for the dense OQ!/
    DECON rows) to the largest size that still fits this screen's worst
    case: the illu puzzle's first step, which has 3 options plus a
@@ -423,8 +425,8 @@ button:not(:disabled),
   gap: 0.2em;
 }
 .morph-heart {
-  width: 1.15em;
-  height: 1.15em;
+  width: 16px;
+  height: 16px;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   flex: none;
@@ -455,8 +457,8 @@ button:not(:disabled),
 }
 .morph-sprite {
   position: relative;
-  width: 5.8em;
-  height: 5.8em;
+  width: 96px;
+  height: 96px;
   background: transparent;
 }
 .morph-sprite-img {
@@ -468,40 +470,40 @@ button:not(:disabled),
   image-rendering: crisp-edges;
   pointer-events: none;
 }
-/* Overlay pupils sit in the fox's empty eye-whites so gaze can still
-   track the selected option -- same mechanic as the old CSS-box face,
-   now on a real sprite. Socket positions were measured off fox-idle.png. */
+/* Overlay pupils sit in the fox's 2×2 LCD holes (x=4–5 / 8–9, y=4–5 on
+   the 16×16). Sizes are fractions of 16 so they snap to native pixels
+   at 6× (96px). */
 .morph-eye {
   position: absolute;
-  top: 27%;
-  width: 20%;
-  height: 20%;
+  top: 25%;
+  width: 12.5%;
+  height: 12.5%;
   background: transparent;
   overflow: hidden;
   z-index: 2;
   pointer-events: none;
 }
-.morph-eye-l { left: 26%; }
-.morph-eye-r { left: 51%; }
+.morph-eye-l { left: 25%; }
+.morph-eye-r { left: 50%; }
 .morph-pupil {
   position: absolute;
-  left: 30%;
-  top: calc(12% + var(--look-y, 0) * 40%);
-  width: 40%;
-  height: 40%;
+  left: 0;
+  top: calc(var(--look-y, 0) * 50%);
+  width: 50%;
+  height: 50%;
   margin: 0;
   background: var(--gb-darkest);
-  transition: top 0.15s ease-out;
+  transition: top 0.15s step-end;
 }
 .morph-sprite:not(.is-gazing) .morph-eye {
   visibility: hidden;
 }
 .morph-fx {
   position: absolute;
-  right: -0.35em;
-  top: -0.25em;
-  width: 1.7em;
-  height: 1.7em;
+  right: -8px;
+  top: -8px;
+  width: 24px;
+  height: 24px;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   pointer-events: none;
@@ -628,8 +630,8 @@ button:not(:disabled),
   display: none;
 }
 .morph-card-fox {
-  width: 3.4em;
-  height: 3.4em;
+  width: 48px;
+  height: 48px;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }

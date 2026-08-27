@@ -6,7 +6,7 @@
 <title>retr-oq — Game Boy prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=6" />
+<link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
   <!-- Original Game Boy (DMG-01), not a window manager and not the NES
@@ -31,7 +31,7 @@
           <div class="gb-screen" id="title-screen">
             <p class="title-copy">retr-oq</p>
             <h1 class="title-logo">OQ!</h1>
-            <img class="title-fox" src="sprites/fox-idle.png" width="72" height="72" alt="" />
+            <img class="title-fox" src="sprites/fox-idle.png?v=8" width="16" height="16" alt="" />
             <p class="title-sub">KALAALLISUT<br />DICTIONARY</p>
             <p class="press-start" id="press-start">PRESS START</p>
             <p class="title-copy title-copy-bottom">© 1989 OQAASILERIFFIK</p>
@@ -83,7 +83,7 @@
             <div class="morph-timer" aria-hidden="true"><div class="morph-timer-fill" id="morph-timer-fill"></div></div>
             <div class="morph-sprite-well">
               <div class="morph-sprite is-gazing" id="morph-sprite" aria-hidden="true">
-                <img class="morph-sprite-img" id="morph-sprite-img" src="sprites/fox-idle.png" width="128" height="128" alt="" />
+                <img class="morph-sprite-img" id="morph-sprite-img" src="sprites/fox-idle.png?v=8" width="16" height="16" alt="" />
                 <span class="morph-eye morph-eye-l"><span class="morph-pupil"></span></span>
                 <span class="morph-eye morph-eye-r"><span class="morph-pupil"></span></span>
                 <span class="morph-mouth" id="morph-mouth" hidden></span>
@@ -95,7 +95,7 @@
             <div class="morph-options" id="morph-options" role="listbox" aria-label="Morpheme choices"></div>
             <p class="hint">D-PAD=CHOOSE  A=CONFIRM  B=MENU</p>
             <div class="morph-card" id="morph-card" hidden>
-              <img class="morph-card-fox" src="sprites/fox-winsquint.png" width="64" height="64" alt="" />
+              <img class="morph-card-fox" src="sprites/fox-winsquint.png?v=8" width="16" height="16" alt="" />
               <p class="morph-card-word" id="morph-card-word"></p>
               <p class="morph-card-meaning" id="morph-card-meaning"></p>
             </div>
@@ -160,6 +160,6 @@
 <script src="../shared/decon-app.js?v=4"></script>
 <script src="../shared/morph-game.js?v=1"></script>
 <script src="../shared/morph-puzzles.js?v=1"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
