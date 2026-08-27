@@ -757,43 +757,50 @@
     klaxPx(KLAX_WELL.x + KLAX_WELL.w, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
     klaxPx(KLAX_WELL.x, KLAX_WELL.bottom, KLAX_WELL.w, 1, "#e7c23f");
 
-    // Clipped to the well: tiles still queued far behind the front one
-    // have negative y and would otherwise draw past the floor, into the
-    // HUD/holder area below.
-    klaxCtx.save();
-    klaxCtx.beginPath();
-    klaxCtx.rect(KLAX_WELL.x, KLAX_WELL.top, KLAX_WELL.w, KLAX_WELL.bottom - KLAX_WELL.top);
-    klaxCtx.clip();
     const colW = KLAX_WELL.w / KLAX_COLS;
-    state.columns.forEach((column, c) => {
-      const cx = klaxColumnX(c);
-      column.forEach((tile) => {
-        const ty = KLAX_WELL.bottom - tile.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 12;
-        const color = KLAX_TILE_COLOR[tile.kind];
-        klaxBevel(cx - colW / 2 + 3, ty, colW - 6, 22, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-        klaxText(tile.marker, cx, ty + 8, 1, "#14152b", "center");
-      });
-    });
-    klaxCtx.restore();
+    // Column guides -- only one tile is ever in play, so these faint
+    // dividers are what tells the player which lane it's rising in.
+    for (let c = 1; c < KLAX_COLS; c++) {
+      klaxPx(KLAX_WELL.x + c * colW, KLAX_WELL.top, 1, KLAX_WELL.bottom - KLAX_WELL.top, "rgba(255,255,255,.08)");
+    }
 
-    // Paddle: highlights the column it's over, shows a caret when that
-    // column's front tile is ready to catch.
+    if (state.active) {
+      const cx = klaxColumnX(state.active.col);
+      // y=1 lands the tile's vertical CENTER on the paddle line -- the
+      // catch and the floor line up exactly, so a caught tile visibly
+      // stops there instead of drifting past it.
+      const ty = KLAX_WELL.bottom - state.active.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 11;
+      const color = KLAX_TILE_COLOR[state.active.kind];
+      klaxBevel(cx - colW / 2 + 3, ty, colW - 6, 22, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      klaxText(state.active.marker, cx, ty + 8, 1, "#14152b", "center");
+    }
+
+    // Paddle: the only thing the player positions. Lining it up with the
+    // active tile's column before that tile reaches the top is the whole
+    // input model now -- no separate catch button to miss the timing on.
     const paddleX = klaxColumnX(klaxCol);
-    klaxBevel(paddleX - colW / 2 + 2, KLAX_WELL.top - 2, colW - 4, 10, "#efeae0", "#ffffff", "#867d6d");
-    const front = state.columns[klaxCol][0];
-    if (front && front.ready) klaxText("v", paddleX, KLAX_WELL.top - 12, 1, "#e7c23f", "center");
+    klaxBevel(paddleX - colW / 2 + 2, KLAX_WELL.top - 8, colW - 4, 6, "#efeae0", "#ffffff", "#867d6d");
 
-    // Holder: up to 3 caught tiles waiting to be matched with A. Its own
-    // solid panel below the floor keeps it visually distinct from the
-    // rising well above (see the clip region there).
+    // Holder: up to 3 caught tiles waiting for their other half. Drawn as
+    // fixed, always-visible slots (not just text) -- an empty outlined
+    // slot is the "somewhere to put the block" that was missing before.
     klaxPx(0, KLAX_WELL.bottom + 1, 256, 224 - KLAX_WELL.bottom - 1, "#1a1c3c");
     const holderY = 188;
     klaxText("HOLDING", 6, holderY, 1, "#8a8db8", "left");
-    state.holder.forEach((tile, i) => {
+    for (let i = 0; i < state.holderSize; i++) {
       const hx = 60 + i * 40;
-      klaxBevel(hx, holderY - 3, 34, 12, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(tile.marker, hx + 17, holderY, 1, "#14152b", "center");
-    });
+      const tile = state.holder[i];
+      if (tile) {
+        klaxBevel(hx, holderY - 3, 34, 12, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+        klaxText(tile.marker, hx + 17, holderY, 1, "#14152b", "center");
+      } else {
+        klaxPx(hx, holderY - 3, 34, 12, "rgba(255,255,255,.06)");
+        klaxPx(hx, holderY - 3, 34, 1, "#4d473c");
+        klaxPx(hx, holderY - 3, 1, 12, "#4d473c");
+        klaxPx(hx, holderY + 8, 34, 1, "#4d473c");
+        klaxPx(hx + 33, holderY - 3, 1, 12, "#4d473c");
+      }
+    }
 
     if (klaxFlash > 0) {
       klaxCtx.fillStyle = "rgba(255,255,255,.12)";
@@ -813,8 +820,10 @@
     const dt = klaxLastT ? Math.min(0.1, (t - klaxLastT) / 1000) : 0;
     klaxLastT = t;
     if (klaxFlash > 0) klaxFlash -= dt;
-    const result = klaxGame.tick(dt);
-    if (result.overflowed) { klaxFlash = 0.12; sfx("back"); }
+    const result = klaxGame.tick(dt, klaxCol);
+    if (result.event === "match") { klaxFlash = 0.12; sfx("ok"); }
+    else if (result.event === "caught") { sfx("move"); }
+    else if (result.event === "missed") { klaxFlash = 0.12; sfx("back"); }
     renderKlax();
     klaxRaf = requestAnimationFrame(klaxLoop);
   }
@@ -846,18 +855,15 @@
       else if (action === "b") { sfx("back"); goMenu(); }
       return;
     }
+    // Catching is positional and automatic now (see shared/klax-game.js
+    // tick()) -- line the paddle up with the rising tile's column before
+    // it reaches the top. A is only the discard escape hatch for a holder
+    // stuck with pieces that can't pair up.
     if (action === "left") { sfx("move"); klaxCol = (klaxCol - 1 + KLAX_COLS) % KLAX_COLS; }
     else if (action === "right") { sfx("move"); klaxCol = (klaxCol + 1) % KLAX_COLS; }
-    else if (action === "up") {
-      const res = klaxGame.catchTile(klaxCol);
-      sfx(res.caught ? "move" : "back");
-    } else if (action === "down") {
-      klaxGame.rotateHolder();
-      sfx("move");
-    } else if (action === "a") {
-      const res = klaxGame.commit();
-      klaxFlash = 0.12;
-      sfx(res.outcome === "match" ? "ok" : "back");
+    else if (action === "a") {
+      klaxGame.discard();
+      sfx("back");
     } else if (action === "b") {
       sfx("back");
       goMenu();
