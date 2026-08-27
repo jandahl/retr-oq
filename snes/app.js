@@ -468,6 +468,7 @@
   }
 
   document.addEventListener("visibilitychange", () => {
+    if (document.hidden) klaxUpHeld = false;
     if (!audioCtx) return;
     // Only suspend the top-level page. A preview iframe often reports
     // hidden while the user is looking at it, which is what killed the
@@ -682,7 +683,7 @@
     F: ["####", "#...", "###.", "#...", "#..."],
     G: [".##.", "#...", "#.##", "#..#", ".##."],
     H: ["#..#", "#..#", "####", "#..#", "#..#"],
-    I: [".##.", "..#.", "..#.", "..#.", ".##."],
+    I: [".##.", ".##.", ".##.", ".##.", ".##."],
     J: ["..##", "...#", "...#", "#..#", ".##."],
     K: ["#..#", "#.#.", "##..", "#.#.", "#..#"],
     L: ["#...", "#...", "#...", "#...", "####"],
@@ -733,6 +734,10 @@
   let klaxCol = 0;
   let klaxRaf = 0;
   let klaxLastT = 0;
+  // Fast-forward while held (up) -- set true on keydown/pointerdown, false
+  // on keyup/pointerup/pointercancel/tab-hide so it can never get stuck on.
+  let klaxUpHeld = false;
+  const KLAX_FAST_MULT = 2;
   let klaxFlash = 0; // seconds remaining on a match/miss/overflow flash
 
   const KLAX_COLS = 4;
@@ -768,7 +773,7 @@
     const stackColW = KLAX_STACK.w / KLAX_COLS;
     for (let c = 0; c < KLAX_COLS; c++) {
       const cx = klaxColumnX(c, KLAX_STACK);
-      const highlighted = state.held && klaxCol === c;
+      const highlighted = state.paddle.length > 0 && klaxCol === c;
       klaxPx(cx - stackColW / 2 + 1, KLAX_STACK.top, stackColW - 2, KLAX_STACK.bottom - KLAX_STACK.top,
         highlighted ? "rgba(231,194,63,.12)" : "rgba(255,255,255,.04)");
       const lane = state.stacks[c];
@@ -809,9 +814,19 @@
     // moves; the paddle doesn't need to travel between two positions.
     const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
     klaxBevel(paddleX - wellColW / 2 + 2, KLAX_WELL.top - 6, wellColW - 4, 6, "#efeae0", "#ffffff", "#867d6d");
-    if (state.held) {
-      klaxBevel(paddleX - wellColW / 2 + 3, KLAX_WELL.top - 20, wellColW - 6, 12, KLAX_TILE_COLOR[state.held.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(state.held.marker, paddleX, KLAX_WELL.top - 17, 1, "#14152b", "center");
+    if (state.paddle.length) {
+      // Up to paddleCap small color-coded chips show the whole LIFO
+      // stack at a glance (oldest catch on the left); the readable one
+      // with its text is the last one caught -- the tile place()/
+      // discard() will actually act on next.
+      const slotW = (wellColW - 6) / state.paddleCap;
+      state.paddle.forEach((tile, i) => {
+        const sx = paddleX - wellColW / 2 + 3 + i * slotW;
+        klaxPx(sx, KLAX_WELL.top - 10, slotW - 1, 7, KLAX_TILE_COLOR[tile.kind]);
+      });
+      const top = state.paddle[state.paddle.length - 1];
+      klaxBevel(paddleX - wellColW / 2 + 3, KLAX_WELL.top - 24, wellColW - 6, 12, KLAX_TILE_COLOR[top.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      klaxText(top.marker, paddleX, KLAX_WELL.top - 21, 1, "#14152b", "center");
     }
 
     if (klaxFlash > 0) {
@@ -832,7 +847,7 @@
     const dt = klaxLastT ? Math.min(0.1, (t - klaxLastT) / 1000) : 0;
     klaxLastT = t;
     if (klaxFlash > 0) klaxFlash -= dt;
-    const result = klaxGame.tick(dt, klaxCol);
+    const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
     if (result.event === "caught") { sfx("move"); }
     else if (result.event === "missed") { klaxFlash = 0.12; sfx("back"); }
     renderKlax();
@@ -851,12 +866,14 @@
     klaxGame.start();
     klaxCol = 0;
     klaxFlash = 0;
+    klaxUpHeld = false;
     stopKlaxLoop();
     klaxRaf = requestAnimationFrame(klaxLoop);
   }
 
   function exitKlax() {
     stopKlaxLoop();
+    klaxUpHeld = false;
   }
 
   function handleKlaxInput(action) {
@@ -872,7 +889,7 @@
     if (action === "left") { sfx("move"); klaxCol = (klaxCol - 1 + KLAX_COLS) % KLAX_COLS; }
     else if (action === "right") { sfx("move"); klaxCol = (klaxCol + 1) % KLAX_COLS; }
     else if (action === "a") {
-      if (!state.held) return;
+      if (!state.paddle.length) return;
       const res = klaxGame.place(klaxCol);
       if (res.event === "match") { klaxFlash = 0.12; sfx("ok"); }
       else if (res.placed) { sfx("move"); }
@@ -1147,6 +1164,7 @@
       if (currentScreen === "oq") return;
       if (currentScreen === "decon") return;
     }
+    if (action === "up" && currentScreen === "klax" && !inputFocused()) klaxUpHeld = true;
     if (!inputFocused()) event.preventDefault();
     handleInput(action);
   });
@@ -1154,6 +1172,7 @@
   document.addEventListener("keyup", (event) => {
     if (event.key === "Tab" || event.key === "l" || event.key === "L") shoulderUp("l");
     if (event.key === " " || event.key === "r" || event.key === "R") shoulderUp("r");
+    if (event.key === "ArrowUp") klaxUpHeld = false;
   });
 
   document.getElementById("snes-controller").addEventListener("pointerdown", (event) => {
@@ -1170,14 +1189,18 @@
     // a second set of verbs -- handleInput() still only sees the six
     // actions nes/ uses.
     const alias = { x: "a", y: "b", l: "select", r: "start" };
-    handleInput(alias[raw] || raw);
+    const resolved = alias[raw] || raw;
+    if (resolved === "up" && currentScreen === "klax") klaxUpHeld = true;
+    handleInput(resolved);
   });
   window.addEventListener("pointerup", (event) => {
     const btn = event.target && event.target.closest && event.target.closest("[data-input]");
     const raw = (btn && btn.dataset.input) || "";
     if (raw === "l" || raw === "r") shoulderUp(raw);
+    if (raw === "up") klaxUpHeld = false;
   });
   window.addEventListener("pointercancel", () => {
+    klaxUpHeld = false;
     shoulderUp("l");
     shoulderUp("r");
   });
