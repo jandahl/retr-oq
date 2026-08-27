@@ -365,12 +365,14 @@
   const morphCard = document.getElementById("morph-card");
   const morphCardWord = document.getElementById("morph-card-word");
   const morphCardMeaning = document.getElementById("morph-card-meaning");
+  const morphPauseCard = document.getElementById("morph-pause-card");
 
   const MORPH_START_LIVES = 3;
   // Hectic-but-fair: long enough to read a Kalaallisut morpheme and its
   // gloss once, short enough that the round still feels like a WarioWare
-  // beat rather than an untimed quiz.
-  const MORPH_STEP_MS = 6000;
+  // beat rather than an untimed quiz. Bumped from 6000 -- players reported
+  // 6s too tight to read a fresh word and its options both.
+  const MORPH_STEP_MS = 8000;
   const MORPH_POSES = {
     idle: "sprites/fox-idle.png?v=8",
     breathe: "sprites/fox-breathe.png?v=8",
@@ -387,6 +389,9 @@
   let morphSelected = 0;
   let morphOptionCount = 0;
   let morphBusy = false; // true during the brief shock/win pause -- input ignored
+  let morphCardWaiting = false; // true once the win card is up, waiting on an A press
+  let morphPaused = false;
+  let morphPauseRemaining = 0; // ms left on the step timer when Start paused it
   let morphTimerRaf = 0;
   let morphTimerDeadline = 0;
   let morphIdleTimer = 0;
@@ -479,9 +484,34 @@
     morphTimerRaf = 0;
   }
 
-  function startMorphTimer() {
+  // Start, mid-round, now pauses instead of confirming -- freezes the step
+  // timer where it stood (not just visually: the remaining ms is what
+  // startMorphTimer() gets handed back on resume) and puts up a blocking
+  // Zzz card. Only valid on an active step, not while the shock/win pause
+  // or the win card already owns the screen.
+  function pauseMorph() {
+    if (morphPaused || morphBusy) return;
+    morphPaused = true;
+    morphPauseRemaining = Math.max(0, morphTimerDeadline - performance.now());
     stopMorphTimer();
-    morphTimerDeadline = performance.now() + MORPH_STEP_MS;
+    stopMorphIdle();
+    stopMorphFx();
+    sfx("start");
+    morphPauseCard.hidden = false;
+  }
+
+  function resumeMorph() {
+    if (!morphPaused) return;
+    morphPaused = false;
+    morphPauseCard.hidden = true;
+    sfx("start");
+    startMorphIdle();
+    startMorphTimer(morphPauseRemaining);
+  }
+
+  function startMorphTimer(ms = MORPH_STEP_MS) {
+    stopMorphTimer();
+    morphTimerDeadline = performance.now() + ms;
     const tick = (now) => {
       const remaining = Math.max(0, morphTimerDeadline - now);
       morphTimerFill.style.width = `${(remaining / MORPH_STEP_MS) * 100}%`;
@@ -528,7 +558,10 @@
   function launchMorph() {
     showScreen("morph");
     morphBusy = false;
+    morphCardWaiting = false;
+    morphPaused = false;
     morphCard.hidden = true;
+    morphPauseCard.hidden = true;
     renderMorphHud();
     renderMorphStep(morphGame.start());
   }
@@ -599,10 +632,10 @@
       startMorphFx();
       renderMorphHud();
       showMorphCard(result.word, result.resultGloss);
-      setTimeout(() => resumeIfStillOnMorph(() => {
-        morphCard.hidden = true;
-        renderMorphStep(morphGame.advancePuzzle());
-      }), 2200);
+      // No auto-advance timer here -- the card's PRESS A cta (below,
+      // handleInput's morphCardWaiting branch) is what moves this along
+      // now, so morphBusy just stays true until the player acts on it.
+      morphCardWaiting = true;
       return;
     }
     // "continue" -- a correct mid-chain affix
@@ -610,6 +643,17 @@
     setTimeout(() => resumeIfStillOnMorph(() => {
       renderMorphStep(morphGame.advanceStep());
     }), 350);
+  }
+
+  // Advances past the win card on the player's own A press (see the "win"
+  // branch of settleMorphRound above) instead of the old fixed timeout.
+  function advancePastCard() {
+    morphCard.hidden = true;
+    morphCardWaiting = false;
+    morphBusy = false;
+    if (currentScreen !== "morph") return;
+    sfx("ok");
+    renderMorphStep(morphGame.advancePuzzle());
   }
 
   function handleMorphTimeout() {
@@ -837,10 +881,22 @@
         goMenu();
         return;
       }
-      if (morphBusy) return;
+      // Start now pauses/resumes instead of doubling as confirm -- it no
+      // longer reaches chooseMorphOption() below.
+      if (action === "start") {
+        if (morphPaused) resumeMorph();
+        else pauseMorph();
+        return;
+      }
+      if (morphPaused) return;
+      if (morphBusy) {
+        // The win card no longer auto-advances; A is the only way past it.
+        if (morphCardWaiting && action === "a") advancePastCard();
+        return;
+      }
       if (action === "up") { sfx("move"); moveMorphSelection(-1); }
       else if (action === "down") { sfx("move"); moveMorphSelection(1); }
-      else if (action === "a" || action === "start") { chooseMorphOption(); }
+      else if (action === "a") { chooseMorphOption(); }
     }
   }
 

@@ -125,6 +125,15 @@ button:not(:disabled),
   color: var(--gb-darkest);
   overflow: hidden;
   box-shadow: inset 0 0 0 3px var(--gb-light), inset 0 0 18px rgba(15, 56, 15, 0.28);
+  /* Query container for #morph-screen's font-size: its size already comes
+     from the flex layout above, not its own content, so container-type:
+     size costs nothing here and lets that screen scale text off the LCD's
+     ACTUAL rendered height (cqh) -- which already reflects a real mobile
+     browser's chrome eating into --app-height -- instead of vw, which only
+     reacts to width and stays blind to vertical chrome eating the
+     available height. */
+  container-type: size;
+  container-name: gb-lcd;
 }
 
 .gb-pixels {
@@ -202,8 +211,11 @@ button:not(:disabled),
   color: var(--gb-darkest);
 }
 .title-fox {
-  width: 48px;
-  height: 48px;
+  /* em, not px: px sprites don't shrink with the title's own font-size
+     and silently loom oversized (or overflow the screen) wherever that
+     font-size is smaller than whatever screen this was eyeballed at. */
+  width: 2.2em;
+  height: 2.2em;
   margin: 0.35em 0 0.45em;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -408,13 +420,20 @@ button:not(:disabled),
    guessed, since a size that only looks right on a lucky 2-option
    puzzle would silently clip on this one. */
 #morph-screen {
-  font-size: clamp(14px, 5.2vw, 18px);
+  /* cqh, not vw: vw only reacts to viewport WIDTH and stays blind to a
+     real mobile browser's chrome eating into the available HEIGHT, which
+     silently clipped this screen's worst case (a sprite + word + 3
+     options + hint) off the bottom on an actual phone despite fitting
+     every headless test run at a full-height viewport. cqh scales with
+     .gb-lcd's actual rendered height, chrome included, so this fits by
+     construction instead of by guessing a viewport to test at. */
+  font-size: clamp(11px, 3.3cqh, 18px);
 }
 .morph-hud {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  margin: 0 0 0.3em;
+  align-items: center;
+  margin: 0.3em 0 0.2em;
   font-size: 0.85em;
 }
 .morph-lives {
@@ -435,13 +454,21 @@ button:not(:disabled),
   color: var(--gb-dark);
 }
 /* Countdown bar -- ticks down over MORPH_STEP_MS via app.js's rAF loop,
-   not a CSS transition, so it can be read/reset from JS mid-flight. */
+   not a CSS transition, so it can be read/reset from JS mid-flight. Pinned
+   flush to the screen's own top/left/right edge (negative margin cancels
+   out .gb-screen's fixed 10px padding) instead of sitting inset like the
+   rest of the screen's content -- frees up the row a heading used to take
+   and reads like a cartridge's own health bar chrome, not another line of
+   UI competing with the puzzle for vertical space. */
 .morph-timer {
   flex: none;
   height: 0.5em;
-  margin-bottom: 0.4em;
+  margin: -10px -10px 0.25em;
   background: var(--gb-light);
   border: 2px solid var(--gb-darkest);
+  border-top: none;
+  border-left: none;
+  border-right: none;
   box-sizing: border-box;
 }
 .morph-timer-fill {
@@ -449,17 +476,17 @@ button:not(:disabled),
   width: 100%;
   background: var(--gb-darkest);
 }
-.morph-sprite-well {
-  flex: none;
-  display: flex;
-  justify-content: center;
-  padding: 0.3em 0;
-}
 .morph-sprite {
   position: relative;
-  width: 96px;
-  height: 96px;
+  /* em, not px: a fixed 96px doesn't shrink along with #morph-screen's own
+     responsive font-size, so it stayed full-size (and badly out of
+     proportion, sometimes clipped) on any viewport smaller than whatever
+     it was eyeballed at. em ties it to the same font-size the rest of
+     this screen already scales against. */
+  width: 3.6em;
+  height: 3.6em;
   background: transparent;
+  flex: none;
 }
 .morph-sprite-img {
   position: absolute;
@@ -500,10 +527,10 @@ button:not(:disabled),
 }
 .morph-fx {
   position: absolute;
-  right: -8px;
-  top: -8px;
-  width: 24px;
-  height: 24px;
+  right: -0.5em;
+  top: -0.5em;
+  width: 1.5em;
+  height: 1.5em;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   pointer-events: none;
@@ -558,7 +585,7 @@ button:not(:disabled),
   overflow-wrap: anywhere;
 }
 .morph-status {
-  margin: 0 0 0.5em;
+  margin: 0 0 0.35em;
   min-height: 2.2em;
   text-align: center;
   color: var(--gb-dark);
@@ -568,7 +595,7 @@ button:not(:disabled),
 .morph-options {
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
+  gap: 0.35em;
 }
 /* "Bubbles": a chamfered rect per option, big legible text -- this is what
    the player has maybe a couple seconds to read and act on, so it needs
@@ -596,7 +623,7 @@ button:not(:disabled),
   font: inherit;
   font-size: 1.3em;
   text-align: center;
-  padding: 0.5em 0.6em;
+  padding: 0.35em 0.6em;
   box-sizing: border-box;
 }
 .morph-option.is-selected {
@@ -630,8 +657,8 @@ button:not(:disabled),
   display: none;
 }
 .morph-card-fox {
-  width: 48px;
-  height: 48px;
+  width: 2.4em;
+  height: 2.4em;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
@@ -646,6 +673,29 @@ button:not(:disabled),
   font-size: 1em;
   color: var(--gb-dark);
   line-height: 1.5;
+}
+/* Replaces the old auto-advance timer on the win card: continuing now
+   takes an actual A press, so this is the call-to-action that tells the
+   player that's the case, standing in for the countdown bar they'd
+   otherwise be watching. */
+.morph-card-cta {
+  margin: 0.4em 0 0;
+  font-size: 0.85em;
+  color: var(--gb-darkest);
+  animation: morph-cta-blink 1s steps(1, jump-none) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .morph-card-cta { animation: none; }
+}
+@keyframes morph-cta-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.35; }
+}
+.morph-pause-zzz {
+  margin: 0;
+  font-size: 2em;
+  font-style: italic;
+  color: var(--gb-darkest);
 }
 
 .about-copy {

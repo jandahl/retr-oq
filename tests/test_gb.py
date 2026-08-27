@@ -190,3 +190,107 @@ def test_select_cycles_menu(page, base_url):
     page.keyboard.press("Tab")
     page.wait_for_timeout(40)
     assert "is-selected" in page.locator("#menu-about").get_attribute("class")
+
+
+# --- Overflow guard -------------------------------------------------------
+#
+# The bug class this guards against: a real mobile browser's address-bar/
+# toolbar chrome shrinks the *available* height below what any headless
+# viewport test normally uses, and a fixed-px element (a sprite image, a
+# vw-only font-size) doesn't shrink with it -- so a screen that looks fine
+# at 844px silently clips content at, say, 560px. This bit three times now:
+# MORPH!'s options/hint text, a fixed-px sprite image dropped in without
+# switching to the em-based sizing the rest of the screen already uses, and
+# then again on the very fix for that -- the first version of this guard
+# checked #gb-lcd's own scrollHeight/clientHeight, but every .gb-screen is
+# absolutely positioned with inset:0 (a fixed size, not shrink-to-fit) and
+# clips its own overflow before it ever reaches #gb-lcd, so #gb-lcd never
+# overflows regardless of how badly a screen's *content* does -- that
+# version passed even against a real screenshot showing 1.5 of 3 MORPH!
+# options. Checking each `.gb-screen`'s own scrollHeight against its own
+# clientHeight is what actually catches it.
+SHORT_VIEWPORT = {"width": 390, "height": 560}
+
+
+def _assert_screen_fits(page, screen_id, label=None):
+    box = page.locator(f"#{screen_id}").evaluate(
+        "el => ({sh: el.scrollHeight, ch: el.clientHeight, sw: el.scrollWidth, cw: el.clientWidth})"
+    )
+    label = label or screen_id
+    assert box["sh"] <= box["ch"] + 1, f"{label}: content overflows #{screen_id} vertically ({box})"
+    assert box["sw"] <= box["cw"] + 1, f"{label}: content overflows #{screen_id} horizontally ({box})"
+
+
+def test_no_overflow_at_short_viewport(browser, base_url):
+    context = browser.new_context(viewport=SHORT_VIEWPORT)
+    page = context.new_page()
+    for screen in ["title", "menu", "oq", "decon", "about", "gameover"]:
+        goto_gb(page, base_url, f"?screen={screen}")
+        _assert_screen_fits(page, f"{screen}-screen")
+    context.close()
+
+
+def test_morph_worst_case_no_overflow(browser, base_url):
+    """The illu- puzzle's first step (3 options + a 2-line status) is
+    MORPH!'s worst case -- verified directly rather than assumed, since a
+    size that only looks right on a lucky 2-option puzzle would silently
+    clip on this one."""
+    context = browser.new_context(viewport=SHORT_VIEWPORT)
+    page = context.new_page()
+    goto_gb(page, base_url, "?screen=morph")
+    for _ in range(15):
+        if page.locator(".morph-option").count() == 3:
+            break
+        page.reload()
+        page.wait_for_timeout(300)
+    assert page.locator(".morph-option").count() == 3, "couldn't roll the 3-option puzzle to test against"
+    _assert_screen_fits(page, "morph-screen", "morph (3-option worst case)")
+    context.close()
+
+
+def _sprite_to_font_ratio(browser, base_url, viewport):
+    context = browser.new_context(viewport=viewport)
+    page = context.new_page()
+    goto_gb(page, base_url, "?screen=morph")
+    data = page.evaluate(
+        "() => ({sprite: document.getElementById('morph-sprite').getBoundingClientRect().height,"
+        " font: parseFloat(getComputedStyle(document.getElementById('morph-screen')).fontSize)})"
+    )
+    context.close()
+    return data["sprite"] / data["font"]
+
+
+def test_morph_sprite_scales_with_font_size(browser, base_url):
+    """Guards against a fixed-px sprite (e.g. `width: 96px`) that doesn't
+    shrink along with #morph-screen's own responsive font-size the way an
+    em-sized sprite does. #morph-screen's font-size is a cqh clamp
+    (clamp(11px, 3.3cqh, 18px)) tied to #gb-lcd's rendered height, so a
+    short and a tall viewport actually produce different font sizes -- an
+    em-sized sprite keeps the same sprite-height/font-size ratio at both;
+    a fixed-px sprite's ratio visibly drifts."""
+    ratio_short = _sprite_to_font_ratio(browser, base_url, {"width": 390, "height": 500})
+    ratio_tall = _sprite_to_font_ratio(browser, base_url, {"width": 390, "height": 844})
+    assert ratio_short < 8, ratio_short
+    assert abs(ratio_short - ratio_tall) / ratio_tall < 0.05, (ratio_short, ratio_tall)
+
+
+def test_morph_cards_fit_when_shown(browser, base_url):
+    """The win card and the Start-pause card are both absolutely positioned
+    overlays with fixed em insets -- force each visible (independent of
+    actually winning a round or pausing) and check neither overflows. The
+    win card is filled with the longest real word/gloss pair in
+    shared/morph-puzzles.js rather than left empty, since an empty card
+    wouldn't exercise the wrapping that could actually push it past its
+    fixed top/bottom insets."""
+    context = browser.new_context(viewport=SHORT_VIEWPORT)
+    page = context.new_page()
+    goto_gb(page, base_url, "?screen=morph")
+    page.evaluate(
+        "() => { document.getElementById('morph-card-word').textContent = 'ILLOQARPOQ';"
+        " document.getElementById('morph-card-meaning').textContent = 'he/she/it has a house'; }"
+    )
+    for card_id in ["morph-card", "morph-pause-card"]:
+        page.evaluate(f"document.getElementById('{card_id}').hidden = false")
+        _assert_screen_fits(page, "morph-screen", card_id)
+        page.evaluate(f"document.getElementById('{card_id}').hidden = true")
+    context.close()
