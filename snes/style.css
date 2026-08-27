@@ -260,8 +260,17 @@ button:not(:disabled),
   align-items: center;
 }
 .klax-canvas {
-  width: min(100%, 48em);
+  /* width-only sizing (with height:auto) let the canvas compute taller
+     than the available screen on a wide-but-short browser window, and
+     .snes-screen's overflow:hidden silently clipped the top -- the HUD
+     and paddle -- while the centered flex box left the bottom edge
+     alone. max-width/max-height together with aspect-ratio makes
+     whichever dimension is actually tight the one that limits it. */
+  max-width: min(100%, 48em);
+  max-height: 100%;
+  width: auto;
   height: auto;
+  aspect-ratio: 256 / 224;
   border: 3px solid var(--snes-mist);
   box-shadow: 4px 4px 0 #0c1018;
   image-rendering: pixelated;

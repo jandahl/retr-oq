@@ -736,11 +736,16 @@
   let klaxFlash = 0; // seconds remaining on a match/miss/overflow flash
 
   const KLAX_COLS = 4;
-  const KLAX_WELL = { x: 20, top: 18, bottom: 176, w: 216 };
+  // A third of the screen is the stacking yard, one lane per source lane,
+  // per the redesign: the rising well feeds the top two-thirds, catches
+  // land at the boundary, and the player places each catch into one of
+  // these same four lanes below it.
+  const KLAX_WELL = { x: 20, top: 16, bottom: 140, w: 216 };
+  const KLAX_STACK = { x: 20, top: 150, bottom: 214, w: 216 };
 
-  function klaxColumnX(c) {
-    const colW = KLAX_WELL.w / KLAX_COLS;
-    return KLAX_WELL.x + c * colW + colW / 2;
+  function klaxColumnX(c, region) {
+    const colW = region.w / KLAX_COLS;
+    return region.x + c * colW + colW / 2;
   }
 
   function renderKlax() {
@@ -748,58 +753,68 @@
     klaxCtx.fillStyle = "#0c0d1e";
     klaxCtx.fillRect(0, 0, 256, 224);
 
+    // HUD is drawn first but the paddle/well below it are what were
+    // getting clipped off on very wide-but-short browser windows -- see
+    // .klax-canvas in style.css (max-height fix) for the actual cause.
     klaxPx(0, 0, 256, 12, "#232551");
     klaxText(`SCORE ${state.score}`, 6, 3, 1, "#efeae0", "left");
     klaxText("KAL-Q", 128, 3, 1, "#e7c23f", "center");
     klaxText(`LIVES ${state.lives}`, 250, 3, 1, "#cf4a3d", "right");
 
+    const wellColW = KLAX_WELL.w / KLAX_COLS;
     klaxPx(KLAX_WELL.x - 2, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
     klaxPx(KLAX_WELL.x + KLAX_WELL.w, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
     klaxPx(KLAX_WELL.x, KLAX_WELL.bottom, KLAX_WELL.w, 1, "#e7c23f");
-
-    const colW = KLAX_WELL.w / KLAX_COLS;
     // Column guides -- only one tile is ever in play, so these faint
     // dividers are what tells the player which lane it's rising in.
     for (let c = 1; c < KLAX_COLS; c++) {
-      klaxPx(KLAX_WELL.x + c * colW, KLAX_WELL.top, 1, KLAX_WELL.bottom - KLAX_WELL.top, "rgba(255,255,255,.08)");
+      klaxPx(KLAX_WELL.x + c * wellColW, KLAX_WELL.top, 1, KLAX_WELL.bottom - KLAX_WELL.top, "rgba(255,255,255,.08)");
     }
 
     if (state.active) {
-      const cx = klaxColumnX(state.active.col);
+      const cx = klaxColumnX(state.active.col, KLAX_WELL);
       // y=1 lands the tile's vertical CENTER on the paddle line -- the
       // catch and the floor line up exactly, so a caught tile visibly
       // stops there instead of drifting past it.
       const ty = KLAX_WELL.bottom - state.active.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 11;
       const color = KLAX_TILE_COLOR[state.active.kind];
-      klaxBevel(cx - colW / 2 + 3, ty, colW - 6, 22, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      klaxBevel(cx - wellColW / 2 + 3, ty, wellColW - 6, 22, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
       klaxText(state.active.marker, cx, ty + 8, 1, "#14152b", "center");
     }
 
-    // Paddle: the only thing the player positions. Lining it up with the
-    // active tile's column before that tile reaches the top is the whole
-    // input model now -- no separate catch button to miss the timing on.
-    const paddleX = klaxColumnX(klaxCol);
-    klaxBevel(paddleX - colW / 2 + 2, KLAX_WELL.top - 8, colW - 4, 6, "#efeae0", "#ffffff", "#867d6d");
+    // Paddle: catches at the well floor when empty-handed. Once it's
+    // carrying a tile it moves down to the stacking yard instead -- same
+    // left/right input, but now it's choosing where to place, not where
+    // to catch, per the "move the catcher to the lane you want, then
+    // press a button" request.
+    const paddleY = state.held ? KLAX_STACK.top - 9 : KLAX_WELL.top - 8;
+    const paddleRegion = state.held ? KLAX_STACK : KLAX_WELL;
+    const paddleColW = paddleRegion.w / KLAX_COLS;
+    const paddleX = klaxColumnX(klaxCol, paddleRegion);
+    klaxBevel(paddleX - paddleColW / 2 + 2, paddleY, paddleColW - 4, 6, "#efeae0", "#ffffff", "#867d6d");
+    if (state.held) {
+      klaxBevel(paddleX - paddleColW / 2 + 3, paddleY + 7, paddleColW - 6, 12, KLAX_TILE_COLOR[state.held.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      klaxText(state.held.marker, paddleX, paddleY + 10, 1, "#14152b", "center");
+    }
 
-    // Holder: up to 3 caught tiles waiting for their other half. Drawn as
-    // fixed, always-visible slots (not just text) -- an empty outlined
-    // slot is the "somewhere to put the block" that was missing before.
-    klaxPx(0, KLAX_WELL.bottom + 1, 256, 224 - KLAX_WELL.bottom - 1, "#1a1c3c");
-    const holderY = 188;
-    klaxText("HOLDING", 6, holderY, 1, "#8a8db8", "left");
-    for (let i = 0; i < state.holderSize; i++) {
-      const hx = 60 + i * 40;
-      const tile = state.holder[i];
-      if (tile) {
-        klaxBevel(hx, holderY - 3, 34, 12, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-        klaxText(tile.marker, hx + 17, holderY, 1, "#14152b", "center");
-      } else {
-        klaxPx(hx, holderY - 3, 34, 12, "rgba(255,255,255,.06)");
-        klaxPx(hx, holderY - 3, 34, 1, "#4d473c");
-        klaxPx(hx, holderY - 3, 1, 12, "#4d473c");
-        klaxPx(hx, holderY + 8, 34, 1, "#4d473c");
-        klaxPx(hx + 33, holderY - 3, 1, 12, "#4d473c");
-      }
+    // Stacking yard: one lane per source lane, growing up from its own
+    // floor. This -- not the old abstract "HOLDING" row -- is the
+    // physical place caught tiles actually go.
+    klaxPx(0, KLAX_STACK.bottom + 1, 256, 224 - KLAX_STACK.bottom - 1, "#1a1c3c");
+    const stackColW = KLAX_STACK.w / KLAX_COLS;
+    for (let c = 0; c < KLAX_COLS; c++) {
+      const cx = klaxColumnX(c, KLAX_STACK);
+      const highlighted = state.held && klaxCol === c;
+      klaxPx(cx - stackColW / 2 + 1, KLAX_STACK.top, stackColW - 2, KLAX_STACK.bottom - KLAX_STACK.top,
+        highlighted ? "rgba(231,194,63,.12)" : "rgba(255,255,255,.04)");
+      klaxPx(cx - stackColW / 2 + 1, KLAX_STACK.bottom, stackColW - 2, 1, highlighted ? "#e7c23f" : "#4d473c");
+      const lane = state.stacks[c];
+      const tileH = (KLAX_STACK.bottom - KLAX_STACK.top) / state.stackCap;
+      lane.forEach((tile, i) => {
+        const ty = KLAX_STACK.bottom - (i + 1) * tileH;
+        klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
+        klaxText(tile.marker, cx, ty + tileH / 2 - 2, 1, "#14152b", "center");
+      });
     }
 
     if (klaxFlash > 0) {
@@ -821,8 +836,7 @@
     klaxLastT = t;
     if (klaxFlash > 0) klaxFlash -= dt;
     const result = klaxGame.tick(dt, klaxCol);
-    if (result.event === "match") { klaxFlash = 0.12; sfx("ok"); }
-    else if (result.event === "caught") { sfx("move"); }
+    if (result.event === "caught") { sfx("move"); }
     else if (result.event === "missed") { klaxFlash = 0.12; sfx("back"); }
     renderKlax();
     klaxRaf = requestAnimationFrame(klaxLoop);
@@ -855,13 +869,18 @@
       else if (action === "b") { sfx("back"); goMenu(); }
       return;
     }
-    // Catching is positional and automatic now (see shared/klax-game.js
-    // tick()) -- line the paddle up with the rising tile's column before
-    // it reaches the top. A is only the discard escape hatch for a holder
-    // stuck with pieces that can't pair up.
+    // Left/right always just move the paddle -- what that means depends on
+    // whether the catcher is empty-handed (lining up under the rising
+    // tile) or carrying one (choosing a stacking lane to place it in).
     if (action === "left") { sfx("move"); klaxCol = (klaxCol - 1 + KLAX_COLS) % KLAX_COLS; }
     else if (action === "right") { sfx("move"); klaxCol = (klaxCol + 1) % KLAX_COLS; }
     else if (action === "a") {
+      if (!state.held) return;
+      const res = klaxGame.place(klaxCol);
+      if (res.event === "match") { klaxFlash = 0.12; sfx("ok"); }
+      else if (res.placed) { sfx("move"); }
+      else { sfx("back"); }
+    } else if (action === "down") {
       klaxGame.discard();
       sfx("back");
     } else if (action === "b") {
