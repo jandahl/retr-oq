@@ -736,12 +736,13 @@
   let klaxFlash = 0; // seconds remaining on a match/miss/overflow flash
 
   const KLAX_COLS = 4;
-  // A third of the screen is the stacking yard, one lane per source lane,
-  // per the redesign: the rising well feeds the top two-thirds, catches
-  // land at the boundary, and the player places each catch into one of
-  // these same four lanes below it.
-  const KLAX_WELL = { x: 20, top: 16, bottom: 140, w: 216 };
-  const KLAX_STACK = { x: 20, top: 150, bottom: 214, w: 216 };
+  // Klax's bin sits at the floor because that's where its tiles fall to.
+  // This game flips gravity, so the bin flips with it: the stacking yard
+  // is up at the ceiling, right where the rising tiles are headed, and
+  // grows DOWN from there as more get placed. The well fills the rest of
+  // the screen below it, floor at the bottom where tiles spawn.
+  const KLAX_STACK = { x: 20, top: 14, bottom: 78, w: 216 };
+  const KLAX_WELL = { x: 20, top: 82, bottom: 210, w: 216 };
 
   function klaxColumnX(c, region) {
     const colW = region.w / KLAX_COLS;
@@ -761,10 +762,30 @@
     klaxText("KAL-Q", 128, 3, 1, "#e7c23f", "center");
     klaxText(`LIVES ${state.lives}`, 250, 3, 1, "#cf4a3d", "right");
 
+    // Stacking yard: one lane per source lane, growing DOWN from the
+    // ceiling as tiles get placed -- the physical place caught pieces
+    // actually go, not an abstract "HOLDING" row.
+    const stackColW = KLAX_STACK.w / KLAX_COLS;
+    for (let c = 0; c < KLAX_COLS; c++) {
+      const cx = klaxColumnX(c, KLAX_STACK);
+      const highlighted = state.held && klaxCol === c;
+      klaxPx(cx - stackColW / 2 + 1, KLAX_STACK.top, stackColW - 2, KLAX_STACK.bottom - KLAX_STACK.top,
+        highlighted ? "rgba(231,194,63,.12)" : "rgba(255,255,255,.04)");
+      const lane = state.stacks[c];
+      const tileH = (KLAX_STACK.bottom - KLAX_STACK.top) / state.stackCap;
+      lane.forEach((tile, i) => {
+        const ty = KLAX_STACK.top + i * tileH;
+        klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
+        klaxText(tile.marker, cx, ty + tileH / 2 - 2, 1, "#14152b", "center");
+      });
+    }
+
+    // The catch/place line -- floor of the stacking yard, ceiling of the
+    // well -- is the one boundary the paddle ever sits on.
+    klaxPx(KLAX_WELL.x, KLAX_WELL.top, KLAX_WELL.w, 1, "#e7c23f");
     const wellColW = KLAX_WELL.w / KLAX_COLS;
     klaxPx(KLAX_WELL.x - 2, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
     klaxPx(KLAX_WELL.x + KLAX_WELL.w, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
-    klaxPx(KLAX_WELL.x, KLAX_WELL.bottom, KLAX_WELL.w, 1, "#e7c23f");
     // Column guides -- only one tile is ever in play, so these faint
     // dividers are what tells the player which lane it's rising in.
     for (let c = 1; c < KLAX_COLS; c++) {
@@ -774,7 +795,7 @@
     if (state.active) {
       const cx = klaxColumnX(state.active.col, KLAX_WELL);
       // y=1 lands the tile's vertical CENTER on the paddle line -- the
-      // catch and the floor line up exactly, so a caught tile visibly
+      // catch and the ceiling line up exactly, so a caught tile visibly
       // stops there instead of drifting past it.
       const ty = KLAX_WELL.bottom - state.active.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 11;
       const color = KLAX_TILE_COLOR[state.active.kind];
@@ -782,39 +803,15 @@
       klaxText(state.active.marker, cx, ty + 8, 1, "#14152b", "center");
     }
 
-    // Paddle: catches at the well floor when empty-handed. Once it's
-    // carrying a tile it moves down to the stacking yard instead -- same
-    // left/right input, but now it's choosing where to place, not where
-    // to catch, per the "move the catcher to the lane you want, then
-    // press a button" request.
-    const paddleY = state.held ? KLAX_STACK.top - 9 : KLAX_WELL.top - 8;
-    const paddleRegion = state.held ? KLAX_STACK : KLAX_WELL;
-    const paddleColW = paddleRegion.w / KLAX_COLS;
-    const paddleX = klaxColumnX(klaxCol, paddleRegion);
-    klaxBevel(paddleX - paddleColW / 2 + 2, paddleY, paddleColW - 4, 6, "#efeae0", "#ffffff", "#867d6d");
+    // Paddle: always sits on the catch/place line -- it's the same spot
+    // whether it's about to catch a rising tile or about to push a held
+    // one up into the highlighted lane above. Only the highlight above
+    // moves; the paddle doesn't need to travel between two positions.
+    const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
+    klaxBevel(paddleX - wellColW / 2 + 2, KLAX_WELL.top - 6, wellColW - 4, 6, "#efeae0", "#ffffff", "#867d6d");
     if (state.held) {
-      klaxBevel(paddleX - paddleColW / 2 + 3, paddleY + 7, paddleColW - 6, 12, KLAX_TILE_COLOR[state.held.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(state.held.marker, paddleX, paddleY + 10, 1, "#14152b", "center");
-    }
-
-    // Stacking yard: one lane per source lane, growing up from its own
-    // floor. This -- not the old abstract "HOLDING" row -- is the
-    // physical place caught tiles actually go.
-    klaxPx(0, KLAX_STACK.bottom + 1, 256, 224 - KLAX_STACK.bottom - 1, "#1a1c3c");
-    const stackColW = KLAX_STACK.w / KLAX_COLS;
-    for (let c = 0; c < KLAX_COLS; c++) {
-      const cx = klaxColumnX(c, KLAX_STACK);
-      const highlighted = state.held && klaxCol === c;
-      klaxPx(cx - stackColW / 2 + 1, KLAX_STACK.top, stackColW - 2, KLAX_STACK.bottom - KLAX_STACK.top,
-        highlighted ? "rgba(231,194,63,.12)" : "rgba(255,255,255,.04)");
-      klaxPx(cx - stackColW / 2 + 1, KLAX_STACK.bottom, stackColW - 2, 1, highlighted ? "#e7c23f" : "#4d473c");
-      const lane = state.stacks[c];
-      const tileH = (KLAX_STACK.bottom - KLAX_STACK.top) / state.stackCap;
-      lane.forEach((tile, i) => {
-        const ty = KLAX_STACK.bottom - (i + 1) * tileH;
-        klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
-        klaxText(tile.marker, cx, ty + tileH / 2 - 2, 1, "#14152b", "center");
-      });
+      klaxBevel(paddleX - wellColW / 2 + 3, KLAX_WELL.top - 20, wellColW - 6, 12, KLAX_TILE_COLOR[state.held.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      klaxText(state.held.marker, paddleX, KLAX_WELL.top - 17, 1, "#14152b", "center");
     }
 
     if (klaxFlash > 0) {
