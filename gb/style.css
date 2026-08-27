@@ -202,8 +202,11 @@ button:not(:disabled),
   color: var(--gb-darkest);
 }
 .title-fox {
-  width: 48px;
-  height: 48px;
+  /* em, not px: px sprites don't shrink with the title's own font-size
+     and silently loom oversized (or overflow the screen) wherever that
+     font-size is smaller than whatever screen this was eyeballed at. */
+  width: 2.2em;
+  height: 2.2em;
   margin: 0.35em 0 0.45em;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
@@ -457,8 +460,13 @@ button:not(:disabled),
 }
 .morph-sprite {
   position: relative;
-  width: 96px;
-  height: 96px;
+  /* em, not px: a fixed 96px doesn't shrink along with #morph-screen's own
+     responsive font-size, so it stayed full-size (and badly out of
+     proportion, sometimes clipped) on any viewport smaller than whatever
+     it was eyeballed at. em ties it to the same font-size the rest of
+     this screen already scales against. */
+  width: 3.6em;
+  height: 3.6em;
   background: transparent;
 }
 .morph-sprite-img {
@@ -500,10 +508,10 @@ button:not(:disabled),
 }
 .morph-fx {
   position: absolute;
-  right: -8px;
-  top: -8px;
-  width: 24px;
-  height: 24px;
+  right: -0.5em;
+  top: -0.5em;
+  width: 1.5em;
+  height: 1.5em;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   pointer-events: none;
@@ -630,8 +638,8 @@ button:not(:disabled),
   display: none;
 }
 .morph-card-fox {
-  width: 48px;
-  height: 48px;
+  width: 2.4em;
+  height: 2.4em;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
@@ -646,6 +654,29 @@ button:not(:disabled),
   font-size: 1em;
   color: var(--gb-dark);
   line-height: 1.5;
+}
+/* Replaces the old auto-advance timer on the win card: continuing now
+   takes an actual A press, so this is the call-to-action that tells the
+   player that's the case, standing in for the countdown bar they'd
+   otherwise be watching. */
+.morph-card-cta {
+  margin: 0.4em 0 0;
+  font-size: 0.85em;
+  color: var(--gb-darkest);
+  animation: morph-cta-blink 1s steps(1, jump-none) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .morph-card-cta { animation: none; }
+}
+@keyframes morph-cta-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.35; }
+}
+.morph-pause-zzz {
+  margin: 0;
+  font-size: 2em;
+  font-style: italic;
+  color: var(--gb-darkest);
 }
 
 .about-copy {

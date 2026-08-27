@@ -6,7 +6,7 @@
 <title>retr-oq — Game Boy prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=8" />
+<link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <!-- Original Game Boy (DMG-01), not a window manager and not the NES
@@ -98,6 +98,12 @@
               <img class="morph-card-fox" src="sprites/fox-winsquint.png?v=8" width="16" height="16" alt="" />
               <p class="morph-card-word" id="morph-card-word"></p>
               <p class="morph-card-meaning" id="morph-card-meaning"></p>
+              <p class="morph-card-cta" id="morph-card-cta">PRESS A</p>
+            </div>
+            <div class="morph-card morph-pause-card" id="morph-pause-card" hidden>
+              <p class="morph-pause-zzz" aria-hidden="true">Zzz</p>
+              <p class="morph-card-word">PAUSED</p>
+              <p class="morph-card-meaning">PRESS START TO RESUME</p>
             </div>
           </div>
 
@@ -160,6 +166,6 @@
 <script src="../shared/decon-app.js?v=4"></script>
 <script src="../shared/morph-game.js?v=1"></script>
 <script src="../shared/morph-puzzles.js?v=1"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
