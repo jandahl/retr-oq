@@ -207,12 +207,23 @@
     transition: opacity var(--boot-duration, 0ms) var(--ease-out);
   }
 
-  .no-js #boot-screen {
+  /* Every theme is itself a JS app (window managers, the dict lookup, the
+     boot screen here) -- there's nothing a no-JS visitor could do with the
+     hub, so no-JS gets one plain message instead of a half-dead picker. */
+  .no-js-message {
     display: none;
   }
 
+  .no-js #boot-screen,
   .no-js #hub-main {
-    opacity: 1;
+    display: none;
+  }
+
+  .no-js .no-js-message {
+    display: block;
+    max-width: 36rem;
+    margin: var(--space-7) auto 0;
+    text-align: center;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -221,6 +232,14 @@
 </style>
 </head>
 <body class="no-js">
+  <div class="no-js-message">
+    <h1>retr-oq needs JavaScript</h1>
+    <p class="lede">
+      Every theme here is a JS app -- window managers, the dictionary
+      lookup, even this hub's boot screen. Turn JavaScript on and reload.
+    </p>
+  </div>
+
   <div id="boot-screen">
     <p class="boot-text">retr-oq<span class="blink">_</span></p>
   </div>
@@ -232,30 +251,6 @@
     </header>
 
     <ul class="shelf"></ul>
-
-    <noscript>
-      <p class="lede">
-        JavaScript is off, so the icon tiles above didn't render. Pick a
-        machine below instead:
-      </p>
-      <ul>
-        <li><a href="dos/">DOS (1981)</a></li>
-        <li><a href="c64/">Commodore 64 (1982)</a></li>
-        <li><a href="mac1984/">Mac (1984)</a></li>
-        <li><a href="nes/">NES (1985)</a></li>
-        <li><a href="amiga/">Amiga (1988)</a></li>
-        <li><a href="gb/">Game Boy (1989)</a></li>
-        <li><a href="gg/">Game Gear (1990)</a></li>
-        <li><a href="snes/">Super Nintendo (1991)</a></li>
-        <li><a href="win31/">Windows 3.1 (1992)</a></li>
-        <li><a href="next/">NeXT (1995)</a></li>
-        <li><a href="mac8/">Mac OS 8.1 (1998)</a></li>
-        <li><a href="win98/">Windows 98 (1998)</a></li>
-        <li><a href="xp/">Windows XP (2001)</a></li>
-        <li><a href="kde/">KDE (2006)</a></li>
-        <li><a href="win7/">Windows 7 (2009)</a></li>
-      </ul>
-    </noscript>
 
     <footer>
       Fifteen skins for the same dictionary. See the
