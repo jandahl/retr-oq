@@ -47,3 +47,39 @@ jobs:
             npx --yes linkinator "http://localhost:8080/$page" --recurse false --skip "^https?://(?!localhost)"
           done
           kill "$server_pid"
+
+      # Generalized over however many hub tiles index.html has -- no fixed
+      # theme list to keep in sync. Pulls every `class="tile" href="..."`
+      # target and requires it resolve to a real theme/ dir with its own
+      # index.html, and that it's a directory reference (bare "name/"),
+      # not an explicit "name/index.html" -- the thing this PR removed.
+      - name: Check hub tile links resolve to theme directories
+        run: |
+          python3 - <<'EOF'
+          import re, sys
+
+          html = open("index.html", encoding="utf-8").read()
+          hrefs = re.findall(r'class="tile"\s+href="([^"]+)"', html)
+          if not hrefs:
+              sys.exit("no hub tiles found in index.html -- regex out of sync with markup?")
+
+          failed = False
+          for href in hrefs:
+              if href.endswith("index.html"):
+                  print(f"FAIL {href}: explicit index.html in hub link (use the bare directory)")
+                  failed = True
+                  continue
+              if not href.endswith("/"):
+                  print(f"FAIL {href}: hub tile href should be a directory (trailing slash)")
+                  failed = True
+                  continue
+              import os
+              target = os.path.join(href, "index.html")
+              if not os.path.isfile(target):
+                  print(f"FAIL {href}: no {target} on disk")
+                  failed = True
+
+          if failed:
+              sys.exit(1)
+          print(f"OK: {len(hrefs)} hub tile links checked")
+          EOF
