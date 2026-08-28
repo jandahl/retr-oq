@@ -749,6 +749,17 @@
   const KLAX_FAST_MULT = 2;
   let klaxFlash = 0; // seconds remaining on a match/miss/overflow flash
   let klaxPaused = false;
+  // Just-cleared cells (a match, or a pill's lane/screen wipe), kept around
+  // to draw a pulsing outline over their old spots for a second instead of
+  // them just vanishing the instant place()/tryMatch() splices them out of
+  // the real stacks. Pulse color marks which kind of clear it was.
+  let klaxClearAnim = null;
+  const KLAX_CLEAR_ANIM_S = 1;
+  const KLAX_CLEAR_COLOR = {
+    match: "255,255,255",
+    "power-lane": "63,127,214",
+    "power-screen": "176,111,214",
+  };
 
   const KLAX_COLS = 4;
   // Klax's bin sits at the floor because that's where its tiles fall to.
@@ -777,6 +788,22 @@
     klaxText("KAL-Q", 128, 3, 1, "#e7c23f", "center");
     klaxText(`LIVES ${state.lives}`, 250, 3, 1, "#cf4a3d", "right");
 
+    // Color legend: root (gold) + its correct affix (green) is the only
+    // pair that ever clears a lane -- a wrong affix (red) never matches
+    // anything, it just costs a paddle slot until discarded. Drawn in the
+    // left margin, the one strip beside the stacking yard the layout
+    // doesn't already use.
+    const legend = [
+      { label: "RT", color: KLAX_TILE_COLOR.root },
+      { label: "OK", color: KLAX_TILE_COLOR["affix-correct"] },
+      { label: "NO", color: KLAX_TILE_COLOR["affix-wrong"] },
+    ];
+    legend.forEach((item, i) => {
+      const ly = KLAX_STACK.top + i * 20;
+      klaxBevel(3, ly, 12, 8, item.color, "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
+      klaxText(item.label, 3, ly + 10, 1, item.color, "left");
+    });
+
     // Stacking yard: one lane per source lane, growing DOWN from the
     // ceiling as tiles get placed -- the physical place caught pieces
     // actually go, not an abstract "HOLDING" row.
@@ -793,6 +820,27 @@
         klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
         klaxText(tile.marker, cx, ty + tileH / 2 - 2, 1, "#14152b", "center");
       });
+    }
+
+    // The just-cleared cells -- a match, or a pill's lane/screen wipe --
+    // already spliced out of the real stacks, redrawn as ghosts at their
+    // old spots with a pulsing outline for KLAX_CLEAR_ANIM_S seconds
+    // instead of them just popping out of existence. Outline color marks
+    // which kind of clear it was: white for a match, pill blue/purple for
+    // a lane/screen wipe.
+    if (klaxClearAnim) {
+      const tileH = (KLAX_STACK.bottom - KLAX_STACK.top) / state.stackCap;
+      const pulse = 0.5 + 0.5 * Math.sin(klaxClearAnim.timeLeft * 22);
+      const rgb = KLAX_CLEAR_COLOR[klaxClearAnim.kind] || KLAX_CLEAR_COLOR.match;
+      for (const cell of klaxClearAnim.cells) {
+        const cx = klaxColumnX(cell.col, KLAX_STACK);
+        const ty = KLAX_STACK.top + cell.row * tileH;
+        klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[cell.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
+        klaxText(cell.marker, cx, ty + tileH / 2 - 2, 1, "#14152b", "center");
+        klaxCtx.strokeStyle = `rgba(${rgb},${(0.4 + 0.6 * pulse).toFixed(2)})`;
+        klaxCtx.lineWidth = 2;
+        klaxCtx.strokeRect(cx - stackColW / 2 + 2, ty, stackColW - 4, tileH);
+      }
     }
 
     // The catch/place line -- floor of the stacking yard, ceiling of the
@@ -868,6 +916,10 @@
     klaxLastT = t;
     if (!klaxPaused) {
       if (klaxFlash > 0) klaxFlash -= dt;
+      if (klaxClearAnim) {
+        klaxClearAnim.timeLeft -= dt;
+        if (klaxClearAnim.timeLeft <= 0) klaxClearAnim = null;
+      }
       const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
       if (result.event === "caught") {
         sfx(result.tile.kind === "power-lane" || result.tile.kind === "power-screen" ? "konami" : "move");
@@ -889,6 +941,7 @@
     klaxGame.start();
     klaxCol = 0;
     klaxFlash = 0;
+    klaxClearAnim = null;
     klaxUpHeld = false;
     klaxPaused = false;
     stopKlaxLoop();
@@ -922,9 +975,9 @@
     else if (action === "a") {
       if (!state.paddle.length) return;
       const res = klaxGame.place(klaxCol);
-      if (res.event === "match") { klaxFlash = 0.12; sfx("ok"); }
-      else if (res.event === "power-screen") { klaxFlash = 0.25; sfx("konami"); }
-      else if (res.event === "power-lane") { klaxFlash = 0.16; sfx("ok"); }
+      if (res.event === "match") { klaxFlash = 0.12; klaxClearAnim = { kind: "match", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; sfx("ok"); }
+      else if (res.event === "power-screen") { klaxFlash = 0.25; klaxClearAnim = { kind: "power-screen", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; sfx("konami"); }
+      else if (res.event === "power-lane") { klaxFlash = 0.16; klaxClearAnim = { kind: "power-lane", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; sfx("ok"); }
       else if (res.event === "discarded") { sfx("back"); }
       else if (res.placed) { sfx("move"); }
       else { sfx("back"); }
