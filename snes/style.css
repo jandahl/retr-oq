@@ -668,7 +668,14 @@ html.is-keyboard .snes-tv {
    as a box (display:contents) so its two .pad-cluster children become
    direct flex items of .snes-shell, placed either side of the TV via
    `order` regardless of DOM order. */
-@media (min-width: 1040px) {
+/* Width alone isn't the right trigger: a wide window that's ALSO tall
+   (a big monitor, a maximized 4:3-ish browser) has no shortage of
+   vertical room, so splitting the pad there just looks fragmented for
+   no benefit. The split earns its keep specifically on a landscape-ish
+   window where height is the scarce dimension -- min-aspect-ratio
+   catches that; min-width keeps it off a narrow phone held sideways,
+   where a split pad would be too cramped to tap accurately. */
+@media (min-width: 900px) and (min-aspect-ratio: 3/2) {
   .snes-shell {
     flex-direction: row;
     align-items: center;
