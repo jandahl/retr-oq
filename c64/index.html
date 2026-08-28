@@ -6,7 +6,7 @@
 <title>retr-oq — C64 desktop prototype</title>
 <!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
-<link rel="stylesheet" href="style.css?v=11" />
+<link rel="stylesheet" href="style.css?v=12" />
 </head>
 <body>
   <!-- The C64 booted straight into BASIC, no desktop, no icons -- same
@@ -101,6 +101,19 @@ LIST
     <div class="c64-app-header">KALQ</div>
     <div class="c64-app-results c64-kalq-results">
       <canvas id="kalq-canvas" class="c64-kalq-canvas" width="320" height="200"></canvas>
+      <!-- On-screen joystick+fire idiom (a real C64 played this with a
+           joystick, not a keyboard) -- mobile has no arrow keys, and
+           unlike DICT's text field or MORPH's clickable option list,
+           KALQ has no other pointer-friendly way to move/place/discard.
+           Always shown, not just on touch -- same convention nes/gb/gg/
+           snes's own on-screen pads follow (a mouse can click it too). -->
+      <div class="c64-kalq-pad" id="kalq-pad">
+        <button type="button" class="c64-kalq-btn" data-input="left" aria-label="Left">&#9664;</button>
+        <button type="button" class="c64-kalq-btn c64-kalq-btn-small" data-input="up" aria-label="Fast">&#9650;</button>
+        <button type="button" class="c64-kalq-btn c64-kalq-btn-primary" data-input="a" aria-label="Place">PLACE</button>
+        <button type="button" class="c64-kalq-btn c64-kalq-btn-small" data-input="down" aria-label="Discard">&#9660;</button>
+        <button type="button" class="c64-kalq-btn" data-input="right" aria-label="Right">&#9654;</button>
+      </div>
     </div>
     <button type="button" class="c64-app-footer" id="kalq-exit">RUN/STOP=EXIT TO READY.</button>
   </div>
@@ -117,6 +130,6 @@ LIST
 <script src="../shared/morph-puzzles.js?v=2"></script>
 <script src="../shared/morph-game.js?v=1"></script>
 <script src="../shared/klax-game.js?v=8"></script>
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

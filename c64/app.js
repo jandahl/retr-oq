@@ -591,6 +591,32 @@
     window.OqRouter.navigate({ screen: null, filter: null });
   });
 
+  // On-screen joystick+fire pad -- a real C64 played KLAX with a
+  // joystick, and mobile has no arrow keys. "up"/fast-forward is a hold,
+  // same as the keyboard's ArrowUp handling above, so it's not routed
+  // through handleKalqInput() (which only ever sees discrete taps).
+  document.getElementById("kalq-pad").addEventListener("pointerdown", (event) => {
+    const btn = event.target.closest("[data-input]");
+    if (!btn) return;
+    event.preventDefault();
+    const action = btn.dataset.input;
+    if (action === "up") {
+      // Pointer capture -- same reasoning as snes/app.js's shoulder
+      // buttons: without it, a finger sliding off this button before
+      // lifting fires pointerup on a DIFFERENT element (or none), and
+      // klaxUpHeld would never get reset back to false.
+      try { btn.setPointerCapture(event.pointerId); } catch (err) { /* old browser */ }
+      klaxUpHeld = true;
+      return;
+    }
+    handleKalqInput(action);
+  });
+  window.addEventListener("pointerup", (event) => {
+    const btn = event.target && event.target.closest && event.target.closest("[data-input]");
+    if (btn && btn.dataset.input === "up") klaxUpHeld = false;
+  });
+  window.addEventListener("pointercancel", () => { klaxUpHeld = false; });
+
   // window.OqRouter (shared/router.js) owns "which screen is open", same
   // reasoning as dos/app.js's identical block -- every user-facing trigger
   // (click, Esc, the LOAD/RUN command line) goes through navigate() instead
