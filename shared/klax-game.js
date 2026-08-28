@@ -224,15 +224,17 @@
         paddle.pop();
         for (const t of stacks[col]) if (t.kind === "root") pendingRoots.delete(t.roundId);
         const cleared = stacks[col].map((t) => t.marker);
+        const cells = stacks[col].map((t, row) => ({ col, row, marker: t.marker, kind: t.kind }));
         stacks[col] = [];
-        return { placed: true, event: "power-lane", col, cleared };
+        return { placed: true, event: "power-lane", col, cleared, cells };
       }
       if (tile.kind === "power-screen") {
         paddle.pop();
         const cleared = stacks.flat().map((t) => t.marker);
+        const cells = stacks.flatMap((lane, c) => lane.map((t, row) => ({ col: c, row, marker: t.marker, kind: t.kind })));
         stacks = stacks.map(() => []);
         pendingRoots = new Set();
-        return { placed: true, event: "power-screen", cleared };
+        return { placed: true, event: "power-screen", cleared, cells };
       }
       if (tile.kind === "affix-wrong") {
         paddle.pop();
