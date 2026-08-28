@@ -460,7 +460,9 @@ html.is-keyboard .snes-tv {
   box-sizing: border-box;
   -webkit-user-select: none;
   user-select: none;
-  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  touch-action: none;
 }
 
 /* Each cluster owns its face buttons plus the one extra pill that sits
