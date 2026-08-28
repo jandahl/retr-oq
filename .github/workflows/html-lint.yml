@@ -47,3 +47,41 @@ jobs:
             npx --yes linkinator "http://localhost:8080/$page" --recurse false --skip "^https?://(?!localhost)"
           done
           kill "$server_pid"
+
+      # Generalized over however many entries hub-data.js has -- no fixed
+      # theme list to keep in sync. hub.js renders index.html's tiles from
+      # that data at runtime (see index.html's empty <ul class="shelf">),
+      # so this reads hub-data.js's `href` fields directly rather than
+      # scraping rendered markup. Requires each to resolve to a real
+      # theme/ dir with its own index.html, and to be a directory
+      # reference (bare "name/"), not an explicit "name/index.html" --
+      # the thing this PR removed.
+      - name: Check hub tile links resolve to theme directories
+        run: |
+          python3 - <<'EOF'
+          import re, sys, os
+
+          js = open("hub-data.js", encoding="utf-8").read()
+          hrefs = re.findall(r'href:\s*"([^"]+)"', js)
+          if not hrefs:
+              sys.exit("no hub entries found in hub-data.js -- regex out of sync with the data shape?")
+
+          failed = False
+          for href in hrefs:
+              if href.endswith("index.html"):
+                  print(f"FAIL {href}: explicit index.html in hub link (use the bare directory)")
+                  failed = True
+                  continue
+              if not href.endswith("/"):
+                  print(f"FAIL {href}: hub tile href should be a directory (trailing slash)")
+                  failed = True
+                  continue
+              target = os.path.join(href, "index.html")
+              if not os.path.isfile(target):
+                  print(f"FAIL {href}: no {target} on disk")
+                  failed = True
+
+          if failed:
+              sys.exit(1)
+          print(f"OK: {len(hrefs)} hub tile links checked")
+          EOF
