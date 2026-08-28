@@ -436,6 +436,12 @@ html.is-keyboard .snes-tv {
   letter-spacing: 0.08em;
 }
 
+/* One continuous stadium (circle-rectangle-circle, like the real pad --
+   a rounded rect this wide with radius >= half its height IS that shape,
+   no separate pieces needed) as long as this single box owns the shell.
+   Only when the two clusters actually separate to flank the screen (the
+   split layout below) does each need its own independent shape -- that
+   override lives in the split media query instead of here. */
 .snes-controller {
   flex: 0 0 auto;
   display: flex;
@@ -444,26 +450,25 @@ html.is-keyboard .snes-tv {
   gap: 12px;
   margin: 8px;
   min-height: 0;
+  background: linear-gradient(#e0e4e8, var(--snes-pad) 42%, #9aa0a6);
+  border: 3px solid #5a5e62;
+  border-radius: 999px;
+  box-shadow: 0 4px 0 #2a2c30, inset 0 2px 0 #f4f6f8;
+  box-sizing: border-box;
   -webkit-user-select: none;
   user-select: none;
   touch-action: manipulation;
 }
 
-/* Each cluster is its own gamepad half now -- the gray gradient shell
-   that used to wrap the whole controller lives here instead, so
-   splitting them apart (the wide-screen row layout below) doesn't
-   need to fake a shell that no longer has one box to draw. Each owns
-   its face buttons plus the one extra pill that sits toward the
-   screen: Select up-and-right of the D-pad, Start up-and-left of
-   ABXY, instead of a shared center Select/Start column. */
+/* Each cluster owns its face buttons plus the one extra pill that sits
+   toward the screen: Select up-and-right of the D-pad, Start up-and-left
+   of ABXY, instead of a shared center Select/Start column. Just a
+   positioning box by default -- .snes-controller draws the one shared
+   shell above; the split media query gives each its own shell instead. */
 .pad-cluster {
   position: relative;
   flex: 0 0 auto;
   padding: 22px 14px 14px;
-  background: linear-gradient(#e0e4e8, var(--snes-pad) 42%, #9aa0a6);
-  border: 3px solid #5a5e62;
-  border-radius: 44px;
-  box-shadow: 0 4px 0 #2a2c30, inset 0 2px 0 #f4f6f8;
   box-sizing: border-box;
 }
 .pad-cluster-left {
@@ -694,6 +699,16 @@ html.is-keyboard .snes-tv {
   .snes-controller {
     display: contents;
   }
+  /* .snes-controller's own shell disappears with it (display:contents
+     has no box to paint), so each cluster needs to be a complete shape
+     again now that they're two physically separate halves -- the same
+     shell .snes-controller draws as one continuous stadium above. */
+  .pad-cluster {
+    background: linear-gradient(#e0e4e8, var(--snes-pad) 42%, #9aa0a6);
+    border: 3px solid #5a5e62;
+    border-radius: 999px;
+    box-shadow: 0 4px 0 #2a2c30, inset 0 2px 0 #f4f6f8;
+  }
   .pad-cluster-left {
     order: -1;
   }
@@ -784,11 +799,19 @@ html.is-ntsc .snes-tv::after {
 html.is-ntsc .snes-glow {
   background: radial-gradient(ellipse at 50% 40%, rgba(90, 74, 154, 0.16), transparent 62%);
 }
-html.is-ntsc .pad-cluster {
+html.is-ntsc .snes-controller {
   background: linear-gradient(#5a5a64, var(--snes-pad) 40%, #3a3a44);
   border: 4px solid #2e2e36;
   border-radius: 18px 18px 28px 28px;
   box-shadow: 0 4px 0 #1a1a20, inset 0 2px 0 #7a7a84;
+}
+@media (min-width: 900px) and (min-aspect-ratio: 3/2) {
+  html.is-ntsc .pad-cluster {
+    background: linear-gradient(#5a5a64, var(--snes-pad) 40%, #3a3a44);
+    border: 4px solid #2e2e36;
+    border-radius: 18px 18px 28px 28px;
+    box-shadow: 0 4px 0 #1a1a20, inset 0 2px 0 #7a7a84;
+  }
 }
 html.is-ntsc .pad-shoulder {
   background: #3a3a44;
