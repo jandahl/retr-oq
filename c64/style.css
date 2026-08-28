@@ -50,11 +50,11 @@ html, body {
   overscroll-behavior: none;
   position: fixed;
   width: 100%;
-  background: #35289c;
+  background: #40318d;
 }
 
 :root {
-  --c64-blue: #35289c; /* default screen background */
+  --c64-blue: #40318d; /* default screen background */
   --c64-lightblue: #7c70da; /* default screen text + border */
   --c64-white: #ffffff;
   --c64-black: #000000;

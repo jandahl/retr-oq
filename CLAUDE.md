@@ -146,3 +146,22 @@ Reuse `tests/conftest.py` fixtures if you add a suite. Other themes:
 ad hoc Playwright against a local `http.server`. Simulate a mobile
 keyboard by stubbing `visualViewport.height` / `offsetTop` and firing
 `resize` — you cannot drive a real IME from CI.
+
+`tools/check_palette.py` (CI: `.github/workflows/palette.yml`) covers
+`nes/` `gb/` `gg/` `snes/` `c64/` — the themes that declare a canon
+palette as `--<theme>-*` CSS custom properties. Two different checks,
+because "the palette" means two different sizes: the *possible* gamut
+(everything the hardware could produce -- C64: exactly 16 colors; DMG
+Game Boy: 4 greens; NES: a 64-entry PPU master palette; SNES/Game Gear:
+dense enough that ~any color is reachable) versus the *current* palette
+(the handful that theme actually declared). FAMILY checks every hex
+literal against that theme's own current palette by RGB distance, plus
+a grandfather baseline (`tools/palette-baseline.json`) for pre-existing
+shades — not exact-match, so gradients/bevels pass and a genuinely
+foreign hue doesn't. GAMUT is a tighter, harder check against the real
+fixed hardware colors, and only runs where the hardware really was that
+fixed: c64 (the whole theme -- a real C64's screen, border included,
+had no other colors available) and gb (just the four DMG screen vars --
+the rest of that theme is plastic shell, not gamut-limited). Regenerate
+the family baseline with `--write-baseline` only for a real, reviewed
+palette addition; a gamut failure means fix the color, not the check.
