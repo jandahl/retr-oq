@@ -279,6 +279,9 @@ button:not(:disabled),
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   background: #14152b;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
 }
 
 .snes-field {
