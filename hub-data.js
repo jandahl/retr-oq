@@ -1,0 +1,349 @@
+// Data for the retr-oq hub tiles (index.html). One entry per theme.
+// `href` must be a bare theme directory ("name/"), never "name/index.html" --
+// GitHub Pages serves the directory's index.html, and the explicit filename
+// is dead weight that CI checks for (see .github/workflows/html-lint.yml).
+// `icon` is the inner markup of a 32x32 viewBox <svg>, hand-pixelled per
+// machine -- keep the palette/geometry comments, they're the only record of
+// what each rect is meant to represent.
+window.OqHubMachines = [
+  {
+    href: "dos/",
+    name: "DOS",
+    year: "1981",
+    meta: "COMMAND.COM",
+    iconNote: "IBM PC monitor, EGA black, A: prompt",
+    icon: `
+      <rect width="32" height="32" fill="#7a7a7a"/>
+      <rect x="3" y="3" width="26" height="20" fill="#cfcfcf"/>
+      <rect x="5" y="5" width="22" height="16" fill="#0a0a0a"/>
+      <rect x="6" y="7" width="2" height="2" fill="#c0c0c0"/>
+      <rect x="9" y="7" width="2" height="2" fill="#c0c0c0"/>
+      <rect x="12" y="7" width="2" height="2" fill="#c0c0c0"/>
+      <rect x="6" y="11" width="2" height="2" fill="#c0c0c0"/>
+      <rect x="9" y="11" width="8" height="2" fill="#c0c0c0" class="blink"/>
+      <rect x="12" y="24" width="8" height="3" fill="#9a9a9a"/>
+      <rect x="8" y="27" width="16" height="2" fill="#5a5a5a"/>
+    `,
+  },
+  {
+    href: "c64/",
+    name: "Commodore 64",
+    year: "1982",
+    meta: "READY.",
+    iconNote: "Breadbin chassis, light-blue-on-blue READY.",
+    icon: `
+      <rect width="32" height="32" fill="#6c5eb5"/>
+      <rect x="2" y="2" width="28" height="20" fill="#433eb7"/>
+      <rect x="4" y="5" width="2" height="2" fill="#a5a7ff"/>
+      <rect x="7" y="5" width="2" height="2" fill="#a5a7ff"/>
+      <rect x="10" y="5" width="2" height="2" fill="#a5a7ff"/>
+      <rect x="13" y="5" width="2" height="2" fill="#a5a7ff"/>
+      <rect x="16" y="5" width="2" height="2" fill="#a5a7ff"/>
+      <rect x="18" y="5" width="1" height="2" fill="#a5a7ff"/>
+      <rect x="4" y="9" width="2" height="2" fill="#a5a7ff" class="blink"/>
+      <rect x="2" y="22" width="28" height="8" fill="#6d4c2f"/>
+      <rect x="4" y="24" width="24" height="4" fill="#c4b49a"/>
+      <rect x="5" y="25" width="2" height="2" fill="#2a2118"/>
+      <rect x="8" y="25" width="2" height="2" fill="#2a2118"/>
+      <rect x="11" y="25" width="2" height="2" fill="#2a2118"/>
+    `,
+  },
+  {
+    href: "mac1984/",
+    name: "Mac",
+    year: "1984",
+    meta: "System 1",
+    iconNote: "Compact Mac, 1-bit happy Mac, floppy chin",
+    icon: `
+      <rect width="32" height="32" fill="#c8b492"/>
+      <rect x="6" y="2" width="20" height="27" fill="#e6d3b0"/>
+      <rect x="6" y="2" width="20" height="1" fill="#f4e6cc"/>
+      <rect x="6" y="28" width="20" height="1" fill="#a89068"/>
+      <rect x="8" y="4" width="16" height="14" fill="#2b2722"/>
+      <rect x="9" y="5" width="14" height="12" fill="#111111"/>
+      <rect x="12" y="8" width="8" height="7" fill="#e8e8e8"/>
+      <rect x="13" y="10" width="2" height="2" fill="#111111"/>
+      <rect x="17" y="10" width="2" height="2" fill="#111111"/>
+      <rect x="14" y="13" width="4" height="1" fill="#111111"/>
+      <rect x="11" y="20" width="10" height="2" fill="#3a342c"/>
+      <rect x="12" y="24" width="2" height="2" fill="#51a3e1"/>
+      <rect x="14" y="24" width="2" height="2" fill="#7ac142"/>
+      <rect x="16" y="24" width="2" height="2" fill="#f5d031"/>
+      <rect x="18" y="24" width="2" height="2" fill="#f0892f"/>
+      <rect x="20" y="24" width="1" height="2" fill="#e23d3d"/>
+    `,
+  },
+  {
+    href: "nes/",
+    name: "NES",
+    year: "1985",
+    meta: "cartridge",
+    iconNote: "Gray toaster, cartridge, red power LED",
+    icon: `
+      <rect width="32" height="32" fill="#3a3a42"/>
+      <rect x="10" y="4" width="12" height="8" fill="#6a2c2c"/>
+      <rect x="11" y="5" width="10" height="5" fill="#c45c5c"/>
+      <rect x="12" y="6" width="8" height="2" fill="#f0d090"/>
+      <rect x="3" y="12" width="26" height="14" fill="#d0d0d0"/>
+      <rect x="3" y="12" width="26" height="2" fill="#ececec"/>
+      <rect x="5" y="15" width="22" height="3" fill="#2a2a2a"/>
+      <rect x="5" y="22" width="3" height="2" fill="#e03030" class="pulse"/>
+      <rect x="20" y="21" width="6" height="3" fill="#b8b8b8"/>
+    `,
+  },
+  {
+    href: "amiga/",
+    name: "Amiga",
+    year: "1988",
+    meta: "Workbench 1.3",
+    iconNote: "Workbench 1.3: blue screen, orange window, boing, copper",
+    icon: `
+      <rect width="32" height="32" fill="#0055AA"/>
+      <rect x="2" y="2" width="20" height="16" fill="#FF8800"/>
+      <rect x="2" y="2" width="20" height="1" fill="#FFFFFF"/>
+      <rect x="2" y="2" width="1" height="16" fill="#FFFFFF"/>
+      <rect x="21" y="3" width="1" height="15" fill="#000000"/>
+      <rect x="3" y="17" width="19" height="1" fill="#000000"/>
+      <rect x="3" y="3" width="2" height="2" fill="#000000"/>
+      <rect x="18" y="3" width="2" height="2" fill="#000000"/>
+      <rect x="4" y="6" width="16" height="10" fill="#FFFFFF"/>
+      <rect x="5" y="8" width="10" height="1" fill="#000000"/>
+      <rect x="5" y="11" width="7" height="1" fill="#000000"/>
+      <rect x="21" y="14" width="9" height="9" fill="#EE1111"/>
+      <rect x="23" y="14" width="2" height="9" fill="#FFFFFF"/>
+      <rect x="27" y="14" width="2" height="9" fill="#FFFFFF"/>
+      <rect x="21" y="16" width="9" height="2" fill="#FFFFFF"/>
+      <rect x="23" y="16" width="2" height="2" fill="#EE1111"/>
+      <rect x="27" y="16" width="2" height="2" fill="#EE1111"/>
+      <rect x="21" y="20" width="9" height="2" fill="#FFFFFF"/>
+      <rect x="23" y="20" width="2" height="2" fill="#EE1111"/>
+      <rect x="27" y="20" width="2" height="2" fill="#EE1111"/>
+      <rect y="27" width="32" height="1" fill="#EE0000"/>
+      <rect y="28" width="32" height="1" fill="#EE8800"/>
+      <rect y="29" width="32" height="1" fill="#EEEE00"/>
+      <rect y="30" width="32" height="1" fill="#00AAEE"/>
+      <rect y="31" width="32" height="1" fill="#0055AA"/>
+    `,
+  },
+  {
+    href: "gb/",
+    name: "Game Boy",
+    year: "1989",
+    meta: "DMG-01",
+    iconNote: "DMG brick, olive LCD, burgundy A/B",
+    icon: `
+      <rect width="32" height="32" fill="#8a8a8a"/>
+      <rect x="6" y="1" width="20" height="30" fill="#cfcfcf"/>
+      <rect x="8" y="3" width="16" height="14" fill="#6a6a6a"/>
+      <rect x="9" y="4" width="14" height="12" fill="#8bac0f"/>
+      <rect x="12" y="7" width="8" height="6" fill="#0f380f"/>
+      <rect x="9" y="20" width="6" height="6" fill="#5a5a5a"/>
+      <rect x="11" y="21" width="2" height="4" fill="#2e2e2e"/>
+      <rect x="10" y="22" width="4" height="2" fill="#2e2e2e"/>
+      <rect x="20" y="21" width="3" height="3" fill="#7a3048"/>
+      <rect x="18" y="24" width="3" height="3" fill="#7a3048"/>
+    `,
+  },
+  {
+    href: "gg/",
+    name: "Game Gear",
+    year: "1990",
+    meta: "Master System",
+    iconNote: "Landscape handheld, navy SMS VDP, red 1/2",
+    icon: `
+      <rect width="32" height="32" fill="#1a1c22"/>
+      <rect x="1" y="8" width="30" height="16" rx="3" fill="#2a2c32"/>
+      <rect x="8" y="10" width="16" height="10" fill="#0a1028"/>
+      <rect x="9" y="11" width="14" height="8" fill="#001878"/>
+      <rect x="11" y="13" width="3" height="3" fill="#58d8f8"/>
+      <rect x="15" y="13" width="3" height="3" fill="#f8d030"/>
+      <rect x="19" y="13" width="2" height="3" fill="#f83078"/>
+      <rect x="3" y="13" width="4" height="4" fill="#3a3e46"/>
+      <rect x="4" y="14" width="2" height="2" fill="#121418"/>
+      <rect x="25" y="12" width="3" height="3" fill="#c43a3a"/>
+      <rect x="26" y="16" width="3" height="3" fill="#c43a3a"/>
+      <rect x="14" y="21" width="4" height="2" fill="#1a1c22"/>
+    `,
+  },
+  {
+    href: "snes/",
+    name: "Super Nintendo",
+    year: "1991",
+    meta: "PAL 16-bit",
+    iconNote: "PAL Super Nintendo: rounded gray deck, rainbow pad",
+    icon: `
+      <rect width="32" height="32" fill="#1c1e22"/>
+      <rect x="9" y="3" width="14" height="7" fill="#6a6e72"/>
+      <rect x="10" y="4" width="12" height="4" fill="#d0d4d8"/>
+      <rect x="3" y="10" width="26" height="12" fill="#c4c8cc"/>
+      <rect x="3" y="10" width="26" height="2" fill="#e0e4e8"/>
+      <rect x="5" y="14" width="22" height="3" fill="#2a2c30"/>
+      <rect x="6" y="19" width="3" height="2" fill="#d03030" class="pulse"/>
+      <rect x="18" y="18" width="8" height="3" fill="#9aa0a6"/>
+      <rect x="4" y="24" width="24" height="6" fill="#b0b4b8"/>
+      <rect x="20" y="25" width="2" height="2" fill="#38a040"/>
+      <rect x="22" y="25" width="2" height="2" fill="#3060d8"/>
+      <rect x="21" y="27" width="2" height="2" fill="#e8c030"/>
+      <rect x="23" y="27" width="2" height="2" fill="#d03030"/>
+    `,
+  },
+  {
+    href: "win31/",
+    name: "Windows 3.1",
+    year: "1992",
+    meta: "Program Manager",
+    iconNote: "Teal desktop, 3.1 window: sysmenu on the left, no close X",
+    icon: `
+      <rect width="32" height="32" fill="#008080"/>
+      <rect x="3" y="5" width="26" height="20" fill="#c0c0c0"/>
+      <rect x="3" y="5" width="25" height="1" fill="#ffffff"/>
+      <rect x="3" y="5" width="1" height="19" fill="#ffffff"/>
+      <rect x="28" y="6" width="1" height="19" fill="#000000"/>
+      <rect x="4" y="24" width="25" height="1" fill="#000000"/>
+      <rect x="5" y="7" width="22" height="4" fill="#000080"/>
+      <rect x="6" y="8" width="3" height="2" fill="#c0c0c0"/>
+      <rect x="7" y="9" width="1" height="1" fill="#000000"/>
+      <rect x="22" y="8" width="2" height="2" fill="#c0c0c0"/>
+      <rect x="25" y="8" width="2" height="2" fill="#c0c0c0"/>
+      <rect x="6" y="12" width="20" height="10" fill="#c0c0c0"/>
+      <rect x="7" y="13" width="8" height="8" fill="#ffff00"/>
+      <rect x="8" y="14" width="6" height="2" fill="#000080"/>
+      <rect x="17" y="13" width="8" height="8" fill="#00ffff"/>
+      <rect x="18" y="14" width="6" height="2" fill="#000080"/>
+    `,
+  },
+  {
+    href: "next/",
+    name: "NeXT",
+    year: "1995",
+    meta: "Workspace 3.3",
+    iconNote: "Workspace 3.3: gray desktop, black title, right dock",
+    icon: `
+      <rect width="32" height="32" fill="#AAAAAA"/>
+      <rect x="2" y="4" width="22" height="20" fill="#AAAAAA"/>
+      <rect x="2" y="4" width="22" height="20" fill="none" stroke="#000000" stroke-width="2"/>
+      <rect x="2" y="4" width="22" height="5" fill="#000000"/>
+      <rect x="3" y="5" width="3" height="3" fill="#AAAAAA"/>
+      <rect x="20" y="5" width="3" height="3" fill="#AAAAAA"/>
+      <rect x="4" y="10" width="18" height="12" fill="#FFFFFF"/>
+      <rect x="6" y="12" width="10" height="1" fill="#000000"/>
+      <rect x="6" y="15" width="8" height="1" fill="#000000"/>
+      <rect x="6" y="18" width="6" height="1" fill="#000000"/>
+      <rect x="25" y="0" width="7" height="32" fill="#555555"/>
+      <rect x="26" y="2" width="5" height="5" fill="#222222"/>
+      <rect x="26" y="9" width="5" height="5" fill="#2a4a20"/>
+      <rect x="26" y="16" width="5" height="5" fill="#4a4030"/>
+      <rect x="26" y="25" width="5" height="5" fill="#333333"/>
+    `,
+  },
+  {
+    href: "mac8/",
+    name: "Mac OS 8.1",
+    year: "1998",
+    meta: "Platinum",
+    iconNote: "Platinum window, striped title bar, color finder",
+    icon: `
+      <rect width="32" height="32" fill="#8a8a8a"/>
+      <rect x="3" y="5" width="26" height="22" fill="#dddddd"/>
+      <rect x="3" y="5" width="26" height="1" fill="#ffffff"/>
+      <rect x="3" y="6" width="26" height="5" fill="#cccccc"/>
+      <rect x="4" y="7" width="24" height="1" fill="#ffffff"/>
+      <rect x="4" y="9" width="24" height="1" fill="#ffffff"/>
+      <rect x="5" y="7" width="3" height="3" fill="#888888"/>
+      <rect x="5" y="12" width="22" height="13" fill="#ffffff"/>
+      <rect x="11" y="15" width="10" height="8" fill="#4aa0e8"/>
+      <rect x="13" y="17" width="2" height="2" fill="#1a1a1a"/>
+      <rect x="17" y="17" width="2" height="2" fill="#1a1a1a"/>
+      <rect x="14" y="20" width="4" height="1" fill="#1a1a1a"/>
+      <rect x="12" y="16" width="2" height="2" fill="#e24b4b"/>
+      <rect x="18" y="16" width="2" height="2" fill="#f0c030"/>
+    `,
+  },
+  {
+    href: "win98/",
+    name: "Windows 98",
+    year: "1998",
+    meta: "Start / taskbar",
+    iconNote: "Teal desktop, 3D gray window, navy title bar",
+    icon: `
+      <rect width="32" height="32" fill="#008080"/>
+      <rect x="4" y="6" width="24" height="18" fill="#c0c0c0"/>
+      <rect x="4" y="6" width="23" height="1" fill="#ffffff"/>
+      <rect x="4" y="6" width="1" height="17" fill="#ffffff"/>
+      <rect x="27" y="7" width="1" height="17" fill="#808080"/>
+      <rect x="5" y="23" width="23" height="1" fill="#808080"/>
+      <rect x="5" y="7" width="22" height="3" fill="#000080"/>
+      <rect x="23" y="8" width="3" height="2" fill="#c0c0c0"/>
+      <rect x="6" y="11" width="20" height="11" fill="#ffffff"/>
+      <rect x="8" y="13" width="10" height="1" fill="#000000"/>
+      <rect x="8" y="16" width="14" height="1" fill="#000000"/>
+      <rect x="8" y="19" width="8" height="1" fill="#000000"/>
+    `,
+  },
+  {
+    href: "xp/",
+    name: "Windows XP",
+    year: "2001",
+    meta: "Luna Blue",
+    iconNote: "Bliss hill, Luna blue chrome",
+    icon: `
+      <rect width="32" height="16" fill="#5eb1e5"/>
+      <rect y="16" width="32" height="16" fill="#3d9e2a"/>
+      <rect x="0" y="14" width="18" height="8" fill="#6bb33a"/>
+      <rect x="20" y="6" width="6" height="4" fill="#ffffff"/>
+      <rect x="3" y="10" width="26" height="16" fill="#ece9d8"/>
+      <rect x="3" y="10" width="26" height="4" fill="#0054e3"/>
+      <rect x="4" y="11" width="12" height="2" fill="#ffffff"/>
+      <rect x="24" y="11" width="4" height="2" fill="#e96c32"/>
+      <rect x="5" y="16" width="22" height="8" fill="#ffffff"/>
+      <rect x="7" y="18" width="8" height="1" fill="#000000"/>
+      <rect x="7" y="21" width="12" height="1" fill="#000000"/>
+    `,
+  },
+  {
+    href: "kde/",
+    name: "KDE",
+    year: "2006",
+    meta: "Compiz Fusion",
+    iconNote: "Plastik window, blue 2006 desktop, Kicker",
+    icon: `
+      <rect width="32" height="32" fill="#0a4a7a"/>
+      <rect y="22" width="32" height="10" fill="#1a6aaa"/>
+      <rect x="4" y="5" width="24" height="18" fill="#ececec"/>
+      <rect x="4" y="5" width="24" height="4" fill="#3a7eab"/>
+      <rect x="5" y="6" width="10" height="2" fill="#ffffff"/>
+      <rect x="23" y="6" width="2" height="2" fill="#d0d0d6"/>
+      <rect x="25" y="6" width="2" height="2" fill="#d04530"/>
+      <rect x="6" y="11" width="20" height="9" fill="#ffffff"/>
+      <rect x="8" y="13" width="8" height="1" fill="#1a1a1a"/>
+      <rect x="8" y="16" width="12" height="1" fill="#1a1a1a"/>
+      <rect y="28" width="32" height="4" fill="#c8c8d2"/>
+      <rect x="1" y="29" width="5" height="2" fill="#3a7eab"/>
+      <rect x="8" y="29" width="4" height="2" fill="#e8e8ee"/>
+    `,
+  },
+  {
+    href: "win7/",
+    name: "Windows 7",
+    year: "2009",
+    meta: "Aero glass",
+    iconNote: "Harmony swirl, glass title, four-color orb",
+    icon: `
+      <rect width="32" height="32" fill="#071833"/>
+      <rect x="4" y="18" width="10" height="6" fill="#1a4e8a"/>
+      <rect x="16" y="12" width="12" height="10" fill="#0d2f66"/>
+      <rect x="10" y="8" width="8" height="8" fill="#2a6cb0"/>
+      <rect x="2" y="7" width="28" height="18" fill="#dce6f4"/>
+      <rect x="2" y="7" width="28" height="4" fill="#9ec3ee"/>
+      <rect x="3" y="8" width="10" height="2" fill="#2b2b2b"/>
+      <rect x="24" y="8" width="2" height="2" fill="#c05050"/>
+      <rect x="26" y="8" width="2" height="2" fill="#50a050"/>
+      <rect x="4" y="13" width="24" height="10" fill="#ffffff"/>
+      <rect x="13" y="22" width="6" height="6" fill="#222222"/>
+      <rect x="14" y="23" width="2" height="2" fill="#f35325"/>
+      <rect x="16" y="23" width="2" height="2" fill="#81bc06"/>
+      <rect x="14" y="25" width="2" height="2" fill="#05a6f0"/>
+      <rect x="16" y="25" width="2" height="2" fill="#ffba08"/>
+    `,
+  },
+];
