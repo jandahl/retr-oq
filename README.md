@@ -33,6 +33,29 @@ Each theme hosts OQ! / DECON via `shared/` (`?screen=oq&filter=`).
 
 Not yet: modern macOS, Norton Commander.
 
+## Games
+
+Every theme has OQ!/DECON; some also carry a real minigame, a visual/
+audio demo, or an easter egg. Source of truth: `shared/games.js`.
+
+| Theme | Extra games / demos / eggs |
+| --- | --- |
+| `dos/` | DOOM (undocumented egg) |
+| `c64/` | MORPH! |
+| `mac1984/` | — |
+| `nes/` | Konami Code |
+| `amiga/` | Boing Ball, Copper bars |
+| `gb/` | MORPH!, Konami Code |
+| `gg/` | Konami Code |
+| `snes/` | KAL-Q (Klax), Konami Code |
+| `win31/` | Solitaire (joke), hidden credits |
+| `next/` | Kernel panic (undocumented egg) |
+| `mac8/` | — |
+| `win98/` | Hot Dog Stand scheme |
+| `xp/` | — |
+| `kde/` | Compiz rain, desktop cube |
+| `win7/` | — |
+
 **`shared/`** — `dict-source.js`, `hyphenation.js`, `router.js`,
 `decon-app.js`, `redmond/window-manager.js` (win31/98/XP/7),
 `art/fox/` (MORPH! mascot source: first-gen illustrations + 128px

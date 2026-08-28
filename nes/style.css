@@ -390,7 +390,9 @@ html.is-keyboard .nes-tv {
   box-sizing: border-box;
   -webkit-user-select: none;
   user-select: none;
-  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  touch-action: none;
 }
 
 .pad-dpad {
