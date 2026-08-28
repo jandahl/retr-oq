@@ -98,6 +98,13 @@ button:not(:disabled),
   position: relative;
 }
 
+.gg-controls {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  touch-action: none;
+}
 .gg-left {
   grid-area: left;
   display: flex;

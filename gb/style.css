@@ -715,6 +715,11 @@ button:not(:disabled),
 .gb-controls {
   flex: none;
   margin-top: 4px;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  touch-action: none;
 }
 .pad-row {
   display: flex;
