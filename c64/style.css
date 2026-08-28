@@ -58,6 +58,16 @@ html, body {
   --c64-lightblue: #7c70da; /* default screen text + border */
   --c64-white: #ffffff;
   --c64-black: #000000;
+  /* KALQ.PRG's four tile colors -- same 16-value VIC-II table as
+     .c64-palette-cycle below (POKE 53280/53281 order), named here because
+     app.js needs to read them via getComputedStyle the same way the
+     values above already are. Not the whole 16: only the ones this theme
+     actually reuses as a real UI color get a name, same rule as the four
+     above. */
+  --c64-yellow: #bfce72;
+  --c64-green: #55a049;
+  --c64-red: #883932;
+  --c64-cyan: #67b6bd;
   /* The real C64's border (POKE 53280) and screen background (POKE 53281)
      are two DIFFERENT default colors, not one -- light blue border, blue
      background. Drawn as a real CSS `border` on .c64-screen/.c64-app below
@@ -391,6 +401,36 @@ html, body {
   background: var(--c64-lightblue);
   color: var(--c64-blue);
   outline: none;
+}
+
+/* KALQ.PRG -- shared/klax-game.js (the same engine snes/'s KAL-Q uses)
+   rendered as a real bitmapped playfield instead of MORPH!'s text-mode
+   option list: real C64 software did draw graphics, not just BASIC
+   listings, once you RUN something. Reuses .c64-app/.c64-app-header/
+   .c64-app-footer wholesale (header just reads "KALQ", no dynamic HUD
+   span -- the canvas draws its own SCORE/LIVES the same way snes/'s
+   klax-canvas does); .c64-app-results centers the canvas instead of
+   holding a scrolling list. */
+.c64-app-results.c64-kalq-results {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.c64-kalq-canvas {
+  /* 320x200 -- the real C64's own hi-res bitmap resolution, same "match
+     the actual hardware pixels" rule snes/'s 256x224 klax-canvas follows.
+     width:100% + max-height + aspect-ratio: same reasoning as that
+     element's own comment (a wide-but-short window would otherwise clip
+     instead of shrinking). */
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: 320 / 200;
+  border: 1px solid var(--c64-lightblue);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: var(--c64-blue);
 }
 
 /* The RUN loading flicker (issue #27 piece 2) -- a real LOAD/RUN blanked
