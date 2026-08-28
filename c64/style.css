@@ -413,9 +413,16 @@ html, body {
    holding a scrolling list. */
 .c64-app-results.c64-kalq-results {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.6em;
   overflow: hidden;
+  /* Black, not the BASIC screen's blue -- the reference cabinet's bezel
+     around the actual game picture is black, and .c64-app's own
+     background (inherited here otherwise) is the --c64-blue text-mode
+     screen color, which has nothing to do with a real game's picture. */
+  background: var(--c64-black);
 }
 .c64-kalq-canvas {
   /* 320x200 -- the real C64's own hi-res bitmap resolution, same "match
@@ -427,10 +434,55 @@ html, body {
   height: auto;
   max-height: 100%;
   aspect-ratio: 320 / 200;
-  border: 1px solid var(--c64-lightblue);
+  /* No border -- the canvas already paints its own black backdrop, and a
+     colored frame here would be the same blue-screen mismatch as the
+     wrapper's background above (see that rule's own comment). */
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-  background: var(--c64-blue);
+  background: var(--c64-black);
+}
+.c64-kalq-pad {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  width: 100%;
+  max-width: 320px;
+  /* Same tap-and-drag-selects-text bug fixed elsewhere in this repo
+     (snes/nes/gb/gg's on-screen pads) -- a press-drag across these
+     buttons must move the paddle, not trigger iOS's text-selection
+     callout or an image-style drag. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  touch-action: none;
+}
+.c64-kalq-btn {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 0.6em 0;
+  border: none;
+  background: var(--c64-lightblue);
+  color: var(--c64-blue);
+  font: inherit;
+  font-size: 1.1em;
+  /* Arrow, not pointer -- CLAUDE.md's cursor rule for chrome/buttons;
+     snes/nes/gb/gg's own on-screen pads all leave this unset too. */
+  cursor: default;
+}
+.c64-kalq-btn:active {
+  background: var(--c64-white);
+}
+.c64-kalq-btn-small {
+  flex-grow: 0.6;
+}
+.c64-kalq-btn-primary {
+  flex-grow: 1.6;
+  font-weight: bold;
 }
 
 /* The RUN loading flicker (issue #27 piece 2) -- a real LOAD/RUN blanked
