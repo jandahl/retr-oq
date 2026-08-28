@@ -143,11 +143,14 @@
     /**
      * Looks for a root + its correct affix anywhere across the stacking
      * lanes (not necessarily the same lane or adjacent) and clears both if
-     * found. Runs after every placement.
+     * found. Runs after every placement. Returns each cleared tile's
+     * pre-removal (lane, row) too -- a theme's renderer can't otherwise
+     * say where the match happened once these are spliced out of `stacks`.
      */
     function tryMatch() {
       for (let c = 0; c < stacks.length; c++) {
-        for (const tile of stacks[c]) {
+        for (let ri = 0; ri < stacks[c].length; ri++) {
+          const tile = stacks[c][ri];
           if (tile.kind !== "root") continue;
           for (let d = 0; d < stacks.length; d++) {
             const i = stacks[d].findIndex((t) => t.roundId === tile.roundId && t.kind === "affix-correct");
@@ -157,7 +160,14 @@
             stacks[d] = stacks[d].filter((t) => t !== affix);
             pendingRoots.delete(tile.roundId);
             score += 20;
-            return { marker: tile.marker, other: affix.marker };
+            return {
+              marker: tile.marker,
+              other: affix.marker,
+              cells: [
+                { col: c, row: ri, marker: tile.marker, kind: tile.kind },
+                { col: d, row: i, marker: affix.marker, kind: affix.kind },
+              ],
+            };
           }
         }
       }
@@ -234,7 +244,7 @@
       if (tile.kind === "root") pendingRoots.add(tile.roundId);
       const matched = tryMatch();
       return matched
-        ? { placed: true, event: "match", cleared: [matched.marker, matched.other], score }
+        ? { placed: true, event: "match", cleared: [matched.marker, matched.other], cells: matched.cells, score }
         : { placed: true, event: "placed" };
     }
 
