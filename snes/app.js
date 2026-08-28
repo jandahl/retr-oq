@@ -82,6 +82,11 @@
 
   function toggleRegion() {
     applyRegion(document.documentElement.classList.contains("is-ntsc") ? "pal" : "ntsc");
+    // KAL-Q's canvas caches its colors (can't hand fillStyle a CSS var
+    // directly) -- refresh them or a mid-game toggle leaves the canvas
+    // stuck on whichever region was active when the page loaded. Function
+    // declaration below is hoisted, so this reference is always live.
+    refreshKlaxColors();
     sfx("konami");
   }
 
@@ -656,15 +661,64 @@
   // only the on-screen title.
   const klaxCanvas = document.getElementById("klax-canvas");
   const klaxCtx = klaxCanvas.getContext("2d");
-  const KLAX_TILE_COLOR = {
-    root: "#e7c23f",
-    "affix-correct": "#4f9e5c",
-    "affix-wrong": "#cf4a3d",
-    // Pills get colors from outside the morpheme-tile palette (yellow/
-    // green/red) so they read as a different kind of object at a glance.
-    "power-lane": "#3f7fd6",
-    "power-screen": "#b06fd6",
-  };
+
+  // The canvas can't reach CSS var(--snes-*) directly -- fillStyle wants a
+  // literal color -- so this reads the theme's own declared palette once
+  // via getComputedStyle instead of re-inventing hex for KAL-Q. That's the
+  // actual fix for a canvas drifting into off-palette ("haram") colors: it
+  // can't drift if it's never handed its own numbers to begin with, and
+  // tools/check-palette.py enforces the same rule on every other literal.
+  const snesVars = getComputedStyle(document.documentElement);
+  const snesColor = (name) => snesVars.getPropertyValue(`--snes-${name}`).trim();
+  function hexToRgbTriplet(hex) {
+    const h = hex.replace("#", "");
+    const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+    const n = parseInt(full, 16);
+    return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+  }
+
+  // Mutable, not const: html.is-ntsc (the L+R region toggle) redefines
+  // every --snes-* value to the NA-toaster purple palette live, and these
+  // three need re-deriving from it or KAL-Q's canvas would keep rendering
+  // pre-toggle colors until a reload. refreshKlaxColors() is the one place
+  // that happens -- called once below, and again from toggleRegion().
+  let KLAX_C, KLAX_TILE_COLOR, KLAX_CLEAR_COLOR;
+
+  function refreshKlaxColors() {
+    KLAX_C = {
+      bg: snesColor("black"),
+      hud: snesColor("navy"),
+      ink: snesColor("navy"),
+      paper: snesColor("white"),
+      gold: snesColor("gold"),
+      mist: snesColor("mist"),
+      padDark: snesColor("pad-dark"),
+    };
+
+    KLAX_TILE_COLOR = {
+      // Root and its correct/wrong affixes reuse the four SNES face-button
+      // colors (rainbow Y/X/B/A, same rule the title wordmark follows) --
+      // that's the whole rainbow this theme is allowed, so KAL-Q draws
+      // from it instead of a made-up hue like the old off-palette purple
+      // pill.
+      root: snesColor("b"),
+      "affix-correct": snesColor("y"),
+      "affix-wrong": snesColor("a"),
+      "power-lane": snesColor("x"),
+      "power-screen": KLAX_C.paper,
+    };
+
+    // rgb triplets (for rgba() strings) rather than more hex literals --
+    // still every one of them sourced from KLAX_C/KLAX_TILE_COLOR above,
+    // so there's still only one place this theme's colors are ever
+    // spelled out.
+    KLAX_CLEAR_COLOR = {
+      match: hexToRgbTriplet(KLAX_C.paper),
+      "power-lane": hexToRgbTriplet(KLAX_TILE_COLOR["power-lane"]),
+      "power-screen": hexToRgbTriplet(KLAX_TILE_COLOR["power-screen"]),
+    };
+  }
+  refreshKlaxColors();
 
   // 4x5 bitmap font -- drawn one fillRect per pixel, same technique as the
   // concept-art pass, so canvas text never falls back to anti-aliased
@@ -755,11 +809,6 @@
   // the real stacks. Pulse color marks which kind of clear it was.
   let klaxClearAnim = null;
   const KLAX_CLEAR_ANIM_S = 1;
-  const KLAX_CLEAR_COLOR = {
-    match: "255,255,255",
-    "power-lane": "63,127,214",
-    "power-screen": "176,111,214",
-  };
 
   const KLAX_COLS = 4;
   // Klax's bin sits at the floor because that's where its tiles fall to.
@@ -777,16 +826,16 @@
 
   function renderKlax() {
     const state = klaxGame.getState();
-    klaxCtx.fillStyle = "#0c0d1e";
+    klaxCtx.fillStyle = KLAX_C.bg;
     klaxCtx.fillRect(0, 0, 256, 224);
 
     // HUD is drawn first but the paddle/well below it are what were
     // getting clipped off on very wide-but-short browser windows -- see
     // .klax-canvas in style.css (max-height fix) for the actual cause.
-    klaxPx(0, 0, 256, 12, "#232551");
-    klaxText(`SCORE ${state.score}`, 6, 3, 1, "#efeae0", "left");
-    klaxText("KAL-Q", 128, 3, 1, "#e7c23f", "center");
-    klaxText(`LIVES ${state.lives}`, 250, 3, 1, "#cf4a3d", "right");
+    klaxPx(0, 0, 256, 12, KLAX_C.hud);
+    klaxText(`SCORE ${state.score}`, 6, 3, 1, KLAX_C.paper, "left");
+    klaxText("KAL-Q", 128, 3, 1, KLAX_C.gold, "center");
+    klaxText(`LIVES ${state.lives}`, 250, 3, 1, KLAX_TILE_COLOR["affix-wrong"], "right");
 
     // Color legend: root (gold) + its correct affix (green) is the only
     // pair that ever clears a lane -- a wrong affix (red) never matches
@@ -818,7 +867,7 @@
       lane.forEach((tile, i) => {
         const ty = KLAX_STACK.top + i * tileH;
         klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
-        klaxText(tile.marker, cx, ty + tileH / 2 - 2, 1, "#14152b", "center");
+        klaxText(tile.marker, cx, ty + tileH / 2 - 2, 1, KLAX_C.ink, "center");
       });
     }
 
@@ -836,7 +885,7 @@
         const cx = klaxColumnX(cell.col, KLAX_STACK);
         const ty = KLAX_STACK.top + cell.row * tileH;
         klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[cell.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
-        klaxText(cell.marker, cx, ty + tileH / 2 - 2, 1, "#14152b", "center");
+        klaxText(cell.marker, cx, ty + tileH / 2 - 2, 1, KLAX_C.ink, "center");
         klaxCtx.strokeStyle = `rgba(${rgb},${(0.4 + 0.6 * pulse).toFixed(2)})`;
         klaxCtx.lineWidth = 2;
         klaxCtx.strokeRect(cx - stackColW / 2 + 2, ty, stackColW - 4, tileH);
@@ -845,10 +894,10 @@
 
     // The catch/place line -- floor of the stacking yard, ceiling of the
     // well -- is the one boundary the paddle ever sits on.
-    klaxPx(KLAX_WELL.x, KLAX_WELL.top, KLAX_WELL.w, 1, "#e7c23f");
+    klaxPx(KLAX_WELL.x, KLAX_WELL.top, KLAX_WELL.w, 1, KLAX_C.gold);
     const wellColW = KLAX_WELL.w / KLAX_COLS;
-    klaxPx(KLAX_WELL.x - 2, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
-    klaxPx(KLAX_WELL.x + KLAX_WELL.w, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, "#4d473c");
+    klaxPx(KLAX_WELL.x - 2, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, KLAX_C.padDark);
+    klaxPx(KLAX_WELL.x + KLAX_WELL.w, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, KLAX_C.padDark);
     // Column guides -- only one tile is ever in play, so these faint
     // dividers are what tells the player which lane it's rising in.
     for (let c = 1; c < KLAX_COLS; c++) {
@@ -863,7 +912,7 @@
       const ty = KLAX_WELL.bottom - state.active.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 11;
       const color = KLAX_TILE_COLOR[state.active.kind];
       klaxBevel(cx - wellColW / 2 + 3, ty, wellColW - 6, 22, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(state.active.marker, cx, ty + 8, 1, "#14152b", "center");
+      klaxText(state.active.marker, cx, ty + 8, 1, KLAX_C.ink, "center");
     }
 
     // Paddle: always sits on the catch/place line -- it's the same spot
@@ -871,7 +920,7 @@
     // one up into the highlighted lane above. Only the highlight above
     // moves; the paddle doesn't need to travel between two positions.
     const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
-    klaxBevel(paddleX - wellColW / 2 + 2, KLAX_WELL.top - 6, wellColW - 4, 6, "#efeae0", "#ffffff", "#867d6d");
+    klaxBevel(paddleX - wellColW / 2 + 2, KLAX_WELL.top - 6, wellColW - 4, 6, KLAX_C.paper, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
     if (state.paddle.length) {
       // Up to paddleCap small color-coded chips show the whole LIFO
       // stack at a glance (oldest catch on the left); the readable one
@@ -884,7 +933,7 @@
       });
       const top = state.paddle[state.paddle.length - 1];
       klaxBevel(paddleX - wellColW / 2 + 3, KLAX_WELL.top - 24, wellColW - 6, 12, KLAX_TILE_COLOR[top.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(top.marker, paddleX, KLAX_WELL.top - 21, 1, "#14152b", "center");
+      klaxText(top.marker, paddleX, KLAX_WELL.top - 21, 1, KLAX_C.ink, "center");
     }
 
     if (klaxFlash > 0) {
@@ -895,16 +944,16 @@
     if (klaxPaused) {
       klaxCtx.fillStyle = "rgba(10,10,20,.75)";
       klaxCtx.fillRect(0, 0, 256, 224);
-      klaxText("PAUSED", 128, 100, 2, "#efeae0", "center");
-      klaxText("START=RESUME  B=MENU", 128, 120, 1, "#8a8db8", "center");
+      klaxText("PAUSED", 128, 100, 2, KLAX_C.paper, "center");
+      klaxText("START=RESUME  B=MENU", 128, 120, 1, KLAX_C.mist, "center");
     }
 
     if (state.gameOver) {
       klaxCtx.fillStyle = "rgba(10,10,20,.75)";
       klaxCtx.fillRect(0, 0, 256, 224);
-      klaxText("GAME OVER", 128, 96, 2, "#cf4a3d", "center");
-      klaxText(`SCORE ${state.score}`, 128, 116, 1, "#efeae0", "center");
-      klaxText("A=RETRY  B=MENU", 128, 132, 1, "#8a8db8", "center");
+      klaxText("GAME OVER", 128, 96, 2, KLAX_TILE_COLOR["affix-wrong"], "center");
+      klaxText(`SCORE ${state.score}`, 128, 116, 1, KLAX_C.paper, "center");
+      klaxText("A=RETRY  B=MENU", 128, 132, 1, KLAX_C.mist, "center");
     }
   }
 
