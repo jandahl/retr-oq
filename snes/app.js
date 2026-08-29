@@ -657,8 +657,8 @@
   // reusable by any future console theme -- this section is only
   // rendering, input, and pacing, same split as shared/morph-game.js gets
   // from gb/app.js's MORPH! screen. "klax" stays the internal/file-level
-  // codename (genre lineage, matches the shared engine's name); KAL-Q is
-  // only the on-screen title.
+  // codename (genre lineage, matches the shared engine's name). Super KAL-Q!
+  // is the on-screen title on this cart, matching Super OQ!.
   //
   // Best-case 1992 cart: Mode 7 + HDMA on the conveyor (PPU), Super FX 2
   // on the rising sprite (continuous scale + tumble). Stacks stay Mode 1
@@ -913,7 +913,7 @@
     // .klax-canvas in style.css (max-height fix) for the actual cause.
     klaxPx(0, 0, 256, 12, KLAX_C.hud);
     klaxText(`SCORE ${state.score}`, 6, 3, 1, KLAX_C.paper, "left");
-    klaxText("KAL-Q", 128, 3, 1, KLAX_C.gold, "center");
+    klaxText("SUPER KAL-Q!", 128, 3, 1, KLAX_C.gold, "center");
     klaxText(`LIVES ${state.lives}`, 250, 3, 1, KLAX_TILE_COLOR["affix-wrong"], "right");
 
     // Color legend: root (gold) + its correct affix (green) is the only

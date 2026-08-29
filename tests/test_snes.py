@@ -37,7 +37,7 @@ def test_loads_without_errors(page, base_url):
     assert_clean(errors, console_errors, unexpected_404s)
     assert page.locator("#title-screen").is_visible()
     assert "Super" in page.locator(".title-logo").inner_text()
-    assert "OQ!" in page.locator(".title-logo").inner_text()
+    assert "KAL-Q!" in page.locator(".title-logo").inner_text()
     assert page.locator("#menu-screen").is_hidden()
 
 

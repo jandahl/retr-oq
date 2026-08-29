@@ -136,7 +136,7 @@ button:not(:disabled),
   flex-direction: column;
   align-items: center;
   gap: 0.12em;
-  font-size: 3.2em;
+  font-size: 2.35em;
   line-height: 1;
 }
 .title-super {
@@ -151,7 +151,7 @@ button:not(:disabled),
     6px 6px 0 #181410;
 }
 .title-oq {
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   color: var(--snes-white);
   text-shadow:
     4px 4px 0 #181410,

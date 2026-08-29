@@ -47,7 +47,7 @@ audio demo, or an easter egg. Source of truth: `shared/games.js`.
 | `amiga/` | Boing Ball, Copper bars |
 | `gb/` | MORPH!, Konami Code |
 | `gg/` | Konami Code |
-| `snes/` | KAL-Q (Klax), Konami Code |
+| `snes/` | Super KAL-Q! (Klax), Konami Code |
 | `win31/` | Solitaire (joke), hidden credits |
 | `next/` | Kernel panic (undocumented egg) |
 | `mac8/` | — |
