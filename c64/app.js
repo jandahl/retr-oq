@@ -400,6 +400,51 @@
     klaxPx(x + w - 1, y, 1, h, lo);
   }
 
+  // A real trapezoid, not a rectangle that merely changes size between
+  // frames -- the well's perspective narrows continuously with t, so a
+  // tile spanning tTop..tBottom has a genuinely different (narrower) span
+  // at its own top edge than at its own bottom edge, and its left/right
+  // sides should slant to follow that, not run straight down. col/colW
+  // are evaluated separately at top and bottom for exactly this reason.
+  function klaxTrapezoid(col, tTop, tBottom, fill, hi, lo) {
+    const topSpan = klaxWellSpanAt(tTop);
+    const botSpan = klaxWellSpanAt(tBottom);
+    const topColW = topSpan.w / KLAX_COLS;
+    const botColW = botSpan.w / KLAX_COLS;
+    const topL = topSpan.x + col * topColW + 3;
+    const topR = topSpan.x + (col + 1) * topColW - 3;
+    const botL = botSpan.x + col * botColW + 3;
+    const botR = botSpan.x + (col + 1) * botColW - 3;
+    const wellH = KLAX_WELL.bottom - KLAX_WELL.top;
+    const yTop = KLAX_WELL.top + tTop * wellH;
+    const yBot = KLAX_WELL.top + tBottom * wellH;
+    kalqCtx.fillStyle = fill;
+    kalqCtx.beginPath();
+    kalqCtx.moveTo(topL, yTop);
+    kalqCtx.lineTo(topR, yTop);
+    kalqCtx.lineTo(botR, yBot);
+    kalqCtx.lineTo(botL, yBot);
+    kalqCtx.closePath();
+    kalqCtx.fill();
+    // Bevel-style highlight/shadow on the same edges klaxBevel lights --
+    // top+left bright, bottom+right dark -- just following the slanted
+    // sides instead of a rectangle's straight ones.
+    kalqCtx.strokeStyle = hi;
+    kalqCtx.lineWidth = 1;
+    kalqCtx.beginPath();
+    kalqCtx.moveTo(botL, yBot);
+    kalqCtx.lineTo(topL, yTop);
+    kalqCtx.lineTo(topR, yTop);
+    kalqCtx.stroke();
+    kalqCtx.strokeStyle = lo;
+    kalqCtx.beginPath();
+    kalqCtx.moveTo(topR, yTop);
+    kalqCtx.lineTo(botR, yBot);
+    kalqCtx.lineTo(botL, yBot);
+    kalqCtx.stroke();
+    return { cx: (topL + topR + botL + botR) / 4, colW: (topColW + botColW) / 2 };
+  }
+
   let klaxGame = null;
   let klaxCol = 0;
   let klaxRaf = 0;
@@ -567,19 +612,23 @@
       const snappedY = snapGridY(state.active.y);
       const t = 1 - snappedY;
       const span = klaxWellSpanAt(t);
-      const activeColW = span.w / KLAX_COLS;
-      const cx = span.x + state.active.col * activeColW + activeColW / 2;
       // The tile's actual SIZE has to shrink toward the catch line too, not
       // just its column width -- scaling width alone just squashes it flat
       // instead of making it look like it's receding into the distance.
       // Same scaleFactor as the span itself keeps both axes proportional.
       const scaleFactor = span.w / KLAX_WELL.w;
       const tileH = 20 * scaleFactor;
-      const centerY = KLAX_WELL.bottom - snappedY * wellH;
-      const ty = centerY - tileH / 2;
+      // klaxTrapezoid wants the tile's own top/bottom t (not just its
+      // center) -- that's what actually makes it a trapezoid instead of a
+      // rectangle: the span it computes at tTop is genuinely narrower than
+      // at tBottom, even across this one tile's own small height.
+      const deltaT = tileH / wellH;
+      const tTop = Math.max(0, t - deltaT / 2);
+      const tBottom = Math.min(1, t + deltaT / 2);
       const color = KLAX_TILE_COLOR[state.active.kind];
-      klaxBevel(cx - activeColW / 2 + 3, ty, activeColW - 6, tileH, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      renderTileMarker(state.active.marker, cx, centerY, activeColW - 8, tileH - 4, KLAX_C.ink);
+      const { cx, colW } = klaxTrapezoid(state.active.col, tTop, tBottom, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      const centerY = KLAX_WELL.top + t * wellH;
+      renderTileMarker(state.active.marker, cx, centerY, colW - 6, tileH - 4, KLAX_C.ink);
     }
 
     const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
