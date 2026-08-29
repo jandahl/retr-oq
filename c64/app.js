@@ -275,8 +275,12 @@
   // Colors and layout below follow the real C64 KLAX cabinet, not a
   // generic "pick four palette colors" scheme: black backdrop, a cyan
   // track, green bin walls with a black/white checker trim, a white
-  // bracket-frame catch bar, and tiles in yellow/blue/red/cyan/white --
-  // green is never a tile color there, it's reserved for the bins.
+  // bracket-frame catch bar, and tiles in yellow/orange/red/cyan/white --
+  // green is never a tile color there (it's reserved for the bins), and
+  // neither blue is either: both --c64-blue and --c64-lightblue are the
+  // BASIC screen's own identity colors everywhere else in this theme, so
+  // a game tile reusing either would read as "the text-mode screen bled
+  // into the game" rather than as its own color.
   const KLAX_C = {
     bg: c64Color("black"),
     hud: c64Color("black"),
@@ -287,7 +291,7 @@
   };
   const KLAX_TILE_COLOR = {
     root: c64Color("yellow"),
-    "affix-correct": c64Color("blue"),
+    "affix-correct": c64Color("orange"),
     "affix-wrong": c64Color("red"),
     "power-lane": c64Color("cyan"),
     "power-screen": KLAX_C.paper,

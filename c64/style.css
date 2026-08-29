@@ -68,6 +68,7 @@ html, body {
   --c64-green: #55a049;
   --c64-red: #883932;
   --c64-cyan: #67b6bd;
+  --c64-orange: #8b5429;
   /* The real C64's border (POKE 53280) and screen background (POKE 53281)
      are two DIFFERENT default colors, not one -- light blue border, blue
      background. Drawn as a real CSS `border` on .c64-screen/.c64-app below
@@ -411,6 +412,13 @@ html, body {
    span -- the canvas draws its own SCORE/LIVES the same way snes/'s
    klax-canvas does); .c64-app-results centers the canvas instead of
    holding a scrolling list. */
+#kalq-app {
+  /* .c64-app's own border is --c64-lightblue -- the BASIC screen's
+     identity color, right for DICT/MORPH's program-editor chrome but not
+     for a real game's picture, which this theme's own reference cabinet
+     frames in black instead. */
+  border-color: var(--c64-black);
+}
 .c64-app-results.c64-kalq-results {
   display: flex;
   flex-direction: column;
@@ -466,8 +474,12 @@ html, body {
   min-width: 0;
   padding: 0.6em 0;
   border: none;
-  background: var(--c64-lightblue);
-  color: var(--c64-blue);
+  /* The game's own palette, not the BASIC screen's blue/lightblue chrome
+     -- this pad sits right in the game view (same flex column as the
+     canvas), not in .c64-app's header/footer bars, so it should read as
+     part of the cabinet, not as more program-editor trim. */
+  background: var(--c64-white);
+  color: var(--c64-black);
   font: inherit;
   font-size: 1.1em;
   /* Arrow, not pointer -- CLAUDE.md's cursor rule for chrome/buttons;
@@ -475,7 +487,7 @@ html, body {
   cursor: default;
 }
 .c64-kalq-btn:active {
-  background: var(--c64-white);
+  background: var(--c64-cyan);
 }
 .c64-kalq-btn-small {
   flex-grow: 0.6;
@@ -483,6 +495,7 @@ html, body {
 .c64-kalq-btn-primary {
   flex-grow: 1.6;
   font-weight: bold;
+  background: var(--c64-yellow);
 }
 
 /* The RUN loading flicker (issue #27 piece 2) -- a real LOAD/RUN blanked
