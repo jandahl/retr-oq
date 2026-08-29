@@ -18,15 +18,30 @@
 // the same split morph-game.js uses.
 //
 // Reuses shared/morph-puzzles.js puzzle data as-is (real, verified
-// Kalaallisut morphemes) rather than inventing new tile text. Every step of
-// every puzzle becomes its own round (not just the first) -- a multi-step
-// puzzle's later steps are just as verified as its first, so "illu" alone
-// already yields two rounds (illu+qaq, and the word-so-far "illuqaq"+voq)
-// without fabricating anything new. A live spatial match needs a fixed
-// tile size (Klax matches 3 in a row; this catches a fixed-size pair), not
-// the multi-step chain MORPH! builds one option-menu at a time -- treating
-// each step as its own round is what lets this reuse that same chain data
-// instead of forking it.
+// Kalaallisut morphemes) rather than inventing new tile text. Only a
+// puzzle's FIRST step becomes a round, using the puzzle's own `root` --
+// never a later step, whose "root" half would have to be a synthesized
+// word-so-far string instead. An earlier
+// version of this file built one round per step (root+affix1,
+// (root+affix1)+affix2, ...), reasoning that reusing already-verified
+// markers "fabricates nothing new" -- but the *concatenation* itself is
+// new and unverified: Kalaallisut has real sandhi at these boundaries
+// (illu+qaq surfaces as illo-, with the stem vowel lowered, not a bare
+// "illuqaq"; qimmeq+qaq surfaces as qimmeqar-, not "qimmeqqaq";
+// inuuik+sior assimilates to inuuissior-, not "inuuiksior" -- see
+// shared/morph-puzzles.js's own `resultWord` overrides, which exist
+// exactly because naive string-joins get this wrong). A plain
+// `wordSoFar += marker` join has none of that, so a second-step round's
+// "root" tile was both misspelled AND not a real standalone word at all
+// (illu+qaq alone isn't a complete, inflected word) -- yet rendered on
+// screen with the exact same tile styling as a real verified root like
+// "illu" or "nuna", implicitly vouching for it as legitimate. First
+// steps don't have this problem: their "root" is always the puzzle's own
+// already-verified `root` string. A live spatial match needs a fixed
+// tile size (Klax matches 3 in a row; this catches a fixed-size pair),
+// not the multi-step chain MORPH! builds one option-menu at a time --
+// this file's own first-step-only round is what lets it reuse that same
+// chain data (safely) instead of forking it.
 (() => {
   "use strict";
 
@@ -55,22 +70,16 @@
   function createGame({ puzzles, columns = 4, stackCap = 5, paddleCap = 4, startLives = 3, riseSpeed = 0.22 }) {
     if (!puzzles || puzzles.length === 0) throw new Error("createGame requires at least one puzzle");
 
-    // Flatten every step of every puzzle into its own round: a tile pair
-    // (the word-so-far and the one correct next marker), plus that step's
-    // real-but-wrong markers.
-    const rounds = [];
-    for (const p of puzzles) {
-      let wordSoFar = p.root;
-      for (const step of p.steps) {
-        rounds.push({
-          id: rounds.length,
-          root: wordSoFar,
-          correct: step.correct.marker,
-          wrong: step.wrong.map((w) => w.marker),
-        });
-        wordSoFar += step.correct.marker;
-      }
-    }
+    // One round per puzzle, built from its first step only: a tile pair
+    // (the puzzle's own verified root and its one correct first marker),
+    // plus that step's real-but-wrong markers. See the header comment for
+    // why later steps aren't flattened into their own rounds too.
+    const rounds = puzzles.map((p, i) => ({
+      id: i,
+      root: p.root,
+      correct: p.steps[0].correct.marker,
+      wrong: p.steps[0].wrong.map((w) => w.marker),
+    }));
 
     // A single rising tile at a time -- not one per column -- is the whole
     // fix for "getting 8 at once": the player reads and reacts to one
