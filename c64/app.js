@@ -370,6 +370,24 @@
       ox += 5 * scale;
     }
   }
+  // Kalaallisut morphemes/roots vary a lot in length -- a fixed scale
+  // either overflows a long word's tile or leaves a short one tiny. Picks
+  // the biggest integer scale (up to maxScale) that still fits maxWidth,
+  // so short markers actually get bigger instead of everything defaulting
+  // to whatever the longest possible word needs.
+  function fitTextScale(str, maxWidth, maxHeight, maxScale = 2) {
+    const len = String(str).length;
+    for (let scale = maxScale; scale > 1; scale--) {
+      if (len * 5 * scale - scale <= maxWidth && 5 * scale <= maxHeight) return scale;
+    }
+    return 1;
+  }
+  // One place for the fit-then-vertically-center pattern every tile
+  // marker uses -- cx/cy is the box's own center, not a glyph baseline.
+  function renderTileMarker(marker, cx, cy, maxWidth, maxHeight, color) {
+    const scale = fitTextScale(marker, maxWidth, maxHeight);
+    klaxText(marker, cx, cy - (5 * scale) / 2, scale, color, "center");
+  }
   function klaxBevel(x, y, w, h, fill, hi, lo) {
     klaxPx(x, y, w, h, fill);
     klaxPx(x, y, w, 1, hi);
@@ -393,8 +411,10 @@
   // snes/'s 256x224 -- same layout ratios (margins, HUD height, stacking
   // yard vs. well split), just scaled to this theme's own real hardware
   // pixels: x/width by 320/256, y/height by 200/224.
-  const KLAX_STACK = { x: 25, top: 13, bottom: 70, w: 270 };
-  const KLAX_WELL = { x: 25, top: 73, bottom: 188, w: 270 };
+  // top/bottom shifted +6 from the original 13/70/73/188 to make room for
+  // the HUD's taller (scale-2) text below.
+  const KLAX_STACK = { x: 25, top: 19, bottom: 76, w: 270 };
+  const KLAX_WELL = { x: 25, top: 79, bottom: 194, w: 270 };
 
   function klaxColumnX(c, region) {
     const colW = region.w / KLAX_COLS;
@@ -407,10 +427,10 @@
     kalqCtx.fillRect(0, 0, 320, 200);
 
     kalqCtx.fillStyle = KLAX_C.hud;
-    kalqCtx.fillRect(0, 0, 320, 12);
-    klaxText(`SCORE ${state.score}`, 6, 3, 1, KLAX_C.paper, "left");
-    klaxText("KALQ", 160, 3, 1, KLAX_C.accent, "center");
-    klaxText(`LIVES ${state.lives}`, 314, 3, 1, KLAX_TILE_COLOR["affix-wrong"], "right");
+    kalqCtx.fillRect(0, 0, 320, 18);
+    klaxText(`SCORE ${state.score}`, 6, 4, 2, KLAX_C.paper, "left");
+    klaxText("KALQ", 160, 4, 2, KLAX_C.accent, "center");
+    klaxText(`LIVES ${state.lives}`, 314, 4, 2, KLAX_TILE_COLOR["affix-wrong"], "right");
 
     // Color legend -- same reasoning as snes/'s klax-canvas: root+correct
     // is the only pair that ever clears a lane, shown as swatches in the
@@ -457,7 +477,7 @@
       lane.forEach((tile, i) => {
         const ty = KLAX_STACK.top + i * tileH;
         klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
-        klaxText(tile.marker, cx, ty + tileH / 2 - 2, 1, KLAX_C.ink, "center");
+        renderTileMarker(tile.marker, cx, ty + tileH / 2, stackColW - 8, tileH - 3, KLAX_C.ink);
       });
     }
 
@@ -469,7 +489,7 @@
         const cx = klaxColumnX(cell.col, KLAX_STACK);
         const ty = KLAX_STACK.top + cell.row * tileH;
         klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[cell.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
-        klaxText(cell.marker, cx, ty + tileH / 2 - 2, 1, KLAX_C.ink, "center");
+        renderTileMarker(cell.marker, cx, ty + tileH / 2, stackColW - 8, tileH - 3, KLAX_C.ink);
         kalqCtx.strokeStyle = `rgba(${rgb},${(0.4 + 0.6 * pulse).toFixed(2)})`;
         kalqCtx.lineWidth = 2;
         kalqCtx.strokeRect(cx - stackColW / 2 + 2, ty, stackColW - 4, tileH);
@@ -500,7 +520,7 @@
       const ty = KLAX_WELL.bottom - state.active.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 10;
       const color = KLAX_TILE_COLOR[state.active.kind];
       klaxBevel(cx - wellColW / 2 + 3, ty, wellColW - 6, 20, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(state.active.marker, cx, ty + 7, 1, KLAX_C.ink, "center");
+      renderTileMarker(state.active.marker, cx, ty + 10, wellColW - 8, 16, KLAX_C.ink);
     }
 
     const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
@@ -512,8 +532,13 @@
         klaxPx(sx, KLAX_WELL.top - 10, slotW - 1, 6, KLAX_TILE_COLOR[tile.kind]);
       });
       const top = state.paddle[state.paddle.length - 1];
-      klaxBevel(paddleX - wellColW / 2 + 3, KLAX_WELL.top - 22, wellColW - 6, 11, KLAX_TILE_COLOR[top.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(top.marker, paddleX, KLAX_WELL.top - 19, 1, KLAX_C.ink, "center");
+      // 13 tall, not 11 -- just enough headroom for scale-2 text (see
+      // renderTileMarker) on a short marker; still clears the paddle
+      // itself (drawn below, at KLAX_WELL.top - 6) with room to spare.
+      const topBevelY = KLAX_WELL.top - 23;
+      const topBevelH = 13;
+      klaxBevel(paddleX - wellColW / 2 + 3, topBevelY, wellColW - 6, topBevelH, KLAX_TILE_COLOR[top.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      renderTileMarker(top.marker, paddleX, topBevelY + topBevelH / 2, wellColW - 8, topBevelH - 2, KLAX_C.ink);
     }
 
     if (klaxFlash > 0) {
@@ -553,7 +578,11 @@
   function launchKalq() {
     dirScreen.hidden = true;
     kalqApp.hidden = false;
-    if (!klaxGame) klaxGame = window.OqKlaxGame.createGame({ puzzles: window.OqMorphPuzzles.puzzles, columns: KLAX_COLS });
+    // stackCap 4, not the engine's default 5 -- one fewer row buys each
+    // stack tile enough height for scale-2 text (see fitTextScale/
+    // renderTileMarker below); a text-readability trade against one less
+    // row of headroom before a lane overflows.
+    if (!klaxGame) klaxGame = window.OqKlaxGame.createGame({ puzzles: window.OqMorphPuzzles.puzzles, columns: KLAX_COLS, stackCap: 4 });
     klaxGame.start();
     klaxCol = 0;
     klaxFlash = 0;
