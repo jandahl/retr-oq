@@ -1024,15 +1024,20 @@
       klaxBevel(-tw / 2, -th / 2, tw, th, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
       if (flip > 0.42) {
         // A tile spends most of its rise far from the paddle, where
-        // klaxWellFromY's perspective narrows tw well below what a full
-        // marker needs -- gating on tw>=28 (a whole-marker width) left the
-        // text blank for most of that rise. Abbreviating to the first
-        // letter once it's too narrow for the full marker keeps *some*
-        // readable text on screen the entire time instead of none.
+        // klaxWellFromY's perspective shrinks tw to a handful of pixels --
+        // nowhere near a full marker's width. Truncating to one letter
+        // down there still read as blank to a player scanning past at a
+        // glance, so instead this overlays a same-color plate sized to
+        // the *text*, not the tile's own perspective-shrunk box: the
+        // marker stays fully legible the entire climb, at the cost of the
+        // plate occasionally reading larger than the "physical" tile
+        // beneath it.
         const marker = state.active.marker;
-        const fullW = marker.length * 5 - 1; // klaxText's own width at scale 1
-        const label = tw >= fullW + 4 ? marker : marker[0];
-        klaxText(label, 0, -2, 1, KLAX_C.ink, "center");
+        const textW = marker.length * 5 - 1; // klaxText's own width at scale 1
+        const plateW = Math.max(tw, textW + 4);
+        const plateH = Math.max(th, 7);
+        klaxBevel(-plateW / 2, -plateH / 2, plateW, plateH, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+        klaxText(marker, 0, -2, 1, KLAX_C.ink, "center");
       } else {
         klaxPx(-tw / 2, -1, tw, 2, "rgba(255,255,255,.55)");
       }
