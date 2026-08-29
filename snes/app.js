@@ -976,13 +976,25 @@
     // that's klaxWellGeom(t). Super FX 2 does not draw the belt.
     const nearY = KLAX_WELL.top;
     const farY = KLAX_WELL.bottom;
+    const hudRgb = hexToRgbTriplet(KLAX_C.hud);
     klaxCtx.imageSmoothingEnabled = false;
     for (let py = nearY; py < farY; py++) {
       const t = (py - nearY) / (farY - nearY);
       const g = klaxWellGeom(t);
       if (klaxBelt) {
-        const srcY = (Math.floor(py * (0.65 + t * 1.9) + klaxBeltOff) & 63);
+        // srcY's growth rate is capped at 1 texel per scanline -- the old
+        // 0.65+t*1.9 ramp topped out over 2.5 texels/row at the far end,
+        // aliasing against the belt's 8px rivet stripes into a moire that
+        // shimmered far faster than klaxBeltOff's own scroll ever moved.
+        const srcY = Math.floor(py * (0.5 + t * 0.5) + klaxBeltOff) & 63;
         klaxCtx.drawImage(klaxBelt, 0, srcY, 64, 1, g.x, py, g.w, 1);
+        // Fade toward the HUD navy as the belt recedes -- fog hides
+        // whatever aliasing the capped ramp above doesn't, same trick a
+        // real Mode 7 floor uses instead of fighting moire at the horizon.
+        if (t > 0.45) {
+          klaxCtx.fillStyle = `rgba(${hudRgb},${((t - 0.45) * 0.8).toFixed(2)})`;
+          klaxCtx.fillRect(g.x, py, g.w, 1);
+        }
       } else {
         klaxPx(g.x, py, g.w, 1, KLAX_C.hud);
       }
@@ -1010,9 +1022,18 @@
       klaxCtx.translate(Math.round(cx), Math.round(g.py));
       klaxCtx.rotate(Math.sin(klaxTumble) * 0.12);
       klaxBevel(-tw / 2, -th / 2, tw, th, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      if (flip > 0.42 && tw >= 28) {
-        klaxText(state.active.marker, 0, -2, 1, KLAX_C.ink, "center");
-      } else if (flip <= 0.42) {
+      if (flip > 0.42) {
+        // A tile spends most of its rise far from the paddle, where
+        // klaxWellFromY's perspective narrows tw well below what a full
+        // marker needs -- gating on tw>=28 (a whole-marker width) left the
+        // text blank for most of that rise. Abbreviating to the first
+        // letter once it's too narrow for the full marker keeps *some*
+        // readable text on screen the entire time instead of none.
+        const marker = state.active.marker;
+        const fullW = marker.length * 5 - 1; // klaxText's own width at scale 1
+        const label = tw >= fullW + 4 ? marker : marker[0];
+        klaxText(label, 0, -2, 1, KLAX_C.ink, "center");
+      } else {
         klaxPx(-tw / 2, -1, tw, 2, "rgba(255,255,255,.55)");
       }
       klaxCtx.restore();
@@ -1086,7 +1107,7 @@
     klaxLastT = t;
     if (!klaxPaused) {
       klaxTumble += dt * 5.5;
-      klaxBeltOff += dt * 22;
+      klaxBeltOff += dt * 9;
       if (klaxHold > 0) klaxHold -= dt;
       if (klaxFlash > 0) klaxFlash -= dt;
       if (klaxClearAnim) {
