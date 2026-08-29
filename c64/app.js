@@ -275,8 +275,12 @@
   // Colors and layout below follow the real C64 KLAX cabinet, not a
   // generic "pick four palette colors" scheme: black backdrop, a cyan
   // track, green bin walls with a black/white checker trim, a white
-  // bracket-frame catch bar, and tiles in yellow/blue/red/cyan/white --
-  // green is never a tile color there, it's reserved for the bins.
+  // bracket-frame catch bar, and tiles in yellow/orange/red/cyan/white --
+  // green is never a tile color there (it's reserved for the bins), and
+  // neither blue is either: both --c64-blue and --c64-lightblue are the
+  // BASIC screen's own identity colors everywhere else in this theme, so
+  // a game tile reusing either would read as "the text-mode screen bled
+  // into the game" rather than as its own color.
   const KLAX_C = {
     bg: c64Color("black"),
     hud: c64Color("black"),
@@ -284,13 +288,17 @@
     paper: c64Color("white"),
     accent: c64Color("cyan"),
     bin: c64Color("green"),
+    guide: c64Color("darkgrey"),
   };
   const KLAX_TILE_COLOR = {
     root: c64Color("yellow"),
-    "affix-correct": c64Color("blue"),
+    "affix-correct": c64Color("orange"),
     "affix-wrong": c64Color("red"),
     "power-lane": c64Color("cyan"),
     "power-screen": KLAX_C.paper,
+    // A sixth real VIC-II color, not a reuse -- 1-UP needs to read as its
+    // own distinct thing at a glance, same as every other kind here.
+    "power-1up": c64Color("lightgreen"),
   };
   function hexToRgbTriplet(hex) {
     const h = hex.replace("#", "");
@@ -311,6 +319,7 @@
     " ": ["....", "....", "....", "....", "...."],
     ".": ["....", "....", "....", "....", ".#.."],
     "-": ["....", "....", "####", "....", "...."],
+    "+": ["....", ".#..", "###.", ".#..", "...."],
     "=": ["....", "####", "....", "####", "...."],
     "0": [".##.", "#..#", "#..#", "#..#", ".##."],
     "1": ["..#.", ".##.", "..#.", "..#.", ".###"],
@@ -366,12 +375,79 @@
       ox += 5 * scale;
     }
   }
+  // Kalaallisut morphemes/roots vary a lot in length -- a fixed scale
+  // either overflows a long word's tile or leaves a short one tiny. Picks
+  // the biggest integer scale (up to maxScale) that still fits maxWidth,
+  // so short markers actually get bigger instead of everything defaulting
+  // to whatever the longest possible word needs.
+  function fitTextScale(str, maxWidth, maxHeight, maxScale = 2) {
+    const len = String(str).length;
+    for (let scale = maxScale; scale > 1; scale--) {
+      if (len * 5 * scale - scale <= maxWidth && 5 * scale <= maxHeight) return scale;
+    }
+    return 1;
+  }
+  // One place for the fit-then-vertically-center pattern every tile
+  // marker uses -- cx/cy is the box's own center, not a glyph baseline.
+  function renderTileMarker(marker, cx, cy, maxWidth, maxHeight, color) {
+    const scale = fitTextScale(marker, maxWidth, maxHeight);
+    klaxText(marker, cx, cy - (5 * scale) / 2, scale, color, "center");
+  }
   function klaxBevel(x, y, w, h, fill, hi, lo) {
     klaxPx(x, y, w, h, fill);
     klaxPx(x, y, w, 1, hi);
     klaxPx(x, y, 1, h, hi);
     klaxPx(x, y + h - 1, w, 1, lo);
     klaxPx(x + w - 1, y, 1, h, lo);
+  }
+
+  // A real trapezoid, not a rectangle that merely changes size between
+  // frames -- the well's perspective narrows continuously with t, so a
+  // tile spanning tTop..tBottom has a genuinely different (narrower) span
+  // at its own top edge than at its own bottom edge, and its left/right
+  // sides should slant to follow that, not run straight down. col/colW
+  // are evaluated separately at top and bottom for exactly this reason.
+  // A canvas path fill/stroke is ALWAYS anti-aliased -- there's no way to
+  // force crisp edges on a diagonal lineTo(), so a slanted side blends
+  // with the backdrop and produces colors that are neither the tile's fill
+  // nor a real theme color at all (exactly the kind of off-palette pixel
+  // tools/check_palette.py exists to catch in source, but can't catch at
+  // runtime). Real VIC-II sprite scaling was never smooth either -- X/Y
+  // expansion just duplicated whole rows/columns of hardware pixels, a
+  // blocky nearest-neighbor stretch, not a smooth resample. A staircase of
+  // small axis-aligned bands built from klaxPx (integer-rounded fillRect,
+  // never anti-aliased) is both period-accurate AND palette-safe: every
+  // pixel is exactly the fill color or exactly the backdrop, nothing
+  // in between.
+  const KLAX_TRAPEZOID_BANDS = 4;
+  function klaxTrapezoid(col, tTop, tBottom, fill, hi, lo) {
+    const wellH = KLAX_WELL.bottom - KLAX_WELL.top;
+    const dt = (tBottom - tTop) / KLAX_TRAPEZOID_BANDS;
+    let first = null;
+    let last = null;
+    for (let i = 0; i < KLAX_TRAPEZOID_BANDS; i++) {
+      const bandTop = tTop + i * dt;
+      const bandBot = tTop + (i + 1) * dt;
+      const span = klaxWellSpanAt((bandTop + bandBot) / 2);
+      const colW = span.w / KLAX_COLS;
+      const left = span.x + col * colW + 3;
+      const right = span.x + (col + 1) * colW - 3;
+      const yTop = KLAX_WELL.top + bandTop * wellH;
+      const yBot = KLAX_WELL.top + bandBot * wellH;
+      klaxPx(left, yTop, right - left, yBot - yTop + 0.5, fill);
+      const band = { left, right, yTop, yBot };
+      if (i === 0) first = band;
+      last = band;
+    }
+    // Highlight/shadow accents on the outermost top and bottom edges only
+    // -- same bevel vocabulary as klaxBevel (bright top, dark bottom),
+    // without trying to bevel the stepped left/right edges too.
+    klaxPx(first.left, first.yTop, first.right - first.left, 1, hi);
+    klaxPx(last.left, last.yBot - 1, last.right - last.left, 1, lo);
+    return {
+      cx: (first.left + first.right + last.left + last.right) / 4,
+      colW: (first.right - first.left + (last.right - last.left)) / 2,
+    };
   }
 
   let klaxGame = null;
@@ -383,18 +459,47 @@
   let klaxFlash = 0;
   let klaxClearAnim = null;
   const KLAX_CLEAR_ANIM_S = 1;
+  // A short-lived center-screen callout -- 1-UP doesn't clear any cells
+  // (klaxClearAnim has nothing to point at), so it needs its own feedback
+  // beyond the HUD's LIVES count quietly incrementing.
+  let klaxPopup = null;
+  const KLAX_POPUP_S = 1.1;
 
   const KLAX_COLS = 4;
   // Canvas is 320x200 (the real C64 hi-res bitmap resolution) instead of
   // snes/'s 256x224 -- same layout ratios (margins, HUD height, stacking
   // yard vs. well split), just scaled to this theme's own real hardware
   // pixels: x/width by 320/256, y/height by 200/224.
-  const KLAX_STACK = { x: 25, top: 13, bottom: 70, w: 270 };
-  const KLAX_WELL = { x: 25, top: 73, bottom: 188, w: 270 };
+  // top/bottom shifted +6 from the original 13/70/73/188 to make room for
+  // the HUD's taller (scale-2) text below.
+  const KLAX_STACK = { x: 25, top: 19, bottom: 76, w: 270 };
+  const KLAX_WELL = { x: 25, top: 79, bottom: 194, w: 270 };
 
   function klaxColumnX(c, region) {
     const colW = region.w / KLAX_COLS;
     return region.x + c * colW + colW / 2;
+  }
+
+  // The engine's active.y is a smooth 0..1 float -- rendering it directly
+  // reads as a perfectly smooth glide, wrong for a chonky-pixel console
+  // screen. Snapping the DISPLAYED position to a fixed number of grid
+  // steps gives classic stepped motion instead, with no change to catch
+  // timing (still governed by the untouched, continuous active.y).
+  const KLAX_GRID_STEPS = 10;
+  function snapGridY(y) {
+    return Math.floor(y * KLAX_GRID_STEPS) / KLAX_GRID_STEPS;
+  }
+
+  // Perspective on the well only (the reference cabinet's own converging
+  // track): narrow at the demarcation/catch line so it lines up exactly
+  // with the bins above (t=0, factor 1 -- no seam), flaring wider toward
+  // the floor at the bottom of the screen (t=1) as if the track ran away
+  // from the player. t is 0 at KLAX_WELL.top, 1 at KLAX_WELL.bottom.
+  const KLAX_WELL_FLARE = 1.15;
+  function klaxWellSpanAt(t) {
+    const w = KLAX_WELL.w * (1 + (KLAX_WELL_FLARE - 1) * t);
+    const cx = KLAX_WELL.x + KLAX_WELL.w / 2;
+    return { x: cx - w / 2, w };
   }
 
   function renderKlax() {
@@ -403,10 +508,10 @@
     kalqCtx.fillRect(0, 0, 320, 200);
 
     kalqCtx.fillStyle = KLAX_C.hud;
-    kalqCtx.fillRect(0, 0, 320, 12);
-    klaxText(`SCORE ${state.score}`, 6, 3, 1, KLAX_C.paper, "left");
-    klaxText("KALQ", 160, 3, 1, KLAX_C.accent, "center");
-    klaxText(`LIVES ${state.lives}`, 314, 3, 1, KLAX_TILE_COLOR["affix-wrong"], "right");
+    kalqCtx.fillRect(0, 0, 320, 18);
+    klaxText(`SCORE ${state.score}`, 6, 4, 2, KLAX_C.paper, "left");
+    klaxText("KALQ", 160, 4, 2, KLAX_C.accent, "center");
+    klaxText(`LIVES ${state.lives}`, 314, 4, 2, KLAX_TILE_COLOR["affix-wrong"], "right");
 
     // Color legend -- same reasoning as snes/'s klax-canvas: root+correct
     // is the only pair that ever clears a lane, shown as swatches in the
@@ -453,7 +558,7 @@
       lane.forEach((tile, i) => {
         const ty = KLAX_STACK.top + i * tileH;
         klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
-        klaxText(tile.marker, cx, ty + tileH / 2 - 2, 1, KLAX_C.ink, "center");
+        renderTileMarker(tile.marker, cx, ty + tileH / 2, stackColW - 8, tileH - 3, KLAX_C.ink);
       });
     }
 
@@ -465,7 +570,7 @@
         const cx = klaxColumnX(cell.col, KLAX_STACK);
         const ty = KLAX_STACK.top + cell.row * tileH;
         klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[cell.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
-        klaxText(cell.marker, cx, ty + tileH / 2 - 2, 1, KLAX_C.ink, "center");
+        renderTileMarker(cell.marker, cx, ty + tileH / 2, stackColW - 8, tileH - 3, KLAX_C.ink);
         kalqCtx.strokeStyle = `rgba(${rgb},${(0.4 + 0.6 * pulse).toFixed(2)})`;
         kalqCtx.lineWidth = 2;
         kalqCtx.strokeRect(cx - stackColW / 2 + 2, ty, stackColW - 4, tileH);
@@ -475,13 +580,26 @@
     // The track -- a row of faint cyan chute lines down the well, same
     // reading as the reference cabinet's cyan track above the bins (this
     // game's gravity is flipped, so the track sits below the bins instead
-    // of above them).
+    // of above them). Each line's own width follows the perspective span
+    // at its height, narrower toward the catch line, wider toward the
+    // floor -- the same convergence the reference cabinet's track has.
     const wellColW = KLAX_WELL.w / KLAX_COLS;
+    const wellH = KLAX_WELL.bottom - KLAX_WELL.top;
     for (let y = KLAX_WELL.top + 8; y < KLAX_WELL.bottom; y += 12) {
-      klaxPx(KLAX_WELL.x + 4, y, KLAX_WELL.w - 8, 2, "rgba(103,182,189,.5)");
+      const span = klaxWellSpanAt((y - KLAX_WELL.top) / wellH);
+      klaxPx(span.x + 4, y, span.w - 8, 2, "rgba(103,182,189,.5)");
     }
+    // Column dividers slant outward toward the floor instead of running
+    // straight down, same convergence as the track lines above. A dotted
+    // staircase of klaxPx ticks, not a stroked diagonal path -- a canvas
+    // stroke() is always anti-aliased (no way to force crisp pixels on a
+    // diagonal line), which blends in colors that are neither the
+    // backdrop nor any real theme color. Ticks stay solid integer pixels.
     for (let c = 1; c < KLAX_COLS; c++) {
-      klaxPx(KLAX_WELL.x + c * wellColW, KLAX_WELL.top, 1, KLAX_WELL.bottom - KLAX_WELL.top, "rgba(255,255,255,.1)");
+      for (let y = KLAX_WELL.top; y < KLAX_WELL.bottom; y += 3) {
+        const span = klaxWellSpanAt((y - KLAX_WELL.top) / wellH);
+        klaxPx(span.x + c * (span.w / KLAX_COLS), y, 1, 1, KLAX_C.guide);
+      }
     }
     // White bracket frame around the bins -- the catch/place line plus the
     // stacking yard's own left/right/top edges, same white-outline-around-
@@ -492,11 +610,28 @@
     klaxPx(KLAX_STACK.x, KLAX_STACK.bottom, KLAX_STACK.w, 2, KLAX_C.paper);
 
     if (state.active) {
-      const cx = klaxColumnX(state.active.col, KLAX_WELL);
-      const ty = KLAX_WELL.bottom - state.active.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 10;
+      // t=0 at the catch line, t=1 at the floor -- active.y runs the other
+      // way (0 at spawn/floor, 1 at the catch line), so t = 1 - y.
+      const snappedY = snapGridY(state.active.y);
+      const t = 1 - snappedY;
+      const span = klaxWellSpanAt(t);
+      // The tile's actual SIZE has to shrink toward the catch line too, not
+      // just its column width -- scaling width alone just squashes it flat
+      // instead of making it look like it's receding into the distance.
+      // Same scaleFactor as the span itself keeps both axes proportional.
+      const scaleFactor = span.w / KLAX_WELL.w;
+      const tileH = 20 * scaleFactor;
+      // klaxTrapezoid wants the tile's own top/bottom t (not just its
+      // center) -- that's what actually makes it a trapezoid instead of a
+      // rectangle: the span it computes at tTop is genuinely narrower than
+      // at tBottom, even across this one tile's own small height.
+      const deltaT = tileH / wellH;
+      const tTop = Math.max(0, t - deltaT / 2);
+      const tBottom = Math.min(1, t + deltaT / 2);
       const color = KLAX_TILE_COLOR[state.active.kind];
-      klaxBevel(cx - wellColW / 2 + 3, ty, wellColW - 6, 20, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(state.active.marker, cx, ty + 7, 1, KLAX_C.ink, "center");
+      const { cx, colW } = klaxTrapezoid(state.active.col, tTop, tBottom, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      const centerY = KLAX_WELL.top + t * wellH;
+      renderTileMarker(state.active.marker, cx, centerY, colW - 6, tileH - 4, KLAX_C.ink);
     }
 
     const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
@@ -508,13 +643,29 @@
         klaxPx(sx, KLAX_WELL.top - 10, slotW - 1, 6, KLAX_TILE_COLOR[tile.kind]);
       });
       const top = state.paddle[state.paddle.length - 1];
-      klaxBevel(paddleX - wellColW / 2 + 3, KLAX_WELL.top - 22, wellColW - 6, 11, KLAX_TILE_COLOR[top.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(top.marker, paddleX, KLAX_WELL.top - 19, 1, KLAX_C.ink, "center");
+      // 13 tall, not 11 -- just enough headroom for scale-2 text (see
+      // renderTileMarker) on a short marker; still clears the paddle
+      // itself (drawn below, at KLAX_WELL.top - 6) with room to spare.
+      const topBevelY = KLAX_WELL.top - 23;
+      const topBevelH = 13;
+      klaxBevel(paddleX - wellColW / 2 + 3, topBevelY, wellColW - 6, topBevelH, KLAX_TILE_COLOR[top.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      renderTileMarker(top.marker, paddleX, topBevelY + topBevelH / 2, wellColW - 8, topBevelH - 2, KLAX_C.ink);
     }
 
     if (klaxFlash > 0) {
       kalqCtx.fillStyle = "rgba(255,255,255,.12)";
       kalqCtx.fillRect(0, 0, 320, 200);
+    }
+
+    // 1-UP callout -- rises slightly and fades out over KLAX_POPUP_S, the
+    // only feedback for a pill that doesn't clear any cells for
+    // klaxClearAnim to point at.
+    if (klaxPopup) {
+      const t = 1 - klaxPopup.timeLeft / KLAX_POPUP_S;
+      const y = 130 - t * 16;
+      kalqCtx.globalAlpha = Math.min(1, klaxPopup.timeLeft * 2);
+      klaxText(klaxPopup.text, 160, y, 2, KLAX_TILE_COLOR["power-1up"], "center");
+      kalqCtx.globalAlpha = 1;
     }
 
     if (state.gameOver) {
@@ -534,6 +685,10 @@
       klaxClearAnim.timeLeft -= dt;
       if (klaxClearAnim.timeLeft <= 0) klaxClearAnim = null;
     }
+    if (klaxPopup) {
+      klaxPopup.timeLeft -= dt;
+      if (klaxPopup.timeLeft <= 0) klaxPopup = null;
+    }
     const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
     if (result.event === "missed") klaxFlash = 0.12;
     renderKlax();
@@ -549,11 +704,16 @@
   function launchKalq() {
     dirScreen.hidden = true;
     kalqApp.hidden = false;
-    if (!klaxGame) klaxGame = window.OqKlaxGame.createGame({ puzzles: window.OqMorphPuzzles.puzzles, columns: KLAX_COLS });
+    // stackCap 4, not the engine's default 5 -- one fewer row buys each
+    // stack tile enough height for scale-2 text (see fitTextScale/
+    // renderTileMarker below); a text-readability trade against one less
+    // row of headroom before a lane overflows.
+    if (!klaxGame) klaxGame = window.OqKlaxGame.createGame({ puzzles: window.OqMorphPuzzles.puzzles, columns: KLAX_COLS, stackCap: 4 });
     klaxGame.start();
     klaxCol = 0;
     klaxFlash = 0;
     klaxClearAnim = null;
+    klaxPopup = null;
     klaxUpHeld = false;
     stopKlaxLoop();
     klaxRaf = requestAnimationFrame(klaxLoop);
@@ -582,6 +742,7 @@
       if (res.event === "match") klaxClearAnim = { kind: "match", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S };
       else if (res.event === "power-screen") { klaxFlash = 0.25; klaxClearAnim = { kind: "power-screen", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; }
       else if (res.event === "power-lane") { klaxFlash = 0.16; klaxClearAnim = { kind: "power-lane", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; }
+      else if (res.event === "power-1up") { klaxPopup = { text: "+1UP", timeLeft: KLAX_POPUP_S }; }
     } else if (action === "down") {
       klaxGame.discard();
     }

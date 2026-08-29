@@ -68,6 +68,9 @@ html, body {
   --c64-green: #55a049;
   --c64-red: #883932;
   --c64-cyan: #67b6bd;
+  --c64-orange: #8b5429;
+  --c64-lightgreen: #94e089;
+  --c64-darkgrey: #505050;
   /* The real C64's border (POKE 53280) and screen background (POKE 53281)
      are two DIFFERENT default colors, not one -- light blue border, blue
      background. Drawn as a real CSS `border` on .c64-screen/.c64-app below
@@ -411,6 +414,21 @@ html, body {
    span -- the canvas draws its own SCORE/LIVES the same way snes/'s
    klax-canvas does); .c64-app-results centers the canvas instead of
    holding a scrolling list. */
+#kalq-app {
+  /* .c64-app's own border is --c64-lightblue -- the BASIC screen's
+     identity color, right for DICT/MORPH's program-editor chrome but not
+     for a real game's picture, which this theme's own reference cabinet
+     frames in black instead. Same reasoning for the header/footer bars
+     below: DICT/MORPH's lightblue-bar-with-blue-text is BASIC program-
+     editor chrome, and KALQ isn't a BASIC listing once it's RUN -- every
+     bit of blue/lightblue is gone from this screen now, border included. */
+  border-color: var(--c64-black);
+}
+#kalq-app .c64-app-header,
+#kalq-app .c64-app-footer {
+  background: var(--c64-black);
+  color: var(--c64-white);
+}
 .c64-app-results.c64-kalq-results {
   display: flex;
   flex-direction: column;
@@ -429,7 +447,17 @@ html, body {
      the actual hardware pixels" rule snes/'s 256x224 klax-canvas follows.
      width:100% + max-height + aspect-ratio: same reasoning as that
      element's own comment (a wide-but-short window would otherwise clip
-     instead of shrinking). */
+     instead of shrinking) -- but unlike that lone canvas, this one has a
+     sibling (.c64-kalq-pad) that also needs real space in the same flex
+     column. max-height:100% alone doesn't know that: it only looks at
+     the *container's* height, not what a sibling still needs, so the
+     canvas would size to fill the whole column and push the pad (or
+     itself) out of bounds. flex:1 1 auto + min-height:0 is what actually
+     lets it shrink to make room -- min-height:0 overrides the default
+     flex-item min-height:auto, which would otherwise refuse to shrink
+     past this replaced element's own aspect-ratio-driven size at all. */
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
   height: auto;
   max-height: 100%;
@@ -466,8 +494,12 @@ html, body {
   min-width: 0;
   padding: 0.6em 0;
   border: none;
-  background: var(--c64-lightblue);
-  color: var(--c64-blue);
+  /* The game's own palette, not the BASIC screen's blue/lightblue chrome
+     -- this pad sits right in the game view (same flex column as the
+     canvas), not in .c64-app's header/footer bars, so it should read as
+     part of the cabinet, not as more program-editor trim. */
+  background: var(--c64-white);
+  color: var(--c64-black);
   font: inherit;
   font-size: 1.1em;
   /* Arrow, not pointer -- CLAUDE.md's cursor rule for chrome/buttons;
@@ -475,7 +507,7 @@ html, body {
   cursor: default;
 }
 .c64-kalq-btn:active {
-  background: var(--c64-white);
+  background: var(--c64-cyan);
 }
 .c64-kalq-btn-small {
   flex-grow: 0.6;
@@ -483,6 +515,7 @@ html, body {
 .c64-kalq-btn-primary {
   flex-grow: 1.6;
   font-weight: bold;
+  background: var(--c64-yellow);
 }
 
 /* The RUN loading flicker (issue #27 piece 2) -- a real LOAD/RUN blanked

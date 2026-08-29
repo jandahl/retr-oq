@@ -706,6 +706,10 @@
       "affix-wrong": snesColor("a"),
       "power-lane": snesColor("x"),
       "power-screen": KLAX_C.paper,
+      // 1-UP isn't one of the four button colors or the match/lane/screen
+      // set above -- mist is already canon (used for hint text) and reads
+      // as a fifth, distinct hue without adding a new one.
+      "power-1up": KLAX_C.mist,
     };
 
     // rgb triplets (for rgba() strings) rather than more hex literals --
@@ -727,6 +731,7 @@
     " ": ["....", "....", "....", "....", "...."],
     ".": ["....", "....", "....", "....", ".#.."],
     "-": ["....", "....", "####", "....", "...."],
+    "+": ["....", ".#..", "###.", ".#..", "...."],
     "=": ["....", "####", "....", "####", "...."],
     "0": [".##.", "#..#", "#..#", "#..#", ".##."],
     "1": ["..#.", ".##.", "..#.", "..#.", ".###"],
@@ -808,9 +813,24 @@
   // them just vanishing the instant place()/tryMatch() splices them out of
   // the real stacks. Pulse color marks which kind of clear it was.
   let klaxClearAnim = null;
+  // A short-lived center-screen callout -- 1-UP doesn't clear any cells
+  // (klaxClearAnim has nothing to point at), so it needs its own feedback
+  // beyond the HUD's LIVES count quietly incrementing.
+  let klaxPopup = null;
+  const KLAX_POPUP_S = 1.1;
   const KLAX_CLEAR_ANIM_S = 1;
 
   const KLAX_COLS = 4;
+  // The engine's own active.y is a smooth 0..1 float (real, continuous
+  // physics) -- rendering it directly reads as a perfectly smooth glide,
+  // which doesn't sit right on a chonky-pixel console screen. Snapping the
+  // DISPLAYED position to a fixed number of grid steps gives the classic
+  // stepped/chunky motion instead, with no change to the actual catch
+  // timing (still governed by the untouched, continuous active.y).
+  const KLAX_GRID_STEPS = 10;
+  function snapGridY(y) {
+    return Math.floor(y * KLAX_GRID_STEPS) / KLAX_GRID_STEPS;
+  }
   // Klax's bin sits at the floor because that's where its tiles fall to.
   // This game flips gravity, so the bin flips with it: the stacking yard
   // is up at the ceiling, right where the rising tiles are headed, and
@@ -909,7 +929,7 @@
       // y=1 lands the tile's vertical CENTER on the paddle line -- the
       // catch and the ceiling line up exactly, so a caught tile visibly
       // stops there instead of drifting past it.
-      const ty = KLAX_WELL.bottom - state.active.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 11;
+      const ty = KLAX_WELL.bottom - snapGridY(state.active.y) * (KLAX_WELL.bottom - KLAX_WELL.top) - 11;
       const color = KLAX_TILE_COLOR[state.active.kind];
       klaxBevel(cx - wellColW / 2 + 3, ty, wellColW - 6, 22, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
       klaxText(state.active.marker, cx, ty + 8, 1, KLAX_C.ink, "center");
@@ -941,6 +961,17 @@
       klaxCtx.fillRect(0, 0, 256, 224);
     }
 
+    // 1-UP callout -- rises slightly and fades out over KLAX_POPUP_S, the
+    // only feedback for a pill that doesn't clear any cells for
+    // klaxClearAnim to point at.
+    if (klaxPopup) {
+      const t = 1 - klaxPopup.timeLeft / KLAX_POPUP_S;
+      const y = 110 - t * 14;
+      klaxCtx.globalAlpha = Math.min(1, klaxPopup.timeLeft * 2);
+      klaxText(klaxPopup.text, 128, y, 2, KLAX_C.mist, "center");
+      klaxCtx.globalAlpha = 1;
+    }
+
     if (klaxPaused) {
       klaxCtx.fillStyle = "rgba(10,10,20,.75)";
       klaxCtx.fillRect(0, 0, 256, 224);
@@ -969,6 +1000,10 @@
         klaxClearAnim.timeLeft -= dt;
         if (klaxClearAnim.timeLeft <= 0) klaxClearAnim = null;
       }
+      if (klaxPopup) {
+        klaxPopup.timeLeft -= dt;
+        if (klaxPopup.timeLeft <= 0) klaxPopup = null;
+      }
       const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
       if (result.event === "caught") {
         sfx(result.tile.kind === "power-lane" || result.tile.kind === "power-screen" ? "konami" : "move");
@@ -991,6 +1026,7 @@
     klaxCol = 0;
     klaxFlash = 0;
     klaxClearAnim = null;
+    klaxPopup = null;
     klaxUpHeld = false;
     klaxPaused = false;
     stopKlaxLoop();
@@ -1027,6 +1063,7 @@
       if (res.event === "match") { klaxFlash = 0.12; klaxClearAnim = { kind: "match", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; sfx("ok"); }
       else if (res.event === "power-screen") { klaxFlash = 0.25; klaxClearAnim = { kind: "power-screen", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; sfx("konami"); }
       else if (res.event === "power-lane") { klaxFlash = 0.16; klaxClearAnim = { kind: "power-lane", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; sfx("ok"); }
+      else if (res.event === "power-1up") { klaxPopup = { text: "+1UP", timeLeft: KLAX_POPUP_S }; sfx("konami"); }
       else if (res.event === "discarded") { sfx("back"); }
       else if (res.placed) { sfx("move"); }
       else { sfx("back"); }
