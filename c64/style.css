@@ -446,7 +446,17 @@ html, body {
      the actual hardware pixels" rule snes/'s 256x224 klax-canvas follows.
      width:100% + max-height + aspect-ratio: same reasoning as that
      element's own comment (a wide-but-short window would otherwise clip
-     instead of shrinking). */
+     instead of shrinking) -- but unlike that lone canvas, this one has a
+     sibling (.c64-kalq-pad) that also needs real space in the same flex
+     column. max-height:100% alone doesn't know that: it only looks at
+     the *container's* height, not what a sibling still needs, so the
+     canvas would size to fill the whole column and push the pad (or
+     itself) out of bounds. flex:1 1 auto + min-height:0 is what actually
+     lets it shrink to make room -- min-height:0 overrides the default
+     flex-item min-height:auto, which would otherwise refuse to shrink
+     past this replaced element's own aspect-ratio-driven size at all. */
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
   height: auto;
   max-height: 100%;

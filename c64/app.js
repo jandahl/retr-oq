@@ -569,10 +569,17 @@
       const span = klaxWellSpanAt(t);
       const activeColW = span.w / KLAX_COLS;
       const cx = span.x + state.active.col * activeColW + activeColW / 2;
-      const ty = KLAX_WELL.bottom - snappedY * wellH - 10;
+      // The tile's actual SIZE has to shrink toward the catch line too, not
+      // just its column width -- scaling width alone just squashes it flat
+      // instead of making it look like it's receding into the distance.
+      // Same scaleFactor as the span itself keeps both axes proportional.
+      const scaleFactor = span.w / KLAX_WELL.w;
+      const tileH = 20 * scaleFactor;
+      const centerY = KLAX_WELL.bottom - snappedY * wellH;
+      const ty = centerY - tileH / 2;
       const color = KLAX_TILE_COLOR[state.active.kind];
-      klaxBevel(cx - activeColW / 2 + 3, ty, activeColW - 6, 20, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      renderTileMarker(state.active.marker, cx, ty + 10, activeColW - 8, 16, KLAX_C.ink);
+      klaxBevel(cx - activeColW / 2 + 3, ty, activeColW - 6, tileH, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      renderTileMarker(state.active.marker, cx, centerY, activeColW - 8, tileH - 4, KLAX_C.ink);
     }
 
     const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
