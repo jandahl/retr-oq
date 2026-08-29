@@ -65,9 +65,12 @@
    *   paddleCap?: number,
    *   startLives?: number,
    *   riseSpeed?: number, // 0..1 well progress per second
+   *   rng?: () => number, // 0..1, same contract as Math.random -- injectable so a
+   *     // test can drive spawnActive() with a fixed, reproducible sequence
+   *     // instead of asserting over thousands of real-random draws.
    * }} config
    */
-  function createGame({ puzzles, columns = 4, stackCap = 5, paddleCap = 4, startLives = 3, riseSpeed = 0.22 }) {
+  function createGame({ puzzles, columns = 4, stackCap = 5, paddleCap = 4, startLives = 3, riseSpeed = 0.22, rng = Math.random }) {
     if (!puzzles || puzzles.length === 0) throw new Error("createGame requires at least one puzzle");
 
     // One round per puzzle, built from its first step only: a tile pair
@@ -97,7 +100,7 @@
     function pickPillKind() {
       const entries = Object.entries(PILL_KIND_WEIGHTS);
       const total = entries.reduce((sum, [, w]) => sum + w, 0);
-      let roll = Math.random() * total;
+      let roll = rng() * total;
       for (const [kind, weight] of entries) {
         roll -= weight;
         if (roll <= 0) return kind;
@@ -113,37 +116,37 @@
       // tile -- "stored for later" falls out of that for free -- but
       // placing one never occupies a lane: power-lane/power-screen clear
       // one instead, and power-1up (see place()) just gives a life back.
-      if (Math.random() < PILL_CHANCE) {
+      if (rng() < PILL_CHANCE) {
         const kind = pickPillKind();
-        active = { roundId: null, kind, marker: PILL_MARKER[kind], col: Math.floor(Math.random() * columns), y: 0 };
+        active = { roundId: null, kind, marker: PILL_MARKER[kind], col: Math.floor(rng() * columns), y: 0 };
         return;
       }
       // Fairness: blind uniform spawning could -- and did, in testing --
       // hand the player a long run of tiles that can't complete anything
       // they're already holding. Once a root is on the board waiting for
       // its affix, most spawns bias toward finally giving it to them.
-      if (pendingRoots.size > 0 && Math.random() < PITY_AFFIX_CHANCE) {
+      if (pendingRoots.size > 0 && rng() < PITY_AFFIX_CHANCE) {
         const ids = Array.from(pendingRoots);
-        const roundId = ids[Math.floor(Math.random() * ids.length)];
+        const roundId = ids[Math.floor(rng() * ids.length)];
         const round = rounds[roundId];
-        active = { roundId, kind: "affix-correct", marker: round.correct, col: Math.floor(Math.random() * columns), y: 0 };
+        active = { roundId, kind: "affix-correct", marker: round.correct, col: Math.floor(rng() * columns), y: 0 };
         return;
       }
-      const round = rounds[Math.floor(Math.random() * rounds.length)];
+      const round = rounds[Math.floor(rng() * rounds.length)];
       // Every other spawn is a coin flip between the round's root and one
       // of its affixes (correct or a real wrong one) -- the player never
       // knows which half of a pair they're catching until they read it.
-      const wantsRoot = Math.random() < ROOT_VS_AFFIX_CHANCE;
+      const wantsRoot = rng() < ROOT_VS_AFFIX_CHANCE;
       const marker = wantsRoot
         ? round.root
-        : Math.random() < CORRECT_VS_WRONG_AFFIX_CHANCE
+        : rng() < CORRECT_VS_WRONG_AFFIX_CHANCE
           ? round.correct
-          : round.wrong[Math.floor(Math.random() * round.wrong.length)];
+          : round.wrong[Math.floor(rng() * round.wrong.length)];
       active = {
         roundId: round.id,
         kind: wantsRoot ? "root" : marker === round.correct ? "affix-correct" : "affix-wrong",
         marker,
-        col: Math.floor(Math.random() * columns),
+        col: Math.floor(rng() * columns),
         y: 0,
       };
     }
