@@ -288,6 +288,7 @@
     paper: c64Color("white"),
     accent: c64Color("cyan"),
     bin: c64Color("green"),
+    guide: c64Color("darkgrey"),
   };
   const KLAX_TILE_COLOR = {
     root: c64Color("yellow"),
@@ -406,43 +407,47 @@
   // at its own top edge than at its own bottom edge, and its left/right
   // sides should slant to follow that, not run straight down. col/colW
   // are evaluated separately at top and bottom for exactly this reason.
+  // A canvas path fill/stroke is ALWAYS anti-aliased -- there's no way to
+  // force crisp edges on a diagonal lineTo(), so a slanted side blends
+  // with the backdrop and produces colors that are neither the tile's fill
+  // nor a real theme color at all (exactly the kind of off-palette pixel
+  // tools/check_palette.py exists to catch in source, but can't catch at
+  // runtime). Real VIC-II sprite scaling was never smooth either -- X/Y
+  // expansion just duplicated whole rows/columns of hardware pixels, a
+  // blocky nearest-neighbor stretch, not a smooth resample. A staircase of
+  // small axis-aligned bands built from klaxPx (integer-rounded fillRect,
+  // never anti-aliased) is both period-accurate AND palette-safe: every
+  // pixel is exactly the fill color or exactly the backdrop, nothing
+  // in between.
+  const KLAX_TRAPEZOID_BANDS = 4;
   function klaxTrapezoid(col, tTop, tBottom, fill, hi, lo) {
-    const topSpan = klaxWellSpanAt(tTop);
-    const botSpan = klaxWellSpanAt(tBottom);
-    const topColW = topSpan.w / KLAX_COLS;
-    const botColW = botSpan.w / KLAX_COLS;
-    const topL = topSpan.x + col * topColW + 3;
-    const topR = topSpan.x + (col + 1) * topColW - 3;
-    const botL = botSpan.x + col * botColW + 3;
-    const botR = botSpan.x + (col + 1) * botColW - 3;
     const wellH = KLAX_WELL.bottom - KLAX_WELL.top;
-    const yTop = KLAX_WELL.top + tTop * wellH;
-    const yBot = KLAX_WELL.top + tBottom * wellH;
-    kalqCtx.fillStyle = fill;
-    kalqCtx.beginPath();
-    kalqCtx.moveTo(topL, yTop);
-    kalqCtx.lineTo(topR, yTop);
-    kalqCtx.lineTo(botR, yBot);
-    kalqCtx.lineTo(botL, yBot);
-    kalqCtx.closePath();
-    kalqCtx.fill();
-    // Bevel-style highlight/shadow on the same edges klaxBevel lights --
-    // top+left bright, bottom+right dark -- just following the slanted
-    // sides instead of a rectangle's straight ones.
-    kalqCtx.strokeStyle = hi;
-    kalqCtx.lineWidth = 1;
-    kalqCtx.beginPath();
-    kalqCtx.moveTo(botL, yBot);
-    kalqCtx.lineTo(topL, yTop);
-    kalqCtx.lineTo(topR, yTop);
-    kalqCtx.stroke();
-    kalqCtx.strokeStyle = lo;
-    kalqCtx.beginPath();
-    kalqCtx.moveTo(topR, yTop);
-    kalqCtx.lineTo(botR, yBot);
-    kalqCtx.lineTo(botL, yBot);
-    kalqCtx.stroke();
-    return { cx: (topL + topR + botL + botR) / 4, colW: (topColW + botColW) / 2 };
+    const dt = (tBottom - tTop) / KLAX_TRAPEZOID_BANDS;
+    let first = null;
+    let last = null;
+    for (let i = 0; i < KLAX_TRAPEZOID_BANDS; i++) {
+      const bandTop = tTop + i * dt;
+      const bandBot = tTop + (i + 1) * dt;
+      const span = klaxWellSpanAt((bandTop + bandBot) / 2);
+      const colW = span.w / KLAX_COLS;
+      const left = span.x + col * colW + 3;
+      const right = span.x + (col + 1) * colW - 3;
+      const yTop = KLAX_WELL.top + bandTop * wellH;
+      const yBot = KLAX_WELL.top + bandBot * wellH;
+      klaxPx(left, yTop, right - left, yBot - yTop + 0.5, fill);
+      const band = { left, right, yTop, yBot };
+      if (i === 0) first = band;
+      last = band;
+    }
+    // Highlight/shadow accents on the outermost top and bottom edges only
+    // -- same bevel vocabulary as klaxBevel (bright top, dark bottom),
+    // without trying to bevel the stepped left/right edges too.
+    klaxPx(first.left, first.yTop, first.right - first.left, 1, hi);
+    klaxPx(last.left, last.yBot - 1, last.right - last.left, 1, lo);
+    return {
+      cx: (first.left + first.right + last.left + last.right) / 4,
+      colW: (first.right - first.left + (last.right - last.left)) / 2,
+    };
   }
 
   let klaxGame = null;
@@ -585,18 +590,16 @@
       klaxPx(span.x + 4, y, span.w - 8, 2, "rgba(103,182,189,.5)");
     }
     // Column dividers slant outward toward the floor instead of running
-    // straight down, same convergence as the track lines above -- each
-    // divider is a straight line from its position at the (narrow) catch
-    // line to its position at the (wide) floor.
-    kalqCtx.strokeStyle = "rgba(255,255,255,.1)";
-    kalqCtx.lineWidth = 1;
+    // straight down, same convergence as the track lines above. A dotted
+    // staircase of klaxPx ticks, not a stroked diagonal path -- a canvas
+    // stroke() is always anti-aliased (no way to force crisp pixels on a
+    // diagonal line), which blends in colors that are neither the
+    // backdrop nor any real theme color. Ticks stay solid integer pixels.
     for (let c = 1; c < KLAX_COLS; c++) {
-      const topSpan = klaxWellSpanAt(0);
-      const bottomSpan = klaxWellSpanAt(1);
-      kalqCtx.beginPath();
-      kalqCtx.moveTo(topSpan.x + c * (topSpan.w / KLAX_COLS), KLAX_WELL.top);
-      kalqCtx.lineTo(bottomSpan.x + c * (bottomSpan.w / KLAX_COLS), KLAX_WELL.bottom);
-      kalqCtx.stroke();
+      for (let y = KLAX_WELL.top; y < KLAX_WELL.bottom; y += 3) {
+        const span = klaxWellSpanAt((y - KLAX_WELL.top) / wellH);
+        klaxPx(span.x + c * (span.w / KLAX_COLS), y, 1, 1, KLAX_C.guide);
+      }
     }
     // White bracket frame around the bins -- the catch/place line plus the
     // stacking yard's own left/right/top edges, same white-outline-around-
