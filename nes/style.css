@@ -32,6 +32,15 @@
   --nes-pad-dark: #3a3a3a;
   --nes-red: #a4161a;
   --nes-red-dark: #6b0f12;
+  /* KAL-Q tile colors -- a real 2C02 could show far more at once, but
+     this theme's own chrome only ever declared black/navy/white/grey/red
+     above, so these four add just enough hue to tell KAL-Q's root/affix/
+     power tiles apart, same reasoning as snes/'s KLAX_TILE_COLOR reusing
+     its four face-button colors instead of inventing new ones. */
+  --nes-green: #92cc41;
+  --nes-gold: #f7d51d;
+  --nes-purple: #7c3aed;
+  --nes-orange: #e76e55;
   /* Press Start 2P is a 1em-wide pixel font, same problem c64/'s C64 Pro
      Mono has: a size that fits a desktop CRT is unreadably huge on a
      phone, and a size that fits 390px is tiny on a monitor. clamp() is
@@ -221,6 +230,29 @@ button:not(:disabled),
   margin: 0.8em 0 0;
   color: var(--nes-grey);
   font-size: 0.8em;
+}
+
+.klax-screen {
+  justify-content: center;
+  align-items: center;
+}
+.klax-canvas {
+  /* Same sizing reasoning as snes/'s .klax-canvas: width:100% + max-height
+     + aspect-ratio fills the screen but still shrinks to fit a
+     wide-but-short window, instead of clipping under .nes-screen's
+     overflow:hidden. */
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  aspect-ratio: 256 / 224;
+  border: 3px solid var(--nes-grey);
+  box-shadow: 4px 4px 0 var(--nes-pad-dark);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: var(--nes-black);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
 }
 
 .nes-field {

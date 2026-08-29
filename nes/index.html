@@ -7,7 +7,7 @@
 <!-- ?v= cache-busting, same convention as dos/index.html and c64/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
 <link rel="stylesheet" href="../vendor/nes/nes.min.css" />
-<link rel="stylesheet" href="style.css?v=7" />
+<link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body class="is-dark">
   <!-- NES was a game console, not a window manager: no overlapping windows,
@@ -39,6 +39,7 @@
             <li><button type="button" class="menu-item is-selected" data-screen="oq" id="menu-oq"><span class="menu-cursor" aria-hidden="true">></span> OQ!</button></li>
             <li><button type="button" class="menu-item" data-screen="decon" id="menu-decon"><span class="menu-cursor" aria-hidden="true">></span> DECON</button></li>
             <li><button type="button" class="menu-item" data-screen="about" id="menu-about"><span class="menu-cursor" aria-hidden="true">></span> ABOUT</button></li>
+            <li><button type="button" class="menu-item" data-screen="klax" id="menu-klax"><span class="menu-cursor" aria-hidden="true">></span> KAL-Q</button></li>
             <li><button type="button" class="menu-item" data-screen="quit" id="menu-quit"><span class="menu-cursor" aria-hidden="true">></span> QUIT</button></li>
           </ul>
         </section>
@@ -76,6 +77,11 @@
           <div class="decon-results" id="decon-results"></div>
         </section>
         <p class="hint">A=ANALYZE  B=MENU</p>
+      </div>
+
+      <div class="nes-screen nes-screen-app klax-screen" id="klax-screen" hidden>
+        <canvas class="klax-canvas" id="klax-canvas" width="256" height="224"></canvas>
+        <p class="hint">D-PAD=MOVE  HOLD UP=FAST  A=PLACE  DOWN=DISCARD  START=PAUSE  B=MENU</p>
       </div>
 
       <div class="nes-screen" id="about-screen" hidden>
@@ -138,6 +144,8 @@
      own header comment for why this one file is the exception. -->
 <script type="module" src="../shared/oq-analysis.js?v=11"></script>
 <script src="../shared/decon-app.js?v=4"></script>
-<script src="app.js?v=7"></script>
+<script src="../shared/morph-puzzles.js?v=2"></script>
+<script src="../shared/klax-game.js?v=9"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>
