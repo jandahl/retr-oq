@@ -378,6 +378,7 @@
   }
 
   document.addEventListener("visibilitychange", () => {
+    if (document.hidden) klaxUpHeld = false;
     if (!audioCtx) return;
     // Only suspend the top-level page. A preview iframe often reports
     // hidden while the user is looking at it, which is what killed the
