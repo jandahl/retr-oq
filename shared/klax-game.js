@@ -34,7 +34,10 @@
   // hunting through spawnActive() for a bare 0.6 or 0.05 to figure out
   // what it actually controls.
   const PILL_CHANCE = 1 / 20; // how often a spawn is a pill instead of a real morpheme tile
-  const PILL_LANE_VS_SCREEN_CHANCE = 0.5; // even split between the two pill kinds
+  // Three pill kinds now, not an even split of two -- 1-UP is the rarest
+  // (it's a straight life back, no strategic cost like the other two have
+  // in giving up a lane's progress), lane and screen wipe share what's left.
+  const PILL_KIND_WEIGHTS = { "power-lane": 0.45, "power-screen": 0.35, "power-1up": 0.2 };
   const PITY_AFFIX_CHANCE = 0.6; // odds a spawn is forced to be a pending root's correct affix
   const ROOT_VS_AFFIX_CHANCE = 0.5; // odds a non-pity, non-pill spawn is the round's root (vs. an affix)
   const CORRECT_VS_WRONG_AFFIX_CHANCE = 0.55; // odds that affix is the correct one (vs. a real wrong one)
@@ -82,20 +85,28 @@
     let score = 0;
     let gameOver = false;
 
+    function pickPillKind() {
+      const entries = Object.entries(PILL_KIND_WEIGHTS);
+      const total = entries.reduce((sum, [, w]) => sum + w, 0);
+      let roll = Math.random() * total;
+      for (const [kind, weight] of entries) {
+        roll -= weight;
+        if (roll <= 0) return kind;
+      }
+      return entries[entries.length - 1][0];
+    }
+
+    const PILL_MARKER = { "power-lane": "LANE", "power-screen": "ALL", "power-1up": "1UP" };
+
     function spawnActive() {
       // Dr. Mario-style pill: 1 in 20 spawns, unrelated to the round pity
       // logic below. Caught and carried in the paddle just like any other
       // tile -- "stored for later" falls out of that for free -- but
-      // placing one never occupies a lane; it clears one instead.
+      // placing one never occupies a lane: power-lane/power-screen clear
+      // one instead, and power-1up (see place()) just gives a life back.
       if (Math.random() < PILL_CHANCE) {
-        const isLane = Math.random() < PILL_LANE_VS_SCREEN_CHANCE;
-        active = {
-          roundId: null,
-          kind: isLane ? "power-lane" : "power-screen",
-          marker: isLane ? "LANE" : "ALL",
-          col: Math.floor(Math.random() * columns),
-          y: 0,
-        };
+        const kind = pickPillKind();
+        active = { roundId: null, kind, marker: PILL_MARKER[kind], col: Math.floor(Math.random() * columns), y: 0 };
         return;
       }
       // Fairness: blind uniform spawning could -- and did, in testing --
@@ -235,6 +246,11 @@
         stacks = stacks.map(() => []);
         pendingRoots = new Set();
         return { placed: true, event: "power-screen", cleared, cells };
+      }
+      if (tile.kind === "power-1up") {
+        paddle.pop();
+        lives += 1;
+        return { placed: true, event: "power-1up", lives };
       }
       if (tile.kind === "affix-wrong") {
         paddle.pop();

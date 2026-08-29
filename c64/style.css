@@ -69,6 +69,7 @@ html, body {
   --c64-red: #883932;
   --c64-cyan: #67b6bd;
   --c64-orange: #8b5429;
+  --c64-lightgreen: #94e089;
   /* The real C64's border (POKE 53280) and screen background (POKE 53281)
      are two DIFFERENT default colors, not one -- light blue border, blue
      background. Drawn as a real CSS `border` on .c64-screen/.c64-app below

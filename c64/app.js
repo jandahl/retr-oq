@@ -295,6 +295,9 @@
     "affix-wrong": c64Color("red"),
     "power-lane": c64Color("cyan"),
     "power-screen": KLAX_C.paper,
+    // A sixth real VIC-II color, not a reuse -- 1-UP needs to read as its
+    // own distinct thing at a glance, same as every other kind here.
+    "power-1up": c64Color("lightgreen"),
   };
   function hexToRgbTriplet(hex) {
     const h = hex.replace("#", "");
@@ -405,6 +408,11 @@
   let klaxFlash = 0;
   let klaxClearAnim = null;
   const KLAX_CLEAR_ANIM_S = 1;
+  // A short-lived center-screen callout -- 1-UP doesn't clear any cells
+  // (klaxClearAnim has nothing to point at), so it needs its own feedback
+  // beyond the HUD's LIVES count quietly incrementing.
+  let klaxPopup = null;
+  const KLAX_POPUP_S = 1.1;
 
   const KLAX_COLS = 4;
   // Canvas is 320x200 (the real C64 hi-res bitmap resolution) instead of
@@ -419,6 +427,28 @@
   function klaxColumnX(c, region) {
     const colW = region.w / KLAX_COLS;
     return region.x + c * colW + colW / 2;
+  }
+
+  // The engine's active.y is a smooth 0..1 float -- rendering it directly
+  // reads as a perfectly smooth glide, wrong for a chonky-pixel console
+  // screen. Snapping the DISPLAYED position to a fixed number of grid
+  // steps gives classic stepped motion instead, with no change to catch
+  // timing (still governed by the untouched, continuous active.y).
+  const KLAX_GRID_STEPS = 10;
+  function snapGridY(y) {
+    return Math.floor(y * KLAX_GRID_STEPS) / KLAX_GRID_STEPS;
+  }
+
+  // Perspective on the well only (the reference cabinet's own converging
+  // track): narrow at the demarcation/catch line so it lines up exactly
+  // with the bins above (t=0, factor 1 -- no seam), flaring wider toward
+  // the floor at the bottom of the screen (t=1) as if the track ran away
+  // from the player. t is 0 at KLAX_WELL.top, 1 at KLAX_WELL.bottom.
+  const KLAX_WELL_FLARE = 1.15;
+  function klaxWellSpanAt(t) {
+    const w = KLAX_WELL.w * (1 + (KLAX_WELL_FLARE - 1) * t);
+    const cx = KLAX_WELL.x + KLAX_WELL.w / 2;
+    return { x: cx - w / 2, w };
   }
 
   function renderKlax() {
@@ -499,13 +529,28 @@
     // The track -- a row of faint cyan chute lines down the well, same
     // reading as the reference cabinet's cyan track above the bins (this
     // game's gravity is flipped, so the track sits below the bins instead
-    // of above them).
+    // of above them). Each line's own width follows the perspective span
+    // at its height, narrower toward the catch line, wider toward the
+    // floor -- the same convergence the reference cabinet's track has.
     const wellColW = KLAX_WELL.w / KLAX_COLS;
+    const wellH = KLAX_WELL.bottom - KLAX_WELL.top;
     for (let y = KLAX_WELL.top + 8; y < KLAX_WELL.bottom; y += 12) {
-      klaxPx(KLAX_WELL.x + 4, y, KLAX_WELL.w - 8, 2, "rgba(103,182,189,.5)");
+      const span = klaxWellSpanAt((y - KLAX_WELL.top) / wellH);
+      klaxPx(span.x + 4, y, span.w - 8, 2, "rgba(103,182,189,.5)");
     }
+    // Column dividers slant outward toward the floor instead of running
+    // straight down, same convergence as the track lines above -- each
+    // divider is a straight line from its position at the (narrow) catch
+    // line to its position at the (wide) floor.
+    kalqCtx.strokeStyle = "rgba(255,255,255,.1)";
+    kalqCtx.lineWidth = 1;
     for (let c = 1; c < KLAX_COLS; c++) {
-      klaxPx(KLAX_WELL.x + c * wellColW, KLAX_WELL.top, 1, KLAX_WELL.bottom - KLAX_WELL.top, "rgba(255,255,255,.1)");
+      const topSpan = klaxWellSpanAt(0);
+      const bottomSpan = klaxWellSpanAt(1);
+      kalqCtx.beginPath();
+      kalqCtx.moveTo(topSpan.x + c * (topSpan.w / KLAX_COLS), KLAX_WELL.top);
+      kalqCtx.lineTo(bottomSpan.x + c * (bottomSpan.w / KLAX_COLS), KLAX_WELL.bottom);
+      kalqCtx.stroke();
     }
     // White bracket frame around the bins -- the catch/place line plus the
     // stacking yard's own left/right/top edges, same white-outline-around-
@@ -516,11 +561,17 @@
     klaxPx(KLAX_STACK.x, KLAX_STACK.bottom, KLAX_STACK.w, 2, KLAX_C.paper);
 
     if (state.active) {
-      const cx = klaxColumnX(state.active.col, KLAX_WELL);
-      const ty = KLAX_WELL.bottom - state.active.y * (KLAX_WELL.bottom - KLAX_WELL.top) - 10;
+      // t=0 at the catch line, t=1 at the floor -- active.y runs the other
+      // way (0 at spawn/floor, 1 at the catch line), so t = 1 - y.
+      const snappedY = snapGridY(state.active.y);
+      const t = 1 - snappedY;
+      const span = klaxWellSpanAt(t);
+      const activeColW = span.w / KLAX_COLS;
+      const cx = span.x + state.active.col * activeColW + activeColW / 2;
+      const ty = KLAX_WELL.bottom - snappedY * wellH - 10;
       const color = KLAX_TILE_COLOR[state.active.kind];
-      klaxBevel(cx - wellColW / 2 + 3, ty, wellColW - 6, 20, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      renderTileMarker(state.active.marker, cx, ty + 10, wellColW - 8, 16, KLAX_C.ink);
+      klaxBevel(cx - activeColW / 2 + 3, ty, activeColW - 6, 20, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      renderTileMarker(state.active.marker, cx, ty + 10, activeColW - 8, 16, KLAX_C.ink);
     }
 
     const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
@@ -546,6 +597,17 @@
       kalqCtx.fillRect(0, 0, 320, 200);
     }
 
+    // 1-UP callout -- rises slightly and fades out over KLAX_POPUP_S, the
+    // only feedback for a pill that doesn't clear any cells for
+    // klaxClearAnim to point at.
+    if (klaxPopup) {
+      const t = 1 - klaxPopup.timeLeft / KLAX_POPUP_S;
+      const y = 130 - t * 16;
+      kalqCtx.globalAlpha = Math.min(1, klaxPopup.timeLeft * 2);
+      klaxText(klaxPopup.text, 160, y, 2, KLAX_TILE_COLOR["power-1up"], "center");
+      kalqCtx.globalAlpha = 1;
+    }
+
     if (state.gameOver) {
       kalqCtx.fillStyle = "rgba(0,0,0,.75)";
       kalqCtx.fillRect(0, 0, 320, 200);
@@ -562,6 +624,10 @@
     if (klaxClearAnim) {
       klaxClearAnim.timeLeft -= dt;
       if (klaxClearAnim.timeLeft <= 0) klaxClearAnim = null;
+    }
+    if (klaxPopup) {
+      klaxPopup.timeLeft -= dt;
+      if (klaxPopup.timeLeft <= 0) klaxPopup = null;
     }
     const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
     if (result.event === "missed") klaxFlash = 0.12;
@@ -587,6 +653,7 @@
     klaxCol = 0;
     klaxFlash = 0;
     klaxClearAnim = null;
+    klaxPopup = null;
     klaxUpHeld = false;
     stopKlaxLoop();
     klaxRaf = requestAnimationFrame(klaxLoop);
@@ -615,6 +682,7 @@
       if (res.event === "match") klaxClearAnim = { kind: "match", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S };
       else if (res.event === "power-screen") { klaxFlash = 0.25; klaxClearAnim = { kind: "power-screen", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; }
       else if (res.event === "power-lane") { klaxFlash = 0.16; klaxClearAnim = { kind: "power-lane", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; }
+      else if (res.event === "power-1up") { klaxPopup = { text: "+1UP", timeLeft: KLAX_POPUP_S }; }
     } else if (action === "down") {
       klaxGame.discard();
     }
