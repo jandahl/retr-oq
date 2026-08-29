@@ -17,9 +17,10 @@
     decon: document.getElementById("decon-screen"),
     about: document.getElementById("about-screen"),
     gameover: document.getElementById("gameover-screen"),
+    klax: document.getElementById("klax-screen"),
   };
 
-  const MENU_ORDER = ["oq", "decon", "about", "quit"];
+  const MENU_ORDER = ["oq", "decon", "about", "klax", "quit"];
   const menuButtons = MENU_ORDER.map((id) => document.getElementById(`menu-${id}`));
   const continueYes = document.getElementById("continue-yes");
   const continueNo = document.getElementById("continue-no");
@@ -97,6 +98,10 @@
     }
     if (id === "about") {
       window.OqRouter.navigate({ screen: "about", filter: null, word: null });
+      return;
+    }
+    if (id === "klax") {
+      window.OqRouter.navigate({ screen: "klax", filter: null, word: null });
     }
   }
 
@@ -373,6 +378,7 @@
   }
 
   document.addEventListener("visibilitychange", () => {
+    if (document.hidden) klaxUpHeld = false;
     if (!audioCtx) return;
     // Only suspend the top-level page. A preview iframe often reports
     // hidden while the user is looking at it, which is what killed the
@@ -550,6 +556,428 @@
     deconController.abort();
   }
 
+  // ---------- KAL-Q (Klax, upside down) ----------
+  // Game state lives in shared/klax-game.js (window.OqKlaxGame) so it's
+  // reusable by any console theme -- this section is only rendering,
+  // input, and pacing, same split snes/app.js's KAL-Q gets and the same
+  // split shared/morph-game.js gets from gb/app.js's MORPH! screen.
+  // "klax" stays the internal/file-level codename (genre lineage, matches
+  // the shared engine's name); KAL-Q is only the on-screen title.
+  const klaxCanvas = document.getElementById("klax-canvas");
+  const klaxCtx = klaxCanvas.getContext("2d");
+
+  // Same reasoning as snes/app.js: the canvas can't reach CSS var(--nes-*)
+  // directly, so it reads this theme's own declared palette once via
+  // getComputedStyle instead of re-inventing hex for KAL-Q --
+  // tools/check_palette.py enforces the same rule on every other literal.
+  const nesVars = getComputedStyle(document.documentElement);
+  const nesColor = (name) => nesVars.getPropertyValue(`--nes-${name}`).trim();
+  function hexToRgbTriplet(hex) {
+    const h = hex.replace("#", "");
+    const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+    const n = parseInt(full, 16);
+    return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+  }
+
+  const KLAX_C = {
+    bg: nesColor("black"),
+    hud: nesColor("navy"),
+    ink: nesColor("navy"),
+    paper: nesColor("white"),
+    gold: nesColor("gold"),
+    mist: nesColor("grey"),
+    padDark: nesColor("pad-dark"),
+  };
+
+  const KLAX_TILE_COLOR = {
+    // This theme's chrome only ever declared black/navy/white/grey/red --
+    // green/gold/purple/orange (added above, all grandfathered NES hex
+    // literals per tools/palette-baseline.json) are the whole rainbow
+    // KAL-Q gets here, same reasoning as snes/'s four face-button colors.
+    root: KLAX_C.gold,
+    "affix-correct": nesColor("green"),
+    "affix-wrong": nesColor("red"),
+    "power-lane": nesColor("purple"),
+    "power-screen": KLAX_C.paper,
+    "power-1up": nesColor("orange"),
+  };
+
+  const KLAX_CLEAR_COLOR = {
+    match: hexToRgbTriplet(KLAX_C.paper),
+    "power-lane": hexToRgbTriplet(KLAX_TILE_COLOR["power-lane"]),
+    "power-screen": hexToRgbTriplet(KLAX_TILE_COLOR["power-screen"]),
+  };
+
+  // 4x5 bitmap font -- drawn one fillRect per pixel, same technique as
+  // snes/app.js's KLAX_FONT, so canvas text never falls back to
+  // anti-aliased browser glyph rendering at this resolution.
+  const KLAX_FONT = {
+    " ": ["....", "....", "....", "....", "...."],
+    ".": ["....", "....", "....", "....", ".#.."],
+    "-": ["....", "....", "####", "....", "...."],
+    "+": ["....", ".#..", "###.", ".#..", "...."],
+    "=": ["....", "####", "....", "####", "...."],
+    "0": [".##.", "#..#", "#..#", "#..#", ".##."],
+    "1": ["..#.", ".##.", "..#.", "..#.", ".###"],
+    "2": [".##.", "#..#", "..#.", ".#..", "####"],
+    "3": ["###.", "...#", "..#.", "...#", "###."],
+    "4": ["#..#", "#..#", "####", "...#", "...#"],
+    "5": ["####", "#...", "###.", "...#", "###."],
+    "6": [".##.", "#...", "###.", "#..#", ".##."],
+    "7": ["####", "...#", "..#.", ".#..", ".#.."],
+    "8": [".##.", "#..#", ".##.", "#..#", ".##."],
+    "9": [".##.", "#..#", ".###", "...#", ".##."],
+    A: [".##.", "#..#", "####", "#..#", "#..#"],
+    B: ["###.", "#..#", "###.", "#..#", "###."],
+    C: [".##.", "#...", "#...", "#...", ".##."],
+    D: ["###.", "#..#", "#..#", "#..#", "###."],
+    E: ["####", "#...", "###.", "#...", "####"],
+    F: ["####", "#...", "###.", "#...", "#..."],
+    G: [".##.", "#...", "#.##", "#..#", ".##."],
+    H: ["#..#", "#..#", "####", "#..#", "#..#"],
+    I: [".##.", ".##.", ".##.", ".##.", ".##."],
+    J: ["..##", "...#", "...#", "#..#", ".##."],
+    K: ["#..#", "#.#.", "##..", "#.#.", "#..#"],
+    L: ["#...", "#...", "#...", "#...", "####"],
+    M: ["#..#", "####", "####", "#..#", "#..#"],
+    N: ["#..#", "##.#", "#.##", "#..#", "#..#"],
+    O: [".##.", "#..#", "#..#", "#..#", ".##."],
+    P: ["###.", "#..#", "###.", "#...", "#..."],
+    Q: [".##.", "#..#", "#..#", ".##.", "...#"],
+    R: ["###.", "#..#", "###.", "#.#.", "#..#"],
+    S: [".###", "#...", ".##.", "...#", "###."],
+    T: ["####", "..#.", "..#.", "..#.", "..#."],
+    U: ["#..#", "#..#", "#..#", "#..#", ".##."],
+    V: ["#..#", "#..#", "#..#", ".##.", ".##."],
+    W: ["#..#", "#..#", "####", "####", "#..#"],
+    X: ["#..#", ".##.", ".##.", "#..#", "#..#"],
+    Y: ["#..#", ".##.", "..#.", "..#.", "..#."],
+    Z: ["####", "...#", "..#.", ".#..", "####"],
+  };
+
+  function klaxPx(x, y, w, h, c) {
+    klaxCtx.fillStyle = c;
+    klaxCtx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+  }
+
+  function klaxText(str, x, y, scale, color, align) {
+    const w = String(str).length * 5 * scale - scale;
+    let ox = align === "center" ? x - w / 2 : align === "right" ? x - w : x;
+    for (const ch of String(str).toUpperCase()) {
+      const glyph = KLAX_FONT[ch] || KLAX_FONT[" "];
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 4; col++) {
+          if (glyph[row][col] === "#") klaxPx(ox + col * scale, y + row * scale, scale, scale, color);
+        }
+      }
+      ox += 5 * scale;
+    }
+  }
+
+  function klaxBevel(x, y, w, h, fill, hi, lo) {
+    klaxPx(x, y, w, h, fill);
+    klaxPx(x, y, w, 1, hi);
+    klaxPx(x, y, 1, h, hi);
+    klaxPx(x, y + h - 1, w, 1, lo);
+    klaxPx(x + w - 1, y, 1, h, lo);
+  }
+
+  let klaxGame = null;
+  let klaxCol = 0;
+  let klaxRaf = 0;
+  let klaxLastT = 0;
+  // Fast-forward while held (up) -- set true on keydown/pointerdown, false
+  // on keyup/pointerup/pointercancel/tab-hide so it can never get stuck on.
+  let klaxUpHeld = false;
+  const KLAX_FAST_MULT = 2;
+  let klaxFlash = 0; // seconds remaining on a match/miss/overflow flash
+  let klaxPaused = false;
+  // Just-cleared cells (a match, or a pill's lane/screen wipe), kept around
+  // to draw a pulsing outline over their old spots for a second instead of
+  // them just vanishing the instant place()/tryMatch() splices them out of
+  // the real stacks. Pulse color marks which kind of clear it was.
+  let klaxClearAnim = null;
+  // A short-lived center-screen callout -- 1-UP doesn't clear any cells
+  // (klaxClearAnim has nothing to point at), so it needs its own feedback
+  // beyond the HUD's LIVES count quietly incrementing.
+  let klaxPopup = null;
+  const KLAX_POPUP_S = 1.1;
+  const KLAX_CLEAR_ANIM_S = 1;
+
+  const KLAX_COLS = 4;
+  // The engine's own active.y is a smooth 0..1 float (real, continuous
+  // physics) -- rendering it directly reads as a perfectly smooth glide,
+  // which doesn't sit right on a chonky-pixel console screen. Snapping the
+  // DISPLAYED position to a fixed number of grid steps gives the classic
+  // stepped/chunky motion instead, with no change to the actual catch
+  // timing (still governed by the untouched, continuous active.y).
+  const KLAX_GRID_STEPS = 10;
+  function snapGridY(y) {
+    return Math.floor(y * KLAX_GRID_STEPS) / KLAX_GRID_STEPS;
+  }
+  // Klax's bin sits at the floor because that's where its tiles fall to.
+  // This game flips gravity, so the bin flips with it: the stacking yard
+  // is up at the ceiling, right where the rising tiles are headed, and
+  // grows DOWN from there as more get placed. The well fills the rest of
+  // the screen below it, floor at the bottom where tiles spawn.
+  const KLAX_STACK = { x: 20, top: 14, bottom: 78, w: 216 };
+  const KLAX_WELL = { x: 20, top: 82, bottom: 210, w: 216 };
+
+  function klaxColumnX(c, region) {
+    const colW = region.w / KLAX_COLS;
+    return region.x + c * colW + colW / 2;
+  }
+
+  function renderKlax() {
+    const state = klaxGame.getState();
+    klaxCtx.fillStyle = KLAX_C.bg;
+    klaxCtx.fillRect(0, 0, 256, 224);
+
+    // HUD is drawn first but the paddle/well below it are what were
+    // getting clipped off on very wide-but-short browser windows -- see
+    // .klax-canvas in style.css (max-height fix) for the actual cause.
+    klaxPx(0, 0, 256, 12, KLAX_C.hud);
+    klaxText(`SCORE ${state.score}`, 6, 3, 1, KLAX_C.paper, "left");
+    klaxText("KAL-Q", 128, 3, 1, KLAX_C.gold, "center");
+    klaxText(`LIVES ${state.lives}`, 250, 3, 1, KLAX_TILE_COLOR["affix-wrong"], "right");
+
+    // Color legend: root (gold) + its correct affix (green) is the only
+    // pair that ever clears a lane -- a wrong affix (red) never matches
+    // anything, it just costs a paddle slot until discarded. Drawn in the
+    // left margin, the one strip beside the stacking yard the layout
+    // doesn't already use.
+    const legend = [
+      { label: "RT", color: KLAX_TILE_COLOR.root },
+      { label: "OK", color: KLAX_TILE_COLOR["affix-correct"] },
+      { label: "NO", color: KLAX_TILE_COLOR["affix-wrong"] },
+    ];
+    legend.forEach((item, i) => {
+      const ly = KLAX_STACK.top + i * 20;
+      klaxBevel(3, ly, 12, 8, item.color, "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
+      klaxText(item.label, 3, ly + 10, 1, item.color, "left");
+    });
+
+    // Stacking yard: one lane per source lane, growing DOWN from the
+    // ceiling as tiles get placed -- the physical place caught pieces
+    // actually go, not an abstract "HOLDING" row.
+    const stackColW = KLAX_STACK.w / KLAX_COLS;
+    for (let c = 0; c < KLAX_COLS; c++) {
+      const cx = klaxColumnX(c, KLAX_STACK);
+      const highlighted = state.paddle.length > 0 && klaxCol === c;
+      klaxPx(cx - stackColW / 2 + 1, KLAX_STACK.top, stackColW - 2, KLAX_STACK.bottom - KLAX_STACK.top,
+        highlighted ? "rgba(231,194,63,.12)" : "rgba(255,255,255,.04)");
+      const lane = state.stacks[c];
+      const tileH = (KLAX_STACK.bottom - KLAX_STACK.top) / state.stackCap;
+      lane.forEach((tile, i) => {
+        const ty = KLAX_STACK.top + i * tileH;
+        klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[tile.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
+        klaxText(tile.marker, cx, ty + tileH / 2 - 2, 1, KLAX_C.ink, "center");
+      });
+    }
+
+    // The just-cleared cells -- a match, or a pill's lane/screen wipe --
+    // already spliced out of the real stacks, redrawn as ghosts at their
+    // old spots with a pulsing outline for KLAX_CLEAR_ANIM_S seconds
+    // instead of them just popping out of existence. Outline color marks
+    // which kind of clear it was: white for a match, pill blue/purple for
+    // a lane/screen wipe.
+    if (klaxClearAnim) {
+      const tileH = (KLAX_STACK.bottom - KLAX_STACK.top) / state.stackCap;
+      const pulse = 0.5 + 0.5 * Math.sin(klaxClearAnim.timeLeft * 22);
+      const rgb = KLAX_CLEAR_COLOR[klaxClearAnim.kind] || KLAX_CLEAR_COLOR.match;
+      for (const cell of klaxClearAnim.cells) {
+        const cx = klaxColumnX(cell.col, KLAX_STACK);
+        const ty = KLAX_STACK.top + cell.row * tileH;
+        klaxBevel(cx - stackColW / 2 + 3, ty + 1, stackColW - 6, tileH - 2, KLAX_TILE_COLOR[cell.kind], "rgba(255,255,255,.5)", "rgba(0,0,0,.4)");
+        klaxText(cell.marker, cx, ty + tileH / 2 - 2, 1, KLAX_C.ink, "center");
+        klaxCtx.strokeStyle = `rgba(${rgb},${(0.4 + 0.6 * pulse).toFixed(2)})`;
+        klaxCtx.lineWidth = 2;
+        klaxCtx.strokeRect(cx - stackColW / 2 + 2, ty, stackColW - 4, tileH);
+      }
+    }
+
+    // The catch/place line -- floor of the stacking yard, ceiling of the
+    // well -- is the one boundary the paddle ever sits on.
+    klaxPx(KLAX_WELL.x, KLAX_WELL.top, KLAX_WELL.w, 1, KLAX_C.gold);
+    const wellColW = KLAX_WELL.w / KLAX_COLS;
+    klaxPx(KLAX_WELL.x - 2, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, KLAX_C.padDark);
+    klaxPx(KLAX_WELL.x + KLAX_WELL.w, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, KLAX_C.padDark);
+    // Column guides -- only one tile is ever in play, so these faint
+    // dividers are what tells the player which lane it's rising in.
+    for (let c = 1; c < KLAX_COLS; c++) {
+      klaxPx(KLAX_WELL.x + c * wellColW, KLAX_WELL.top, 1, KLAX_WELL.bottom - KLAX_WELL.top, "rgba(255,255,255,.08)");
+    }
+
+    if (state.active) {
+      const cx = klaxColumnX(state.active.col, KLAX_WELL);
+      // y=1 lands the tile's vertical CENTER on the paddle line -- the
+      // catch and the ceiling line up exactly, so a caught tile visibly
+      // stops there instead of drifting past it.
+      const ty = KLAX_WELL.bottom - snapGridY(state.active.y) * (KLAX_WELL.bottom - KLAX_WELL.top) - 11;
+      const color = KLAX_TILE_COLOR[state.active.kind];
+      klaxBevel(cx - wellColW / 2 + 3, ty, wellColW - 6, 22, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      klaxText(state.active.marker, cx, ty + 8, 1, KLAX_C.ink, "center");
+    }
+
+    // Paddle: always sits on the catch/place line -- it's the same spot
+    // whether it's about to catch a rising tile or about to push a held
+    // one up into the highlighted lane above. Only the highlight above
+    // moves; the paddle doesn't need to travel between two positions.
+    const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
+    klaxBevel(paddleX - wellColW / 2 + 2, KLAX_WELL.top - 6, wellColW - 4, 6, KLAX_C.paper, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+    if (state.paddle.length) {
+      // Up to paddleCap small color-coded chips show the whole LIFO
+      // stack at a glance (oldest catch on the left); the readable one
+      // with its text is the last one caught -- the tile place()/
+      // discard() will actually act on next.
+      const slotW = (wellColW - 6) / state.paddleCap;
+      state.paddle.forEach((tile, i) => {
+        const sx = paddleX - wellColW / 2 + 3 + i * slotW;
+        klaxPx(sx, KLAX_WELL.top - 10, slotW - 1, 7, KLAX_TILE_COLOR[tile.kind]);
+      });
+      const top = state.paddle[state.paddle.length - 1];
+      klaxBevel(paddleX - wellColW / 2 + 3, KLAX_WELL.top - 24, wellColW - 6, 12, KLAX_TILE_COLOR[top.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      klaxText(top.marker, paddleX, KLAX_WELL.top - 21, 1, KLAX_C.ink, "center");
+    }
+
+    if (klaxFlash > 0) {
+      klaxCtx.fillStyle = "rgba(255,255,255,.12)";
+      klaxCtx.fillRect(0, 0, 256, 224);
+    }
+
+    // 1-UP callout -- rises slightly and fades out over KLAX_POPUP_S, the
+    // only feedback for a pill that doesn't clear any cells for
+    // klaxClearAnim to point at.
+    if (klaxPopup) {
+      const t = 1 - klaxPopup.timeLeft / KLAX_POPUP_S;
+      const y = 110 - t * 14;
+      klaxCtx.globalAlpha = Math.min(1, klaxPopup.timeLeft * 2);
+      klaxText(klaxPopup.text, 128, y, 2, KLAX_C.mist, "center");
+      klaxCtx.globalAlpha = 1;
+    }
+
+    if (klaxPaused) {
+      klaxCtx.fillStyle = "rgba(10,10,20,.75)";
+      klaxCtx.fillRect(0, 0, 256, 224);
+      klaxText("PAUSED", 128, 100, 2, KLAX_C.paper, "center");
+      klaxText("START=RESUME  B=MENU", 128, 120, 1, KLAX_C.mist, "center");
+    }
+
+    if (state.gameOver) {
+      klaxCtx.fillStyle = "rgba(10,10,20,.75)";
+      klaxCtx.fillRect(0, 0, 256, 224);
+      klaxText("GAME OVER", 128, 96, 2, KLAX_TILE_COLOR["affix-wrong"], "center");
+      klaxText(`SCORE ${state.score}`, 128, 116, 1, KLAX_C.paper, "center");
+      klaxText("A=RETRY  B=MENU", 128, 132, 1, KLAX_C.mist, "center");
+    }
+  }
+
+  function klaxLoop(t) {
+    // klaxLastT keeps advancing every frame even while paused, so dt
+    // doesn't spike on resume -- only the game-state tick() call is
+    // skipped, same as gb/'s MORPH! freezing the step timer in place.
+    const dt = klaxLastT ? Math.min(0.1, (t - klaxLastT) / 1000) : 0;
+    klaxLastT = t;
+    if (!klaxPaused) {
+      if (klaxFlash > 0) klaxFlash -= dt;
+      if (klaxClearAnim) {
+        klaxClearAnim.timeLeft -= dt;
+        if (klaxClearAnim.timeLeft <= 0) klaxClearAnim = null;
+      }
+      if (klaxPopup) {
+        klaxPopup.timeLeft -= dt;
+        if (klaxPopup.timeLeft <= 0) klaxPopup = null;
+      }
+      const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
+      if (result.event === "caught") {
+        sfx(result.tile.kind === "power-lane" || result.tile.kind === "power-screen" ? "konami" : "move");
+      } else if (result.event === "missed") { klaxFlash = 0.12; sfx("back"); }
+    }
+    renderKlax();
+    klaxRaf = requestAnimationFrame(klaxLoop);
+  }
+
+  function stopKlaxLoop() {
+    if (klaxRaf) cancelAnimationFrame(klaxRaf);
+    klaxRaf = 0;
+    klaxLastT = 0;
+  }
+
+  function launchKlax() {
+    showScreen("klax");
+    if (!klaxGame) klaxGame = window.OqKlaxGame.createGame({ puzzles: window.OqMorphPuzzles.puzzles, columns: KLAX_COLS });
+    klaxGame.start();
+    klaxCol = 0;
+    klaxFlash = 0;
+    klaxClearAnim = null;
+    klaxPopup = null;
+    klaxUpHeld = false;
+    klaxPaused = false;
+    stopKlaxLoop();
+    klaxRaf = requestAnimationFrame(klaxLoop);
+  }
+
+  function exitKlax() {
+    stopKlaxLoop();
+    klaxUpHeld = false;
+    klaxPaused = false;
+  }
+
+  function handleKlaxInput(action) {
+    const state = klaxGame.getState();
+    if (state.gameOver) {
+      if (action === "a" || action === "start") { sfx("ok"); klaxGame.start(); }
+      else if (action === "b") { sfx("back"); goMenu(); }
+      return;
+    }
+    if (klaxPaused) {
+      if (action === "start") resumeKlax();
+      else if (action === "b") { resumeKlax(); sfx("back"); goMenu(); }
+      return;
+    }
+    if (action === "start") { pauseKlax(); return; }
+    // Left/right always just move the paddle -- what that means depends on
+    // whether the catcher is empty-handed (lining up under the rising
+    // tile) or carrying one (choosing a stacking lane to place it in).
+    if (action === "left") { sfx("move"); klaxCol = (klaxCol - 1 + KLAX_COLS) % KLAX_COLS; }
+    else if (action === "right") { sfx("move"); klaxCol = (klaxCol + 1) % KLAX_COLS; }
+    else if (action === "a") {
+      if (!state.paddle.length) return;
+      const res = klaxGame.place(klaxCol);
+      if (res.event === "match") { klaxFlash = 0.12; klaxClearAnim = { kind: "match", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; sfx("ok"); }
+      else if (res.event === "power-screen") { klaxFlash = 0.25; klaxClearAnim = { kind: "power-screen", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; sfx("konami"); }
+      else if (res.event === "power-lane") { klaxFlash = 0.16; klaxClearAnim = { kind: "power-lane", cells: res.cells, timeLeft: KLAX_CLEAR_ANIM_S }; sfx("ok"); }
+      else if (res.event === "power-1up") { klaxPopup = { text: "+1UP", timeLeft: KLAX_POPUP_S }; sfx("konami"); }
+      else if (res.event === "discarded") { sfx("back"); }
+      else if (res.placed) { sfx("move"); }
+      else { sfx("back"); }
+    } else if (action === "down") {
+      klaxGame.discard();
+      sfx("back");
+    } else if (action === "b") {
+      sfx("back");
+      goMenu();
+    }
+  }
+
+  // Start pauses mid-round, same as gb/'s MORPH! -- freezes the well and
+  // paddle exactly where they stood and puts up a blocking card, with its
+  // own distinct music (the title theme, not the in-round bed) so it's
+  // unmistakably a different state, not just a quiet moment.
+  function pauseKlax() {
+    if (klaxPaused || klaxGame.getState().gameOver) return;
+    klaxPaused = true;
+    sfx("start");
+    setMusic("title", levelForScreen("title"));
+  }
+
+  function resumeKlax() {
+    if (!klaxPaused) return;
+    klaxPaused = false;
+    sfx("start");
+    syncMusic();
+  }
+
   function finishBoot() {
     if (bootDone) return;
     bootDone = true;
@@ -605,12 +1033,17 @@
         deconWord.value = params.get("word") || "";
         deconController.search(deconWord.value);
       }
+    } else if (dest === "klax") {
+      if (currentScreen === "decon") exitDecon();
+      if (currentScreen !== "klax" || SCREENS.klax.hidden) launchKlax();
     } else if (dest === "menu" || dest === "about" || dest === "gameover" || dest === "title") {
       if (currentScreen === "decon") exitDecon();
+      if (currentScreen === "klax") exitKlax();
       bootDone = true;
       showScreen(dest);
     } else {
       if (currentScreen === "decon") exitDecon();
+      if (currentScreen === "klax") exitKlax();
       showScreen("title");
     }
   });
@@ -744,6 +1177,12 @@
         window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
         deconController.search(deconWord.value);
       }
+      return;
+    }
+
+    if (currentScreen === "klax") {
+      handleKlaxInput(action);
+      return;
     }
   }
 
@@ -782,15 +1221,30 @@
       if (currentScreen === "oq") return;
       if (currentScreen === "decon") return;
     }
+    if (action === "up" && currentScreen === "klax" && !inputFocused()) klaxUpHeld = true;
     if (!inputFocused()) event.preventDefault();
     handleInput(action);
+  });
+
+  document.addEventListener("keyup", (event) => {
+    if (event.key === "ArrowUp") klaxUpHeld = false;
   });
 
   document.getElementById("nes-controller").addEventListener("pointerdown", (event) => {
     const btn = event.target.closest("[data-input]");
     if (!btn) return;
     event.preventDefault();
-    handleInput(btn.dataset.input);
+    const raw = btn.dataset.input;
+    if (raw === "up" && currentScreen === "klax") klaxUpHeld = true;
+    handleInput(raw);
+  });
+  window.addEventListener("pointerup", (event) => {
+    const btn = event.target && event.target.closest && event.target.closest("[data-input]");
+    const raw = (btn && btn.dataset.input) || "";
+    if (raw === "up") klaxUpHeld = false;
+  });
+  window.addEventListener("pointercancel", () => {
+    klaxUpHeld = false;
   });
 
   // Same visualViewport tracking as dos/app.js / c64/app.js -- a mobile
