@@ -101,6 +101,46 @@ test("morph-game.js: a step's wrong option costs a life and never wins", () => {
   }
 });
 
+// --- deterministicOrder (2026-08) -------------------------------------------
+//
+// Added because tests/test_gb.py::test_morph_worst_case_no_overflow needed
+// to reliably land on ONE specific puzzle (the only one with 3 options) and
+// was doing it by reloading the real page and hoping a real shuffle would
+// eventually land there -- fine at a ~7-puzzle set, a near coin flip once
+// the reuse pass grew the set to ~19 (see morph-puzzles.js's header
+// comment), which is exactly what flaked GB's CI job. `deterministicOrder`
+// lets a caller (a theme's own app.js, gated on navigator.webdriver so this
+// never fires for a real player) skip the shuffle and always draw puzzles
+// in the array's own order -- "the same safe sequence every time" instead
+// of a statistical argument about retry counts.
+test("morph-game.js: deterministicOrder draws puzzles in array order, repeatably, across full cycles", () => {
+  const game = sandbox.window.OqMorphGame.createGame({ puzzles, deterministicOrder: true });
+
+  // Two full passes back to back: deterministicOrder should reproduce the
+  // exact same sequence both times, not just the first (a shuffle-once,
+  // repeat-forever bug would still pass a single-pass check). `state` is
+  // carried ACROSS passes rather than re-drawn at the top of pass 2 -- the
+  // last win of pass 1 already advances into pass 2's first puzzle, so
+  // calling advancePuzzle() again there would skip one.
+  let state = game.start();
+  for (let pass = 0; pass < 2; pass++) {
+    for (let i = 0; i < puzzles.length; i++) {
+      const expected = puzzles[i];
+      assert.equal(state.root, expected.root, `pass ${pass}, draw ${i}: expected puzzle order to match the array`);
+      // Walk this puzzle's correct chain to completion so the next draw
+      // comes from advancePuzzle(), the same way a real playthrough would.
+      for (const step of expected.steps) {
+        const correctIndex = state.options.findIndex((opt) => opt.marker === step.correct.marker);
+        const result = game.choose(correctIndex);
+        // advancePuzzle() draws the NEXT puzzle immediately -- harmless to
+        // call one extra time after the very last draw of the second pass,
+        // since nothing reads `state` again after this loop ends.
+        state = result.outcome === "win" ? game.advancePuzzle() : game.advanceStep();
+      }
+    }
+  }
+});
+
 test("klax-game.js: builds exactly one round per puzzle, using each puzzle's own verified root untouched", () => {
   const realRoots = new Set(puzzles.map((p) => p.root));
   const game = sandbox.window.OqKlaxGame.createGame({ puzzles, riseSpeed: 1 });

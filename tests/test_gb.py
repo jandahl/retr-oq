@@ -6,8 +6,6 @@ and the undocumented Konami code. Dictionary content itself is upstream
 data; we only assert the chrome around it actually opens.
 """
 
-import math
-
 
 def goto_gb(page, base_url, query=""):
     errors = []
@@ -238,34 +236,26 @@ def test_morph_worst_case_no_overflow(browser, base_url):
     size that only looks right on a lucky 2-option puzzle would silently
     clip on this one.
 
-    MORPH! picks a random puzzle on each page load (shared/morph-game.js's
-    own shuffled queue), and only ONE puzzle step in the whole set has 3
-    options -- everything else has 2. A fixed small retry count here was
-    tuned against a ~7-puzzle set; shared/morph-puzzles.js's own reuse pass
-    grew that to ~19 (see its header comment) with no new 3-option steps,
-    which silently turned this into a coin flip (a fixed 15 retries against
-    1-in-19 odds fails close to half the time) -- exactly what made this
-    test flake in CI rather than fail every run. Scaling the retry budget
-    to the real, current puzzle count (read from the page itself, not
-    hardcoded) keeps the failure probability negligible regardless of how
-    many puzzles this file grows to next.
+    MORPH! normally picks a random puzzle on page load (shared/morph-
+    game.js's own shuffled queue), which used to make this test reload the
+    real page and hope to land on the one puzzle (of what's now ~19 --
+    shared/morph-puzzles.js's own reuse pass) that has 3 options -- a
+    statistical argument about retry counts that flaked GB's CI job once
+    the pool grew large enough to make the odds a near coin flip. gb/app.js
+    now passes `deterministicOrder: true` to createGame() whenever
+    navigator.webdriver is set (true under Playwright, the same signal it
+    already uses for morphReduceMotion) -- puzzles[0] in shared/morph-
+    puzzles.js's own array is always the illu/3-option puzzle, so under
+    automated testing it is simply the FIRST thing MORPH! shows, no retries
+    needed. See tests/shared/test_klax_morph_data.mjs's own
+    "deterministicOrder draws puzzles in array order" test for the engine
+    guarantee this relies on.
     """
     context = browser.new_context(viewport=SHORT_VIEWPORT)
     page = context.new_page()
     goto_gb(page, base_url, "?screen=morph")
-    puzzle_count = page.evaluate("() => window.OqMorphPuzzles.puzzles.length")
-    # Retries needed for a <0.1% chance of never rolling a specific 1-in-N
-    # puzzle: N * ln(1000) rounds up comfortably (e.g. N=19 -> ~132), with a
-    # floor so a small puzzle set doesn't undertest.
-    max_retries = max(30, math.ceil(puzzle_count * math.log(1000)))
-    for _ in range(max_retries):
-        if page.locator(".morph-option").count() == 3:
-            break
-        page.reload()
-        page.wait_for_timeout(300)
     assert page.locator(".morph-option").count() == 3, (
-        f"couldn't roll the 3-option puzzle to test against in {max_retries} "
-        f"tries (puzzle set has {puzzle_count} entries)"
+        "expected the deterministic-order puzzle[0] (illu, 3 options) on first load under automation"
     )
     _assert_screen_fits(page, "morph-screen", "morph (3-option worst case)")
     context.close()
