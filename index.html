@@ -32,17 +32,41 @@
     min-height: 100dvh;
     background: var(--bg);
     color: var(--fg);
+    /* .timeline's full-bleed 100vw can be a hair wider than the visible
+       viewport when a scrollbar is present -- clip it here rather than
+       let the whole page grow a stray horizontal scrollbar. */
+    overflow-x: hidden;
   }
 
   body {
+    display: flex;
+    flex-direction: column;
     font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
     padding: var(--space-6) var(--space-4);
     padding-bottom: calc(var(--space-7) + env(safe-area-inset-bottom));
   }
 
   main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
     max-width: 52rem;
     margin: 0 auto;
+  }
+
+  /* Desktop only: let the timeline's wrapper claim the leftover vertical
+     space between header and footer and center the timeline inside it,
+     rather than having the timeline sit right under the header. Mobile
+     keeps normal top-to-bottom flow -- there's rarely leftover space to
+     center into once the (now-vertical) timeline is on screen. */
+  @media (min-width: 641px) {
+    .timeline-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      min-height: 0;
+    }
   }
 
   header {
@@ -65,32 +89,104 @@
     max-width: 36rem;
   }
 
-  .shelf {
+  /* Timeline: a literal line with a dot per callout, centered in the
+     viewport with callouts alternating above/below -- full-bleed (breaks
+     out of <main>'s max-width via the 100vw/left-50%/translateX trick) so
+     it uses the full screen width rather than being boxed to the prose
+     column. The media query below drops the alternation for a single
+     top-to-bottom column on mobile.
+     --tile-half is the distance from the line to a tile's outer edge
+     (icon+text+gaps); it sizes both the timeline's height and the
+     above/below offsets, so if the icon or text block changes, update it
+     here rather than in three separate places. Edge padding is generous
+     on purpose: it's scroll buffer so the first/last item isn't glued to
+     the screen edge when scrolled all the way. */
+  .timeline {
+    --tile-half: 112px;
     list-style: none;
     margin: 0;
     padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-    gap: var(--space-5) var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-6);
+    height: calc(var(--tile-half) * 2 + 24px);
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-inline: max(4rem, calc(50vw - 66px));
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-gutter: stable;
+  }
+
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    background: var(--fg-subtle);
+    opacity: 0.5;
+  }
+
+  .timeline .entry {
+    flex: 0 0 auto;
+    height: 100%;
+  }
+
+  .dot {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--fg-muted);
+    box-shadow: 0 0 0 3px var(--bg);
+    transition: background var(--motion-fast) var(--ease-out);
+    z-index: 1;
+  }
+
+  .tile:hover .dot,
+  .tile:focus-visible .dot {
+    background: var(--fg);
   }
 
   .tile {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+    width: 132px;
+    height: 100%;
+    border-radius: 12px;
+    outline: none;
+    position: relative;
+  }
+
+  .info {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-3) var(--space-2);
-    color: inherit;
-    text-decoration: none;
-    min-height: 44px;
-    border-radius: 12px;
-    outline: none;
+    position: absolute;
+    left: 50%;
+    width: 132px;
+    transform: translateX(-50%);
     transition: transform var(--motion-fast) var(--ease-out);
   }
 
-  .tile:hover,
-  .tile:focus-visible {
-    transform: translateY(-3px);
+  /* Alternate above/below the line: odd entries sit above (info bottom-
+     anchored to the line), even entries sit below (info top-anchored). */
+  .entry:nth-child(odd) .info {
+    bottom: calc(50% + 14px);
+  }
+
+  .entry:nth-child(even) .info {
+    top: calc(50% + 14px);
   }
 
   .tile:focus-visible .icon {
@@ -168,9 +264,85 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tile { transition: none; }
-    .tile:hover, .tile:focus-visible { transform: none; }
+    .dot { transition: none; }
     .blink, .pulse { animation: none; }
+  }
+
+  /* Mobile: the line rotates to vertical, centered in the viewport, with
+     callouts alternating left/right instead of above/below. Same "snug"
+     idea as desktop: because a callout and its neighbor sit on opposite
+     sides, they don't need to clear each other, only the next same-side
+     callout two rows down -- so --row-step (the vertical distance between
+     dots) can run well under one callout's own height without collisions.
+     If .info's content grows taller, grow --row-step too (roughly half
+     the callout's height leaves clearance). */
+  @media (max-width: 640px) {
+    .timeline {
+      --row-step: 104px;
+      flex-direction: column;
+      align-items: center;
+      height: auto;
+      width: 100%;
+      position: static;
+      left: auto;
+      transform: none;
+      padding-inline: 0;
+      padding-block: var(--space-6) var(--space-7);
+      gap: 0;
+      overflow-x: visible;
+      overflow-y: visible;
+    }
+
+    .timeline::before {
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      right: auto;
+      width: 2px;
+      height: auto;
+    }
+
+    .timeline .entry {
+      width: 100%;
+      height: var(--row-step);
+    }
+
+    .tile {
+      width: 100%;
+      height: 100%;
+    }
+
+    .info {
+      top: 50%;
+      bottom: auto;
+      left: auto;
+      width: 132px;
+      transform: translateY(-50%);
+    }
+
+    .entry:nth-child(odd) .info {
+      right: calc(50% + 14px);
+      bottom: auto;
+      align-items: flex-end;
+    }
+
+    .entry:nth-child(even) .info {
+      left: calc(50% + 14px);
+      bottom: auto;
+      align-items: flex-start;
+    }
+
+    .entry:nth-child(odd) .name,
+    .entry:nth-child(odd) .year,
+    .entry:nth-child(odd) .meta {
+      text-align: right;
+    }
+
+    .entry:nth-child(even) .name,
+    .entry:nth-child(even) .year,
+    .entry:nth-child(even) .meta {
+      text-align: left;
+    }
   }
 
   /* --boot-duration is set from hub.js's BOOT_SCREEN_MS -- the fade here
@@ -250,7 +422,9 @@
       <p class="lede">Retro desktops and consoles. Pick a machine.</p>
     </header>
 
-    <ul class="shelf"></ul>
+    <div class="timeline-viewport">
+      <ul class="timeline"></ul>
+    </div>
 
     <footer>
       Fifteen skins for the same dictionary. See the
@@ -261,7 +435,7 @@
   </main>
 
   <script>document.body.classList.remove("no-js");</script>
-  <script src="hub-data.js?v=1"></script>
-  <script src="hub.js?v=1"></script>
+  <script src="hub-data.js?v=3"></script>
+  <script src="hub.js?v=3"></script>
 </body>
 </html>

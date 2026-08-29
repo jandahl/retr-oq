@@ -16,10 +16,19 @@
 
   function renderTile(machine) {
     var li = document.createElement("li");
+    li.className = "entry";
+
     var a = document.createElement("a");
     a.className = "tile";
     a.href = machine.href;
     a.target = "_top";
+
+    var dot = document.createElement("span");
+    dot.className = "dot";
+    dot.setAttribute("aria-hidden", "true");
+
+    var info = document.createElement("span");
+    info.className = "info";
 
     var icon = document.createElement("span");
     icon.className = "icon";
@@ -43,19 +52,44 @@
     meta.className = "meta";
     meta.textContent = machine.meta;
 
-    a.append(icon, name, year, meta);
+    info.append(icon, name, year, meta);
+    a.append(dot, info);
     li.appendChild(a);
     return li;
   }
 
   function renderHub() {
-    var shelf = document.querySelector(".shelf");
+    var timeline = document.querySelector(".timeline");
     var machines = window.OqHubMachines || [];
     var fragment = document.createDocumentFragment();
     machines.forEach(function (machine) {
       fragment.appendChild(renderTile(machine));
     });
-    shelf.appendChild(fragment);
+    timeline.appendChild(fragment);
+    enableWheelPan(timeline);
+  }
+
+  // Desktop-only: the timeline is visually horizontal, so a vertical
+  // mouse-wheel scroll should pan it left/right instead of doing nothing
+  // (the page has no vertical scroll of its own to consume it). Trackpad
+  // horizontal swipes already arrive as deltaX and are left alone -- only
+  // deltaY-dominant events get redirected. Matches the >640px breakpoint
+  // where the CSS switches the timeline from a vertical mobile column to
+  // the horizontal alternating layout.
+  var DESKTOP_QUERY = "(min-width: 641px)";
+
+  function enableWheelPan(timeline) {
+    var isDesktop = window.matchMedia(DESKTOP_QUERY);
+    timeline.addEventListener(
+      "wheel",
+      function (event) {
+        if (!isDesktop.matches) return;
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        event.preventDefault();
+        timeline.scrollLeft += event.deltaY;
+      },
+      { passive: false }
+    );
   }
 
   function runBootScreen() {

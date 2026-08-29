@@ -5,11 +5,25 @@
 // `icon` is the inner markup of a 32x32 viewBox <svg>, hand-pixelled per
 // machine -- keep the palette/geometry comments, they're the only record of
 // what each rect is meant to represent.
+//
+// `category` is a best-fit tag, not an exhaustive taxonomy: "console",
+// "handheld", "workstation" (NeXT, KDE) for the unambiguous cases, split by
+// lineage for the rest -- "redmond" (win31/win98/xp/win7), "cupertino"
+// (mac1984/mac8), and "home-computer" for independent 8/16-bit machines
+// that are neither (dos, c64, amiga -- keyboard/BASIC machines, not
+// cartridge consoles, however tempting that grouping is once the vendor
+// buckets exist). Re-tag freely if a future filter/UI wants a different
+// split.
+// `hasGames` mirrors shared/games.js's matrix: true only where the theme
+// carries a real minigame (kind: "game", e.g. MORPH! or KAL-Q), not a demo
+// or an easter egg -- keep the two in sync when shared/games.js changes.
 window.OqHubMachines = [
   {
     href: "dos/",
     name: "DOS",
     year: "1981",
+    category: "home-computer",
+    hasGames: false,
     meta: "COMMAND.COM",
     iconNote: "IBM PC monitor, EGA black, A: prompt",
     icon: `
@@ -29,6 +43,8 @@ window.OqHubMachines = [
     href: "c64/",
     name: "Commodore 64",
     year: "1982",
+    category: "home-computer",
+    hasGames: true,
     meta: "READY.",
     iconNote: "Breadbin chassis, light-blue-on-blue READY.",
     icon: `
@@ -52,6 +68,8 @@ window.OqHubMachines = [
     href: "mac1984/",
     name: "Mac",
     year: "1984",
+    category: "cupertino",
+    hasGames: false,
     meta: "System 1",
     iconNote: "Compact Mac, 1-bit happy Mac, floppy chin",
     icon: `
@@ -77,6 +95,8 @@ window.OqHubMachines = [
     href: "nes/",
     name: "NES",
     year: "1985",
+    category: "console",
+    hasGames: false,
     meta: "cartridge",
     iconNote: "Gray toaster, cartridge, red power LED",
     icon: `
@@ -95,6 +115,8 @@ window.OqHubMachines = [
     href: "amiga/",
     name: "Amiga",
     year: "1988",
+    category: "home-computer",
+    hasGames: false,
     meta: "Workbench 1.3",
     iconNote: "Workbench 1.3: blue screen, orange window, boing, copper",
     icon: `
@@ -129,6 +151,8 @@ window.OqHubMachines = [
     href: "gb/",
     name: "Game Boy",
     year: "1989",
+    category: "handheld",
+    hasGames: true,
     meta: "DMG-01",
     iconNote: "DMG brick, olive LCD, burgundy A/B",
     icon: `
@@ -148,6 +172,8 @@ window.OqHubMachines = [
     href: "gg/",
     name: "Game Gear",
     year: "1990",
+    category: "handheld",
+    hasGames: false,
     meta: "Master System",
     iconNote: "Landscape handheld, navy SMS VDP, red 1/2",
     icon: `
@@ -169,6 +195,8 @@ window.OqHubMachines = [
     href: "snes/",
     name: "Super Nintendo",
     year: "1991",
+    category: "console",
+    hasGames: true,
     meta: "PAL 16-bit",
     iconNote: "PAL Super Nintendo: rounded gray deck, rainbow pad",
     icon: `
@@ -191,6 +219,8 @@ window.OqHubMachines = [
     href: "win31/",
     name: "Windows 3.1",
     year: "1992",
+    category: "redmond",
+    hasGames: false,
     meta: "Program Manager",
     iconNote: "Teal desktop, 3.1 window: sysmenu on the left, no close X",
     icon: `
@@ -216,6 +246,8 @@ window.OqHubMachines = [
     href: "next/",
     name: "NeXT",
     year: "1995",
+    category: "workstation",
+    hasGames: false,
     meta: "Workspace 3.3",
     iconNote: "Workspace 3.3: gray desktop, black title, right dock",
     icon: `
@@ -240,6 +272,8 @@ window.OqHubMachines = [
     href: "mac8/",
     name: "Mac OS 8.1",
     year: "1998",
+    category: "cupertino",
+    hasGames: false,
     meta: "Platinum",
     iconNote: "Platinum window, striped title bar, color finder",
     icon: `
@@ -263,6 +297,8 @@ window.OqHubMachines = [
     href: "win98/",
     name: "Windows 98",
     year: "1998",
+    category: "redmond",
+    hasGames: false,
     meta: "Start / taskbar",
     iconNote: "Teal desktop, 3D gray window, navy title bar",
     icon: `
@@ -284,6 +320,8 @@ window.OqHubMachines = [
     href: "xp/",
     name: "Windows XP",
     year: "2001",
+    category: "redmond",
+    hasGames: false,
     meta: "Luna Blue",
     iconNote: "Bliss hill, Luna blue chrome",
     icon: `
@@ -304,6 +342,8 @@ window.OqHubMachines = [
     href: "kde/",
     name: "KDE",
     year: "2006",
+    category: "workstation",
+    hasGames: false,
     meta: "Compiz Fusion",
     iconNote: "Plastik window, blue 2006 desktop, Kicker",
     icon: `
@@ -326,6 +366,8 @@ window.OqHubMachines = [
     href: "win7/",
     name: "Windows 7",
     year: "2009",
+    category: "redmond",
+    hasGames: false,
     meta: "Aero glass",
     iconNote: "Harmony swirl, glass title, four-color orb",
     icon: `
