@@ -12,7 +12,7 @@ distance check) for `nes/` `gb/` `gg/` `snes/` `c64/`.
 | Theme | Native resolution | Color depth | Possible gamut | Palette size / count on-screen |
 | --- | --- | --- | --- | --- |
 | `dos/` | 640×480 (VGA text/CGA-ish chrome) | 4-bit (16 color EGA/VGA text) | 16 (EGA) / 256 (VGA 6-bit DAC) | 16 displayed |
-| `c64/` | 320×200 (PAL 320×256 incl. border) | Fixed 4-bit index | **Exactly 16 colors, hardware-fixed** | 16 total, all 16 selectable at once (per pixel from the 16) |
+| `c64/` | Multicolor mode: 160×200 (4×8 pixels/char cell, PAL 320×256 incl. border) — not hi-res 320×200 | Fixed 4-bit index | **Exactly 16 colors, hardware-fixed** | 16 total selectable; per char cell: background + 3 more (1 shared multicolor + 1 per-cell) = 4 colors/cell. Sprites: 8 hardware sprites (24×21), multicolor sprite = 3 colors (2 shared across all sprites + 1 per-sprite), all still drawn from the same 16 |
 | `mac1984/` | 512×342 | 1-bit | 2 (black/white) | 2 |
 | `nes/` | 256×240 (NTSC) | PPU indexed | 64-entry PPU master palette (~54 unique, some duplicates) | 25 on screen at once (4 background palettes × 3 colors + 1 shared backdrop, doubled for sprites) |
 | `amiga/` | 320×256 (PAL low-res) | OCS 12-bit RGB (4-4-4) | 4096 (12-bit OCS) | This theme: fixed 4-pen chrome (`#0055AA` white black `#FF8800`); art uses full 4096-color OCS range |
@@ -50,6 +50,12 @@ distance check) for `nes/` `gb/` `gg/` `snes/` `c64/`.
 - **Game Gear is a pocket Master System**, not a Game Boy Color — its
   gamut is the SMS VDP's 4096, with 32 simultaneous on screen (2×16),
   not a DMG-style fixed 4-shade set.
+- **C64 mode is multicolor, not hi-res.** Hi-res mode is 320×200 with
+  2 colors per 8×8 cell (fg/bg) and no sprite multicolor. This theme
+  (games, MORPH!) needs multicolor: 160×200 effective resolution
+  (pixels doubled horizontally) trading resolution for a 3rd/4th color
+  per cell, plus multicolor sprites — both required for sprite-based
+  gameplay, so use the multicolor numbers above, not hi-res.
 - Sources: `CLAUDE.md` (theme invariants), `README.md` (launch years,
   vendor CSS), `tools/check_palette.py` (which themes declare a canon
   palette and which check applies).
