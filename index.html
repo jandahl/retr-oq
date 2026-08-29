@@ -169,16 +169,6 @@
     top: calc(50% + 14px);
   }
 
-  .entry:nth-child(odd) .tile:hover .info,
-  .entry:nth-child(odd) .tile:focus-visible .info {
-    transform: translateX(-50%) translateY(-3px);
-  }
-
-  .entry:nth-child(even) .tile:hover .info,
-  .entry:nth-child(even) .tile:focus-visible .info {
-    transform: translateX(-50%) translateY(3px);
-  }
-
   .tile:focus-visible .icon {
     box-shadow: 0 0 0 3px var(--bg), 0 0 0 5px var(--ring);
   }
@@ -254,83 +244,83 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .info { transition: none; }
-    .entry:nth-child(odd) .tile:hover .info,
-    .entry:nth-child(odd) .tile:focus-visible .info {
-      transform: translateX(-50%);
-    }
-    .entry:nth-child(even) .tile:hover .info,
-    .entry:nth-child(even) .tile:focus-visible .info {
-      transform: translateX(-50%);
-    }
+    .dot { transition: none; }
     .blink, .pulse { animation: none; }
   }
 
-  /* Mobile: no alternation, no full-bleed -- a single top-to-bottom
-     column, dot on the left, line running down the dot column. Undoes the
-     desktop-only absolute positioning above rather than layering more of
-     it, since row layout (dot beside content) needs normal flow. */
+  /* Mobile: the line rotates to vertical, centered in the viewport, with
+     callouts alternating left/right instead of above/below. Same "snug"
+     idea as desktop: because a callout and its neighbor sit on opposite
+     sides, they don't need to clear each other, only the next same-side
+     callout two rows down -- so --row-step (the vertical distance between
+     dots) can run well under one callout's own height without collisions.
+     If .info's content grows taller, grow --row-step too (roughly half
+     the callout's height leaves clearance). */
   @media (max-width: 640px) {
     .timeline {
+      --row-step: 104px;
       flex-direction: column;
-      align-items: stretch;
+      align-items: center;
       height: auto;
-      width: auto;
+      width: 100%;
       position: static;
       left: auto;
       transform: none;
       padding-inline: 0;
-      padding-block: var(--space-5) var(--space-7);
-      gap: var(--space-5);
+      padding-block: var(--space-6) var(--space-7);
+      gap: 0;
       overflow-x: visible;
+      overflow-y: visible;
     }
 
     .timeline::before {
       top: 0;
       bottom: 0;
-      left: calc(var(--space-2) + 5px);
+      left: 50%;
       right: auto;
       width: 2px;
       height: auto;
     }
 
     .timeline .entry {
-      height: auto;
+      width: 100%;
+      height: var(--row-step);
     }
 
     .tile {
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      gap: var(--space-3);
-      width: auto;
-      height: auto;
-      padding: var(--space-2);
-    }
-
-    .dot {
-      position: static;
-      transform: none;
-      flex: 0 0 auto;
+      width: 100%;
+      height: 100%;
     }
 
     .info {
-      position: static;
-      transform: none;
-      width: auto;
-      align-items: flex-start;
+      top: 50%;
       bottom: auto;
-      top: auto;
+      left: auto;
+      width: 132px;
+      transform: translateY(-50%);
     }
 
-    .entry:nth-child(odd) .tile:hover .info,
-    .entry:nth-child(odd) .tile:focus-visible .info,
-    .entry:nth-child(even) .tile:hover .info,
-    .entry:nth-child(even) .tile:focus-visible .info {
-      transform: none;
+    .entry:nth-child(odd) .info {
+      right: calc(50% + 14px);
+      bottom: auto;
+      align-items: flex-end;
     }
 
-    .name, .year, .meta {
+    .entry:nth-child(even) .info {
+      left: calc(50% + 14px);
+      bottom: auto;
+      align-items: flex-start;
+    }
+
+    .entry:nth-child(odd) .name,
+    .entry:nth-child(odd) .year,
+    .entry:nth-child(odd) .meta {
+      text-align: right;
+    }
+
+    .entry:nth-child(even) .name,
+    .entry:nth-child(even) .year,
+    .entry:nth-child(even) .meta {
       text-align: left;
     }
   }
