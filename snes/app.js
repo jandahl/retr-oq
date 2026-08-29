@@ -657,10 +657,16 @@
   // reusable by any future console theme -- this section is only
   // rendering, input, and pacing, same split as shared/morph-game.js gets
   // from gb/app.js's MORPH! screen. "klax" stays the internal/file-level
-  // codename (genre lineage, matches the shared engine's name); KAL-Q is
-  // only the on-screen title.
+  // codename (genre lineage, matches the shared engine's name). Super KAL-Q!
+  // is the on-screen title on this cart, matching Super OQ!.
+  //
+  // Best-case 1992 cart: Mode 7 + HDMA on the conveyor (PPU), Super FX 2
+  // on the rising sprite (continuous scale + tumble). Stacks stay Mode 1
+  // so morpheme text stays readable. Palette still comes only from
+  // --snes-* (tools/check_palette.py).
   const klaxCanvas = document.getElementById("klax-canvas");
   const klaxCtx = klaxCanvas.getContext("2d");
+  klaxCtx.imageSmoothingEnabled = false;
 
   // The canvas can't reach CSS var(--snes-*) directly -- fillStyle wants a
   // literal color -- so this reads the theme's own declared palette once
@@ -683,6 +689,35 @@
   // pre-toggle colors until a reload. refreshKlaxColors() is the one place
   // that happens -- called once below, and again from toggleRegion().
   let KLAX_C, KLAX_TILE_COLOR, KLAX_CLEAR_COLOR;
+  // Offscreen Mode 7 belt (64x64 riveted metal) and mosaic scratch.
+  // Recreated from KLAX_C so L+R region toggle re-tints the conveyor.
+  let klaxBelt = null;
+  let klaxScratch = null;
+
+  function makeKlaxBelt() {
+    const c = document.createElement("canvas");
+    c.width = 64;
+    c.height = 64;
+    const g = c.getContext("2d");
+    g.fillStyle = KLAX_C.hud;
+    g.fillRect(0, 0, 64, 64);
+    g.fillStyle = KLAX_C.bg;
+    for (let y = 0; y < 64; y += 8) g.fillRect(0, y, 64, 1);
+    g.fillStyle = KLAX_C.padDark;
+    for (let x = 4; x < 64; x += 16) {
+      for (let y = 4; y < 64; y += 16) g.fillRect(x, y, 2, 2);
+    }
+    g.fillStyle = "rgba(255,255,255,.12)";
+    for (let x = 12; x < 64; x += 16) {
+      for (let y = 12; y < 64; y += 16) g.fillRect(x, y, 1, 1);
+    }
+    klaxBelt = c;
+    if (!klaxScratch) {
+      klaxScratch = document.createElement("canvas");
+      klaxScratch.width = 256;
+      klaxScratch.height = 224;
+    }
+  }
 
   function refreshKlaxColors() {
     KLAX_C = {
@@ -721,6 +756,7 @@
       "power-lane": hexToRgbTriplet(KLAX_TILE_COLOR["power-lane"]),
       "power-screen": hexToRgbTriplet(KLAX_TILE_COLOR["power-screen"]),
     };
+    makeKlaxBelt();
   }
   refreshKlaxColors();
 
@@ -729,7 +765,7 @@
   // browser glyph rendering at this resolution.
   const KLAX_FONT = {
     " ": ["....", "....", "....", "....", "...."],
-    ".": ["....", "....", "....", "....", ".#.."],
+    "!": ["..#.", "..#.", "..#.", "....", "..#."],
     "-": ["....", "....", "####", "....", "...."],
     "+": ["....", ".#..", "###.", ".#..", "...."],
     "=": ["....", "####", "....", "####", "...."],
@@ -808,6 +844,9 @@
   const KLAX_FAST_MULT = 2;
   let klaxFlash = 0; // seconds remaining on a match/miss/overflow flash
   let klaxPaused = false;
+  let klaxTumble = 0; // Super FX 2 rotation on the rising sprite
+  let klaxBeltOff = 0; // Mode 7 belt scroll (scanline sample offset)
+  let klaxHold = 0; // beat after catch/miss before the next tile rises
   // Just-cleared cells (a match, or a pill's lane/screen wipe), kept around
   // to draw a pulsing outline over their old spots for a second instead of
   // them just vanishing the instant place()/tryMatch() splices them out of
@@ -844,6 +883,26 @@
     return region.x + c * colW + colW / 2;
   }
 
+  // Mode 7 well: z=1.08 at the paddle (near, top of the well), z=3.35 at
+  // the floor (far, spawn). Inverse-z maps engine y onto scanlines so more
+  // of the CRT is spent near the catcher -- Super Mario Kart / F-Zero
+  // floor math, not a linear trapezoid.
+  const KLAX_Z_NEAR = 1.08;
+  const KLAX_Z_FAR = 3.35;
+  function klaxWellGeom(t) {
+    const z = KLAX_Z_NEAR + t * (KLAX_Z_FAR - KLAX_Z_NEAR);
+    const w = KLAX_WELL.w * (KLAX_Z_NEAR / z);
+    return { z, w, x: 128 - w / 2, colW: w / KLAX_COLS };
+  }
+  function klaxWellFromY(y) {
+    const z = KLAX_Z_FAR + y * (KLAX_Z_NEAR - KLAX_Z_FAR);
+    const inv = 1 / z;
+    const u = (inv - 1 / KLAX_Z_FAR) / (1 / KLAX_Z_NEAR - 1 / KLAX_Z_FAR);
+    const py = KLAX_WELL.bottom + (KLAX_WELL.top - KLAX_WELL.bottom) * u;
+    const t = (py - KLAX_WELL.top) / (KLAX_WELL.bottom - KLAX_WELL.top);
+    return { py, t, ...klaxWellGeom(t) };
+  }
+
   function renderKlax() {
     const state = klaxGame.getState();
     klaxCtx.fillStyle = KLAX_C.bg;
@@ -854,7 +913,7 @@
     // .klax-canvas in style.css (max-height fix) for the actual cause.
     klaxPx(0, 0, 256, 12, KLAX_C.hud);
     klaxText(`SCORE ${state.score}`, 6, 3, 1, KLAX_C.paper, "left");
-    klaxText("KAL-Q", 128, 3, 1, KLAX_C.gold, "center");
+    klaxText("SUPER KAL-Q!", 128, 3, 1, KLAX_C.gold, "center");
     klaxText(`LIVES ${state.lives}`, 250, 3, 1, KLAX_TILE_COLOR["affix-wrong"], "right");
 
     // Color legend: root (gold) + its correct affix (green) is the only
@@ -912,35 +971,59 @@
       }
     }
 
-    // The catch/place line -- floor of the stacking yard, ceiling of the
-    // well -- is the one boundary the paddle ever sits on.
-    klaxPx(KLAX_WELL.x, KLAX_WELL.top, KLAX_WELL.w, 1, KLAX_C.gold);
-    const wellColW = KLAX_WELL.w / KLAX_COLS;
-    klaxPx(KLAX_WELL.x - 2, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, KLAX_C.padDark);
-    klaxPx(KLAX_WELL.x + KLAX_WELL.w, KLAX_WELL.top, 2, KLAX_WELL.bottom - KLAX_WELL.top, KLAX_C.padDark);
-    // Column guides -- only one tile is ever in play, so these faint
-    // dividers are what tells the player which lane it's rising in.
-    for (let c = 1; c < KLAX_COLS; c++) {
-      klaxPx(KLAX_WELL.x + c * wellColW, KLAX_WELL.top, 1, KLAX_WELL.bottom - KLAX_WELL.top, "rgba(255,255,255,.08)");
+    // Mode 7 conveyor -- one affine scanline per CRT row, receding toward
+    // the floor. HDMA would have rewritten Mode 7's scale each line; here
+    // that's klaxWellGeom(t). Super FX 2 does not draw the belt.
+    const nearY = KLAX_WELL.top;
+    const farY = KLAX_WELL.bottom;
+    klaxCtx.imageSmoothingEnabled = false;
+    for (let py = nearY; py < farY; py++) {
+      const t = (py - nearY) / (farY - nearY);
+      const g = klaxWellGeom(t);
+      if (klaxBelt) {
+        const srcY = (Math.floor(py * (0.65 + t * 1.9) + klaxBeltOff) & 63);
+        klaxCtx.drawImage(klaxBelt, 0, srcY, 64, 1, g.x, py, g.w, 1);
+      } else {
+        klaxPx(g.x, py, g.w, 1, KLAX_C.hud);
+      }
+      for (let c = 1; c < KLAX_COLS; c++) {
+        klaxPx(g.x + c * g.colW, py, 1, 1, "rgba(255,255,255,.10)");
+      }
+      klaxPx(g.x, py, 2, 1, KLAX_C.padDark);
+      klaxPx(g.x + g.w - 2, py, 2, 1, KLAX_C.padDark);
     }
+    klaxPx(KLAX_WELL.x, nearY, KLAX_WELL.w, 1, KLAX_C.gold);
+
+    const gNear = klaxWellGeom(0);
+    const wellColW = gNear.colW;
 
     if (state.active) {
-      const cx = klaxColumnX(state.active.col, KLAX_WELL);
-      // y=1 lands the tile's vertical CENTER on the paddle line -- the
-      // catch and the ceiling line up exactly, so a caught tile visibly
-      // stops there instead of drifting past it.
-      const ty = KLAX_WELL.bottom - snapGridY(state.active.y) * (KLAX_WELL.bottom - KLAX_WELL.top) - 11;
+      // Super FX 2 sprite: continuous 1/z scale + X-axis tumble. Not the
+      // three baked LOD sizes a stock SNES cart would have used.
+      const g = klaxWellFromY(state.active.y);
+      const cx = g.x + (state.active.col + 0.5) * g.colW;
+      const flip = Math.max(0.16, Math.abs(Math.cos(klaxTumble)));
+      const tw = Math.max(8, g.colW - 5);
+      const th = Math.max(3, tw * 0.48 * flip);
       const color = KLAX_TILE_COLOR[state.active.kind];
-      klaxBevel(cx - wellColW / 2 + 3, ty, wellColW - 6, 22, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(state.active.marker, cx, ty + 8, 1, KLAX_C.ink, "center");
+      klaxCtx.save();
+      klaxCtx.translate(Math.round(cx), Math.round(g.py));
+      klaxCtx.rotate(Math.sin(klaxTumble) * 0.12);
+      klaxBevel(-tw / 2, -th / 2, tw, th, color, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      if (flip > 0.42 && tw >= 28) {
+        klaxText(state.active.marker, 0, -2, 1, KLAX_C.ink, "center");
+      } else if (flip <= 0.42) {
+        klaxPx(-tw / 2, -1, tw, 2, "rgba(255,255,255,.55)");
+      }
+      klaxCtx.restore();
     }
 
     // Paddle: always sits on the catch/place line -- it's the same spot
     // whether it's about to catch a rising tile or about to push a held
     // one up into the highlighted lane above. Only the highlight above
     // moves; the paddle doesn't need to travel between two positions.
-    const paddleX = klaxColumnX(klaxCol, KLAX_WELL);
-    klaxBevel(paddleX - wellColW / 2 + 2, KLAX_WELL.top - 6, wellColW - 4, 6, KLAX_C.paper, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+    const paddleX = gNear.x + (klaxCol + 0.5) * wellColW;
+    klaxBevel(paddleX - wellColW / 2 + 2, nearY - 6, wellColW - 4, 6, KLAX_C.paper, "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
     if (state.paddle.length) {
       // Up to paddleCap small color-coded chips show the whole LIFO
       // stack at a glance (oldest catch on the left); the readable one
@@ -949,16 +1032,23 @@
       const slotW = (wellColW - 6) / state.paddleCap;
       state.paddle.forEach((tile, i) => {
         const sx = paddleX - wellColW / 2 + 3 + i * slotW;
-        klaxPx(sx, KLAX_WELL.top - 10, slotW - 1, 7, KLAX_TILE_COLOR[tile.kind]);
+        klaxPx(sx, nearY - 10, slotW - 1, 7, KLAX_TILE_COLOR[tile.kind]);
       });
       const top = state.paddle[state.paddle.length - 1];
-      klaxBevel(paddleX - wellColW / 2 + 3, KLAX_WELL.top - 24, wellColW - 6, 12, KLAX_TILE_COLOR[top.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
-      klaxText(top.marker, paddleX, KLAX_WELL.top - 21, 1, KLAX_C.ink, "center");
+      klaxBevel(paddleX - wellColW / 2 + 3, nearY - 24, wellColW - 6, 12, KLAX_TILE_COLOR[top.kind], "rgba(255,255,255,.55)", "rgba(0,0,0,.4)");
+      klaxText(top.marker, paddleX, nearY - 21, 1, KLAX_C.ink, "center");
     }
 
-    if (klaxFlash > 0) {
-      klaxCtx.fillStyle = "rgba(255,255,255,.12)";
-      klaxCtx.fillRect(0, 0, 256, 224);
+    // SNES mosaic register on miss/overflow -- PPU MOSAIC, not a fade.
+    if (klaxFlash > 0 && klaxScratch) {
+      const m = Math.max(1, Math.round(1 + klaxFlash * 18));
+      const sw = Math.max(8, (256 / m) | 0);
+      const sh = Math.max(8, (224 / m) | 0);
+      const sctx = klaxScratch.getContext("2d");
+      sctx.imageSmoothingEnabled = false;
+      sctx.clearRect(0, 0, 256, 224);
+      sctx.drawImage(klaxCanvas, 0, 0, 256, 224, 0, 0, sw, sh);
+      klaxCtx.drawImage(klaxScratch, 0, 0, sw, sh, 0, 0, 256, 224);
     }
 
     // 1-UP callout -- rises slightly and fades out over KLAX_POPUP_S, the
@@ -995,6 +1085,9 @@
     const dt = klaxLastT ? Math.min(0.1, (t - klaxLastT) / 1000) : 0;
     klaxLastT = t;
     if (!klaxPaused) {
+      klaxTumble += dt * 5.5;
+      klaxBeltOff += dt * 22;
+      if (klaxHold > 0) klaxHold -= dt;
       if (klaxFlash > 0) klaxFlash -= dt;
       if (klaxClearAnim) {
         klaxClearAnim.timeLeft -= dt;
@@ -1004,10 +1097,13 @@
         klaxPopup.timeLeft -= dt;
         if (klaxPopup.timeLeft <= 0) klaxPopup = null;
       }
-      const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
-      if (result.event === "caught") {
-        sfx(result.tile.kind === "power-lane" || result.tile.kind === "power-screen" ? "konami" : "move");
-      } else if (result.event === "missed") { klaxFlash = 0.12; sfx("back"); }
+      if (klaxHold <= 0) {
+        const result = klaxGame.tick(dt, klaxCol, klaxUpHeld ? KLAX_FAST_MULT : 1);
+        if (result.event === "caught") {
+          sfx(result.tile.kind === "power-lane" || result.tile.kind === "power-screen" ? "konami" : "move");
+          klaxHold = 0.55;
+        } else if (result.event === "missed") { klaxFlash = 0.12; sfx("back"); klaxHold = 0.7; }
+      }
     }
     renderKlax();
     klaxRaf = requestAnimationFrame(klaxLoop);
@@ -1021,7 +1117,11 @@
 
   function launchKlax() {
     showScreen("klax");
-    if (!klaxGame) klaxGame = window.OqKlaxGame.createGame({ puzzles: window.OqMorphPuzzles.puzzles, columns: KLAX_COLS });
+    if (!klaxGame) klaxGame = window.OqKlaxGame.createGame({
+      puzzles: window.OqMorphPuzzles.puzzles,
+      columns: KLAX_COLS,
+      riseSpeed: 0.12,
+    });
     klaxGame.start();
     klaxCol = 0;
     klaxFlash = 0;
@@ -1029,6 +1129,9 @@
     klaxPopup = null;
     klaxUpHeld = false;
     klaxPaused = false;
+    klaxTumble = 0;
+    klaxBeltOff = 0;
+    klaxHold = 0.45;
     stopKlaxLoop();
     klaxRaf = requestAnimationFrame(klaxLoop);
   }

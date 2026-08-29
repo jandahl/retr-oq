@@ -10,7 +10,7 @@ window.OqGames = {
     { id: "oq", name: "OQ! dictionary", kind: "core" },
     { id: "decon", name: "DECON", kind: "core" },
     { id: "morph", name: "MORPH!", kind: "game" },
-    { id: "kal-q", name: "KAL-Q (Klax)", kind: "game" },
+    { id: "kal-q", name: "Super KAL-Q! (Klax)", kind: "game" },
     { id: "konami", name: "Konami Code", kind: "egg" },
     { id: "doom", name: "DOOM", kind: "egg" },
     { id: "boing", name: "Boing Ball", kind: "demo" },
