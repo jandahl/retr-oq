@@ -6,6 +6,8 @@ and the undocumented Konami code. Dictionary content itself is upstream
 data; we only assert the chrome around it actually opens.
 """
 
+import math
+
 
 def goto_gb(page, base_url, query=""):
     errors = []
@@ -234,16 +236,37 @@ def test_morph_worst_case_no_overflow(browser, base_url):
     """The illu- puzzle's first step (3 options + a 2-line status) is
     MORPH!'s worst case -- verified directly rather than assumed, since a
     size that only looks right on a lucky 2-option puzzle would silently
-    clip on this one."""
+    clip on this one.
+
+    MORPH! picks a random puzzle on each page load (shared/morph-game.js's
+    own shuffled queue), and only ONE puzzle step in the whole set has 3
+    options -- everything else has 2. A fixed small retry count here was
+    tuned against a ~7-puzzle set; shared/morph-puzzles.js's own reuse pass
+    grew that to ~19 (see its header comment) with no new 3-option steps,
+    which silently turned this into a coin flip (a fixed 15 retries against
+    1-in-19 odds fails close to half the time) -- exactly what made this
+    test flake in CI rather than fail every run. Scaling the retry budget
+    to the real, current puzzle count (read from the page itself, not
+    hardcoded) keeps the failure probability negligible regardless of how
+    many puzzles this file grows to next.
+    """
     context = browser.new_context(viewport=SHORT_VIEWPORT)
     page = context.new_page()
     goto_gb(page, base_url, "?screen=morph")
-    for _ in range(15):
+    puzzle_count = page.evaluate("() => window.OqMorphPuzzles.puzzles.length")
+    # Retries needed for a <0.1% chance of never rolling a specific 1-in-N
+    # puzzle: N * ln(1000) rounds up comfortably (e.g. N=19 -> ~132), with a
+    # floor so a small puzzle set doesn't undertest.
+    max_retries = max(30, math.ceil(puzzle_count * math.log(1000)))
+    for _ in range(max_retries):
         if page.locator(".morph-option").count() == 3:
             break
         page.reload()
         page.wait_for_timeout(300)
-    assert page.locator(".morph-option").count() == 3, "couldn't roll the 3-option puzzle to test against"
+    assert page.locator(".morph-option").count() == 3, (
+        f"couldn't roll the 3-option puzzle to test against in {max_retries} "
+        f"tries (puzzle set has {puzzle_count} entries)"
+    )
     _assert_screen_fits(page, "morph-screen", "morph (3-option worst case)")
     context.close()
 
