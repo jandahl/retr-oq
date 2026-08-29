@@ -37,15 +37,25 @@
    *     }>,
    *   }>,
    *   startLives?: number,
+   *   deterministicOrder?: boolean,
    * }} config
    */
-  function createGame({ puzzles, startLives = 3 }) {
+  function createGame({ puzzles, startLives = 3, deterministicOrder = false }) {
     if (!puzzles || puzzles.length === 0) throw new Error("createGame requires at least one puzzle");
 
     // Shuffled draw-without-replacement queue of puzzle indices, refilled
     // (and reshuffled) whenever it runs dry -- guarantees every puzzle is
     // seen once before any repeats, instead of plain Math.random() picks
     // that can repeat the same puzzle back-to-back.
+    //
+    // `deterministicOrder` (opt-in, off by default) skips the shuffle
+    // entirely and always refills in the puzzles array's own order --
+    // "the same safe sequence every time", for a test that needs to reach a
+    // SPECIFIC puzzle without gambling on a real shuffle. A theme's own
+    // app.js is expected to pass this only when it can detect it's under
+    // automated testing (e.g. `navigator.webdriver`, the same signal gb/
+    // app.js already checks for `prefers-reduced-motion` purposes) -- never
+    // in a real player's session, where the shuffle is the point.
     let queue = [];
     let puzzle = null;
     let stepIndex = 0;
@@ -55,7 +65,14 @@
     let score = 0;
 
     function nextPuzzle() {
-      if (queue.length === 0) queue = shuffled(puzzles.map((_, i) => i));
+      if (queue.length === 0) {
+        const indexes = puzzles.map((_, i) => i);
+        // queue.pop() below drains from the END, so a non-shuffled queue is
+        // built reversed -- that's what makes puzzles[0] the FIRST one
+        // actually drawn under deterministicOrder, matching what a reader
+        // of the puzzles array itself would expect "in order" to mean.
+        queue = deterministicOrder ? indexes.reverse() : shuffled(indexes);
+      }
       return puzzles[queue.pop()];
     }
 

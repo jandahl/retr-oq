@@ -43,6 +43,8 @@ jobs:
             gb:
               - "gb/**"
               - "vendor/nes/fonts/**"
+              - "shared/morph-game.js"
+              - "shared/morph-puzzles.js"
               - "tests/test_gb.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
@@ -62,6 +64,7 @@ jobs:
               - "snes/**"
               - "vendor/nes/fonts/**"
               - "vendor/next/fonts/**"
+              - "shared/klax-game.js"
               - "tests/test_snes.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
@@ -71,6 +74,23 @@ jobs:
               - "tests/test_win98.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+
+  shared-node-tests:
+    # shared/morph-puzzles.js, shared/morph-game.js and shared/klax-game.js
+    # (the MORPH!/KLAX minigame engine + data, loaded classic-script-style
+    # by gb/, snes/, and c64/ -- c64/ has no Playwright suite of its own yet)
+    # are pure logic with no DOM, so they get their own fast Node-only job
+    # instead of waiting on the `changes`/Playwright matrix above. Runs on
+    # every push/PR rather than being paths-filtered like the theme matrix:
+    # cheap enough (no browser) that gating it isn't worth the drift risk of
+    # a filter list falling out of sync with which files these tests import.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test tests/shared/*.mjs
 
   test:
     needs: changes

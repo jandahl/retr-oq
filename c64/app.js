@@ -112,6 +112,10 @@
   const morphGame = window.OqMorphGame.createGame({
     puzzles: window.OqMorphPuzzles.puzzles,
     startLives: MORPH_START_LIVES,
+    // Same navigator.webdriver signal gb/app.js's own morphReduceMotion
+    // relies on: under real automated testing (Playwright et al.), give
+    // tests a repeatable puzzle order instead of a real shuffle.
+    deterministicOrder: Boolean(navigator.webdriver),
   });
   let morphSelected = 0;
   let morphOptionCount = 0;

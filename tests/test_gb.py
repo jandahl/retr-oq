@@ -234,16 +234,29 @@ def test_morph_worst_case_no_overflow(browser, base_url):
     """The illu- puzzle's first step (3 options + a 2-line status) is
     MORPH!'s worst case -- verified directly rather than assumed, since a
     size that only looks right on a lucky 2-option puzzle would silently
-    clip on this one."""
+    clip on this one.
+
+    MORPH! normally picks a random puzzle on page load (shared/morph-
+    game.js's own shuffled queue), which used to make this test reload the
+    real page and hope to land on the one puzzle (of what's now ~19 --
+    shared/morph-puzzles.js's own reuse pass) that has 3 options -- a
+    statistical argument about retry counts that flaked GB's CI job once
+    the pool grew large enough to make the odds a near coin flip. gb/app.js
+    now passes `deterministicOrder: true` to createGame() whenever
+    navigator.webdriver is set (true under Playwright, the same signal it
+    already uses for morphReduceMotion) -- puzzles[0] in shared/morph-
+    puzzles.js's own array is always the illu/3-option puzzle, so under
+    automated testing it is simply the FIRST thing MORPH! shows, no retries
+    needed. See tests/shared/test_klax_morph_data.mjs's own
+    "deterministicOrder draws puzzles in array order" test for the engine
+    guarantee this relies on.
+    """
     context = browser.new_context(viewport=SHORT_VIEWPORT)
     page = context.new_page()
     goto_gb(page, base_url, "?screen=morph")
-    for _ in range(15):
-        if page.locator(".morph-option").count() == 3:
-            break
-        page.reload()
-        page.wait_for_timeout(300)
-    assert page.locator(".morph-option").count() == 3, "couldn't roll the 3-option puzzle to test against"
+    assert page.locator(".morph-option").count() == 3, (
+        "expected the deterministic-order puzzle[0] (illu, 3 options) on first load under automation"
+    )
     _assert_screen_fits(page, "morph-screen", "morph (3-option worst case)")
     context.close()
 
