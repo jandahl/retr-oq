@@ -142,3 +142,55 @@ test("klax-game.js: multi-step puzzles (illu/qimmeq/inuuik) never leak a synthes
     );
   }
 });
+
+// --- Reuse/connectivity floor (2026-08) -------------------------------------
+//
+// Design target from the reuse pass that added most of this file's puzzles
+// (see morph-puzzles.js's own header comment): every root and every marker
+// should connect to at least 3 OTHER morphemes in the set -- not by adding
+// new morphemes, but by giving existing ones more combinations. This isn't
+// a rule anyone is required to keep growing forever (a percentage-based
+// version of it is explicitly future work), but it should never silently
+// regress: a puzzle removed, or a puzzle's marker/root typo'd, could quietly
+// drop a morpheme back under the floor with nothing else in this file
+// noticing (the other tests above check correctness of what IS here, not
+// how connected it is). This test only checks the floor holds; it does not
+// enforce HOW a future addition gets there.
+test("reuse floor: every root and marker connects to at least 3 DISTINCT others", () => {
+  // Sets, not counts: two puzzles that both pair the same root with the
+  // same marker (e.g. a second "angut+mi" puzzle added on top of the real
+  // one) must NOT count as two connections -- that would let a future edit
+  // pad an occurrence count back over the floor by duplicating an existing
+  // combination instead of adding a genuinely new one, defeating the whole
+  // point of this test.
+  const connections = new Map();
+  const connect = (a, b) => {
+    if (!connections.has(a)) connections.set(a, new Set());
+    connections.get(a).add(b);
+  };
+  for (const puzzle of puzzles) {
+    // chainHead tracks what a step's marker actually attaches to: the bare
+    // root for the first step, or "root>marker" for a later step in the
+    // same chain -- so a root's own connections are exactly the (distinct)
+    // markers that attach directly to it, and a marker's connections are
+    // exactly the (distinct) roots/chain-heads it's been used with.
+    let chainHead = puzzle.root;
+    for (const step of puzzle.steps) {
+      const marker = step.correct.marker;
+      connect(chainHead, marker);
+      connect(marker, chainHead);
+      chainHead = `${chainHead}>${marker}`;
+    }
+  }
+
+  const MIN_CONNECTIONS = 3;
+  const underFloor = [...connections.entries()]
+    .filter(([key]) => !key.includes(">")) // only roots/markers are the "morphemes" this floor is about, not synthetic chain-heads
+    .filter(([, others]) => others.size < MIN_CONNECTIONS);
+  assert.deepEqual(
+    underFloor,
+    [],
+    `expected every root/marker to connect to >= ${MIN_CONNECTIONS} distinct others; ` +
+      `under the floor: ${underFloor.map(([k, others]) => `${k} (${others.size}: ${[...others].join(",")})`).join("; ")}`,
+  );
+});

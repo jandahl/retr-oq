@@ -13,6 +13,32 @@
 // could pull from), not hand-picked here; this is the "start here, move it
 // later" version.
 //
+// Reuse pass (2026-08): every root and marker below is meant to connect to
+// at least 3 OTHER morphemes in this same file -- not a hardcoded rule
+// anywhere, just a design target for how much a small, hand-picked puzzle
+// set can still show a morpheme recombining, without growing the set of
+// distinct morphemes itself (a percentage-based version of this target is
+// future work, not done here). The batch below was found generatively, not
+// by grepping for existing attestations: for every (root, construction)
+// pair among this file's own roots and markers, jandahl/oq's real engine
+// (docs/public-api.js's buildWord(), the same forward compositor that
+// applies real phonology/sandhi -- not a guessed spelling) was asked
+// whether the sequence is grammatical at all, and if so what it actually
+// builds to. Every kept result was then round-tripped back through
+// analyzeWord() to confirm the analyzer's own top parse recovers the exact
+// intended chain, and checked for `approximate: false` (no unimplemented
+// sandhi rule was silently guessed at). `atuar` (the one verb root) was
+// left out of this pass: none of the noun-oriented constructions below
+// apply to it, so it stayed stuck at 1 connection and was pulled from the
+// set entirely rather than shipped under-connected.
+//
+// A couple of these combinations are grammatically clean but pragmatically
+// unusual sentences to actually say (e.g. "I have a man (with us)",
+// "there's a birthday" as an existence statement) -- flagged inline where
+// that's the case. Grammatical correctness (verified by the engine) and
+// natural idiomaticity are different bars; this batch clears the first for
+// all twelve, and the second for most.
+//
 // Each puzzle is a chain: the player builds a real word one morpheme at a
 // time. Every step offers the correct next morpheme plus one or more other
 // real Kalaallisut morphemes that are wrong for the word THIS ROUND is
@@ -114,25 +140,6 @@
       resultWord: "angutit",
       resultGloss: "men",
     },
-    {
-      root: "atuar",
-      rootGloss: "to read; to study",
-      steps: [
-        {
-          correct: { marker: "voq", type: "suffix", gloss: "statement -- he/she/it" },
-          // "atuarmi" IS a real, verified chain -- just not the noun
-          // locative sense; on a verb stem this -mi is a different
-          // morpheme meaning "what about ___?". Shown with that real
-          // gloss, not the wrong one an earlier draft of this file used.
-          wrong: [
-            { marker: "mi", gloss: "what about ___?" },
-          ],
-        },
-      ],
-      // atuar + voq
-      resultWord: "atuarpoq",
-      resultGloss: "he/she/it reads / is reading",
-    },
     // The three puzzles below were originally supplied directly (root +
     // chain + resultWord) without analyzer access, and flagged pending
     // re-verification. Since re-checked against jandahl/jandahl-custom-KAL-grammarian's
@@ -231,6 +238,241 @@
       // inuuik + sior + soq (-toq allomorph after the r-final derived stem)
       resultWord: "inuuissiortoq",
       resultGloss: "birthday person",
+    },
+    // --- Reuse batch (2026-08): new chains on ALREADY-ESTABLISHED roots and
+    // markers above (illu/nuna/angut/qimmeq/inuk/inuuik x qaq/t/mi/sior/soq/
+    // voq/vunga) -- see this file's header comment for how these were found
+    // (jandahl/oq's buildWord() + a round-trip analyzeWord() check) and why
+    // (every morpheme reaching 3+ connections). Zero new morphemes below;
+    // only new combinations of the ones already used above.
+    {
+      root: "illu",
+      rootGloss: "house, home",
+      steps: [
+        {
+          correct: { marker: "t", type: "suffix", gloss: "plural" },
+          // illu's own qaq puzzle above is real but wrong for this round.
+          wrong: [
+            { marker: "qaq", gloss: "to have a ___" },
+          ],
+        },
+      ],
+      // illu + t
+      resultWord: "illut",
+      resultGloss: "houses",
+    },
+    {
+      root: "illu",
+      rootGloss: "house, home",
+      steps: [
+        {
+          correct: { marker: "sior", type: "affix", gloss: "to look for ___" },
+          // illu's own qaq puzzle above is real but wrong for this round.
+          wrong: [
+            { marker: "qaq", gloss: "to have a ___" },
+          ],
+        },
+        {
+          correct: { marker: "soq", type: "suffix", gloss: "the one who/that ___s" },
+          // Same -toq allomorph pattern as the inuuik+sior+soq entry above
+          // (an r-final derived-verb host takes -toq, spelled here as the
+          // plain "soq" marker label -- see this file's header comment on
+          // marker text vs. resultWord).
+          wrong: [
+            { marker: "t", gloss: "plural" },
+          ],
+        },
+      ],
+      // illu + sior + soq (-toq allomorph)
+      resultWord: "illusiortoq",
+      resultGloss: "house-seeker (one looking for a house)",
+    },
+    {
+      root: "nuna",
+      rootGloss: "land, country, ground",
+      steps: [
+        {
+          correct: { marker: "t", type: "suffix", gloss: "plural" },
+          // nuna's own mi puzzle above is real but wrong for this round.
+          wrong: [
+            { marker: "mi", gloss: "in/at" },
+          ],
+        },
+      ],
+      // nuna + t
+      resultWord: "nunat",
+      resultGloss: "lands, countries",
+    },
+    {
+      root: "nuna",
+      rootGloss: "land, country, ground",
+      steps: [
+        {
+          correct: { marker: "qaq", type: "affix", gloss: "to have a ___" },
+          wrong: [
+            { marker: "mi", gloss: "in/at" },
+          ],
+        },
+        {
+          correct: { marker: "vunga", type: "suffix", gloss: "statement -- I" },
+          wrong: [
+            { marker: "t", gloss: "plural" },
+          ],
+        },
+      ],
+      // nuna + qaq + vunga
+      resultWord: "nunaqarpunga",
+      resultGloss: "I have land",
+    },
+    {
+      root: "angut",
+      rootGloss: "man, male",
+      steps: [
+        {
+          correct: { marker: "mi", type: "suffix", gloss: "in/at" },
+          // angut's own plural puzzle above is real but wrong for this round.
+          wrong: [
+            { marker: "t", gloss: "plural" },
+          ],
+        },
+      ],
+      // angut + mi
+      resultWord: "angutimi",
+      resultGloss: "at/on the man",
+    },
+    {
+      root: "angut",
+      rootGloss: "man, male",
+      steps: [
+        {
+          correct: { marker: "qaq", type: "affix", gloss: "to have a ___" },
+          wrong: [
+            { marker: "t", gloss: "plural" },
+          ],
+        },
+        {
+          correct: { marker: "vunga", type: "suffix", gloss: "statement -- I" },
+          wrong: [
+            { marker: "mi", gloss: "in/at" },
+          ],
+        },
+      ],
+      // angut + qaq + vunga -- grammatical but a pragmatically unusual
+      // thing to actually say (context: counting people present by sex).
+      resultWord: "anguteqarpunga",
+      resultGloss: "I have a man (with us)",
+    },
+    {
+      root: "qimmeq",
+      rootGloss: "dog",
+      steps: [
+        {
+          correct: { marker: "mi", type: "suffix", gloss: "in/at" },
+          // qimmeq's own qaq puzzle above is real but wrong for this round.
+          wrong: [
+            { marker: "qaq", gloss: "to have a ___" },
+          ],
+        },
+      ],
+      // qimmeq + mi
+      resultWord: "qimmermi",
+      resultGloss: "at/on the dog",
+    },
+    {
+      root: "qimmeq",
+      rootGloss: "dog",
+      steps: [
+        {
+          correct: { marker: "sior", type: "affix", gloss: "to travel on/through ___" },
+          wrong: [
+            { marker: "qaq", gloss: "to have a ___" },
+          ],
+        },
+        {
+          correct: { marker: "soq", type: "suffix", gloss: "the one who/that ___s" },
+          wrong: [
+            { marker: "vunga", gloss: "statement -- I" },
+          ],
+        },
+      ],
+      // qimmeq + sior + soq (-toq allomorph)
+      resultWord: "qimmersiortoq",
+      resultGloss: "dog-sledder (one who travels by dog[sled])",
+    },
+    {
+      root: "inuk",
+      rootGloss: "person",
+      steps: [
+        {
+          correct: { marker: "mi", type: "suffix", gloss: "in/at" },
+          // inuk's own plural puzzle above is real but wrong for this round.
+          wrong: [
+            { marker: "t", gloss: "plural" },
+          ],
+        },
+      ],
+      // inuk + mi
+      resultWord: "inummi",
+      resultGloss: "at/on the person",
+    },
+    {
+      root: "inuk",
+      rootGloss: "person",
+      steps: [
+        {
+          correct: { marker: "qaq", type: "affix", gloss: "to have a ___" },
+          wrong: [
+            { marker: "mi", gloss: "in/at" },
+          ],
+        },
+        {
+          correct: { marker: "voq", type: "suffix", gloss: "statement -- he/she/it" },
+          wrong: [
+            { marker: "t", gloss: "plural" },
+          ],
+        },
+      ],
+      // inuk + qaq + voq -- an idiomatic way to say a place is inhabited.
+      resultWord: "inoqarpoq",
+      resultGloss: "there are people (it's inhabited)",
+    },
+    {
+      root: "inuuik",
+      rootGloss: "birthday",
+      steps: [
+        {
+          correct: { marker: "mi", type: "suffix", gloss: "in/at" },
+          // inuuik's own sior puzzle above is real but wrong for this round.
+          wrong: [
+            { marker: "sior", gloss: "to celebrate ___" },
+          ],
+        },
+      ],
+      // inuuik + mi
+      resultWord: "inuuimmi",
+      resultGloss: "at/on the birthday",
+    },
+    {
+      root: "inuuik",
+      rootGloss: "birthday",
+      steps: [
+        {
+          correct: { marker: "qaq", type: "affix", gloss: "to have a ___" },
+          wrong: [
+            { marker: "sior", gloss: "to celebrate ___" },
+          ],
+        },
+        {
+          correct: { marker: "voq", type: "suffix", gloss: "statement -- he/she/it" },
+          wrong: [
+            { marker: "t", gloss: "plural" },
+          ],
+        },
+      ],
+      // inuuik + qaq + voq -- grammatical, and a natural-enough existence
+      // statement ("there's an occasion/a birthday").
+      resultWord: "inuueqarpoq",
+      resultGloss: "there's a birthday/occasion",
     },
   ];
 
