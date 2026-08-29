@@ -133,17 +133,27 @@
       resultWord: "atuarpoq",
       resultGloss: "he/she/it reads / is reading",
     },
-    // The three puzzles below were supplied directly (root + chain +
-    // resultWord), not independently probed against analyzeWordAsync the
-    // way every entry above was -- there was no access to the analyzer to
-    // re-check them here. Kept as given rather than guessed at, but their
-    // wrong-distractor picks reuse only already-established markers from
-    // this same file (mi/t/qaq) on the working assumption that they're
-    // safe here too; that assumption is exactly the kind of thing this
-    // file's own history (see the header comment) says has been wrong
-    // before. Treat these three as pending re-verification, not yet held
-    // to the same bar as the rest of the file.
+    // The three puzzles below were originally supplied directly (root +
+    // chain + resultWord) without analyzer access, and flagged pending
+    // re-verification. Since re-checked against jandahl/jandahl-custom-KAL-grammarian's
+    // verified worked_examples index (kalaallisut_data/worked_examples/verbal.yaml,
+    // nominal.yaml) and stem/affix entries (kalaallisut_data/stems/nouns.yaml,
+    // kalaallisut_data/affixes/denominal_verbs.yaml, kalaallisut_data/affixes/deverbal_nouns.yaml,
+    // kalaallisut_data/endings/verb_moods.yaml) rather than hand-guessed --
+    // that repo's own CLAUDE.md requires every worked-example surface form
+    // to be independently attested in a cited source, so a match there is a
+    // stronger guarantee than this file's own analyzer probe. Their
+    // wrong-distractor picks still reuse only already-established markers
+    // from this same file (mi/t/qaq), which grammarian's stem/affix entries
+    // corroborate as genuinely non-matching for these exact roots.
     {
+      // Verified: grammarian's worked_examples/verbal.yaml "qimmeqarpoq"
+      // entry attests qimmeq + N_qaq_Vb + V_IND_INTR_3SG ("He has a dog.",
+      // Fortescue1984:270/Lybech2020:154/Sadock1980:307/AITWG:§2.4); the
+      // 1sg ending used here (-vunga) is grammarian's own V_IND_INTR_1SG
+      // (kalaallisut_data/endings/verb_moods.yaml), and -qaq + -vunga
+      // surfaces as -qarpunga by the same q-final pattern the 3sg example
+      // already shows (-qaq + -poq -> -qarpoq).
       root: "qimmeq",
       rootGloss: "dog",
       steps: [
@@ -165,6 +175,11 @@
       resultGloss: "I have a dog",
     },
     {
+      // Verified: grammarian's inuk stem entry (kalaallisut_data/stems/nouns.yaml)
+      // cites this exact form as its own pedagogy example ("inuit", absolutive
+      // plural), independently corroborated by AITWG:§6.7/§7.5, Nielsen2012:§4.1.4.2.1,
+      // and Bjornum2012:K4§2c -- inuk is a regular up-declined k-stem whose
+      // final /k/ drops before the vowel-initial plural ending.
       root: "inuk",
       rootGloss: "person",
       steps: [
@@ -180,15 +195,28 @@
       resultGloss: "people, Inuit",
     },
     {
-      // Composition and gloss less certain than the rest of this file --
-      // "inuuik" itself wasn't independently confirmed as a standalone
-      // form, and "sior"/"soq" glosses below are general-knowledge best
-      // guesses, not analyzer-checked for this exact root.
+      // Verified against grammarian (kalaallisut_data/stems/nouns.yaml's
+      // inuuik entry, kalaallisut_data/affixes/denominal_verbs.yaml's
+      // N_siuq_Vb, kalaallisut_data/affixes/deverbal_nouns.yaml's V_soq_N,
+      // and the worked_examples/nominal.yaml "inuuissiortoq" entry).
+      // inuuik ("birthday") is its own stem, distinct from inuk ("person")
+      // despite the visual similarity. -sior/-siuq here carries its
+      // "celebrates N" sense (denominal_verbs.yaml's N_siuq_Vb, attested
+      // for this exact root by grammarian's sibling "inuuissiorpoq" entry,
+      // "He celebrates his birthday" -- Bjornum2012:K9§6, Katersat:lex_33741).
+      // The agentive participle affix surfaces as -toq (not -soq) after
+      // this r-final derived stem -- inuuissiortoq is independently attested
+      // three ways per grammarian's own worked example: katersat-mirror's
+      // lex_8237 ("birthday person"), Oqaatsit1997 and
+      // Oqaasileriffik-KAL-ENG-dicts as their own headword, and
+      // Bjornum2012:K3§5g's example sentence. Display marker kept as "soq"
+      // (this file's own convention of a plain marker label vs. the real
+      // phonologically-adjusted resultWord, same as illu's -voq/-poq above).
       root: "inuuik",
-      rootGloss: "(uncertain -- please confirm)",
+      rootGloss: "birthday",
       steps: [
         {
-          correct: { marker: "sior", type: "affix", gloss: "to deal with / get ___ (uncertain gloss)" },
+          correct: { marker: "sior", type: "affix", gloss: "to celebrate ___" },
           wrong: [
             { marker: "qaq", gloss: "to have a ___" },
           ],
@@ -200,9 +228,9 @@
           ],
         },
       ],
-      // inuuik + sior + soq
+      // inuuik + sior + soq (-toq allomorph after the r-final derived stem)
       resultWord: "inuuissiortoq",
-      resultGloss: "(uncertain -- please confirm)",
+      resultGloss: "birthday person",
     },
   ];
 
