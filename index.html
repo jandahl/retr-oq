@@ -65,13 +65,51 @@
     max-width: 36rem;
   }
 
-  .shelf {
+  /* Timeline: a literal line with a dot per callout. Desktop reads left to
+     right (horizontal scroll if it overflows); the media query below flips
+     it to top-to-bottom for mobile. The line is drawn through the dots via
+     ::before, positioned using the same padding/dot-size math as .dot, so
+     if you resize the dot or the tile's padding, update both. */
+  .timeline {
     list-style: none;
     margin: 0;
     padding: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
-    gap: var(--space-5) var(--space-3);
+    display: flex;
+    gap: var(--space-6) var(--space-5);
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: relative;
+    padding-bottom: var(--space-2);
+  }
+
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--space-3) + 5px);
+    height: 2px;
+    background: var(--fg-subtle);
+    opacity: 0.5;
+  }
+
+  .timeline .entry {
+    flex: 0 0 auto;
+  }
+
+  .dot {
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--fg-muted);
+    box-shadow: 0 0 0 3px var(--bg);
+    transition: background var(--motion-fast) var(--ease-out);
+  }
+
+  .tile:hover .dot,
+  .tile:focus-visible .dot {
+    background: var(--fg);
   }
 
   .tile {
@@ -79,13 +117,23 @@
     flex-direction: column;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-3) var(--space-2);
+    padding: var(--space-3) var(--space-2) var(--space-2);
     color: inherit;
     text-decoration: none;
     min-height: 44px;
+    width: 132px;
     border-radius: 12px;
     outline: none;
+    position: relative;
+    z-index: 1;
     transition: transform var(--motion-fast) var(--ease-out);
+  }
+
+  .info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
   }
 
   .tile:hover,
@@ -173,6 +221,45 @@
     .blink, .pulse { animation: none; }
   }
 
+  /* Mobile: same timeline, rotated -- top to bottom, dot on the left, line
+     running down the dot column instead of across the top. */
+  @media (max-width: 640px) {
+    .timeline {
+      flex-direction: column;
+      overflow-x: visible;
+      gap: var(--space-5);
+      padding-bottom: 0;
+    }
+
+    .timeline::before {
+      top: 0;
+      bottom: 0;
+      left: calc(var(--space-2) + 5px);
+      right: auto;
+      width: 2px;
+      height: auto;
+    }
+
+    .tile {
+      flex-direction: row;
+      align-items: center;
+      width: auto;
+      padding: var(--space-2);
+    }
+
+    .dot {
+      flex: 0 0 auto;
+    }
+
+    .info {
+      align-items: flex-start;
+    }
+
+    .name, .year, .meta {
+      text-align: left;
+    }
+  }
+
   /* --boot-duration is set from hub.js's BOOT_SCREEN_MS -- the fade here
      and the JS timeout that reveals the hub share that one number. */
   #boot-screen {
@@ -250,7 +337,7 @@
       <p class="lede">Retro desktops and consoles. Pick a machine.</p>
     </header>
 
-    <ul class="shelf"></ul>
+    <ul class="timeline"></ul>
 
     <footer>
       Fifteen skins for the same dictionary. See the
@@ -261,7 +348,7 @@
   </main>
 
   <script>document.body.classList.remove("no-js");</script>
-  <script src="hub-data.js?v=1"></script>
-  <script src="hub.js?v=1"></script>
+  <script src="hub-data.js?v=2"></script>
+  <script src="hub.js?v=2"></script>
 </body>
 </html>

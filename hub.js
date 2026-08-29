@@ -16,10 +16,19 @@
 
   function renderTile(machine) {
     var li = document.createElement("li");
+    li.className = "entry";
+
     var a = document.createElement("a");
     a.className = "tile";
     a.href = machine.href;
     a.target = "_top";
+
+    var dot = document.createElement("span");
+    dot.className = "dot";
+    dot.setAttribute("aria-hidden", "true");
+
+    var info = document.createElement("span");
+    info.className = "info";
 
     var icon = document.createElement("span");
     icon.className = "icon";
@@ -43,19 +52,20 @@
     meta.className = "meta";
     meta.textContent = machine.meta;
 
-    a.append(icon, name, year, meta);
+    info.append(icon, name, year, meta);
+    a.append(dot, info);
     li.appendChild(a);
     return li;
   }
 
   function renderHub() {
-    var shelf = document.querySelector(".shelf");
+    var timeline = document.querySelector(".timeline");
     var machines = window.OqHubMachines || [];
     var fragment = document.createDocumentFragment();
     machines.forEach(function (machine) {
       fragment.appendChild(renderTile(machine));
     });
-    shelf.appendChild(fragment);
+    timeline.appendChild(fragment);
   }
 
   function runBootScreen() {

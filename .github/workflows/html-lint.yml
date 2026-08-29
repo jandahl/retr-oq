@@ -50,7 +50,7 @@ jobs:
 
       # Generalized over however many entries hub-data.js has -- no fixed
       # theme list to keep in sync. hub.js renders index.html's tiles from
-      # that data at runtime (see index.html's empty <ul class="shelf">),
+      # that data at runtime (see index.html's empty <ul class="timeline">),
       # so this reads hub-data.js's `href` fields directly rather than
       # scraping rendered markup. Requires each to resolve to a real
       # theme/ dir with its own index.html, and to be a directory
