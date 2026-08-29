@@ -416,8 +416,16 @@ html, body {
   /* .c64-app's own border is --c64-lightblue -- the BASIC screen's
      identity color, right for DICT/MORPH's program-editor chrome but not
      for a real game's picture, which this theme's own reference cabinet
-     frames in black instead. */
+     frames in black instead. Same reasoning for the header/footer bars
+     below: DICT/MORPH's lightblue-bar-with-blue-text is BASIC program-
+     editor chrome, and KALQ isn't a BASIC listing once it's RUN -- every
+     bit of blue/lightblue is gone from this screen now, border included. */
   border-color: var(--c64-black);
+}
+#kalq-app .c64-app-header,
+#kalq-app .c64-app-footer {
+  background: var(--c64-black);
+  color: var(--c64-white);
 }
 .c64-app-results.c64-kalq-results {
   display: flex;
