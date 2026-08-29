@@ -32,6 +32,10 @@
     min-height: 100dvh;
     background: var(--bg);
     color: var(--fg);
+    /* .timeline's full-bleed 100vw can be a hair wider than the visible
+       viewport when a scrollbar is present -- clip it here rather than
+       let the whole page grow a stray horizontal scrollbar. */
+    overflow-x: hidden;
   }
 
   body {
@@ -65,21 +69,35 @@
     max-width: 36rem;
   }
 
-  /* Timeline: a literal line with a dot per callout. Desktop reads left to
-     right (horizontal scroll if it overflows); the media query below flips
-     it to top-to-bottom for mobile. The line is drawn through the dots via
-     ::before, positioned using the same padding/dot-size math as .dot, so
-     if you resize the dot or the tile's padding, update both. */
+  /* Timeline: a literal line with a dot per callout, centered in the
+     viewport with callouts alternating above/below -- full-bleed (breaks
+     out of <main>'s max-width via the 100vw/left-50%/translateX trick) so
+     it uses the full screen width rather than being boxed to the prose
+     column. The media query below drops the alternation for a single
+     top-to-bottom column on mobile.
+     --tile-half is the distance from the line to a tile's outer edge
+     (icon+text+gaps); it sizes both the timeline's height and the
+     above/below offsets, so if the icon or text block changes, update it
+     here rather than in three separate places. Edge padding is generous
+     on purpose: it's scroll buffer so the first/last item isn't glued to
+     the screen edge when scrolled all the way. */
   .timeline {
+    --tile-half: 112px;
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
-    gap: var(--space-6) var(--space-5);
+    align-items: center;
+    gap: var(--space-6);
+    height: calc(var(--tile-half) * 2 + 24px);
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-inline: max(4rem, calc(50vw - 66px));
     overflow-x: auto;
     overflow-y: hidden;
-    position: relative;
-    padding-bottom: var(--space-2);
+    scrollbar-gutter: stable;
   }
 
   .timeline::before {
@@ -87,7 +105,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: calc(var(--space-3) + 5px);
+    top: 50%;
     height: 2px;
     background: var(--fg-subtle);
     opacity: 0.5;
@@ -95,16 +113,22 @@
 
   .timeline .entry {
     flex: 0 0 auto;
+    height: 100%;
   }
 
   .dot {
     display: block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
     width: 10px;
     height: 10px;
+    transform: translate(-50%, -50%);
     border-radius: 50%;
     background: var(--fg-muted);
     box-shadow: 0 0 0 3px var(--bg);
     transition: background var(--motion-fast) var(--ease-out);
+    z-index: 1;
   }
 
   .tile:hover .dot,
@@ -113,20 +137,14 @@
   }
 
   .tile {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-3) var(--space-2) var(--space-2);
+    display: block;
     color: inherit;
     text-decoration: none;
-    min-height: 44px;
     width: 132px;
+    height: 100%;
     border-radius: 12px;
     outline: none;
     position: relative;
-    z-index: 1;
-    transition: transform var(--motion-fast) var(--ease-out);
   }
 
   .info {
@@ -134,11 +152,31 @@
     flex-direction: column;
     align-items: center;
     gap: var(--space-2);
+    position: absolute;
+    left: 50%;
+    width: 132px;
+    transform: translateX(-50%);
+    transition: transform var(--motion-fast) var(--ease-out);
   }
 
-  .tile:hover,
-  .tile:focus-visible {
-    transform: translateY(-3px);
+  /* Alternate above/below the line: odd entries sit above (info bottom-
+     anchored to the line), even entries sit below (info top-anchored). */
+  .entry:nth-child(odd) .info {
+    bottom: calc(50% + 14px);
+  }
+
+  .entry:nth-child(even) .info {
+    top: calc(50% + 14px);
+  }
+
+  .entry:nth-child(odd) .tile:hover .info,
+  .entry:nth-child(odd) .tile:focus-visible .info {
+    transform: translateX(-50%) translateY(-3px);
+  }
+
+  .entry:nth-child(even) .tile:hover .info,
+  .entry:nth-child(even) .tile:focus-visible .info {
+    transform: translateX(-50%) translateY(3px);
   }
 
   .tile:focus-visible .icon {
@@ -216,19 +254,35 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tile { transition: none; }
-    .tile:hover, .tile:focus-visible { transform: none; }
+    .info { transition: none; }
+    .entry:nth-child(odd) .tile:hover .info,
+    .entry:nth-child(odd) .tile:focus-visible .info {
+      transform: translateX(-50%);
+    }
+    .entry:nth-child(even) .tile:hover .info,
+    .entry:nth-child(even) .tile:focus-visible .info {
+      transform: translateX(-50%);
+    }
     .blink, .pulse { animation: none; }
   }
 
-  /* Mobile: same timeline, rotated -- top to bottom, dot on the left, line
-     running down the dot column instead of across the top. */
+  /* Mobile: no alternation, no full-bleed -- a single top-to-bottom
+     column, dot on the left, line running down the dot column. Undoes the
+     desktop-only absolute positioning above rather than layering more of
+     it, since row layout (dot beside content) needs normal flow. */
   @media (max-width: 640px) {
     .timeline {
       flex-direction: column;
-      overflow-x: visible;
+      align-items: stretch;
+      height: auto;
+      width: auto;
+      position: static;
+      left: auto;
+      transform: none;
+      padding-inline: 0;
+      padding-block: var(--space-5) var(--space-7);
       gap: var(--space-5);
-      padding-bottom: 0;
+      overflow-x: visible;
     }
 
     .timeline::before {
@@ -240,19 +294,40 @@
       height: auto;
     }
 
+    .timeline .entry {
+      height: auto;
+    }
+
     .tile {
+      display: flex;
       flex-direction: row;
       align-items: center;
+      gap: var(--space-3);
       width: auto;
+      height: auto;
       padding: var(--space-2);
     }
 
     .dot {
+      position: static;
+      transform: none;
       flex: 0 0 auto;
     }
 
     .info {
+      position: static;
+      transform: none;
+      width: auto;
       align-items: flex-start;
+      bottom: auto;
+      top: auto;
+    }
+
+    .entry:nth-child(odd) .tile:hover .info,
+    .entry:nth-child(odd) .tile:focus-visible .info,
+    .entry:nth-child(even) .tile:hover .info,
+    .entry:nth-child(even) .tile:focus-visible .info {
+      transform: none;
     }
 
     .name, .year, .meta {
@@ -348,7 +423,7 @@
   </main>
 
   <script>document.body.classList.remove("no-js");</script>
-  <script src="hub-data.js?v=2"></script>
-  <script src="hub.js?v=2"></script>
+  <script src="hub-data.js?v=3"></script>
+  <script src="hub.js?v=3"></script>
 </body>
 </html>

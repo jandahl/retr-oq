@@ -66,6 +66,30 @@
       fragment.appendChild(renderTile(machine));
     });
     timeline.appendChild(fragment);
+    enableWheelPan(timeline);
+  }
+
+  // Desktop-only: the timeline is visually horizontal, so a vertical
+  // mouse-wheel scroll should pan it left/right instead of doing nothing
+  // (the page has no vertical scroll of its own to consume it). Trackpad
+  // horizontal swipes already arrive as deltaX and are left alone -- only
+  // deltaY-dominant events get redirected. Matches the >640px breakpoint
+  // where the CSS switches the timeline from a vertical mobile column to
+  // the horizontal alternating layout.
+  var DESKTOP_QUERY = "(min-width: 641px)";
+
+  function enableWheelPan(timeline) {
+    var isDesktop = window.matchMedia(DESKTOP_QUERY);
+    timeline.addEventListener(
+      "wheel",
+      function (event) {
+        if (!isDesktop.matches) return;
+        if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+        event.preventDefault();
+        timeline.scrollLeft += event.deltaY;
+      },
+      { passive: false }
+    );
   }
 
   function runBootScreen() {

@@ -6,11 +6,14 @@
 // machine -- keep the palette/geometry comments, they're the only record of
 // what each rect is meant to represent.
 //
-// `category` is a best-fit tag, not an exhaustive taxonomy -- "desktop"
-// covers home computers and desktop OSes that are neither a console, a
-// handheld, nor a workstation proper. Some calls are judgment calls (c64
-// and amiga are home computers, tagged "desktop" here, not "workstation");
-// re-tag freely if a future filter/UI wants a different split.
+// `category` is a best-fit tag, not an exhaustive taxonomy: "console",
+// "handheld", "workstation" (NeXT, KDE) for the unambiguous cases, split by
+// lineage for the rest -- "redmond" (win31/win98/xp/win7), "cupertino"
+// (mac1984/mac8), and "home-computer" for independent 8/16-bit machines
+// that are neither (dos, c64, amiga -- keyboard/BASIC machines, not
+// cartridge consoles, however tempting that grouping is once the vendor
+// buckets exist). Re-tag freely if a future filter/UI wants a different
+// split.
 // `hasGames` mirrors shared/games.js's matrix: true only where the theme
 // carries a real minigame (kind: "game", e.g. MORPH! or KAL-Q), not a demo
 // or an easter egg -- keep the two in sync when shared/games.js changes.
@@ -19,7 +22,7 @@ window.OqHubMachines = [
     href: "dos/",
     name: "DOS",
     year: "1981",
-    category: "desktop",
+    category: "home-computer",
     hasGames: false,
     meta: "COMMAND.COM",
     iconNote: "IBM PC monitor, EGA black, A: prompt",
@@ -40,7 +43,7 @@ window.OqHubMachines = [
     href: "c64/",
     name: "Commodore 64",
     year: "1982",
-    category: "desktop",
+    category: "home-computer",
     hasGames: true,
     meta: "READY.",
     iconNote: "Breadbin chassis, light-blue-on-blue READY.",
@@ -65,7 +68,7 @@ window.OqHubMachines = [
     href: "mac1984/",
     name: "Mac",
     year: "1984",
-    category: "desktop",
+    category: "cupertino",
     hasGames: false,
     meta: "System 1",
     iconNote: "Compact Mac, 1-bit happy Mac, floppy chin",
@@ -112,7 +115,7 @@ window.OqHubMachines = [
     href: "amiga/",
     name: "Amiga",
     year: "1988",
-    category: "desktop",
+    category: "home-computer",
     hasGames: false,
     meta: "Workbench 1.3",
     iconNote: "Workbench 1.3: blue screen, orange window, boing, copper",
@@ -216,7 +219,7 @@ window.OqHubMachines = [
     href: "win31/",
     name: "Windows 3.1",
     year: "1992",
-    category: "desktop",
+    category: "redmond",
     hasGames: false,
     meta: "Program Manager",
     iconNote: "Teal desktop, 3.1 window: sysmenu on the left, no close X",
@@ -269,7 +272,7 @@ window.OqHubMachines = [
     href: "mac8/",
     name: "Mac OS 8.1",
     year: "1998",
-    category: "desktop",
+    category: "cupertino",
     hasGames: false,
     meta: "Platinum",
     iconNote: "Platinum window, striped title bar, color finder",
@@ -294,7 +297,7 @@ window.OqHubMachines = [
     href: "win98/",
     name: "Windows 98",
     year: "1998",
-    category: "desktop",
+    category: "redmond",
     hasGames: false,
     meta: "Start / taskbar",
     iconNote: "Teal desktop, 3D gray window, navy title bar",
@@ -317,7 +320,7 @@ window.OqHubMachines = [
     href: "xp/",
     name: "Windows XP",
     year: "2001",
-    category: "desktop",
+    category: "redmond",
     hasGames: false,
     meta: "Luna Blue",
     iconNote: "Bliss hill, Luna blue chrome",
@@ -363,7 +366,7 @@ window.OqHubMachines = [
     href: "win7/",
     name: "Windows 7",
     year: "2009",
-    category: "desktop",
+    category: "redmond",
     hasGames: false,
     meta: "Aero glass",
     iconNote: "Harmony swirl, glass title, four-color orb",
