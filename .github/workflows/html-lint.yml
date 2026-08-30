@@ -20,13 +20,26 @@ on:
   pull_request: {}
 
 env:
-  PAGES: "index.html dos/index.html c64/index.html mac1984/index.html"
+  PAGES: "index.html dos/index.html c64/index.html mac1984/index.html win31/index.html"
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CSS lint dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: CSS syntax validate
+        run: python3 tools/check_css.py $(find . -type f -name 'style.css' -not -path './vendor/*')
+
+      - name: JavaScript syntax validate
+        run: find . -type f -name '*.js' -not -path './vendor/*' -print0 | xargs -0 -n1 node --check
 
       - name: HTML validate
         run: npx --yes html-validate $PAGES

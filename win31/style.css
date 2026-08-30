@@ -383,6 +383,18 @@ a:active {
   background: var(--white);
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Program Manager's client field is white below the menu bar; group windows
    use the same white client field edge-to-edge rather than exposing the
    gray frame color around a short icon grid. */

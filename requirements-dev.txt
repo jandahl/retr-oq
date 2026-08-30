@@ -1,0 +1,2 @@
+# CSS syntax linting for every hand-written theme stylesheet.
+tinycss2>=1.3,<2
