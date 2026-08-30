@@ -40,7 +40,6 @@
   --dk: #000000;
   --navy: #000080;
   --teal: #008080;
-  --teal-dither: #007070;
   --inactive: #808080;
   --text: #000000;
   --white: #ffffff;
@@ -78,6 +77,13 @@ html, body {
   padding: 0;
   height: 100%;
   overflow: hidden;
+}
+
+/* Like the Mac II theme, give the fixed-pixel CRT artwork a true 2x layout
+   scale on roomy displays. Keeping phones at 1x prevents the shell from
+   becoming wider than the viewport. */
+@media (min-width: 700px) {
+  html { zoom: 2; }
 }
 
 .boot-screen {
@@ -134,16 +140,9 @@ a:active {
 .desktop {
   position: fixed;
   inset: 0;
-  /* Classic 3.1 teal, with a 2-color dither so it doesn't read as Win98's
-     flat #008080 wallpaper. */
+  /* Classic 3.1 teal. The original desktop field is flat, not a noisy
+     checkerboard texture. */
   background-color: var(--teal);
-  background-image:
-    linear-gradient(45deg, var(--teal-dither) 25%, transparent 25%),
-    linear-gradient(-45deg, var(--teal-dither) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, var(--teal-dither) 75%),
-    linear-gradient(-45deg, transparent 75%, var(--teal-dither) 75%);
-  background-size: 2px 2px;
-  background-position: 0 0, 0 1px, 1px -1px, -1px 0;
   overflow: hidden;
 }
 
@@ -375,11 +374,21 @@ a:active {
 
 .group-icons {
   display: flex;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   align-content: flex-start;
   gap: 12px 8px;
   padding: 8px 4px;
   min-height: 8rem;
+  background: var(--white);
+}
+
+/* Program Manager's client field is white below the menu bar; group windows
+   use the same white client field edge-to-edge rather than exposing the
+   gray frame color around a short icon grid. */
+#win-group-main .window-body,
+#win-group-acc .window-body,
+#win-group-games .window-body {
   background: var(--white);
 }
 
@@ -625,7 +634,6 @@ a:active {
 .solitaire-card.selected { outline:2px dotted #ffff00; outline-offset:1px; }
 .solitaire-hint { margin:5px 0 0; color:#fff; font-size:9px; }
 .solitaire-empty { width:31px; height:42px; border:1px dotted #80c080; }
-}
 
 /* ---------- Dialogs ---------- */
 
@@ -636,7 +644,7 @@ a:active {
   align-items: center;
   justify-content: center;
   background: transparent;
-  z-index: 2000;
+  z-index: 4000;
 }
 
 .win31-dialog-overlay[hidden] { display: none; }

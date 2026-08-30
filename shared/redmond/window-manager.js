@@ -68,8 +68,9 @@
   // win7/app.js each pass their own values (see those files' own comments)
   // so a snappy flat-chrome minimize doesn't have to look like Aero's
   // softer one. Unset fields fall back to the defaults below.
-  function initWindowManager({ desktop, taskbarWindows, windows, resizeHandleSelector, minWidth, minHeight, onOpen, routeOpen, routeClose, animation }) {
+  function initWindowManager({ desktop, taskbarWindows, windows, resizeHandleSelector, minWidth, minHeight, onOpen, routeOpen, routeClose, animation, pointerScale = 1 }) {
     let zTop = 10;
+    const pointerScaleValue = Number(pointerScale) || 1;
 
     // Real Windows never showed a browser's own right-click menu over the
     // desktop -- capture it here for every Redmond theme so the illusion
@@ -467,10 +468,8 @@
         if (target.classList.contains("maximized")) return;
         if (event.target.closest("button, a, input, select, textarea")) return;
         activePointerId = event.pointerId;
-        const rect = target.getBoundingClientRect();
-        const parentRect = target.offsetParent.getBoundingClientRect();
-        origX = rect.left - parentRect.left;
-        origY = rect.top - parentRect.top;
+        origX = target.offsetLeft;
+        origY = target.offsetTop;
         startX = event.clientX;
         startY = event.clientY;
         handle.setPointerCapture(event.pointerId);
@@ -479,8 +478,8 @@
 
       function onPointerMove(event) {
         if (event.pointerId !== activePointerId) return;
-        const dx = event.clientX - startX;
-        const dy = event.clientY - startY;
+        const dx = (event.clientX - startX) / pointerScaleValue;
+        const dy = (event.clientY - startY) / pointerScaleValue;
         target.style.left = `${Math.max(0, origX + dx)}px`;
         target.style.top = `${Math.max(0, origY + dy)}px`;
       }
@@ -512,12 +511,10 @@
         if (activePointerId !== null) return;
         if (target.classList.contains("maximized")) return;
         activePointerId = event.pointerId;
-        const rect = target.getBoundingClientRect();
-        const parentRect = target.offsetParent.getBoundingClientRect();
-        startW = rect.width;
-        startH = rect.height;
-        startTop = rect.top - parentRect.top;
-        startLeft = rect.left - parentRect.left;
+        startW = target.offsetWidth;
+        startH = target.offsetHeight;
+        startTop = target.offsetTop;
+        startLeft = target.offsetLeft;
         startX = event.clientX;
         startY = event.clientY;
         handle.setPointerCapture(event.pointerId);
@@ -527,8 +524,8 @@
 
       function onPointerMove(event) {
         if (event.pointerId !== activePointerId) return;
-        const dx = event.clientX - startX;
-        const dy = event.clientY - startY;
+        const dx = (event.clientX - startX) / pointerScaleValue;
+        const dy = (event.clientY - startY) / pointerScaleValue;
 
         if (dir.includes("e")) {
           target.style.width = `${Math.max(minW, startW + dx)}px`;

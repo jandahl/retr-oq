@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 3.1 Program Manager</title>
-<link rel="stylesheet" href="style.css?v=7" />
+<link rel="stylesheet" href="style.css?v=11" />
 </head>
 <body>
   <section class="boot-screen" id="boot-screen" aria-label="Windows 3.1 startup" aria-live="polite">
@@ -392,9 +392,9 @@
   </div>
 
   <div class="win31-dialog-overlay" id="exit-overlay" hidden>
-    <section class="win31-dialog">
+    <section class="win31-dialog" role="alertdialog" aria-modal="true" aria-labelledby="exit-dialog-title">
       <div class="title-bar">
-        <div class="title-bar-text">Exit Windows</div>
+        <div class="title-bar-text" id="exit-dialog-title">Exit Windows</div>
       </div>
       <div class="win31-dialog-body">
         <p>This will end your Windows session.</p>
@@ -462,9 +462,9 @@
   <script src="../shared/dict-source.js"></script>
   <script src="../shared/hyphenation.js"></script>
   <script src="../shared/router.js"></script>
-  <script src="../shared/redmond/window-manager.js"></script>
+  <script src="../shared/redmond/window-manager.js?v=2"></script>
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
