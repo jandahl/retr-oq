@@ -67,7 +67,7 @@ html, body {
 
 button:not(:disabled),
 [role="button"]:not(:disabled) {
-  cursor: pointer;
+  cursor: default;
 }
 
 .nes-shell {
@@ -609,4 +609,13 @@ html.is-keyboard .nes-tv {
 @media (prefers-reduced-motion: reduce) {
   .boot-flash { display: none; }
   .boot-kicker, .boot-pak { animation: none; }
+}
+
+/* Override NES.css's built-in pointer-hand cursor images: this repo's cursor
+   rule is arrow-everywhere, not pointer. */
+.nes-btn,
+.nes-pointer,
+.nes-radio,
+.nes-checkbox {
+  cursor: default;
 }

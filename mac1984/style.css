@@ -3,6 +3,11 @@
    file only covers what that framework doesn't: floating .window as a
    desktop object, the menu bar, desktop icons, and the boot screen. */
 
+:root {
+  /* Classic Mac System 1-bit arrow: black outline, white fill, sharp edges. */
+  --cursor-arrow: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGQ9Ik0yIDEgTDIgMTMgTDQuNSAxMC41IEw2IDE1IEw3LjcgMTQuMyBMNi4zIDEwIEwxMCAxMCBaIiBmaWxsPSIjZmZmIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPgo=") 2 1, default;
+}
+
 html,
 body {
   /* exact 2x2px dither (1 black px per 4) matching the real System 1
@@ -163,7 +168,7 @@ html, body {
   font-family: Chicago_12, Chicago, Geneva, ui-sans-serif, sans-serif;
   font-size: 0.8rem;
   color: #000000;
-  cursor: pointer;
+  cursor: var(--cursor-arrow);
   text-align: center;
 }
 .desktop-icon svg {
@@ -208,7 +213,7 @@ html, body {
   color: #000000;
   font: inherit;
   font-size: 1rem;
-  cursor: pointer;
+  cursor: var(--cursor-arrow);
 }
 #power-btn[hidden] {
   display: none; /* beats #power-btn's own display:flex, which is equal specificity but comes first */

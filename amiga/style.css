@@ -33,6 +33,8 @@
   --wb-screen: 44px;
   --wb-title: 28px;
   --wb-gadget: 28px;
+  /* Workbench 1.3 pointer: black/white arrow, orange tip pixel — 4-pen palette only. */
+  --cursor-arrow: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGQ9Ik0yIDEgTDIgMTQgTDUuMiAxMS4zIEw3LjMgMTYgTDkuNCAxNSBMNy40IDEwLjUgTDEyIDEwLjUgWiIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSIxIiB5PSIxIiB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjRkY4ODAwIi8+PC9zdmc+Cg==") 2 1, default;
 }
 
 html, body {
@@ -58,7 +60,7 @@ button,
 .desktop-icon,
 [role="menu-item"],
 .gadget {
-  cursor: default;
+  cursor: var(--cursor-arrow);
 }
 
 /* ---------- Screen bar ---------- */

@@ -29,6 +29,8 @@
 }
 
 :root {
+  /* KDE Plastik-style pointer: black arrow with white halo, no K logo. */
+  --cursor-arrow: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBkPSJNMiAxIEwyIDE0LjUgTDUuMiAxMS4zIEw3LjMgMTYgTDkuNCAxNSBMNy40IDEwLjUgTDEyIDEwLjUgWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIuNiIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjxwYXRoIGQ9Ik0yIDEgTDIgMTQuNSBMNS4yIDExLjMgTDcuMyAxNiBMOS40IDE1IEw3LjQgMTAuNSBMMTIgMTAuNSBaIiBmaWxsPSIjMTExIi8+PC9zdmc+Cg==") 2 1, default;
   --kde-face: #ececec;
   --kde-face-dark: #cfcfd4;
   --kde-hi: #ffffff;
@@ -61,7 +63,7 @@ a:active,
 .home-item,
 .k-menu-btn,
 .task-btn {
-  cursor: default;
+  cursor: var(--cursor-arrow);
 }
 
 html, body {
@@ -82,7 +84,7 @@ html, body {
   font-family: var(--font);
   color: var(--kde-text);
   background: #0a2744;
-  cursor: default;
+  cursor: var(--cursor-arrow);
 }
 
 .desktop {
@@ -184,7 +186,7 @@ html, body {
   background: transparent;
   border: none;
   color: #f4f7ff;
-  cursor: default;
+  cursor: var(--cursor-arrow);
   padding: 6px 4px;
   -webkit-tap-highlight-color: transparent;
   outline: none;
@@ -250,7 +252,7 @@ html, body {
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
   user-select: none;
   touch-action: none;
-  cursor: default;
+  cursor: var(--cursor-arrow);
 }
 .kde-window.inactive .title-bar {
   background: linear-gradient(to bottom, var(--title-i1), var(--title-i2));
@@ -289,7 +291,7 @@ html, body {
   border-radius: 2px;
   background: linear-gradient(to bottom, #f4f4f8, #c8c8d0);
   box-shadow: inset 0 1px 0 #fff, 0 0 0 1px #5a5a66;
-  cursor: default;
+  cursor: var(--cursor-arrow);
   -webkit-tap-highlight-color: transparent;
   color: #2a2a32;
   font-size: 9px;
@@ -398,7 +400,7 @@ button.kde-btn {
   border-radius: 3px;
   background: linear-gradient(to bottom, #fafafa, #d0d0d6);
   box-shadow: inset 0 1px 0 #fff;
-  cursor: default;
+  cursor: var(--cursor-arrow);
 }
 button.kde-btn:active {
   background: linear-gradient(to bottom, #c8c8d0, #e8e8ee);
@@ -487,7 +489,7 @@ button.kde-btn.default {
   width: 72px;
   background: transparent;
   border: none;
-  cursor: default;
+  cursor: var(--cursor-arrow);
   font-family: var(--font);
   font-size: 11px;
   color: var(--kde-text);
@@ -568,7 +570,7 @@ button.kde-btn.default {
   font-size: 12px;
   font-weight: 700;
   color: var(--kde-text);
-  cursor: default;
+  cursor: var(--cursor-arrow);
   -webkit-tap-highlight-color: transparent;
 }
 .k-menu-btn img { width: 22px; height: 22px; object-fit: contain; }
@@ -590,7 +592,7 @@ button.kde-btn.default {
   padding: 2px;
   border: none;
   background: transparent;
-  cursor: default;
+  cursor: var(--cursor-arrow);
   border-radius: 2px;
 }
 .quicklaunch button:hover { background: rgba(255,255,255,0.4); }
@@ -617,7 +619,7 @@ button.kde-btn.default {
   border: none;
   border-radius: 3px;
   box-shadow: inset 0 1px 0 #fff, 0 0 0 1px #8a8a94;
-  cursor: default;
+  cursor: var(--cursor-arrow);
   min-width: 0;
 }
 .task-btn.active {
@@ -645,7 +647,7 @@ button.kde-btn.default {
   border: 1px solid #6a6a74;
   background: #9aaa9a;
   padding: 0;
-  cursor: default;
+  cursor: var(--cursor-arrow);
   min-height: 10px;
 }
 .pager button.current { background: #c8e0a8; }
@@ -692,7 +694,7 @@ button.kde-btn.default {
   font-size: 12px;
   text-align: left;
   padding: 6px 8px;
-  cursor: default;
+  cursor: var(--cursor-arrow);
   border-radius: 2px;
 }
 .k-menu button:hover,
@@ -740,7 +742,7 @@ button.kde-btn.default {
 
 button:not(:disabled),
 [role="button"]:not(:disabled) {
-  cursor: default;
+  cursor: var(--cursor-arrow);
 }
 
 @media (prefers-reduced-motion: reduce) {

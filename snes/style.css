@@ -38,6 +38,8 @@
   --snes-x: #3060d8;
   --snes-y: #38a040;
   --snes-font-size: clamp(8px, 2.2vw, 12px);
+  /* Original stylized glove pointer, in the spirit of a SNES mouse cursor -- not a copy of any trademarked character or logo. */
+  --cursor-glove: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBkPSJNNiAxIEw5IDEgTDkgMiBMMTAgMiBMMTAgMyBMMTEgMyBMMTEgOS41IEwxMCAxMSBMNi41IDExIEw1IDkuNSBMNSA2LjUgTDQgNi41IEw0IDQuNSBMMyA0LjUgTDMgMi41IEw0IDIuNSBMNCAxLjUgTDUgMS41IEw1IDQgTDYgNCBaIiBmaWxsPSIjZmZmIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMC45Ii8+PC9zdmc+Cg==") 6 1, default;
 }
 
 html, body {
@@ -57,7 +59,7 @@ html, body {
 
 button:not(:disabled),
 [role="button"]:not(:disabled) {
-  cursor: pointer;
+  cursor: var(--cursor-glove);
 }
 
 .snes-shell {
