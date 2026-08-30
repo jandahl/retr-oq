@@ -102,7 +102,11 @@
      on purpose: it's scroll buffer so the first/last item isn't glued to
      the screen edge when scrolled all the way. */
   .timeline {
-    --tile-half: 112px;
+    /* --tile-half must clear the tallest .info stack: 14px gap off the
+       line + icon (96px) + 3 text rows + their gaps (~8px each) comes to
+       ~180px; 112px was clipping the icon/text against overflow-y:hidden
+       below. */
+    --tile-half: 190px;
     list-style: none;
     margin: 0;
     padding: 0;

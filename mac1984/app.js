@@ -89,6 +89,13 @@
     handle.addEventListener("lostpointercapture", onLostPointerCapture);
   }
 
+  // Real Mac OS never showed a browser's own right-click menu over the
+  // desktop -- suppress it, but let it through inside a window's own
+  // scrollable content (the framework has no bare "desktop" element here).
+  document.body.addEventListener("contextmenu", (event) => {
+    if (!event.target.closest(".window-pane")) event.preventDefault();
+  });
+
   const reopenBtn = document.getElementById("reopen");
   const windows = Array.from(document.querySelectorAll(".desktop-window"));
   let zTop = 10;
@@ -188,8 +195,19 @@
       if (openMenuItem && openMenuItem !== item) openMenu(item);
     });
     for (const link of item.querySelectorAll('[role="menu"] a')) {
+      if (link.id === "mac1984-shutdown") {
+        link.addEventListener("click", (event) => {
+          event.preventDefault();
+          closeMenu();
+          // Every other theme's own Shut Down/Turn Off Computer sends the
+          // visitor back to the hub -- relative "../" keeps working from a
+          // fork or a local http.server too.
+          window.location.href = "../";
+        });
+        continue;
+      }
       link.addEventListener("click", (event) => {
-        event.preventDefault(); // every menu command here is a placeholder ("#")
+        event.preventDefault(); // every other menu command here is a placeholder ("#")
         closeMenu();
       });
     }

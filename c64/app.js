@@ -1005,6 +1005,14 @@
       return;
     }
 
+    // SYS 64738 is the real, well-known C64 machine-code jump to the KERNAL
+    // reset vector -- the authentic "reboot the machine" command, reused
+    // here as the way back to the hub.
+    if (upper === "SYS 64738" || upper === "SYS64738") {
+      window.location.href = "../";
+      return;
+    }
+
     printLine("?SYNTAX ERROR");
   }
 

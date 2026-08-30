@@ -12,6 +12,10 @@ repo imports the other. Frozen glue from that split lives in
 
 `index.html` is the hub — machine icons, launch year, oldest first.
 Each theme hosts OQ! / DECON via `shared/` (`?screen=oq&filter=`).
+Each theme directory also has its own `NOTES.md` — implementation
+gotchas and wiring specific to that theme, meant to save an LLM (or a
+person) from rediscovering them; `CLAUDE.md`'s Theme invariants section
+stays the cross-theme source of truth.
 
 | Year | | |
 | ---: | --- | --- |

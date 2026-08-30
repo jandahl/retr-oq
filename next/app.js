@@ -95,6 +95,12 @@
   const desktop = document.getElementById("desktop");
   const windows = Array.from(document.querySelectorAll(".nx-window:not(.nx-panel-window)"));
   let zTop = 10;
+
+  // Real NeXTSTEP never showed a browser's own right-click menu over the
+  // desktop -- suppress it over the bare desktop background.
+  desktop.addEventListener("contextmenu", (event) => {
+    if (event.target === desktop) event.preventDefault();
+  });
   const minis = new Map();
 
   function focus(win) {
@@ -521,10 +527,22 @@
 
   // ---------- Clock ----------
   const clockEl = document.getElementById("dock-clock");
+  // Honor the visitor's own 24-hour-clock preference when the browser
+  // exposes one; default to 24-hour when it doesn't rather than assuming
+  // English 12-hour AM/PM.
+  let use24Hour = true;
+  try {
+    const resolved = Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions();
+    if (typeof resolved.hour12 === "boolean") use24Hour = !resolved.hour12;
+  } catch {}
   function updateClock() {
     const now = new Date();
-    let hours = now.getHours();
     const minutes = String(now.getMinutes()).padStart(2, "0");
+    if (use24Hour) {
+      clockEl.textContent = `${String(now.getHours()).padStart(2, "0")}:${minutes}`;
+      return;
+    }
+    let hours = now.getHours();
     const suffix = hours >= 12 ? "PM" : "AM";
     hours = hours % 12;
     if (hours === 0) hours = 12;
