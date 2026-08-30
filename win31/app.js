@@ -23,7 +23,6 @@
   const winProgman = document.getElementById("win-progman");
   const winClock = document.getElementById("win-clock");
   const bootScreen = document.getElementById("boot-screen");
-  const bootSkip = document.getElementById("boot-skip");
 
   const wm = window.OqRedmond.initWindowManager({
     desktop,
@@ -705,6 +704,6 @@
     forceOpenWindow(winProgman);
     syncChrome();
   }
-  bootSkip.addEventListener("click", finishBoot);
+  bootScreen.addEventListener("click", finishBoot);
   window.setTimeout(finishBoot, 1400);
 })();

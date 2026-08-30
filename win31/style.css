@@ -111,7 +111,6 @@ html, body {
 .boot-subtitle { margin-top: .15rem; font-size: 1.15rem; }
 .boot-version { margin-top: 2rem; font-size: 2.2rem; }
 .boot-status { margin-top: 2rem; font: 11px "Courier New", monospace; }
-.boot-skip { margin-top: .75rem; padding: 3px 10px; font: 11px "Pixelated MS Sans Serif", Arial, sans-serif; }
 
 body {
   font-family: "Pixelated MS Sans Serif", Arial, sans-serif;
