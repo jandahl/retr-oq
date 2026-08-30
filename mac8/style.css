@@ -20,6 +20,8 @@
   --mac8-grey: #cccccc;
   --mac8-titlebar-active: #000000;
   --mac8-titlebar-inactive: #999999;
+  /* Mac OS 8 arrow: classic Mac silhouette, smoothed edges. */
+  --cursor-arrow: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE2IDE2Ij48cGF0aCBkPSJNMiAxIEwyIDEzIEw0LjUgMTAuNSBMNiAxNSBMNy43IDE0LjMgTDYuMyAxMCBMMTAgMTAgWiIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4K") 2 1, default;
 }
 
 /* classic.css's window chrome (control boxes, growbox, borders) is sized
@@ -95,7 +97,7 @@ button,
 .desktop-icon,
 [role="menu-item"],
 .control-box-inner {
-  cursor: default;
+  cursor: var(--cursor-arrow);
 }
 /* .growbox is deliberately NOT in the list above -- unlike every other
    control in this theme, a resize handle legitimately needs a real

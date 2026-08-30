@@ -42,6 +42,8 @@
   --nx-resize: 22px;
   --nx-dock: 76px;
   --nx-menu: 168px;
+  /* NeXTSTEP pointer: narrow diagonal arrow, straight left edge. */
+  --cursor-arrow: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDE0IDE2Ij48cGF0aCBkPSJNMSAxIEwxIDE1IEw0IDEyLjUgTDQgMTUuNSBMNiAxNS41IEw2IDEyIEw5IDEyIFoiIGZpbGw9IiNmZmYiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+Cg==") 1 1, default;
 }
 
 html, body {
@@ -68,7 +70,7 @@ a:link,
 a:visited,
 a:hover,
 a:active {
-  cursor: default;
+  cursor: var(--cursor-arrow);
 }
 
 /* ---------- Vertical main menu (not a Mac bar) ---------- */

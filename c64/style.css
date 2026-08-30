@@ -110,6 +110,8 @@ html, body {
      font at the same font-size, so the fitting math alone undersold how
      large it'd actually look. */
   --c64-font-size: clamp(11px, 3vw, 18px);
+  /* GEOS-style blocky diagonal pointer: 1-bit black/white, C64 gamut only. */
+  --cursor-arrow: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMiIgdmlld0JveD0iMCAwIDEyIDEyIiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGQ9Ik0xIDEgTDEgOSBMMyA3LjIgTDQuMyAxMC41IEw2IDkuOCBMNC43IDYuNSBMOCA2LjUgWiIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuMyIvPjwvc3ZnPgo=") 1 1, default;
 }
 
 /* The real C64 16-color palette, in BASIC's own POKE 646/53280/53281 color
@@ -198,7 +200,7 @@ html, body {
   color: inherit;
   font: inherit;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--cursor-arrow);
 }
 .c64-link:hover,
 .c64-link:focus-visible {
@@ -345,7 +347,7 @@ html, body {
   -webkit-appearance: none;
   appearance: none;
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cursor-arrow);
 }
 
 /* MORPH.PRG -- shared/morph-game.js rendered as text mode: a numbered
@@ -396,7 +398,7 @@ html, body {
   color: inherit;
   font: inherit;
   padding: 0.1em 0.5ch;
-  cursor: pointer;
+  cursor: var(--cursor-arrow);
 }
 .c64-morph-option.is-selected,
 .c64-morph-option:hover,
@@ -504,7 +506,7 @@ html, body {
   font-size: 1.1em;
   /* Arrow, not pointer -- CLAUDE.md's cursor rule for chrome/buttons;
      snes/nes/gb/gg's own on-screen pads all leave this unset too. */
-  cursor: default;
+  cursor: var(--cursor-arrow);
 }
 .c64-kalq-btn:active {
   background: var(--c64-cyan);

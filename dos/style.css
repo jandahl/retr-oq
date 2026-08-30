@@ -19,6 +19,11 @@
    whole character-cell steps only, matching the framework's own 14px
    text-mode line-height. Text mode had no sub-cell positions to move to. */
 
+:root {
+  /* MOUSE.COM-style chunky low-res arrow. */
+  --cursor-arrow: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMiIgdmlld0JveD0iMCAwIDEyIDEyIiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGQ9Ik0xIDEgTDEgMTAgTDMuNSA3LjcgTDUgMTEgTDYuNSAxMC4zIEw1IDcgTDggNyBaIiBmaWxsPSIjZmZmIiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iMS40Ii8+PC9zdmc+Cg==") 1 1, default;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -67,7 +72,7 @@ html, body {
 }
 
 .card-header {
-  cursor: default;
+  cursor: var(--cursor-arrow);
   touch-action: none; /* reliable title-bar dragging on touch, same reasoning as mac1984 */
   display: flex;
   align-items: center;
@@ -168,7 +173,7 @@ html, body {
   color: inherit;
   font: inherit;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--cursor-arrow);
 }
 .dos-link:hover,
 .dos-link:focus-visible {
@@ -236,7 +241,7 @@ html, body {
   align-items: center;
   gap: 0.5ch;
   margin: 0.5em 0 0;
-  cursor: pointer;
+  cursor: var(--cursor-arrow);
 }
 /* Visually hidden, not display:none -- display:none drops an element from
    the tab order in every browser; this keeps it focusable and toggleable
@@ -350,7 +355,7 @@ html, body {
   -webkit-appearance: none;
   appearance: none;
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cursor-arrow);
 }
 
 /* DECON.EXE: one .decon-card per real match (usually one, sometimes more,
