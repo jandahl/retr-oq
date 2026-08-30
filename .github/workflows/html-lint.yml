@@ -42,7 +42,9 @@ jobs:
         run: find . -type f -name '*.js' -not -path './vendor/*' -print0 | xargs -0 -n1 node --check
 
       - name: HTML validate
-        run: npx --yes html-validate $PAGES
+        # Pin the CLI: resolving latest made the check depend on a moving
+        # registry target and recently selected an unavailable tarball.
+        run: npx --yes html-validate@10.17.0 $PAGES
 
       # --skip excludes anything not on localhost: this step is scoped to
       # LOCAL asset links (a stale ?v= path, a moved shared/*.js) same as
