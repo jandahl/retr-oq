@@ -27,6 +27,18 @@ def goto_win98(page, base_url):
     page.on("console", lambda m: console_errors.append(m.text) if m.type == "error" else None)
     page.goto(f"{base_url}/win98/index.html")
     page.wait_for_timeout(300)
+    # The boot screen (added after this suite) sits above the desktop and
+    # eats the first tap/click meant for it -- real mouse clicks survive
+    # this by Playwright's own actionability retries (waiting the ~1.4s
+    # auto-dismiss out), but raw touchscreen.tap() has no such retry and
+    # would otherwise just dismiss the splash instead of reaching an icon.
+    # Dismissing it here up front matches the real "tap to skip" boot UX
+    # and keeps every test -- mouse or touch -- interacting with the actual
+    # desktop, not racing a timer.
+    boot_screen = page.query_selector("#boot-screen")
+    if boot_screen and boot_screen.is_visible():
+        page.click("#boot-screen")
+        page.wait_for_timeout(50)
     return errors, console_errors, unexpected_404s
 
 

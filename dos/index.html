@@ -13,9 +13,22 @@
      the last deploy: markup referencing classes/behavior a cached
      stylesheet/script didn't have yet. Bump the number whenever either
      file actually changes. -->
-<link rel="stylesheet" href="style.css?v=17" />
+<link rel="stylesheet" href="style.css?v=18" />
 </head>
 <body>
+  <!-- Classic MS-DOS POST screen shown before the dir listing/prompt
+       underneath -- purely a startup overlay (app.js's finishBoot just
+       hides it), not part of OqRouter/DECON state; per CLAUDE.md the
+       router alone owns launchDict()/exitDict(), and this never calls
+       either. -->
+  <div class="boot-screen" id="boot-screen" aria-hidden="true">
+    <pre class="boot-text">RETR-OQ BIOS v1.0
+640K Base Memory, 15360K Extended Memory OK
+
+Starting MS-DOS...
+<span class="boot-cursor">&#9608;</span></pre>
+  </div>
+
   <!-- DOS was single-tasking: no desktop, no icons, a program took the
        whole screen and exiting returned you to whatever launched it. This
        is that -- a `dir` listing, the actual home screen, not a desktop
@@ -131,6 +144,6 @@ DECON    DAT        77,824  03-14-89   2:15p
      the top like window.OqDictSource is. -->
 <script type="module" src="../shared/oq-analysis.js?v=11"></script>
 <script src="../shared/decon-app.js?v=1"></script>
-<script src="app.js?v=24"></script>
+<script src="app.js?v=25"></script>
 </body>
 </html>

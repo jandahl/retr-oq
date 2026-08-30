@@ -8,6 +8,18 @@
   const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
   const { syllabify } = window.OqHyphenation;
 
+  // Boot screen: purely cosmetic, mechanically identical to win31/app.js's
+  // finishBoot (see that file for the pattern this mirrors) -- but win7's
+  // desktop already initializes itself normally underneath, so this just
+  // hides the overlay rather than force-opening any window.
+  const bootScreen = document.getElementById("boot-screen");
+  function finishBoot() {
+    if (bootScreen.classList.contains("is-done")) return;
+    bootScreen.classList.add("is-done");
+  }
+  bootScreen.addEventListener("click", finishBoot);
+  window.setTimeout(finishBoot, 1400);
+
   const desktop = document.getElementById("desktop");
   const taskbarWindows = document.getElementById("taskbar-windows");
   const windows = Array.from(document.querySelectorAll(".win7-window"));

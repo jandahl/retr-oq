@@ -1,6 +1,14 @@
 (() => {
   "use strict";
 
+  const bootScreen = document.getElementById("boot-screen");
+  function finishBoot() {
+    if (bootScreen.classList.contains("is-done")) return;
+    bootScreen.classList.add("is-done");
+  }
+  bootScreen.addEventListener("click", finishBoot);
+  window.setTimeout(finishBoot, 2000);
+
   // Mac-lineage window/menu/drag logic, adapted in spirit from
   // mac8/app.js's own makeDraggable/makeResizable/focus/menu-bar
   // functions — genuinely new code, not a shared module. Amiga Workbench

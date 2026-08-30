@@ -54,6 +54,33 @@ html, body {
   background: #000000;
 }
 
+/* Classic MS-DOS POST screen, shown once before #dos-dir underneath.
+   Solid black, the same Px437 text-mode font the framework already sets
+   globally (no local font-family override needed here). */
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000000;
+  color: #aaaaaa;
+  cursor: var(--cursor-arrow);
+  display: flex;
+  align-items: flex-start;
+  padding: 1.5rem;
+}
+.boot-screen.is-done { display: none; }
+.boot-text {
+  margin: 0;
+  white-space: pre;
+}
+.boot-cursor {
+  animation: boot-cursor-blink 1s steps(1) infinite;
+}
+@keyframes boot-cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
 .dos-window {
   position: absolute;
   z-index: 10;

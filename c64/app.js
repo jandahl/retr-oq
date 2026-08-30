@@ -14,6 +14,7 @@
   const loadingScreen = document.getElementById("c64-loading");
   const morphApp = document.getElementById("morph-app");
 
+
   document.getElementById("dict-attribution").textContent = petsciiSafe(DICT_ATTRIBUTION);
 
   const DEFAULT_ROWS = 50; // shown before any filtering -- a browsable sample, not a blank table

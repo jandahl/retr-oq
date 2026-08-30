@@ -597,4 +597,58 @@
   }
   updateClock();
   setInterval(updateClock, 1000);
+
+  // ---------- Boot screen ----------
+  // Same power-button-gesture + synthesized-chime + timed-reveal mechanic as
+  // mac1984/app.js's own boot screen (see that file's own comments), gated
+  // behind a real click so the AudioContext is created synchronously inside
+  // a user gesture, satisfying autoplay policies. Not shared code -- each
+  // Mac-lineage theme owns its own app.js per CLAUDE.md.
+  const bootScreen = document.getElementById("boot-screen");
+  const powerBtn = document.getElementById("power-btn");
+  const bootSequence = document.getElementById("boot-sequence");
+
+  function playChime() {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContextClass();
+      // Mac OS 8's real startup sound was a richer multi-tone chime, not the
+      // old 128K Mac's single square-wave beep -- two quick notes back to
+      // back distinguishes it from mac1984's single tone.
+      const notes = [
+        { freq: 523.25, start: 0, dur: 0.18 }, // C5
+        { freq: 783.99, start: 0.16, dur: 0.28 }, // G5
+      ];
+      notes.forEach(({ freq, start, dur }) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + dur);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur);
+      });
+    } catch {
+      // Web Audio unavailable/blocked -- boot proceeds silently
+    }
+  }
+
+  if (bootScreen && powerBtn && bootSequence) {
+    powerBtn.addEventListener(
+      "click",
+      () => {
+        playChime();
+        powerBtn.hidden = true;
+        bootSequence.hidden = false;
+        bootSequence.classList.add("visible");
+        setTimeout(() => {
+          bootScreen.classList.add("hidden");
+        }, 1400);
+      },
+      { once: true },
+    );
+  }
 })();

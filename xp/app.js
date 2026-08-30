@@ -32,6 +32,7 @@
   // identical wiring.
   const winOq = document.getElementById("win-oq");
   const winDecon = document.getElementById("win-decon");
+  const bootScreen = document.getElementById("boot-screen");
 
   const { openWindow, forceOpenWindow, closeWindow } = window.OqRedmond.initWindowManager({
     desktop,
@@ -339,4 +340,15 @@
       if (!winDecon.classList.contains("minimized")) closeWindow(winDecon);
     }
   });
+
+  // Brief startup screen before the desktop appears, same mechanical
+  // pattern as win31/app.js's finishBoot (boot logic is per-theme, not
+  // shared -- see that file's own comment). The desktop underneath
+  // already initializes normally; this only needs to hide itself.
+  function finishBoot() {
+    if (bootScreen.classList.contains("is-done")) return;
+    bootScreen.classList.add("is-done");
+  }
+  bootScreen.addEventListener("click", finishBoot);
+  window.setTimeout(finishBoot, 1400);
 })();

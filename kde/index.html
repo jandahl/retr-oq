@@ -7,9 +7,19 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — KDE 3.5 / Compiz Fusion</title>
-<link rel="stylesheet" href="style.css?v=5" />
+<link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
+  <section class="boot-screen" id="boot-screen" aria-label="KDE startup" aria-live="polite">
+    <div class="boot-panel">
+      <div class="boot-mark" aria-hidden="true"></div>
+      <div class="boot-caption">Loading desktop environment...</div>
+      <div class="boot-services" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="boot-progress"><div class="boot-progress-fill"></div></div>
+    </div>
+  </section>
   <!-- KDE 3.5 + Compiz Fusion (2006) prototype. Plastik window chrome
        and Kicker are hand-drawn (no drop-in CSS kit). Compiz's wobbly
        windows / burn-on-close / magic-lamp live in compositor.js:
@@ -277,6 +287,6 @@ Type `help` for a list of commands.
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
   <script src="compositor.js?v=4"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

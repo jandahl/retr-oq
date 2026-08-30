@@ -6,9 +6,14 @@
 <title>retr-oq — C64 desktop prototype</title>
 <!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
-<link rel="stylesheet" href="style.css?v=17" />
+<link rel="stylesheet" href="style.css?v=19" />
 </head>
 <body>
+  <!-- No separate boot screen: the real C64 has no startup delay or splash
+       to gate past -- power-on lands directly on the BASIC V2 ready screen,
+       which is exactly what #c64-dir below already shows. Adding a
+       click-through screen in front of it would just duplicate that text
+       for no reason true to the hardware. -->
   <!-- The C64 booted straight into BASIC, no desktop, no icons -- same
        single-tasking reasoning dos/'s #dos-dir comment gives, just a
        different real screen: this is what LOAD"$",8 + LIST actually
@@ -130,6 +135,6 @@ LIST
 <script src="../shared/morph-puzzles.js?v=4"></script>
 <script src="../shared/morph-game.js?v=2"></script>
 <script src="../shared/klax-game.js?v=10"></script>
-<script src="app.js?v=16"></script>
+<script src="app.js?v=18"></script>
 </body>
 </html>

@@ -470,4 +470,16 @@
       if (!winDecon.classList.contains("minimized")) closeWindow(winDecon);
     }
   });
+
+  // Boot screen: purely cosmetic overlay, dismissed on click or after a
+  // timeout. The desktop underneath initializes normally regardless --
+  // unlike win31/app.js's finishBoot(), this one doesn't force-open any
+  // window (win98 has no single-shell-window concept to restore).
+  const bootScreen = document.getElementById("boot-screen");
+  function finishBoot() {
+    if (bootScreen.classList.contains("is-done")) return;
+    bootScreen.classList.add("is-done");
+  }
+  bootScreen.addEventListener("click", finishBoot);
+  window.setTimeout(finishBoot, 1400);
 })();
