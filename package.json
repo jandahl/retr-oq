@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "name": "retr-oq-tooling",
+  "version": "0.0.0",
+  "devDependencies": {
+    "html-validate": "10.17.0",
+    "linkinator": "8.1.0",
+    "wait-on": "9.1.0"
+  }
+}
