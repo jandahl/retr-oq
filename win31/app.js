@@ -364,6 +364,162 @@
     clockTimer = setInterval(drawClock, 1000);
   }
 
+  // ---------- Solitaire ----------
+  // A small original, dependency-free Klondike-style game. It is deliberately
+  // click-based so it remains usable on the tiny 3.1 window and on touch.
+  const solitaireBoard = document.getElementById("solitaire-board");
+  const solitaireStatus = document.getElementById("solitaire-status");
+  const solitaireNew = document.getElementById("solitaire-new");
+  const suits = ["♠", "♥", "♦", "♣"];
+  const suitNames = ["spades", "hearts", "diamonds", "clubs"];
+  let solitaire = null;
+
+  function newSolitaireGame() {
+    const deck = [];
+    suits.forEach((suit, suitIndex) => {
+      for (let rank = 1; rank <= 13; rank += 1) deck.push({ suit, suitIndex, rank, faceUp: false });
+    });
+    for (let i = deck.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    const tableau = Array.from({ length: 7 }, () => []);
+    for (let column = 0; column < 7; column += 1) {
+      for (let row = 0; row <= column; row += 1) tableau[column].push(deck.pop());
+      tableau[column][tableau[column].length - 1].faceUp = true;
+    }
+    solitaire = { stock: deck, waste: [], tableau, foundations: [[], [], [], []], selected: null, moves: 0 };
+    solitaireStatus.textContent = "Click a card, then a destination.";
+    renderSolitaire();
+  }
+
+  function cardLabel(card) {
+    return `${card.rank === 1 ? "A" : card.rank === 11 ? "J" : card.rank === 12 ? "Q" : card.rank === 13 ? "K" : card.rank}${card.suit}`;
+  }
+
+  function makeSolitairePile(className, label, pile, pileIndex, kind) {
+    const pileEl = document.createElement("div");
+    pileEl.className = `solitaire-pile ${className}`;
+    pileEl.dataset.kind = kind;
+    pileEl.dataset.pile = pileIndex;
+    pileEl.setAttribute("aria-label", label);
+    if (kind === "stock") {
+      const button = document.createElement("button");
+      button.className = `solitaire-card ${pile.length ? "face-down" : ""}`;
+      button.dataset.action = "deal";
+      button.textContent = pile.length ? "##" : "↻";
+      button.setAttribute("aria-label", `Stock, ${pile.length} cards`);
+      pileEl.appendChild(button);
+    } else if (!pile.length) {
+      const empty = document.createElement("span");
+      empty.className = "solitaire-empty";
+      empty.textContent = kind === "foundation" ? "A" : "";
+      pileEl.appendChild(empty);
+    }
+    if (kind === "waste" && pile.length) {
+      const card = pile[pile.length - 1];
+      const button = document.createElement("button");
+      button.className = `solitaire-card ${card.suit === "♥" || card.suit === "♦" ? "red" : ""}`;
+      button.dataset.action = "select";
+      button.dataset.card = `waste:${pileIndex}`;
+      button.textContent = cardLabel(card);
+      if (solitaire.selected && solitaire.selected.kind === "waste" && solitaire.selected.index === pileIndex) button.classList.add("selected");
+      pileEl.appendChild(button);
+    }
+    if (kind === "foundation" && pile.length) {
+      const card = pile[pile.length - 1];
+      const button = document.createElement("button");
+      button.className = `solitaire-card ${card.suit === "♥" || card.suit === "♦" ? "red" : ""}`;
+      button.dataset.action = "select-foundation";
+      button.dataset.card = `foundation:${pileIndex}`;
+      button.textContent = cardLabel(card);
+      pileEl.appendChild(button);
+    }
+    if (kind === "tableau") pile.forEach((card, cardIndex) => {
+      const button = document.createElement("button");
+      button.className = `solitaire-card ${card.faceUp ? "" : "face-down"} ${card.faceUp && (card.suit === "♥" || card.suit === "♦") ? "red" : ""}`;
+      button.style.top = `${cardIndex * 13}px`;
+      button.dataset.action = card.faceUp ? "select" : "flip";
+      button.dataset.card = `tableau:${pileIndex}:${cardIndex}`;
+      button.textContent = card.faceUp ? cardLabel(card) : "##";
+      if (solitaire.selected && solitaire.selected.kind === "tableau" && solitaire.selected.column === pileIndex && solitaire.selected.index === cardIndex) button.classList.add("selected");
+      pileEl.appendChild(button);
+    });
+    return pileEl;
+  }
+
+  function renderSolitaire() {
+    if (!solitaireBoard || !solitaire) return;
+    solitaireBoard.textContent = "";
+    solitaireBoard.appendChild(makeSolitairePile("solitaire-stock", "Stock", solitaire.stock, 0, "stock"));
+    solitaireBoard.appendChild(makeSolitairePile("solitaire-waste", "Waste", solitaire.waste, 0, "waste"));
+    solitaire.foundations.forEach((pile, index) => solitaireBoard.appendChild(makeSolitairePile("solitaire-foundation", `Foundation ${suitNames[index]}`, pile, index, "foundation")));
+    solitaire.tableau.forEach((pile, index) => solitaireBoard.appendChild(makeSolitairePile("solitaire-tableau", `Tableau column ${index + 1}`, pile, index, "tableau")));
+  }
+
+  function selectedCard() {
+    if (!solitaire.selected) return null;
+    if (solitaire.selected.kind === "waste") return solitaire.waste.at(-1);
+    if (solitaire.selected.kind === "tableau") return solitaire.tableau[solitaire.selected.column][solitaire.selected.index];
+    return null;
+  }
+
+  function removeSelected() {
+    if (solitaire.selected.kind === "waste") return solitaire.waste.pop();
+    const pile = solitaire.tableau[solitaire.selected.column];
+    const card = pile.splice(solitaire.selected.index, 1)[0];
+    if (pile.length && !pile.at(-1).faceUp) pile.at(-1).faceUp = true;
+    return card;
+  }
+
+  solitaireBoard.addEventListener("click", (event) => {
+    const target = event.target.closest("button");
+    const destination = event.target.closest(".solitaire-pile");
+    if ((!target && !destination) || !solitaire) return;
+    if (target && target.dataset.action === "deal") {
+      if (!solitaire.stock.length) {
+        solitaire.stock = solitaire.waste.reverse();
+        solitaire.waste = [];
+      } else {
+        solitaire.waste.push(solitaire.stock.pop());
+      }
+      solitaire.selected = null;
+      renderSolitaire();
+      return;
+    }
+    const [kind, first, third] = (target.dataset.card || "").split(":");
+    if (target && target.dataset.action === "flip") {
+      solitaire.tableau[Number(first)][Number(third)].faceUp = true;
+      renderSolitaire();
+      return;
+    }
+    if (target && target.dataset.action === "select-foundation") {
+      if (!solitaire.selected) return;
+    }
+    if (solitaire.selected && destination) {
+      const card = selectedCard();
+      const destKind = destination.dataset.kind;
+      const destIndex = Number(destination.dataset.pile);
+      const dest = destKind === "tableau" ? solitaire.tableau[destIndex] : solitaire.foundations[destIndex];
+      const top = dest.at(-1);
+      const validTableau = destKind === "tableau" && (!top ? card.rank === 13 : top.faceUp && top.rank === card.rank + 1 && ((top.suit === "♥" || top.suit === "♦") !== (card.suit === "♥" || card.suit === "♦")));
+      const validFoundation = destKind === "foundation" && card.rank === (top ? top.rank + 1 : 1) && (!top || top.suit === card.suit);
+      if (card && (validTableau || validFoundation)) {
+        dest.push(removeSelected());
+        solitaire.moves += 1;
+        solitaire.selected = null;
+        solitaireStatus.textContent = solitaire.foundations.every((pile) => pile.length === 13) ? "You win!" : `${solitaire.moves} move${solitaire.moves === 1 ? "" : "s"}`;
+        renderSolitaire();
+        return;
+      }
+    }
+    if (!target) return;
+    solitaire.selected = kind === "waste" ? { kind, index: 0 } : { kind: "tableau", column: Number(first), index: Number(third) };
+    renderSolitaire();
+  });
+  solitaireNew.addEventListener("click", newSolitaireGame);
+  newSolitaireGame();
+
   // ---------- OQ! ----------
 
   const OQ_DEFAULT_ROWS = 50;
