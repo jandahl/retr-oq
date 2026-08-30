@@ -8,9 +8,21 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 98 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/win98/98.css" />
-<link rel="stylesheet" href="style.css?v=27" />
+<link rel="stylesheet" href="style.css?v=28" />
 </head>
 <body>
+  <section class="boot-screen" id="boot-screen" aria-label="Windows 98 startup" aria-live="polite">
+    <div class="boot-panel">
+      <div class="boot-mark" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="boot-title">WINDOWS</div>
+      <div class="boot-subtitle">Starting Windows 98...</div>
+      <div class="boot-progress" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+  </section>
   <!-- Taskbar, Start menu, and genuinely resizable-from-any-edge windows
        with real minimize/maximize/close (see issue #29). OQ! is the one
        window with a real app behind it -- a Kalaallisut dictionary
@@ -322,6 +334,6 @@
        call, never destructured at the top like window.OqDictSource is. -->
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=14"></script>
+  <script src="app.js?v=15"></script>
 </body>
 </html>

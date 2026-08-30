@@ -733,3 +733,104 @@ button,
   justify-content: center;
   padding-bottom: 0.4rem;
 }
+
+/* ---------- Boot screen ----------
+   Mirrors mac1984's power-button-gesture + synthesized-chime + timed-reveal
+   mechanic (see mac1984/style.css's own #boot-screen rules), reworked with
+   Mac OS 8 Platinum grey chrome and an original "smiling computer" icon
+   instead of the real Happy Mac -- not shared code, per CLAUDE.md's
+   mac1984/mac8 own-WM-each rule (this is presentation only, no WM logic). */
+#boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mac8-grey);
+  color: #000000;
+  font-family: Geneva, ui-sans-serif, system-ui, sans-serif;
+  text-align: center;
+  cursor: var(--cursor-arrow);
+}
+#boot-screen.hidden {
+  display: none;
+}
+#power-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #000000;
+  box-shadow: 1px 1px 0 #000000;
+  padding: 1.5rem 2rem;
+  color: #000000;
+  font: inherit;
+  font-size: 1rem;
+  cursor: var(--cursor-arrow);
+}
+#power-btn[hidden] {
+  display: none; /* beats #power-btn's own display:flex, which is equal specificity but comes first */
+}
+#power-btn .power-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+#power-btn:hover,
+#power-btn:focus-visible {
+  background: #000000;
+  color: #ffffff;
+}
+#boot-sequence {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+#boot-sequence.visible {
+  display: flex;
+}
+#boot-sequence .smiling-mac {
+  width: 4rem;
+  height: 4rem;
+  image-rendering: pixelated;
+  margin-top: auto;
+}
+#boot-sequence p {
+  margin: 0;
+  font-family: Chicago_12, Chicago, Geneva, sans-serif;
+  font-size: 1.125rem;
+}
+#boot-sequence .ext-row {
+  margin-top: auto;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 0.75rem;
+}
+#boot-sequence .ext-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  background: #ffffff;
+  border: 1px solid #000000;
+  opacity: 0;
+  animation: mac8-ext-load 1.4s steps(1) forwards;
+}
+#boot-sequence .ext-icon:nth-child(1) { animation-delay: 0.05s; }
+#boot-sequence .ext-icon:nth-child(2) { animation-delay: 0.25s; }
+#boot-sequence .ext-icon:nth-child(3) { animation-delay: 0.45s; }
+#boot-sequence .ext-icon:nth-child(4) { animation-delay: 0.65s; }
+#boot-sequence .ext-icon:nth-child(5) { animation-delay: 0.85s; }
+@keyframes mac8-ext-load {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #boot-sequence .ext-icon {
+    animation: none;
+    opacity: 1;
+  }
+}

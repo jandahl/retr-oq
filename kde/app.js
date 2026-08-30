@@ -9,6 +9,14 @@
   const { syllabify } = window.OqHyphenation;
   const Compiz = window.OqCompiz;
 
+  const bootScreen = document.getElementById("boot-screen");
+  function finishBoot() {
+    if (bootScreen.classList.contains("is-done")) return;
+    bootScreen.classList.add("is-done");
+  }
+  bootScreen.addEventListener("click", finishBoot);
+  window.setTimeout(finishBoot, 1600);
+
   const desktop = document.getElementById("desktop");
   const tasksEl = document.getElementById("tasks");
   const windows = Array.from(document.querySelectorAll(".kde-window:not(.dialog)"));

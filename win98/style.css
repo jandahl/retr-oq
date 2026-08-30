@@ -1013,3 +1013,75 @@ body.hotdog-stand select::picker(select) {
   border: 2px solid #ff0000;
   padding: 0;
 }
+
+/* Boot screen -- shown on load, dismissed on click or after a timeout
+   (see finishBoot() in app.js). Original art: an abstract four-color
+   quadrant flag, not Microsoft's actual startup logo. z-index sits above
+   the taskbar's own highest (1002, see .taskbar) so it fully covers the
+   desktop underneath while it initializes. */
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000814;
+  color: #fff;
+  font-family: "Pixelated MS Sans Serif", Arial, sans-serif;
+  cursor: var(--cursor-arrow);
+}
+.boot-screen.is-done { display: none; }
+.boot-panel {
+  width: min(30rem, calc(100vw - 32px));
+  text-align: center;
+}
+.boot-mark {
+  display: grid;
+  grid-template-columns: repeat(2, 34px);
+  grid-template-rows: repeat(2, 34px);
+  gap: 4px;
+  justify-content: center;
+  margin: 0 auto 1.75rem;
+}
+.boot-mark span { display: block; }
+.boot-mark span:nth-child(1) { background: #ff2b2b; }
+.boot-mark span:nth-child(2) { background: #35c04a; }
+.boot-mark span:nth-child(3) { background: #2b6dff; }
+.boot-mark span:nth-child(4) { background: #ffd400; }
+.boot-title {
+  font-size: clamp(1.75rem, 7vw, 3rem);
+  font-weight: bold;
+  letter-spacing: .04em;
+}
+.boot-subtitle { margin-top: .5rem; font-size: 13px; color: #cfd8ea; }
+.boot-progress {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+.boot-progress span {
+  width: 14px;
+  height: 8px;
+  background: #274b8f;
+  animation: boot-progress-scan 1.4s ease-in-out infinite;
+}
+.boot-progress span:nth-child(1) { animation-delay: 0s; }
+.boot-progress span:nth-child(2) { animation-delay: .1s; }
+.boot-progress span:nth-child(3) { animation-delay: .2s; }
+.boot-progress span:nth-child(4) { animation-delay: .3s; }
+.boot-progress span:nth-child(5) { animation-delay: .4s; }
+.boot-progress span:nth-child(6) { animation-delay: .5s; }
+.boot-progress span:nth-child(7) { animation-delay: .6s; }
+.boot-progress span:nth-child(8) { animation-delay: .7s; }
+@keyframes boot-progress-scan {
+  0%, 100% { background: #274b8f; }
+  50% { background: #ffd400; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .boot-progress span {
+    animation: none;
+    background: #ffd400;
+  }
+}

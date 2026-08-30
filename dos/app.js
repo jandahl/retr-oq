@@ -10,6 +10,18 @@
   const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
   const { syllabify } = window.OqHyphenation;
 
+  // Boot screen: a startup overlay only, unrelated to OqRouter/DECON
+  // state -- it just hides itself on click or timeout, same mechanism as
+  // win31's boot screen (win31/app.js). Never calls launchDict()/
+  // exitDict(); per CLAUDE.md only the router listener does that.
+  const bootScreen = document.getElementById("boot-screen");
+  function finishBoot() {
+    if (bootScreen.classList.contains("is-done")) return;
+    bootScreen.classList.add("is-done");
+  }
+  bootScreen.addEventListener("click", finishBoot);
+  window.setTimeout(finishBoot, 1400);
+
   // Measures the actual rendered size of one character cell in the DOS
   // font, so dragging/resizing can snap to real character-grid steps
   // instead of hardcoding pixel values that would drift if the font or

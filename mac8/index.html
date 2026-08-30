@@ -8,9 +8,32 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Mac OS 8.1 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/mac8/base.css" />
-<link rel="stylesheet" href="style.css?v=12" />
+<link rel="stylesheet" href="style.css?v=13" />
 </head>
 <body>
+  <div id="boot-screen">
+    <button type="button" id="power-btn">
+      <span class="power-icon" aria-hidden="true">⏻</span>
+      <span>Click to start up</span>
+    </button>
+    <div id="boot-sequence" hidden>
+      <svg class="smiling-mac" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-label="Smiling computer">
+        <rect x="1" y="1" width="14" height="12" fill="#ffffff" stroke="#000000" stroke-width="1"/>
+        <rect x="4" y="5" width="2" height="2" fill="#000000"/>
+        <rect x="10" y="5" width="2" height="2" fill="#000000"/>
+        <path d="M4 9 Q8 12 12 9" fill="none" stroke="#000000" stroke-width="1"/>
+      </svg>
+      <p>Mac OS 8</p>
+      <div class="ext-row" aria-hidden="true">
+        <span class="ext-icon"></span>
+        <span class="ext-icon"></span>
+        <span class="ext-icon"></span>
+        <span class="ext-icon"></span>
+        <span class="ext-icon"></span>
+      </div>
+    </div>
+  </div>
+
   <!-- Mac OS 8.1 (Platinum) desktop prototype -- Mac-lineage, NOT part of
        the "Redmond" family (win98/xp/win7 share shared/redmond/
        window-manager.js; this theme does not). Menu bar at the top, not a
@@ -356,6 +379,6 @@
        own header comment for why this one file is the exception. -->
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

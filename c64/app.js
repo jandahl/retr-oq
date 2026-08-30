@@ -14,6 +14,15 @@
   const loadingScreen = document.getElementById("c64-loading");
   const morphApp = document.getElementById("morph-app");
 
+  const bootScreen = document.getElementById("boot-screen");
+  function finishBoot() {
+    if (bootScreen.classList.contains("is-done")) return;
+    bootScreen.classList.add("is-done");
+  }
+  bootScreen.addEventListener("click", finishBoot);
+  document.addEventListener("keydown", finishBoot, { once: true });
+  window.setTimeout(finishBoot, 1800);
+
   document.getElementById("dict-attribution").textContent = petsciiSafe(DICT_ATTRIBUTION);
 
   const DEFAULT_ROWS = 50; // shown before any filtering -- a browsable sample, not a blank table

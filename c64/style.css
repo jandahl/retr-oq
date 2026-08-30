@@ -538,3 +538,41 @@ html, body {
 .c64-loading[hidden] {
   display: none;
 }
+
+/* True pre-shell boot screen: the real BASIC V2 startup, shown once before
+   #c64-dir underneath. Unlike .c64-loading above (a mid-session blank
+   flicker with no visible text), this one shows the actual startup text
+   and sits above everything, dismissed by finishBoot() in app.js. */
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  border: var(--c64-border) solid var(--c64-lightblue);
+  background: var(--c64-blue);
+  cursor: var(--cursor-arrow);
+}
+.boot-screen.is-done {
+  display: none;
+}
+.boot-text {
+  margin: 2em 1em 0;
+  font-family: inherit;
+  font-size: var(--c64-font-size);
+  color: var(--c64-lightblue);
+  white-space: pre;
+}
+.boot-cursor {
+  display: inline-block;
+  width: 1ch;
+  height: 1em;
+  background: var(--c64-lightblue);
+  vertical-align: text-bottom;
+  animation: boot-cursor-blink 1s steps(1) infinite;
+}
+@keyframes boot-cursor-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}

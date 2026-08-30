@@ -8,9 +8,19 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows XP desktop prototype</title>
 <link rel="stylesheet" href="../vendor/xp/XP.css" />
-<link rel="stylesheet" href="style.css?v=9" />
+<link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body class="surface">
+  <section class="boot-screen" id="boot-screen" aria-label="Windows XP startup" aria-live="polite">
+    <div class="boot-panel">
+      <div class="boot-title">Windows<span class="boot-title-accent">XP</span></div>
+      <div class="boot-progress" aria-hidden="true">
+        <div class="boot-progress-track">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </div>
+  </section>
   <!-- Windows XP (Luna Blue) desktop prototype -- same taskbar/Start-menu/
        real-window pattern as win98/, reusing the theme-agnostic drag/
        resize/focus/minimize/maximize/close machinery in
@@ -272,6 +282,6 @@
        win98/index.html's identical comment on this same tag. -->
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
