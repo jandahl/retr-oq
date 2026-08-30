@@ -362,7 +362,9 @@
           <button type="button" id="solitaire-new">New Game</button>
           <span id="solitaire-status" role="status">Click a card, then a destination.</span>
         </div>
-        <div class="solitaire-board" id="solitaire-board" aria-label="Solitaire board"></div>
+        <div class="solitaire-board" id="solitaire-board" role="group" aria-labelledby="solitaire-board-label">
+          <span class="sr-only" id="solitaire-board-label">Solitaire board</span>
+        </div>
         <p class="solitaire-hint">A tiny original Klondike-style game for the Games group.</p>
       </div>
       <ul class="sysmenu" hidden>
@@ -387,9 +389,9 @@
 
   <!-- Restyled by CSS as a 3.1 minimized-icon strip, not a 95 taskbar.
        The shared window manager appends buttons here on open. -->
-  <div id="icon-strip" class="taskbar" aria-label="Minimized windows">
+  <section id="icon-strip" class="taskbar" aria-label="Minimized windows">
     <div class="taskbar-windows" id="taskbar-windows"></div>
-  </div>
+  </section>
 
   <div class="win31-dialog-overlay" id="exit-overlay" hidden>
     <section class="win31-dialog" role="alertdialog" aria-modal="true" aria-labelledby="exit-dialog-title">
