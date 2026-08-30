@@ -71,6 +71,15 @@
   function initWindowManager({ desktop, taskbarWindows, windows, resizeHandleSelector, minWidth, minHeight, onOpen, routeOpen, routeClose, animation }) {
     let zTop = 10;
 
+    // Real Windows never showed a browser's own right-click menu over the
+    // desktop -- capture it here for every Redmond theme so the illusion
+    // doesn't break even where a theme has no custom context menu of its
+    // own (win98/app.js adds a real one on top of this for the bare
+    // desktop; this still runs first and just suppresses the native menu).
+    desktop.addEventListener("contextmenu", (event) => {
+      if (event.target === desktop) event.preventDefault();
+    });
+
     const anim = Object.assign(
       {
         geometryMs: 160,

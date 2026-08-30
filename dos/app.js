@@ -625,6 +625,10 @@ DOS/4GW fatal error (15): protected mode available only with 386 or 486`;
       printLine(FORMAT_WARNING);
     } else if (cmd === "DOOM" || cmd === "DOOM.EXE") {
       printLine(DOOM_ERROR);
+    } else if (cmd === "EXIT") {
+      // Real MS-DOS EXIT left a nested COMMAND.COM shell -- there's no
+      // shell underneath this one, so it's the way back to the hub.
+      window.location.href = "../";
     } else {
       printLine("Bad command or file name");
     }

@@ -16,6 +16,12 @@
   const MIN_H = 140;
   let zTop = 10;
 
+  // Real KDE never showed a browser's own right-click menu over the
+  // desktop -- suppress it over the bare desktop background.
+  desktop.addEventListener("contextmenu", (event) => {
+    if (event.target === desktop) event.preventDefault();
+  });
+
   const ICONS = {
     oq: "art/icon-oq.png",
     decon: "art/icon-decon.png",
@@ -418,9 +424,18 @@
   });
 
   const clockEl = document.getElementById("kicker-clock");
+  // Honor the visitor's own 24-hour-clock preference when the browser
+  // exposes one; default to 24-hour when it doesn't (leaving hour12
+  // undefined here would fall back to the locale's own default, which is
+  // 12-hour AM/PM for e.g. en-US regardless of the OS setting).
+  let use24Hour = true;
+  try {
+    const resolved = Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions();
+    if (typeof resolved.hour12 === "boolean") use24Hour = !resolved.hour12;
+  } catch {}
   function tickClock() {
     const n = new Date();
-    clockEl.textContent = n.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    clockEl.textContent = n.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: !use24Hour });
   }
   tickClock();
   setInterval(tickClock, 1000);
