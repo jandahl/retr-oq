@@ -22,6 +22,7 @@
   const winDecon = document.getElementById("win-decon");
   const winProgman = document.getElementById("win-progman");
   const winClock = document.getElementById("win-clock");
+  const bootScreen = document.getElementById("boot-screen");
 
   const wm = window.OqRedmond.initWindowManager({
     desktop,
@@ -695,10 +696,14 @@
     }
   });
 
-  // Boot to Program Manager, the way a real 3.1 session always did.
-  // forceOpenWindow (not openWindow) so a leftover ?screen= from a
-  // previous theme doesn't have to own this first paint — the router
-  // onChange above still opens OQ!/DECON on top if the URL asks.
-  forceOpenWindow(winProgman);
-  syncChrome();
+  // Boot to Program Manager, with a brief startup screen before the shell
+  // appears. Continue is useful for keyboard and automated previews.
+  function finishBoot() {
+    if (bootScreen.classList.contains("is-done")) return;
+    bootScreen.classList.add("is-done");
+    forceOpenWindow(winProgman);
+    syncChrome();
+  }
+  bootScreen.addEventListener("click", finishBoot);
+  window.setTimeout(finishBoot, 1400);
 })();
