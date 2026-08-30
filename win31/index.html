@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 3.1 Program Manager</title>
-<link rel="stylesheet" href="style.css?v=3" />
+<link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <!-- Windows 3.1 Program Manager prototype. The shell is Program
@@ -347,8 +347,12 @@
         </div>
       </div>
       <div class="window-body solitaire-body">
-        <div class="solitaire-card" aria-hidden="true"></div>
-        <p>Insufficient memory<br>to run Solitaire.</p>
+        <div class="solitaire-toolbar">
+          <button type="button" id="solitaire-new">New Game</button>
+          <span id="solitaire-status" role="status">Click a card, then a destination.</span>
+        </div>
+        <div class="solitaire-board" id="solitaire-board" aria-label="Solitaire board"></div>
+        <p class="solitaire-hint">A tiny original Klondike-style game for the Games group.</p>
       </div>
       <ul class="sysmenu" hidden>
         <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
@@ -450,6 +454,6 @@
   <script src="../shared/redmond/window-manager.js"></script>
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=1"></script>
+  <script src="app.js?v=2"></script>
 </body>
 </html>
