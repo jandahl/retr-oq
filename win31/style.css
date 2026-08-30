@@ -380,6 +380,7 @@ a:active {
   gap: 12px 8px;
   padding: 8px 4px;
   min-height: 8rem;
+  background: var(--white);
 }
 
 .prog-icon {
@@ -405,7 +406,8 @@ a:active {
   width: 32px;
   height: 32px;
   background-repeat: no-repeat;
-  background-size: contain;
+  /* Group art is authored on a 16px grid and displayed at a crisp 2x. */
+  background-size: 32px 32px;
   background-position: center;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
