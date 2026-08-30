@@ -10,6 +10,18 @@
 <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
+  <section class="boot-screen" id="boot-screen" aria-label="Windows 3.1 startup" aria-live="polite">
+    <div class="boot-panel">
+      <div class="boot-mark" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <div class="boot-title">WINDOWS</div>
+      <div class="boot-subtitle">hypertext UI computing</div>
+      <div class="boot-version">Version 3.1</div>
+      <div class="boot-status">Starting Program Manager...</div>
+      <button type="button" class="boot-skip" id="boot-skip">Continue</button>
+    </div>
+  </section>
   <!-- Windows 3.1 Program Manager prototype. The shell is Program
        Manager, not a desktop-with-icons and not a Start/taskbar (those
        arrived with 95). Chrome is hand-rolled to match

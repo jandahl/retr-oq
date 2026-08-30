@@ -58,7 +58,7 @@
   --icon-decon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='1' y='6' width='4' height='4' fill='%23c0c0c0' stroke='%23000000'/%3E%3Crect x='6' y='6' width='4' height='4' fill='%23808080' stroke='%23000000'/%3E%3Crect x='11' y='6' width='4' height='4' fill='%23c0c0c0' stroke='%23000000'/%3E%3Crect x='7' y='2' width='2' height='3' fill='%23000080'/%3E%3Crect x='7' y='11' width='2' height='3' fill='%23000080'/%3E%3C/svg%3E");
   --icon-about: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='3' y='1' width='9' height='14' fill='%23ffffff' stroke='%23000000'/%3E%3Cpolygon points='9,1 12,4 9,4' fill='%23c0c0c0' stroke='%23000000'/%3E%3Crect x='5' y='6' width='5' height='1' fill='%23000080'/%3E%3Crect x='5' y='8' width='5' height='1' fill='%23000080'/%3E%3Crect x='5' y='10' width='3' height='1' fill='%23000080'/%3E%3C/svg%3E");
   --icon-clock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='2' y='2' width='12' height='12' fill='%23c0c0c0'/%3E%3Crect x='3' y='3' width='10' height='10' fill='%23ffffff'/%3E%3Crect x='7' y='3' width='2' height='2' fill='%23000000'/%3E%3Crect x='7' y='11' width='2' height='2' fill='%23000000'/%3E%3Crect x='3' y='7' width='2' height='2' fill='%23000000'/%3E%3Crect x='11' y='7' width='2' height='2' fill='%23000000'/%3E%3Crect x='7' y='7' width='2' height='2' fill='%23c00000'/%3E%3Crect x='8' y='5' width='1' height='3' fill='%23000000'/%3E%3Crect x='8' y='7' width='3' height='1' fill='%23000000'/%3E%3C/svg%3E");
-  --icon-group: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='14' height='14' fill='%23ffffff' stroke='%23000000'/%3E%3Crect x='2' y='2' width='12' height='3' fill='%2300ffff'/%3E%3Cpath d='M2 2h1v1h1v1h1v1h1V2h1v1h1v1h1v1h1V2h1v1h1v1h1' stroke='%23808080' fill='none'/%3E%3Crect x='3' y='7' width='2' height='2' fill='%23000000'/%3E%3Crect x='7' y='7' width='2' height='2' fill='%23000080'/%3E%3Crect x='11' y='7' width='2' height='2' fill='%23000000'/%3E%3Cpath d='M3 11h2v2H3zm4 0h2v2H7zm4 0h2v2h-2z' fill='%23c00000'/%3E%3Crect x='4' y='7' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='8' y='8' width='1' height='1' fill='%2300ffff'/%3E%3Crect x='12' y='7' width='1' height='1' fill='%23ffffff'/%3E%3C/svg%3E");
+  --icon-group: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='1' y='1' width='14' height='14' fill='%23ffffff' stroke='%23000000'/%3E%3Crect x='2' y='2' width='12' height='3' fill='%2300ffff'/%3E%3Cpath d='M2 2h1v1h1v1h1v1h1V2h1v1h1v1h1v1h1V2h1v1h1v1h1' stroke='%23808080' fill='none'/%3E%3Crect x='3' y='7' width='2' height='2' fill='%23000000'/%3E%3Crect x='7' y='7' width='2' height='2' fill='%23008080'/%3E%3Crect x='11' y='7' width='2' height='2' fill='%23000000'/%3E%3Crect x='3' y='10' width='3' height='1' fill='%23000000'/%3E%3Crect x='7' y='10' width='3' height='1' fill='%23000000'/%3E%3Crect x='11' y='10' width='2' height='1' fill='%23000000'/%3E%3Cpath d='M3 12h2v2H3zm4 0h2v2H7zm4 0h2v2h-2z' fill='%23c000c0'/%3E%3Crect x='4' y='7' width='1' height='1' fill='%23ffffff'/%3E%3Crect x='8' y='8' width='1' height='1' fill='%2300ffff'/%3E%3Crect x='12' y='7' width='1' height='1' fill='%23ffffff'/%3E%3C/svg%3E");
   --icon-progman: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='2' y='1' width='12' height='10' fill='%23c0c0c0'/%3E%3Crect x='3' y='2' width='10' height='7' fill='%23000080'/%3E%3Crect x='4' y='3' width='3' height='2' fill='%23ffff00'/%3E%3Crect x='8' y='3' width='3' height='2' fill='%2300ffff'/%3E%3Crect x='4' y='6' width='3' height='2' fill='%23ff00ff'/%3E%3Crect x='8' y='6' width='3' height='2' fill='%2300ff00'/%3E%3Crect x='6' y='11' width='4' height='2' fill='%23808080'/%3E%3Crect x='4' y='13' width='8' height='2' fill='%23c0c0c0'/%3E%3C/svg%3E");
   --icon-solitaire: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='3' y='2' width='10' height='13' fill='%23008000' stroke='%23000000'/%3E%3Crect x='4' y='3' width='8' height='11' fill='%23ffffff'/%3E%3Cpath d='M8 5v2h2v2H8v2H6V9H4V7h2V5z' fill='%23c00000'/%3E%3C/svg%3E");
 }
@@ -79,6 +79,39 @@ html, body {
   height: 100%;
   overflow: hidden;
 }
+
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  color: #000;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.boot-screen.is-done { display: none; }
+.boot-panel {
+  width: min(34rem, calc(100vw - 32px));
+  min-height: 21rem;
+  padding: 2.5rem 2rem 1.25rem;
+  text-align: center;
+  background: #29a9c7;
+  border: 3px solid #5ed8e6;
+  box-shadow: 0 0 0 2px #126d86, 0 0 0 5px #000;
+}
+.boot-mark { display:grid; grid-template-columns:repeat(4, 20px); gap:3px; justify-content:center; transform:skewY(-22deg); margin-bottom:1.5rem; }
+.boot-mark span { height:20px; background:#000; }
+.boot-mark span:nth-child(2) { background:#f00; }
+.boot-mark span:nth-child(3) { background:#00f; }
+.boot-mark span:nth-child(4) { background:#ff0; }
+.boot-title { font-size:clamp(2.5rem, 10vw, 5rem); line-height:.9; letter-spacing:-.12em; }
+.boot-subtitle { margin-top: .15rem; font-size: 1.15rem; }
+.boot-version { margin-top: 2rem; font-size: 2.2rem; }
+.boot-status { margin-top: 2rem; font: 11px "Courier New", monospace; }
+.boot-skip { margin-top: .75rem; padding: 3px 10px; font: 11px "Pixelated MS Sans Serif", Arial, sans-serif; }
 
 body {
   font-family: "Pixelated MS Sans Serif", Arial, sans-serif;
