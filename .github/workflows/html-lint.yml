@@ -36,7 +36,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install CSS lint dependencies
-        run: pip install --only-binary=:all: --require-hashes -r requirements-dev.txt
+        run: "pip install --only-binary=:all: --require-hashes -r requirements-dev.txt"
 
       - name: CSS syntax validate
         run: python3 tools/check_css.py $(find . -type f -name 'style.css' -not -path './vendor/*')
