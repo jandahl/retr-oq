@@ -31,6 +31,7 @@
     resizeHandleSelector: ".win31-resize-handle",
     minWidth: MIN_WIN_WIDTH,
     minHeight: MIN_WIN_HEIGHT,
+    pointerScale: 2,
     // 3.1's minimize animation was the same outline-rectangle as 95/98,
     // just flying to a desktop icon instead of a taskbar button.
     animation: {
@@ -133,7 +134,17 @@
       event.preventDefault();
       event.stopPropagation();
       closeAllSysmenus();
-      win.querySelector(".win-close").click();
+      // A double-click on the Control-menu box is the original instant-close
+      // gesture. Bypass the synthetic button click so it cannot reopen the
+      // menu or wait on any click handling before the window disappears.
+      if (win === winProgman) {
+        openExitDialog();
+      } else {
+        closeWindow(win);
+        if (win.id === "win-oq" || win.id === "win-decon") {
+          window.OqRouter.navigate({ screen: null, filter: null, word: null });
+        }
+      }
     });
     menu.querySelector(".sysmenu-restore").addEventListener("click", () => {
       closeAllSysmenus();
@@ -210,6 +221,7 @@
     closeAllSysmenus();
     closeAllMenus();
     exitOverlay.hidden = false;
+    requestAnimationFrame(() => document.getElementById("exit-ok").focus());
   }
   document.getElementById("menu-exit").addEventListener("click", openExitDialog);
   document.getElementById("exit-ok").addEventListener("click", () => {
