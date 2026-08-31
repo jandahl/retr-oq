@@ -8,7 +8,7 @@
   // hub is revealed. Set as a CSS custom property so the fade animation's
   // duration and this timeout can never drift apart into two numbers that
   // used to match.
-  var BOOT_SCREEN_MS = 2000;
+  var BOOT_SCREEN_MS = 700;
   document.documentElement.style.setProperty(
     "--boot-duration",
     BOOT_SCREEN_MS + "ms"
@@ -58,15 +58,41 @@
     return li;
   }
 
-  function renderHub() {
+  function matchesFilter(machine, filter) {
+    return filter === "all" ||
+      (filter === "games" ? machine.hasGames : machine.category === filter);
+  }
+
+  function renderHub(filter) {
     var timeline = document.querySelector(".timeline");
     var machines = window.OqHubMachines || [];
+    var visibleMachines = machines.filter(function (machine) {
+      return matchesFilter(machine, filter || "all");
+    });
     var fragment = document.createDocumentFragment();
-    machines.forEach(function (machine) {
+    timeline.replaceChildren();
+    visibleMachines.forEach(function (machine) {
       fragment.appendChild(renderTile(machine));
     });
     timeline.appendChild(fragment);
-    enableWheelPan(timeline);
+    return visibleMachines.length;
+  }
+
+  function enableFilters() {
+    var buttons = document.querySelectorAll("[data-filter]");
+    var count = document.querySelector(".result-count");
+    var machines = window.OqHubMachines || [];
+
+    buttons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        var filter = button.getAttribute("data-filter");
+        buttons.forEach(function (other) {
+          other.setAttribute("aria-pressed", String(other === button));
+        });
+        var visibleCount = renderHub(filter);
+        count.textContent = visibleCount + " of " + machines.length + " machines";
+      });
+    });
   }
 
   // Desktop-only: the timeline is visually horizontal, so a vertical
@@ -97,7 +123,12 @@
     var main = document.getElementById("hub-main");
     if (!boot || !main) return;
 
-    window.setTimeout(function () {
+    var skip = boot.querySelector(".skip-intro");
+    var finished = false;
+
+    function completeBoot() {
+      if (finished) return;
+      finished = true;
       boot.classList.add("boot-screen--done");
       main.classList.add("hub-main--ready");
       boot.addEventListener(
@@ -107,9 +138,20 @@
         },
         { once: true }
       );
-    }, BOOT_SCREEN_MS);
+      window.setTimeout(function () { boot.hidden = true; }, 900);
+    }
+
+    skip.addEventListener("click", completeBoot);
+    var delay = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? 0
+      : BOOT_SCREEN_MS;
+    window.setTimeout(completeBoot, delay);
   }
 
-  renderHub();
+  var initialCount = renderHub("all");
+  document.querySelector(".result-count").textContent =
+    initialCount + " of " + (window.OqHubMachines || []).length + " machines";
+  enableFilters();
+  enableWheelPan(document.querySelector(".timeline"));
   runBootScreen();
 })();
