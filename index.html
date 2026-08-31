@@ -89,6 +89,55 @@
     max-width: 36rem;
   }
 
+  .hub-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-5);
+  }
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    align-items: center;
+  }
+
+  .filter-label,
+  .result-count {
+    color: var(--fg-muted);
+    font-size: 0.75rem;
+  }
+
+  .filter-button,
+  .skip-intro {
+    appearance: none;
+    border: 1px solid var(--fg-subtle);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fg-muted);
+    font: inherit;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    cursor: default;
+  }
+
+  .filter-button:hover,
+  .filter-button[aria-pressed="true"],
+  .filter-button:focus-visible,
+  .skip-intro:hover,
+  .skip-intro:focus-visible {
+    border-color: var(--fg);
+    color: var(--fg);
+  }
+
+  .filter-button:focus-visible,
+  .skip-intro:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
   /* Timeline: a literal line with a dot per callout, centered in the
      viewport with callouts alternating above/below -- full-bleed (breaks
      out of <main>'s max-width via the 100vw/left-50%/translateX trick) so
@@ -122,6 +171,13 @@
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-gutter: stable;
+  }
+
+  .timeline-hint {
+    margin: var(--space-2) 0 0;
+    color: var(--fg-subtle);
+    font-size: 0.6875rem;
+    text-align: center;
   }
 
   .timeline::before {
@@ -374,6 +430,12 @@
     letter-spacing: 0.02em;
   }
 
+  #boot-screen .skip-intro {
+    position: absolute;
+    right: var(--space-4);
+    bottom: var(--space-4);
+  }
+
   #hub-main {
     opacity: 0;
   }
@@ -405,6 +467,10 @@
   @media (prefers-reduced-motion: reduce) {
     #boot-screen, #hub-main { transition: none; }
   }
+
+  @media (max-width: 640px) {
+    .timeline-hint { display: none; }
+  }
 </style>
 </head>
 <body class="no-js">
@@ -416,30 +482,46 @@
     </p>
   </div>
 
-  <div id="boot-screen">
+  <div id="boot-screen" role="status" aria-live="polite">
     <p class="boot-text">retr-oq<span class="blink">_</span></p>
+    <button class="skip-intro" type="button">Skip intro</button>
   </div>
 
   <main id="hub-main">
     <header>
       <h1>retr-oq</h1>
       <p class="lede">Retro desktops and consoles. Pick a machine.</p>
+      <div class="hub-tools">
+        <nav class="filters" aria-label="Filter machines">
+          <span class="filter-label">Show</span>
+          <button class="filter-button" type="button" data-filter="all" aria-pressed="true">All</button>
+          <button class="filter-button" type="button" data-filter="games" aria-pressed="false">With games</button>
+          <button class="filter-button" type="button" data-filter="console" aria-pressed="false">Consoles</button>
+          <button class="filter-button" type="button" data-filter="handheld" aria-pressed="false">Handhelds</button>
+          <button class="filter-button" type="button" data-filter="home-computer" aria-pressed="false">Home computers</button>
+          <button class="filter-button" type="button" data-filter="redmond" aria-pressed="false">Windows</button>
+          <button class="filter-button" type="button" data-filter="cupertino" aria-pressed="false">Mac</button>
+          <button class="filter-button" type="button" data-filter="workstation" aria-pressed="false">Workstations</button>
+        </nav>
+        <span class="result-count" aria-live="polite"></span>
+      </div>
     </header>
 
     <div class="timeline-viewport">
       <ul class="timeline"></ul>
+      <p class="timeline-hint">Scroll horizontally to explore the timeline</p>
     </div>
 
     <footer>
       Fifteen skins for the same dictionary. See the
       <a href="https://github.com/jandahl/retr-oq">README</a>
       for how this relates to
-      <a href="https://github.com/jandahl/oq">oq</a>.
+      the upstream oq dictionary project.
     </footer>
   </main>
 
   <script>document.body.classList.remove("no-js");</script>
   <script src="hub-data.js?v=3"></script>
-  <script src="hub.js?v=3"></script>
+  <script src="hub.js?v=4"></script>
 </body>
 </html>
