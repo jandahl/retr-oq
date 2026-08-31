@@ -89,6 +89,89 @@
     openWindow,
   });
 
+  // ---------- Desktop right-click menu ----------
+  // Real (not suppress-only) context menu (issue #100), same shape as
+  // win98/app.js's own #desktop-context-menu: only two items, both with
+  // real behavior behind them -- no Properties/New/Paste/Arrange submenu,
+  // since none of those have a feature backing them in this theme.
+  const desktopContextMenu = document.getElementById("desktop-context-menu");
+  const desktopIconsEl = document.querySelector(".desktop-icons");
+  const desktopContextRefresh = document.getElementById("desktop-context-refresh");
+  const desktopContextShowIcons = document.getElementById("desktop-context-show-icons");
+  const SHOW_ICONS_STORAGE_KEY = "retr-oq:xp-desktop-icons";
+
+  function closeDesktopContextMenu() {
+    desktopContextMenu.hidden = true;
+  }
+
+  desktop.addEventListener("contextmenu", (event) => {
+    if (event.target !== desktop) return; // not over an icon -- real Windows gives icons their own (unbuilt) context menu instead
+    event.preventDefault();
+    // Clamp so the menu never opens partly off-screen -- desktop.getBoundingClientRect()
+    // excludes the taskbar already, same reasoning clampToViewport() uses
+    // elsewhere in shared/redmond/window-manager.js.
+    const deskRect = desktop.getBoundingClientRect();
+    const menuWidth = 176; // matches .desktop-context-menu's own min-width (11rem)
+    const menuHeight = 76; // two real items tall
+    const left = Math.min(event.clientX, deskRect.right - menuWidth);
+    const top = Math.min(event.clientY, deskRect.bottom - menuHeight);
+    desktopContextMenu.style.left = `${left}px`;
+    desktopContextMenu.style.top = `${top}px`;
+    desktopContextMenu.style.bottom = "auto";
+    desktopContextMenu.hidden = false;
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!desktopContextMenu.hidden && !desktopContextMenu.contains(event.target)) {
+      closeDesktopContextMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !desktopContextMenu.hidden) closeDesktopContextMenu();
+  });
+
+  // "Refresh" -- a real, visible action standing in for a desktop redraw:
+  // briefly dip the icons' opacity and bring it back via the CSS
+  // transition on .desktop-icons, same idea as a real Windows repaint
+  // flicker.
+  desktopContextRefresh.addEventListener("click", () => {
+    closeDesktopContextMenu();
+    if (!desktopIconsEl) return;
+    desktopIconsEl.classList.add("refreshing");
+    window.setTimeout(() => desktopIconsEl.classList.remove("refreshing"), 150);
+  });
+
+  // "Show desktop icons" -- a real, re-toggleable checkbox item. The
+  // desktop background itself (and this same menu) stays reachable even
+  // with icons hidden, so a visitor can never get stranded.
+  function getStoredShowIcons() {
+    try {
+      const stored = localStorage.getItem(SHOW_ICONS_STORAGE_KEY);
+      return stored === null ? true : stored === "true";
+    } catch {
+      return true; // localStorage can throw in a sandboxed iframe -- default to shown
+    }
+  }
+
+  function applyShowIcons(show) {
+    if (desktopIconsEl) desktopIconsEl.classList.toggle("icons-hidden", !show);
+    desktopContextShowIcons.classList.toggle("is-checked", show);
+    desktopContextShowIcons.setAttribute("aria-checked", String(show));
+    try {
+      localStorage.setItem(SHOW_ICONS_STORAGE_KEY, String(show));
+    } catch {
+      // sandboxed iframe or storage disabled -- the toggle still applies for this visit, just doesn't persist
+    }
+  }
+
+  let showDesktopIcons = getStoredShowIcons();
+  applyShowIcons(showDesktopIcons);
+
+  desktopContextShowIcons.addEventListener("click", () => {
+    showDesktopIcons = !showDesktopIcons;
+    applyShowIcons(showDesktopIcons);
+    closeDesktopContextMenu();
+  });
+
   // ---------- Start menu ----------
   const startButton = document.getElementById("start-button");
   const startMenu = document.getElementById("start-menu");

@@ -267,6 +267,62 @@ button,
   outline: 1px dotted #000000;
   outline-offset: 1px;
 }
+/* Real Mac OS icon selection highlight -- set by app.js's own desktop
+   click handler, cleared by "Clean Up Desktop" in the context menu below
+   (or by clicking the bare desktop). */
+.desktop-icon.selected .desktop-icon-label {
+  background: #000000;
+  color: #ffffff;
+}
+
+.desktop-icons.icons-hidden {
+  display: none;
+}
+
+/* ---------- Desktop right-click context menu ---------- */
+/* Same visual language as .mac8-menu-bar [role="menu"] (white, black
+   border, hard drop shadow, Charcoal-first font stack, invert-on-hover
+   items) -- just positioned at the click point instead of under a
+   menu-bar item, and not nested inside .mac8-menu-bar's own flex layout. */
+.desktop-context-menu {
+  position: fixed;
+  z-index: 2000;
+  margin: 0;
+  padding: 0.2rem 0;
+  min-width: 10rem;
+  background: #ffffff;
+  border: 1px solid #000000;
+  box-shadow: 2px 2px 0 0 rgba(0, 0, 0, 0.5);
+  list-style: none;
+  font-family: "Charcoal", "ChicagoFLF", Geneva, ui-sans-serif, sans-serif;
+  font-size: 0.75rem;
+}
+.desktop-context-menu li {
+  padding: 0;
+}
+.desktop-context-menu a {
+  display: flex;
+  align-items: center;
+  padding: 0.15rem 1rem;
+  color: #000000;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: var(--cursor-arrow);
+}
+.desktop-context-menu a:hover,
+.desktop-context-menu a:focus-visible {
+  background: #000000;
+  color: #ffffff;
+}
+.desktop-context-check {
+  display: inline-block;
+  width: 1rem;
+  flex: none;
+  visibility: hidden; /* shown only while #desktop-context-toggle-icons carries .checked, i.e. icons are visible */
+}
+#desktop-context-toggle-icons.checked .desktop-context-check {
+  visibility: visible;
+}
 
 /* ---------- Windows ---------- */
 /* .content (from base.css) supplies the border/background/box-shadow --

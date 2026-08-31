@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 7 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/win7/7.css" />
-<link rel="stylesheet" href="style.css?v=10" />
+<link rel="stylesheet" href="style.css?v=11" />
 </head>
 <body class="win7">
   <section class="boot-screen" id="boot-screen" aria-label="Windows 7 startup" aria-live="polite">
@@ -197,6 +197,28 @@
     </section>
   </div>
 
+  <!-- Real desktop right-click menu (issue #100), reusing the Start
+       menu's own glass chrome class same as win98's desktop-context-menu
+       reuses .start-menu -- see app.js's "Desktop right-click menu"
+       section for the wiring. Two items only, both with a real backing
+       action: no Personalize/Screen resolution/Gadgets/View/Sort
+       by/New submenus, since none of those has anything real behind it
+       in this theme. -->
+  <ul role="menu" class="start-menu desktop-context-menu" id="desktop-context-menu" hidden>
+    <li role="menu-item" class="start-menu-item" id="desktop-context-refresh">
+      <span class="start-menu-icon icon-computer" aria-hidden="true"></span> Refresh
+    </li>
+    <li
+      role="menu-item"
+      class="start-menu-item"
+      id="desktop-context-show-icons"
+      aria-checked="true"
+    >
+      <span class="start-menu-check" id="desktop-context-show-icons-check" aria-hidden="true">&#10003;</span>
+      Show desktop icons
+    </li>
+  </ul>
+
   <footer class="taskbar" id="taskbar">
     <!-- The real Aero "orb" -- a glossy circular Windows logo button, not
          the rectangular pill win98/xp use, see style.css's own comment for
@@ -275,6 +297,6 @@
        own header comment for why this one file is the exception. -->
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

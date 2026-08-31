@@ -313,11 +313,14 @@ a:active {
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: 3px 8px;
+  padding: 2px 8px;
   font-family: inherit;
   font-size: 11px;
   color: var(--text);
-  min-height: 22px;
+  /* Same height as .title-bar (18px) -- the menu strip is not a
+     taller, separate control, it's the same chrome band as the
+     title bar directly below it. */
+  min-height: 18px;
 }
 
 .menu-root.open > button,
@@ -327,10 +330,13 @@ a:active {
 }
 
 .menu-drop {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 40;
+  /* Fixed, not absolute-within-.menu-root: a real Program Manager
+     dropdown is a top-level popup, not scrollable content of the
+     window it opened from, so it must not be clipped by
+     .window-body's own overflow:auto. app.js positions it under its
+     menu-root button with an explicit left/top before un-hiding it. */
+  position: fixed;
+  z-index: 2000;
   margin: 0;
   padding: 2px;
   list-style: none;
@@ -349,11 +355,13 @@ a:active {
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: 4px 18px;
+  padding: 2px 18px;
   font-family: inherit;
   font-size: 11px;
   color: var(--text);
-  min-height: 22px;
+  /* Same 18px band as .title-bar / .menu-root > button, not a taller
+     dropdown-specific row height. */
+  min-height: 18px;
 }
 
 .menu-drop button:hover:not(:disabled),

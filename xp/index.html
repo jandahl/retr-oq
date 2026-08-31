@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows XP desktop prototype</title>
 <link rel="stylesheet" href="../vendor/xp/XP.css" />
-<link rel="stylesheet" href="style.css?v=10" />
+<link rel="stylesheet" href="style.css?v=11" />
 </head>
 <body class="surface">
   <section class="boot-screen" id="boot-screen" aria-label="Windows XP startup" aria-live="polite">
@@ -254,6 +254,20 @@
     </li>
   </ul>
 
+  <!-- Real desktop right-click menu (issue #100), same shape as win98's own
+       #desktop-context-menu: reuses the Start-menu chrome class rather than
+       inventing new chrome, positioned at the click by app.js. Only two
+       items with real backing behavior -- no Properties/New/Paste/Arrange
+       submenu, since none of those have a feature behind them here. -->
+  <ul role="menu" class="start-menu desktop-context-menu" id="desktop-context-menu" hidden>
+    <li role="menu-item" class="start-menu-item" id="desktop-context-refresh">
+      <span class="start-menu-icon" aria-hidden="true"></span> Refresh
+    </li>
+    <li role="menuitemcheckbox" class="start-menu-item" id="desktop-context-show-icons">
+      <span class="start-menu-icon desktop-context-check" aria-hidden="true"></span> Show desktop icons
+    </li>
+  </ul>
+
   <div class="xp-dialog-overlay" id="shutdown-overlay" hidden>
     <section class="window xp-dialog">
       <div class="title-bar">
@@ -282,6 +296,6 @@
        win98/index.html's identical comment on this same tag. -->
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

@@ -204,6 +204,20 @@
       closeAllMenus();
       closeAllSysmenus();
       if (willOpen) {
+        // .menu-drop is position:fixed (see style.css) so it isn't
+        // clipped by .window-body's own overflow:auto -- position it
+        // under the button in viewport coordinates each time it opens,
+        // since the window it belongs to can have moved since last time.
+        // getBoundingClientRect() reports already-zoomed (rendered) px
+        // under this theme's own `html { zoom: 2 }` at >=700px width (see
+        // style.css's own media query), but a length assigned via
+        // el.style.left is *pre*-zoom and gets multiplied by zoom again
+        // on render -- divide back out, same pattern as mac8/app.js's
+        // zoom-box and desktop-context-menu handlers (see CLAUDE.md).
+        const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+        const btnRect = btn.getBoundingClientRect();
+        drop.style.left = `${btnRect.left / zoomFactor}px`;
+        drop.style.top = `${btnRect.bottom / zoomFactor}px`;
         drop.hidden = false;
         root.classList.add("open");
       }

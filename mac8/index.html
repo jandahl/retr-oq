@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Mac OS 8.1 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/mac8/base.css" />
-<link rel="stylesheet" href="style.css?v=13" />
+<link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body>
   <div id="boot-screen">
@@ -262,6 +262,19 @@
       </button>
     </div>
 
+    <!-- Desktop right-click / Control-click context menu -- real Mac OS 8
+         Contextual Menu Manager, not just suppression (see app.js's own
+         comment above the suppression listener). Reuses the same visual
+         language as the menu-bar's own dropdowns (.mac8-menu-bar [role="menu"])
+         via .desktop-context-menu below, positioned at the click instead of
+         under a menu-bar item. -->
+    <ul role="menu" class="desktop-context-menu" id="desktop-context-menu" hidden>
+      <li role="menu-item" id="desktop-context-cleanup"><a href="#">Clean Up Desktop</a></li>
+      <li role="menu-item" id="desktop-context-toggle-icons">
+        <a href="#"><span class="desktop-context-check" aria-hidden="true">✓</span>Show Desktop Icons</a>
+      </li>
+    </ul>
+
     <!-- OQ! and DECON: real, shareable-URL state via shared/router.js,
          same ?screen=oq&filter=... / ?screen=decon&word=...&order=...
          params every other theme's router wiring already uses. -->
@@ -379,6 +392,6 @@
        own header comment for why this one file is the exception. -->
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>

@@ -78,7 +78,12 @@ a:active {
   position: fixed;
   top: 8px;
   left: 8px;
-  z-index: 2000;
+  /* Same stacking pool as .nx-window (also z-index: 10 to start) --
+     real Workspace Manager's main menu is an ordinary item in the
+     window stack, not permanently on top. Any window can cover it;
+     clicking the menu brings it back to front, same as focus() does
+     for windows -- see app.js. */
+  z-index: 10;
   width: var(--nx-menu);
   background: var(--nx-gray);
   border: 2px solid var(--nx-black);
@@ -252,6 +257,64 @@ a:active {
 .desktop-icon:focus-visible .desktop-icon-label {
   background: var(--nx-black);
   color: var(--nx-white);
+}
+.desktop-icons.is-hidden {
+  display: none;
+}
+
+/* ---------- Desktop right-click menu ---------- */
+/* Reuses .nx-submenu's own chrome (MegaPixel gray, black rule, drop
+   shadow) but positioned at the click via app.js, not hung off a
+   .nx-menuitem -- so it needs its own visibility + stacking, not the
+   parent-.is-open rule .nx-submenu normally relies on. z-index matches
+   the boot screen's -- both are transient top-layer overlays that are
+   only ever open for a moment, unlike the main menu's permanent
+   zTop-stacked z-index: 10. */
+.desktop-context-menu {
+  /* .nx-submenu's own base rule is `display: none`, only overridden by
+     `.nx-menuitem.is-open > .nx-submenu` -- this element is never that
+     child (it's positioned directly by app.js, not hung off a
+     .nx-menuitem), so without this it would stay display:none forever
+     regardless of the [hidden] attribute. :not([hidden]) outranks the
+     plain .nx-submenu class selector on specificity, so this wins. */
+  position: fixed;
+  z-index: 9000;
+  min-width: 10.5rem;
+}
+.desktop-context-menu:not([hidden]) {
+  display: block;
+}
+.desktop-context-menu[hidden] {
+  display: none;
+}
+.desktop-context-menu li {
+  padding: 0;
+}
+.nx-context-item {
+  display: block;
+  width: 100%;
+  min-height: 28px;
+  line-height: 28px;
+  padding: 0 12px;
+  margin: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: var(--cursor-arrow);
+}
+.nx-context-item:hover,
+.nx-context-item:focus-visible {
+  background: var(--nx-black);
+  color: var(--nx-white);
+}
+.nx-menu-check {
+  display: inline-block;
+  width: 1.1em;
+}
+.nx-menu-check.is-checked::before {
+  content: "\2713";
 }
 
 /* Miniwindows — miniaturize leaves these on the desktop */

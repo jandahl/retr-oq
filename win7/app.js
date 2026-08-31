@@ -106,6 +106,97 @@
     openWindow,
   });
 
+  // ---------- Desktop right-click menu ----------
+  // shared/redmond/window-manager.js already preventDefault()s a
+  // right-click over the bare desktop (so the browser's own menu never
+  // shows through the glass chrome) -- this is win7's *real* menu on top
+  // of that suppression, same shape as win98/app.js's own
+  // "Desktop right-click menu" (see that file), but with two items that
+  // actually do something instead of win98's single hidden-feature
+  // Properties entry: "Refresh" (a visible desktop-icon flash) and
+  // "Show desktop icons" (a real, persisted show/hide toggle).
+  const desktopContextMenu = document.getElementById("desktop-context-menu");
+  const desktopIcons = document.querySelector(".desktop-icons");
+  const showIconsItem = document.getElementById("desktop-context-show-icons");
+  const showIconsCheck = document.getElementById("desktop-context-show-icons-check");
+  const DESKTOP_ICONS_STORAGE_KEY = "retr-oq:win7-desktop-icons";
+
+  function getStoredIconsVisible() {
+    try {
+      return localStorage.getItem(DESKTOP_ICONS_STORAGE_KEY) !== "hidden";
+    } catch {
+      return true;
+    }
+  }
+
+  function setStoredIconsVisible(visible) {
+    try {
+      localStorage.setItem(DESKTOP_ICONS_STORAGE_KEY, visible ? "visible" : "hidden");
+    } catch {
+      // Sandboxed iframe or similar -- the toggle still works for this
+      // page load, it just won't persist across a reload.
+    }
+  }
+
+  function applyIconsVisible(visible) {
+    desktopIcons.classList.toggle("is-hidden", !visible);
+    showIconsItem.setAttribute("aria-checked", String(visible));
+    showIconsCheck.style.visibility = visible ? "visible" : "hidden";
+  }
+
+  applyIconsVisible(getStoredIconsVisible());
+
+  showIconsItem.addEventListener("click", () => {
+    const nowVisible = !desktopIcons || desktopIcons.classList.contains("is-hidden");
+    applyIconsVisible(nowVisible);
+    setStoredIconsVisible(nowVisible);
+    closeDesktopContextMenu();
+  });
+
+  document.getElementById("desktop-context-refresh").addEventListener("click", () => {
+    closeDesktopContextMenu();
+    if (!desktopIcons) return;
+    // A brief opacity dip and recovery -- the only period-honest stand-in
+    // for a real desktop redraw a static page can offer, but a visible
+    // one: this is a real action, not a dead menu item.
+    desktopIcons.classList.remove("is-refreshing");
+    // Force reflow so re-adding the class retriggers the CSS transition
+    // even if "Refresh" is clicked twice in a row.
+    void desktopIcons.offsetWidth;
+    desktopIcons.classList.add("is-refreshing");
+    window.setTimeout(() => {
+      desktopIcons.classList.remove("is-refreshing");
+    }, 150);
+  });
+
+  function closeDesktopContextMenu() {
+    desktopContextMenu.hidden = true;
+  }
+
+  desktop.addEventListener("contextmenu", (event) => {
+    if (event.target !== desktop) return; // not over an icon -- icons get their own (unbuilt) context menu instead
+    event.preventDefault();
+    // Clamp so the menu never opens partly off-screen -- desktop.getBoundingClientRect()
+    // already excludes the taskbar (see style.css's `.desktop { bottom: 40px }`).
+    const deskRect = desktop.getBoundingClientRect();
+    const menuWidth = 190; // matches .start-menu's own min-width-ish sizing
+    const menuHeight = 78; // two real items tall
+    const left = Math.min(event.clientX, deskRect.right - menuWidth);
+    const top = Math.min(event.clientY, deskRect.bottom - menuHeight);
+    desktopContextMenu.style.left = `${left}px`;
+    desktopContextMenu.style.top = `${top}px`;
+    desktopContextMenu.style.bottom = "auto";
+    desktopContextMenu.hidden = false;
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!desktopContextMenu.hidden && !desktopContextMenu.contains(event.target)) {
+      closeDesktopContextMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !desktopContextMenu.hidden) closeDesktopContextMenu();
+  });
+
   // ---------- Start menu ----------
   const startButton = document.getElementById("start-button");
   const startMenu = document.getElementById("start-menu");

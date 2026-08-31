@@ -24,6 +24,18 @@ constraints that are easy to violate if you only read the code.
 - **Pointers:** listen for move/up on `window`. Start a drag (or Compiz
   grab) only after the pointer has actually moved. Don't `await` a
   snapshot on the pointer path.
+- **`zoom: 2` themes (mac1984/, mac8/, win31/'s `@media (min-width: 700px)`
+  block):** `event.clientX/Y` and `getBoundingClientRect()` both already
+  report post-zoom (rendered) px, but a CSS length you assign via
+  `el.style.left/top` is a *pre*-zoom value that the browser multiplies
+  by `zoom` again on render — set one straight from the other and the
+  element lands roughly twice as far out as the click (a menu positioned
+  at `event.clientX` on a `zoom: 2` desktop opened off-screen this way).
+  Divide by `parseFloat(getComputedStyle(document.documentElement).zoom)
+  || 1` before assigning; see mac8/app.js's zoom-box handler or its
+  desktop-context-menu handler for the pattern. Only applies to lengths
+  computed in JS from rect/event values — plain CSS px in a stylesheet
+  is already pre-zoom and needs no adjustment.
 - **Original art.** No trademarked logos. Easter eggs stay undocumented.
 - **Git:** new branch from current `origin/master`. Don't stack on a
   just-merged branch. "Rebase" after a merge means that. Confirm with

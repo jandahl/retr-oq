@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — KDE 3.5 / Compiz Fusion</title>
-<link rel="stylesheet" href="style.css?v=6" />
+<link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <section class="boot-screen" id="boot-screen" aria-label="KDE startup" aria-live="polite">
@@ -265,6 +265,11 @@ Type `help` for a list of commands.
     <li><button type="button" id="menu-leave">Leave…</button></li>
   </ul>
 
+  <ul class="k-menu desktop-context-menu" id="desktop-context-menu" hidden>
+    <li><button type="button" id="desktop-ctx-refresh">Refresh Desktop</button></li>
+    <li><button type="button" id="desktop-ctx-toggle-icons" role="menuitemcheckbox" aria-checked="true"><span class="desktop-ctx-check" aria-hidden="true"></span> Show Desktop Icons</button></li>
+  </ul>
+
   <div class="overlay" id="leave-overlay" hidden>
     <section class="kde-window dialog">
       <div class="title-bar">
@@ -287,6 +292,6 @@ Type `help` for a list of commands.
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
   <script src="compositor.js?v=4"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

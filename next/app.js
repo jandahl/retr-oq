@@ -105,10 +105,75 @@
   let zTop = 10;
 
   // Real NeXTSTEP never showed a browser's own right-click menu over the
-  // desktop -- suppress it over the bare desktop background.
+  // desktop -- suppress it over the bare desktop background, and open a
+  // real one instead. Clean Up clears any current icon selection (icons
+  // themselves aren't draggable in this theme, so there's nothing to
+  // rearrange); Show Icons is a real, re-toggleable checkbox -- the
+  // desktop background stays visible and clickable even with icons
+  // hidden, so right-clicking it still reaches this same menu.
+  const desktopContextMenu = document.getElementById("desktop-context-menu");
+  const desktopIcons = document.querySelector(".desktop-icons");
+  const showIconsCheck = document.getElementById("desktop-context-showicons-check");
+  const ICONS_HIDDEN_KEY = "retr-oq:next-desktop-icons";
+
+  function getIconsHidden() {
+    try {
+      return localStorage.getItem(ICONS_HIDDEN_KEY) === "hidden";
+    } catch {
+      return false; // localStorage can throw in a sandboxed iframe -- default to shown
+    }
+  }
+
+  function setIconsHidden(hidden) {
+    if (desktopIcons) desktopIcons.classList.toggle("is-hidden", hidden);
+    if (showIconsCheck) showIconsCheck.classList.toggle("is-checked", !hidden);
+    try {
+      localStorage.setItem(ICONS_HIDDEN_KEY, hidden ? "hidden" : "shown");
+    } catch {
+      // localStorage can throw in a sandboxed iframe -- toggle still works for this load
+    }
+  }
+
+  setIconsHidden(getIconsHidden());
+
+  function closeDesktopContextMenu() {
+    desktopContextMenu.hidden = true;
+  }
+
   desktop.addEventListener("contextmenu", (event) => {
-    if (event.target === desktop) event.preventDefault();
+    if (event.target !== desktop) return; // not over an icon -- icons have no context menu of their own (yet)
+    event.preventDefault();
+    // Clamp so the menu never opens partly off-screen, same reasoning
+    // win98's own desktop-context-menu clamp uses.
+    const deskRect = desktop.getBoundingClientRect();
+    const menuWidth = 168; // matches .desktop-context-menu's own min-width
+    const menuHeight = 56; // two items tall
+    const left = Math.min(event.clientX, deskRect.right - menuWidth);
+    const top = Math.min(event.clientY, deskRect.bottom - menuHeight);
+    desktopContextMenu.style.left = `${left}px`;
+    desktopContextMenu.style.top = `${top}px`;
+    desktopContextMenu.hidden = false;
   });
+  document.addEventListener("pointerdown", (event) => {
+    if (!desktopContextMenu.hidden && !desktopContextMenu.contains(event.target)) {
+      closeDesktopContextMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !desktopContextMenu.hidden) closeDesktopContextMenu();
+  });
+
+  document.getElementById("desktop-context-cleanup").addEventListener("click", () => {
+    for (const icon of document.querySelectorAll(".desktop-icon.is-selected")) {
+      icon.classList.remove("is-selected");
+    }
+    closeDesktopContextMenu();
+  });
+  document.getElementById("desktop-context-showicons").addEventListener("click", () => {
+    setIconsHidden(!getIconsHidden());
+    closeDesktopContextMenu();
+  });
+
   const minis = new Map();
 
   function focus(win) {
@@ -249,6 +314,15 @@
   // ---------- Vertical menus ----------
   const mainMenu = document.getElementById("main-menu");
   makeDraggable(document.getElementById("main-menu-titlebar"), mainMenu);
+  // The main menu is an ordinary item in the same stacking order as
+  // windows (see its z-index: 10 base in style.css) -- clicking it
+  // brings it to front just like focus() does for a window, instead of
+  // it sitting permanently above everything.
+  mainMenu.addEventListener("pointerdown", () => {
+    if (Number(mainMenu.style.zIndex) >= zTop) return;
+    zTop += 1;
+    mainMenu.style.zIndex = String(zTop);
+  });
   const subHosts = Array.from(mainMenu.querySelectorAll(".nx-menuitem.has-sub"));
   let openSub = null;
 

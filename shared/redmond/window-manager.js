@@ -75,8 +75,15 @@
     // Real Windows never showed a browser's own right-click menu over the
     // desktop -- capture it here for every Redmond theme so the illusion
     // doesn't break even where a theme has no custom context menu of its
-    // own (win98/app.js adds a real one on top of this for the bare
-    // desktop; this still runs first and just suppresses the native menu).
+    // own (win98/xp/win7's own app.js each add a real one on top of this
+    // for the bare desktop; this still runs first and just suppresses the
+    // native menu). win31/ deliberately stays suppress-only forever, not
+    // just until someone gets around to it: Program Manager is the 3.1
+    // shell, not a desktop with icons on it (see win31/style.css's own
+    // "3.1 vs 95/98, on purpose" comment) -- there's no bare-desktop
+    // surface a real 3.1 user could even right-click, so there's nothing
+    // period-accurate to build here (tracked as intentionally out of
+    // scope in issue #100).
     desktop.addEventListener("contextmenu", (event) => {
       if (event.target === desktop) event.preventDefault();
     });

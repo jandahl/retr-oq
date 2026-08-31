@@ -30,6 +30,79 @@
     if (event.target === desktop) event.preventDefault();
   });
 
+  // ---------- Desktop right-click menu: Refresh Desktop / Show Desktop Icons ----------
+  const desktopContextMenu = document.getElementById("desktop-context-menu");
+  const desktopIcons = document.querySelector(".desktop-icons");
+  const desktopCtxRefresh = document.getElementById("desktop-ctx-refresh");
+  const desktopCtxToggleIcons = document.getElementById("desktop-ctx-toggle-icons");
+  const DESKTOP_ICONS_STORAGE_KEY = "retr-oq:kde-desktop-icons";
+
+  function getStoredIconsVisible() {
+    try {
+      const stored = window.localStorage.getItem(DESKTOP_ICONS_STORAGE_KEY);
+      return stored !== "hidden";
+    } catch (err) {
+      return true;
+    }
+  }
+
+  function setStoredIconsVisible(visible) {
+    try {
+      window.localStorage.setItem(DESKTOP_ICONS_STORAGE_KEY, visible ? "shown" : "hidden");
+    } catch (err) {
+      // sandboxed iframe -- ignore, state just won't persist
+    }
+  }
+
+  function applyIconsVisible(visible) {
+    if (desktopIcons) desktopIcons.classList.toggle("icons-hidden", !visible);
+    desktopCtxToggleIcons.setAttribute("aria-checked", visible ? "true" : "false");
+  }
+
+  applyIconsVisible(getStoredIconsVisible());
+
+  function closeDesktopContextMenu() {
+    desktopContextMenu.hidden = true;
+  }
+
+  desktop.addEventListener("contextmenu", (event) => {
+    if (event.target !== desktop) return; // not over an icon
+    event.preventDefault();
+    const deskRect = desktop.getBoundingClientRect();
+    const menuWidth = 190; // matches .desktop-context-menu's min-width
+    const menuHeight = 76; // two real items tall
+    const left = Math.min(event.clientX, deskRect.right - menuWidth);
+    const top = Math.min(event.clientY, deskRect.bottom - menuHeight);
+    desktopContextMenu.style.left = `${left}px`;
+    desktopContextMenu.style.top = `${top}px`;
+    desktopContextMenu.style.bottom = "auto";
+    desktopContextMenu.hidden = false;
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!desktopContextMenu.hidden && !desktopContextMenu.contains(event.target)) {
+      closeDesktopContextMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !desktopContextMenu.hidden) closeDesktopContextMenu();
+  });
+
+  desktopCtxRefresh.addEventListener("click", () => {
+    closeDesktopContextMenu();
+    if (!desktopIcons) return;
+    desktopIcons.classList.add("is-refreshing");
+    window.setTimeout(() => {
+      desktopIcons.classList.remove("is-refreshing");
+    }, 150);
+  });
+
+  desktopCtxToggleIcons.addEventListener("click", () => {
+    closeDesktopContextMenu();
+    const visible = desktopCtxToggleIcons.getAttribute("aria-checked") !== "true";
+    applyIconsVisible(visible);
+    setStoredIconsVisible(visible);
+  });
+
   const ICONS = {
     oq: "art/icon-oq.png",
     decon: "art/icon-decon.png",
