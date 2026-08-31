@@ -249,6 +249,15 @@
   // ---------- Vertical menus ----------
   const mainMenu = document.getElementById("main-menu");
   makeDraggable(document.getElementById("main-menu-titlebar"), mainMenu);
+  // The main menu is an ordinary item in the same stacking order as
+  // windows (see its z-index: 10 base in style.css) -- clicking it
+  // brings it to front just like focus() does for a window, instead of
+  // it sitting permanently above everything.
+  mainMenu.addEventListener("pointerdown", () => {
+    if (Number(mainMenu.style.zIndex) >= zTop) return;
+    zTop += 1;
+    mainMenu.style.zIndex = String(zTop);
+  });
   const subHosts = Array.from(mainMenu.querySelectorAll(".nx-menuitem.has-sub"));
   let openSub = null;
 

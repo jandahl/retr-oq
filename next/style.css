@@ -78,7 +78,12 @@ a:active {
   position: fixed;
   top: 8px;
   left: 8px;
-  z-index: 2000;
+  /* Same stacking pool as .nx-window (also z-index: 10 to start) --
+     real Workspace Manager's main menu is an ordinary item in the
+     window stack, not permanently on top. Any window can cover it;
+     clicking the menu brings it back to front, same as focus() does
+     for windows -- see app.js. */
+  z-index: 10;
   width: var(--nx-menu);
   background: var(--nx-gray);
   border: 2px solid var(--nx-black);

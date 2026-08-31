@@ -204,6 +204,13 @@
       closeAllMenus();
       closeAllSysmenus();
       if (willOpen) {
+        // .menu-drop is position:fixed (see style.css) so it isn't
+        // clipped by .window-body's own overflow:auto -- position it
+        // under the button in viewport coordinates each time it opens,
+        // since the window it belongs to can have moved since last time.
+        const btnRect = btn.getBoundingClientRect();
+        drop.style.left = `${btnRect.left}px`;
+        drop.style.top = `${btnRect.bottom}px`;
         drop.hidden = false;
         root.classList.add("open");
       }
