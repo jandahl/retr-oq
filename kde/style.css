@@ -710,6 +710,34 @@ button.kde-btn.default {
   box-shadow: 0 1px 0 var(--kde-hi);
 }
 
+/* ---------- Desktop right-click menu ---------- */
+
+.desktop-context-menu {
+  min-width: 190px;
+  bottom: auto; /* positioned via left/top in JS, not anchored to the kicker */
+}
+.desktop-ctx-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+}
+#desktop-ctx-toggle-icons[aria-checked="true"] .desktop-ctx-check::before {
+  content: "\2713";
+}
+.desktop-icons.is-refreshing {
+  opacity: 0.4;
+  transition: opacity 150ms ease;
+}
+.desktop-icons {
+  transition: opacity 150ms ease;
+}
+.desktop-icons.icons-hidden {
+  display: none;
+}
+
 @media (pointer: coarse) {
   .k-menu button { min-height: 44px; }
   .k-menu-btn { min-width: 44px; }

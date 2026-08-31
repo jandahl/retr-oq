@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — NeXT Workspace 3.3 prototype</title>
-<link rel="stylesheet" href="style.css?v=6" />
+<link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <section class="boot-screen" id="boot-screen" aria-label="NeXTSTEP startup" aria-live="polite">
@@ -211,6 +211,21 @@ Workspace Manager ready.
     </section>
   </div>
 
+  <!-- Right-click the bare desktop for a real menu -- reuses the main
+       menu's own .nx-submenu chrome, positioned at the click instead of
+       hanging off a .nx-menuitem. Clean Up clears any current icon
+       selection; Show Icons is a real, re-toggleable checkbox. -->
+  <ul class="nx-submenu desktop-context-menu" role="menu" id="desktop-context-menu" hidden>
+    <li role="menu-item">
+      <button type="button" class="nx-context-item" id="desktop-context-cleanup">Clean Up</button>
+    </li>
+    <li role="menu-item">
+      <button type="button" class="nx-context-item" id="desktop-context-showicons">
+        <span class="nx-menu-check" id="desktop-context-showicons-check" aria-hidden="true"></span>Show Icons
+      </button>
+    </li>
+  </ul>
+
   <div class="nx-overlay" id="quit-overlay" hidden>
     <section class="nx-window nx-panel-window">
       <div class="nx-titlebar">
@@ -256,6 +271,6 @@ Record the message, then press the left mouse button to continue.</pre>
   <script src="../shared/router.js"></script>
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

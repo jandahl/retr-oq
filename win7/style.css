@@ -912,6 +912,46 @@ html, body {
   background: rgba(0, 0, 0, 0.12);
 }
 
+/* ---------- Desktop right-click menu (issue #100) ----------
+   #desktop-context-menu, not just .desktop-context-menu: same id-selector
+   trap .start-menu-item/#start-menu already document above -- 7.css's own
+   `ul[role=menu] { position: relative; ... }` outranks a plain class, so
+   this needs the id to actually stay position:fixed at the click point
+   instead of falling back into normal document flow. Reuses .start-menu's
+   own glass chrome (blur, gradient, border, shadow) entirely -- this only
+   trims the width down, same spirit as win98's own
+   .desktop-context-menu override. */
+#desktop-context-menu {
+  position: fixed;
+  min-width: 12rem;
+}
+
+/* Checkbox-style indicator for "Show desktop icons" -- a real Windows
+   menu shows a check glyph in the icon gutter rather than a separate
+   checkbox control. Hidden (not removed) when unchecked so the item's
+   label doesn't jump sideways. */
+.start-menu-check {
+  flex: 0 0 auto;
+  width: 16px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* ---------- Desktop icons: Refresh flash + Show/hide toggle ---------- */
+
+.desktop-icons.is-hidden {
+  display: none;
+}
+
+.desktop-icons {
+  transition: opacity 150ms ease;
+}
+
+.desktop-icons.is-refreshing {
+  opacity: 0.4;
+}
+
 /* ---------- Shut Down dialog ---------- */
 
 .win7-dialog-overlay {

@@ -118,6 +118,113 @@
     if (event.target === desktop) event.preventDefault();
   });
 
+  // ---------- Desktop right-click / Control-click context menu ----------
+  // Mac OS 8 introduced the Contextual Menu Manager -- the first real
+  // right-click/Control-click desktop menu in Mac OS history (mac1984/ is
+  // 1984, one-button mouse, no such thing, and deliberately stays
+  // suppress-only; don't touch it). The browser's own "contextmenu" event
+  // already fires for both a real right-click *and* a Control-click on
+  // Mac, so no separate Control-click handling is needed -- same trigger
+  // win98/app.js's own desktop-context-menu code uses.
+  const desktopIcons = document.querySelector(".desktop-icons");
+  const desktopContextMenu = document.getElementById("desktop-context-menu");
+  const desktopContextCleanup = document.getElementById("desktop-context-cleanup");
+  const desktopContextToggleIcons = document.getElementById("desktop-context-toggle-icons");
+  const DESKTOP_ICONS_STORAGE_KEY = "retr-oq:mac8-desktop-icons";
+
+  function closeDesktopContextMenu() {
+    desktopContextMenu.hidden = true;
+  }
+
+  // Real Mac OS selects an icon on click (a second click, or dragging a
+  // marquee, is what actually opens/moves it) -- this theme's icons are
+  // plain buttons that still open their window on a single click (see
+  // this file's own "Desktop icons open... on a single click" comment
+  // below), but they can still carry a real selection highlight for
+  // "Clean Up Desktop" to act on. No drag-to-rearrange exists here (see
+  // this file's own makeDraggable, which is only ever wired to window
+  // titlebars, never to .desktop-icon), so this is the one real,
+  // always-meaningful thing "Clean Up Desktop" can do.
+  for (const icon of document.querySelectorAll(".desktop-icon")) {
+    icon.addEventListener("pointerdown", () => {
+      for (const other of document.querySelectorAll(".desktop-icon.selected")) {
+        if (other !== icon) other.classList.remove("selected");
+      }
+      icon.classList.add("selected");
+    });
+  }
+  desktop.addEventListener("pointerdown", (event) => {
+    if (event.target !== desktop) return;
+    for (const icon of document.querySelectorAll(".desktop-icon.selected")) icon.classList.remove("selected");
+  });
+
+  function cleanUpDesktop() {
+    for (const icon of document.querySelectorAll(".desktop-icon.selected")) icon.classList.remove("selected");
+  }
+
+  function getStoredIconsHidden() {
+    try {
+      return localStorage.getItem(DESKTOP_ICONS_STORAGE_KEY) === "hidden";
+    } catch {
+      return false; // localStorage can throw in a sandboxed iframe -- default to icons shown
+    }
+  }
+
+  function applyIconsHidden(hidden) {
+    desktopIcons.classList.toggle("icons-hidden", hidden);
+    desktopContextToggleIcons.classList.toggle("checked", !hidden);
+    try {
+      localStorage.setItem(DESKTOP_ICONS_STORAGE_KEY, hidden ? "hidden" : "shown");
+    } catch {
+      // sandboxed iframe or storage disabled -- still applies for this visit, just doesn't persist
+    }
+  }
+
+  // Applied on load too, not just from the menu -- a returning visitor who
+  // already hid the icons should get that back immediately, same as
+  // win98/app.js's own applyScheme(getStoredScheme()) on load.
+  applyIconsHidden(getStoredIconsHidden());
+
+  desktop.addEventListener("contextmenu", (event) => {
+    if (event.target !== desktop) return; // not over an icon -- real Mac OS gives icons their own (unbuilt) contextual menu instead
+    event.preventDefault();
+    // Clamp so the menu never opens partly off-screen, same reasoning
+    // win98/app.js's own desktop-context-menu handler uses. event.clientX/Y
+    // and getBoundingClientRect() both report already-zoomed (rendered) px
+    // under this theme's own `html { zoom: 2 }` (see the zoom box handler
+    // above and style.css's own comment) -- but a CSS length assigned via
+    // JS is a *pre*-zoom value that gets multiplied by zoom again on
+    // render, so dividing back out here is what keeps the menu positioned
+    // where the click actually happened instead of twice as far away.
+    const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+    const deskRect = desktop.getBoundingClientRect();
+    const menuWidth = 160; // matches .desktop-context-menu's own min-width
+    const menuHeight = 44; // two real items tall
+    const left = Math.min(event.clientX, deskRect.right - menuWidth) / zoomFactor;
+    const top = Math.min(event.clientY, deskRect.bottom - menuHeight) / zoomFactor;
+    desktopContextMenu.style.left = `${left}px`;
+    desktopContextMenu.style.top = `${top}px`;
+    desktopContextMenu.hidden = false;
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!desktopContextMenu.hidden && !desktopContextMenu.contains(event.target)) {
+      closeDesktopContextMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !desktopContextMenu.hidden) closeDesktopContextMenu();
+  });
+  desktopContextCleanup.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeDesktopContextMenu();
+    cleanUpDesktop();
+  });
+  desktopContextToggleIcons.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeDesktopContextMenu();
+    applyIconsHidden(!desktopIcons.classList.contains("icons-hidden"));
+  });
+
   // Zoom box geometry animation -- same "set transition, force a reflow so
   // the old rect is committed as the start point, then mutate" technique
   // shared/redmond/window-manager.js's own withGeometryTransition uses for

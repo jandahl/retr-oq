@@ -92,6 +92,13 @@
   // Real Mac OS never showed a browser's own right-click menu over the
   // desktop -- suppress it, but let it through inside a window's own
   // scrollable content (the framework has no bare "desktop" element here).
+  // Deliberately stays suppress-only, not just pending: the 1984 128K Mac
+  // shipped a one-button mouse, full stop -- there's no second button to
+  // right-click with, and Control-click contextual menus weren't a thing
+  // until Mac OS 8's Contextual Menu Manager, over a decade later (see
+  // mac8/, which does get a real one). Adding a right-click menu here
+  // would be less accurate than the current suppress-only behavior, not
+  // more (tracked as intentionally out of scope in issue #100).
   document.body.addEventListener("contextmenu", (event) => {
     if (!event.target.closest(".window-pane")) event.preventDefault();
   });

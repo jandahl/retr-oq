@@ -174,6 +174,21 @@ body {
   flex-direction: column;
   gap: 1.5rem;
   z-index: 1;
+  transition: opacity 150ms ease-out;
+}
+
+/* "Refresh" in the desktop context menu (issue #100): a brief dip in
+   opacity and back, standing in for a real desktop redraw -- toggled on
+   for one transition and removed by app.js once it finishes. */
+.desktop-icons.refreshing {
+  opacity: 0.4;
+}
+
+/* "Show desktop icons" toggled off (issue #100) -- the icons layer
+   itself hides, the desktop background stays visible/clickable so the
+   context menu (and this same toggle) is always reachable again. */
+.desktop-icons.icons-hidden {
+  display: none;
 }
 
 .desktop-icon {
@@ -806,6 +821,38 @@ body {
   height: 1px;
   margin: 4px 2px;
   background: #d3dff5;
+}
+
+/* ---------- Desktop context menu (issue #100) ----------
+   Reuses .start-menu/.start-menu-item chrome wholesale (bevel-free flat
+   panel is already this theme's own menu convention) -- only a width
+   trim on top, same as win98's .desktop-context-menu. */
+.desktop-context-menu {
+  min-width: 11rem;
+}
+
+/* "Show desktop icons" checkbox-style indicator: a plain tick drawn with
+   the same technique as the rest of this theme's icon-less glyphs
+   (border-box, no image asset) rather than inventing a new icon file. */
+.desktop-context-check {
+  position: relative;
+}
+
+.desktop-context-check::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  opacity: 0;
+}
+
+.start-menu-item.is-checked .desktop-context-check::after {
+  opacity: 1;
 }
 
 /* ---------- Turn off computer dialog ---------- */
