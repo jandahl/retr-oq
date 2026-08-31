@@ -156,6 +156,7 @@
        ~180px; 112px was clipping the icon/text against overflow-y:hidden
        below. */
     --tile-half: 190px;
+    --tile-width: 132px;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -167,7 +168,7 @@
     position: relative;
     left: 50%;
     transform: translateX(-50%);
-    padding-inline: max(4rem, calc(50vw - 66px));
+    padding-inline: max(4rem, var(--timeline-edge-padding, calc(50vw - 66px)));
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-gutter: stable;
@@ -180,15 +181,15 @@
     text-align: center;
   }
 
-  .timeline::before {
-    content: "";
+  .timeline-line {
     position: absolute;
     left: 0;
-    right: 0;
     top: 50%;
     height: 2px;
+    width: 0;
     background: var(--fg-subtle);
     opacity: 0.5;
+    pointer-events: none;
   }
 
   .timeline .entry {
@@ -343,7 +344,7 @@
       align-items: center;
       height: auto;
       width: 100%;
-      position: static;
+      position: relative;
       left: auto;
       transform: none;
       padding-inline: 0;
@@ -353,11 +354,10 @@
       overflow-y: visible;
     }
 
-    .timeline::before {
+    .timeline-line {
       top: 0;
       bottom: 0;
       left: 50%;
-      right: auto;
       width: 2px;
       height: auto;
     }
@@ -522,6 +522,6 @@
 
   <script>document.body.classList.remove("no-js");</script>
   <script src="hub-data.js?v=3"></script>
-  <script src="hub.js?v=4"></script>
+  <script src="hub.js?v=5"></script>
 </body>
 </html>
