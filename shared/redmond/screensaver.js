@@ -102,7 +102,7 @@
       menu.hidden = true;
       onClick();
     });
-    const about = menu.querySelector("[data-open=\"win-about\"]");
+    const about = menu.querySelector('[data-open="win-about"]');
     if (about) menu.insertBefore(item, about);
     else menu.appendChild(item);
   }
@@ -150,10 +150,28 @@
         host.setSrc(vendor("maze"));
         host.start();
       });
+      addStartItem(menu, "Backrooms", () => {
+        host.setSrc(vendor("maze-backrooms"));
+        host.start();
+      });
       return;
     }
 
-    if (theme === "xp" || theme === "win7") {
+    if (theme === "xp") {
+      const host = attach({ src: vendor("pipes"), idleMs: 45000 });
+      const menu = document.getElementById("start-menu");
+      addStartItem(menu, "3D Pipes", () => {
+        host.setSrc(vendor("pipes"));
+        host.start();
+      });
+      addStartItem(menu, "Backrooms", () => {
+        host.setSrc(vendor("maze-backrooms"));
+        host.start();
+      });
+      return;
+    }
+
+    if (theme === "win7") {
       const host = attach({ src: vendor("pipes"), idleMs: 45000 });
       addStartItem(document.getElementById("start-menu"), "3D Pipes", () => {
         host.setSrc(vendor("pipes"));

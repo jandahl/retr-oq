@@ -24,6 +24,7 @@ window.OqGames = {
     { id: "ss-flying", name: "Flying Windows", kind: "demo" },
     { id: "ss-maze", name: "3D Maze", kind: "demo" },
     { id: "ss-pipes", name: "3D Pipes", kind: "demo" },
+    { id: "ss-backrooms", name: "Backrooms", kind: "demo" },
   ],
   matrix: {
     dos: ["doom"],
@@ -37,8 +38,8 @@ window.OqGames = {
     win31: ["solitaire", "credits", "ss-flying"],
     next: ["panic"],
     mac8: [],
-    win98: ["hotdog", "ss-maze", "ss-pipes"],
-    xp: ["ss-pipes"],
+    win98: ["hotdog", "ss-maze", "ss-pipes", "ss-backrooms"],
+    xp: ["ss-pipes", "ss-backrooms"],
     kde: ["kde-rain", "kde-cube"],
     win7: ["ss-pipes"],
   },
