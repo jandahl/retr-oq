@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>3D Maze</title>
+    <style>
+      html, body { margin: 0; overflow: hidden; background: #000; }
+      #container { width: 100%; height: 100%; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
+    <script>
+      THREE.ImageUtils = THREE.ImageUtils || {};
+      THREE.ImageUtils.loadTexture = function (url) {
+        var c = document.createElement("canvas");
+        c.width = c.height = 64;
+        var g = c.getContext("2d");
+        if (String(url).indexOf("floor") !== -1) {
+          g.fillStyle = "#6b4a2a";
+          g.fillRect(0, 0, 64, 64);
+          g.fillStyle = "#5a3d22";
+          for (var i = 0; i < 40; i++) g.fillRect((i * 17) % 64, (i * 13) % 64, 3, 3);
+        } else if (String(url).indexOf("ceil") !== -1) {
+          g.fillStyle = "#d8d0c0";
+          g.fillRect(0, 0, 64, 64);
+          g.strokeStyle = "#b8b0a0";
+          g.beginPath(); g.moveTo(0, 32); g.lineTo(64, 32); g.moveTo(32, 0); g.lineTo(32, 64); g.stroke();
+        } else if (String(url).indexOf("smiley") !== -1) {
+          g.fillStyle = "#f0c400";
+          g.beginPath(); g.arc(32, 32, 28, 0, Math.PI * 2); g.fill();
+          g.fillStyle = "#202020";
+          g.fillRect(20, 22, 6, 8); g.fillRect(38, 22, 6, 8);
+          g.strokeStyle = "#202020"; g.lineWidth = 3;
+          g.beginPath(); g.arc(32, 36, 12, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke();
+        } else {
+          g.fillStyle = "#8a2a2a";
+          g.fillRect(0, 0, 64, 64);
+          g.fillStyle = "#c45a4a";
+          for (var y = 0; y < 64; y += 16) {
+            var off = (y / 16) % 2 ? 16 : 0;
+            for (var x = -16; x < 64; x += 32) g.fillRect(x + off, y, 30, 14);
+          }
+        }
+        var t = new THREE.Texture(c);
+        t.needsUpdate = true;
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        return t;
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/jobbojobson/WebGLMaze@385d329bbe9f/js/maze.js"></script>
+  </head>
+  <body>
+    <div id="container"></div>
+    <script>
+      var _cam = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      var _webgl = new THREE.WebGLRenderer();
+      var _walker;
+      var _mazeRenderer;
+      _webgl.setSize(window.innerWidth, window.innerHeight);
+      document.getElementById("container").appendChild(_webgl.domElement);
+      window.addEventListener("resize", function () {
+        _cam.aspect = window.innerWidth / window.innerHeight;
+        _cam.updateProjectionMatrix();
+        _webgl.setSize(window.innerWidth, window.innerHeight);
+      }, false);
+      buildScene();
+      requestAnimationFrame(render);
+      animate();
+      function buildScene() {
+        var maze = new Maze(8, 10);
+        _mazeRenderer = new MazeRenderer(maze, new THREE.Scene());
+        _walker = new MazeWalker({ cam: _cam, path: maze.path, cellWidth: 5 });
+      }
+      function render() {
+        _webgl.render(_mazeRenderer.getScene(), _cam);
+      }
+      function animate() {
+        render();
+        if (_walker.atGoal) {
+          _mazeRenderer.resizeWalls(-0.01);
+          if (!_mazeRenderer.wallsUp) buildScene();
+        }
+        _walker.advance();
+        requestAnimationFrame(animate);
+      }
+    </script>
+  </body>
+</html>
