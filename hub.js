@@ -174,18 +174,30 @@
     var isDesktop = window.matchMedia(DESKTOP_QUERY).matches;
     var canGoBack;
     var canGoForward;
+    var icons = timeline.querySelectorAll(".icon");
+    var bounds = isDesktop
+      ? timeline.getBoundingClientRect()
+      : { top: 0, bottom: window.innerHeight };
+
+    function hasUnseenIcon(direction) {
+      return Array.prototype.some.call(icons, function (icon) {
+        var rect = icon.getBoundingClientRect();
+        return direction < 0
+          ? (isDesktop ? rect.left < bounds.left - 1 : rect.top < bounds.top - 1)
+          : (isDesktop ? rect.right > bounds.right + 1 : rect.bottom > bounds.bottom + 1);
+      });
+    }
 
     if (isDesktop) {
-      canGoBack = timeline.scrollLeft > 1;
-      canGoForward = timeline.scrollLeft + timeline.clientWidth < timeline.scrollWidth - 1;
+      canGoBack = hasUnseenIcon(-1);
+      canGoForward = hasUnseenIcon(1);
       previous.setAttribute("aria-label", "Scroll timeline left");
       next.setAttribute("aria-label", "Scroll timeline right");
       previous.textContent = "<";
       next.textContent = ">";
     } else {
-      var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      canGoBack = window.scrollY > 1;
-      canGoForward = window.scrollY < maxScroll - 1;
+      canGoBack = hasUnseenIcon(-1);
+      canGoForward = hasUnseenIcon(1);
       previous.setAttribute("aria-label", "Scroll page up");
       next.setAttribute("aria-label", "Scroll page down");
       previous.textContent = "↑";
@@ -232,7 +244,9 @@
   enableWheelPan(document.querySelector(".timeline"));
   enableNavigation(document.querySelector(".timeline"));
   window.addEventListener("resize", function () {
-    syncTimelineGeometry(document.querySelector(".timeline"));
+    var timeline = document.querySelector(".timeline");
+    syncTimelineGeometry(timeline);
+    updateNavigation(timeline);
   });
   runBootScreen();
 })();

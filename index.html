@@ -38,6 +38,34 @@
     overflow-x: hidden;
   }
 
+  html {
+    scrollbar-color: var(--fg-subtle) var(--bg-elev);
+    scrollbar-width: thin;
+  }
+
+  html::-webkit-scrollbar,
+  .timeline::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  html::-webkit-scrollbar-track,
+  .timeline::-webkit-scrollbar-track {
+    background: var(--bg-elev);
+  }
+
+  html::-webkit-scrollbar-thumb,
+  .timeline::-webkit-scrollbar-thumb {
+    border: 2px solid var(--bg-elev);
+    border-radius: 999px;
+    background: var(--fg-subtle);
+  }
+
+  html::-webkit-scrollbar-thumb:hover,
+  .timeline::-webkit-scrollbar-thumb:hover {
+    background: var(--fg-muted);
+  }
+
   body {
     display: flex;
     flex-direction: column;
@@ -55,14 +83,11 @@
     margin: 0 auto;
   }
 
-  /* Desktop only: let the timeline's wrapper claim the leftover vertical
-     space between header and footer and center the timeline inside it,
-     rather than having the timeline sit right under the header. Mobile
-     keeps normal top-to-bottom flow -- there's rarely leftover space to
-     center into once the (now-vertical) timeline is on screen. */
+  /* Desktop lets the timeline claim the space between header and footer.
+     Mobile keeps normal top-to-bottom flow because its timeline is the
+     page's vertical content. */
   @media (min-width: 641px) {
     .timeline-viewport {
-      flex: 1;
       display: flex;
       align-items: center;
       min-height: 0;
@@ -163,7 +188,7 @@
     padding: 0;
     display: flex;
     align-items: center;
-    gap: var(--space-6);
+    gap: var(--space-4);
     height: calc(var(--tile-half) * 2 + 24px);
     width: 100%;
     position: relative;
@@ -381,6 +406,7 @@
     .timeline-viewport {
       position: relative;
       width: 100%;
+      margin-left: 0;
     }
 
     .timeline-nav {
