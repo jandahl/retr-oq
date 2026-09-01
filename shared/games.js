@@ -21,9 +21,10 @@ window.OqGames = {
     { id: "solitaire", name: "Solitaire (joke)", kind: "egg" },
     { id: "hotdog", name: "Hot Dog Stand scheme", kind: "egg" },
     { id: "credits", name: "Hidden credits", kind: "egg" },
+    { id: "ss-flying", name: "Flying Windows", kind: "demo" },
+    { id: "ss-maze", name: "3D Maze", kind: "demo" },
+    { id: "ss-pipes", name: "3D Pipes", kind: "demo" },
   ],
-  // theme -> game ids present in that theme. oq/decon are in every theme
-  // and omitted here for brevity -- they're implied by the theme existing.
   matrix: {
     dos: ["doom"],
     c64: ["morph"],
@@ -33,12 +34,12 @@ window.OqGames = {
     gb: ["morph", "konami"],
     gg: ["konami"],
     snes: ["kal-q", "konami"],
-    win31: ["solitaire", "credits"],
+    win31: ["solitaire", "credits", "ss-flying"],
     next: ["panic"],
     mac8: [],
-    win98: ["hotdog"],
-    xp: [],
+    win98: ["hotdog", "ss-maze", "ss-pipes"],
+    xp: ["ss-pipes"],
     kde: ["kde-rain", "kde-cube"],
-    win7: [],
+    win7: ["ss-pipes"],
   },
 };
