@@ -12,3 +12,4 @@ the lineage's default "outline" style.
 - Bare-desktop right-click is suppressed by `initWindowManager()`; no
   custom context menu of its own here.
 - Shut Down → `../`, same reference pattern as `win98/`.
+- 3D Pipes remake (`vendor/screensavers/pipes/`, MIT) on idle (45s) and Start → 3D Pipes.

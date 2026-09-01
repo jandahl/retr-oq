@@ -15,3 +15,4 @@ teal desktop, close lives only in the Control-menu (double-click the box).
   credits — undocumented beyond this pointer.
 - Don't add a title-bar close "for touch" — see `CLAUDE.md`, this is a
   deliberate period-accurate omission, not a bug.
+- Screen saver is the Flying Windows remake under `vendor/screensavers/flying-windows/` (MIT; gag four-pane mark). Idle 45s, or Accessories → Screen Saver.
