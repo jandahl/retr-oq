@@ -75,6 +75,11 @@
       fragment.appendChild(renderTile(machine));
     });
     timeline.appendChild(fragment);
+    var line = document.createElement("span");
+    line.className = "timeline-line";
+    line.setAttribute("aria-hidden", "true");
+    timeline.appendChild(line);
+    syncTimelineGeometry(timeline);
     return visibleMachines.length;
   }
 
@@ -103,6 +108,22 @@
   // where the CSS switches the timeline from a vertical mobile column to
   // the horizontal alternating layout.
   var DESKTOP_QUERY = "(min-width: 641px)";
+  var TILE_WIDTH = 132;
+
+  function syncTimelineGeometry(timeline) {
+    var line = timeline.querySelector(".timeline-line");
+    if (!line) return;
+    if (window.matchMedia(DESKTOP_QUERY).matches) {
+      timeline.style.setProperty(
+        "--timeline-edge-padding",
+        Math.max(64, (timeline.clientWidth - TILE_WIDTH) / 2) + "px"
+      );
+      line.style.width = timeline.scrollWidth + "px";
+    } else {
+      timeline.style.removeProperty("--timeline-edge-padding");
+      line.style.width = "";
+    }
+  }
 
   function enableWheelPan(timeline) {
     var isDesktop = window.matchMedia(DESKTOP_QUERY);
@@ -153,5 +174,8 @@
     initialCount + " of " + (window.OqHubMachines || []).length + " machines";
   enableFilters();
   enableWheelPan(document.querySelector(".timeline"));
+  window.addEventListener("resize", function () {
+    syncTimelineGeometry(document.querySelector(".timeline"));
+  });
   runBootScreen();
 })();
