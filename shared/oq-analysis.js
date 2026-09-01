@@ -1,28 +1,19 @@
 // A real ES module -- not a classic script, unlike every other shared/*.js
 // in this repo. Per CLAUDE.md: that's a deliberate exception, not a
 // convention break. This is the one file that actually needs it --
-// consuming jandahl/oq's docs/public-api.js "properly" (a real `import`,
+// consuming the standalone jandahl/oq-api public-api.js "properly" (a real `import`,
 // not re-fetching raw upstream data the way shared/dict-source.js does)
 // means the module itself has to be an ES module, since public-api.js only
 // documents itself as importable that way ("consume by importing this file
 // directly (browser ES module or Node)"). This repo targets http(s)
 // hosting, not file://, so that's not a constraint here.
 //
-// Imported straight from a real oq deployment rather than vendored --
-// public-api.js's whole point is to be a stable, versioned import
-// boundary; vendoring a copy would defeat that and silently drift stale.
-// jandahl/oq#819 is exactly this repo finding a real gap in that surface
-// (Deconstruct's analyzeWord() wasn't reachable at all) and getting it
-// fixed upstream (oq#821, API_VERSION 0.3.0) -- this file is what actually
-// consuming the fixed surface looks like.
+// Imported straight from the versioned oq-api distribution rather than
+// vendored -- public-api.js's whole point is to be a stable import boundary;
+// vendoring a copy would defeat that and silently drift stale.
 //
-// TEMPORARY: pointed at oq.dicknog.dk (oq's develop-branch preview), not
-// oq.spacepope.dk (its production deployment, which normally tracks
-// master) -- jandahl/oq#825 (the glossSummaryItems fix behind oq#824) is
-// merged to develop but still in CI, not yet promoted to production. Point
-// this back at oq.spacepope.dk once that promotion happens; nothing else
-// in this file needs to change, since both deployments serve the exact
-// same public-api.js contract at that point.
+// The versioned path is intentional: oq-api's Pages workflow publishes each
+// release under api/v<package-version>, independent of the main oq app.
 //
 // Dynamic import(), not a static top-level `import` -- a static import
 // that fails (network error, CORS, the target host 404ing/reshaping)
@@ -36,7 +27,7 @@
 (async () => {
   let api;
   try {
-    api = await import("https://oq.dicknog.dk/public-api.js");
+    api = await import("https://jandahl.github.io/oq-api/api/v0.0.1/public-api.js");
   } catch (err) {
     // window.OqAnalysis.analyzeWord still exists and is still a function
     // that returns a rejected Promise -- callers (dos/app.js's
