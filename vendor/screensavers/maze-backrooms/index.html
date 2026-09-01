@@ -15,51 +15,65 @@
         t.generateMipmaps = false;
         return t;
       }
-      THREE.ImageUtils = THREE.ImageUtils || {};
-      THREE.ImageUtils.loadTexture = function (url) {
+      function paintWall(g) {
+        g.fillStyle = "#e5d35c";
+        g.fillRect(0, 0, 64, 64);
+        g.fillStyle = "#d8c44e";
+        for (var x = 0; x < 64; x += 8) g.fillRect(x, 0, 3, 64);
+        g.fillStyle = "#c4a83a";
+        for (var s = 0; s < 8; s++) {
+          g.globalAlpha = 0.25;
+          g.beginPath();
+          g.arc((s * 23) % 64, (s * 17) % 64, 4 + (s % 3), 0, Math.PI * 2);
+          g.fill();
+        }
+        g.globalAlpha = 1;
+      }
+      function canvasTex(draw) {
         var c = document.createElement("canvas");
         c.width = c.height = 64;
-        var g = c.getContext("2d");
-        var name = String(url);
-        if (name.indexOf("floor") !== -1) {
-          g.fillStyle = "#c2a63d";
-          g.fillRect(0, 0, 64, 64);
-          for (var i = 0; i < 220; i++) {
-            g.fillStyle = i % 7 === 0 ? "#a88c32" : "#d4b84a";
-            g.fillRect((i * 19) % 64, (i * 11) % 64, 2, 2);
-          }
-        } else if (name.indexOf("ceil") !== -1) {
-          g.fillStyle = "#d8d0b0";
-          g.fillRect(0, 0, 64, 64);
-          g.strokeStyle = "#c8c09a";
-          g.strokeRect(0.5, 0.5, 63, 63);
-          g.beginPath();
-          g.moveTo(32, 0); g.lineTo(32, 64);
-          g.stroke();
-          g.fillStyle = "#eee6c0";
-          g.fillRect(10, 22, 44, 14);
-          g.fillStyle = "#ffffff";
-          g.globalAlpha = 0.35;
-          g.fillRect(12, 24, 18, 5);
-          g.fillRect(34, 24, 18, 5);
-          g.globalAlpha = 1;
-        } else {
-          g.fillStyle = "#e5d35c";
-          g.fillRect(0, 0, 64, 64);
-          g.fillStyle = "#d8c44e";
-          for (var x = 0; x < 64; x += 8) g.fillRect(x, 0, 3, 64);
-          g.fillStyle = "#c4a83a";
-          for (var s = 0; s < 8; s++) {
-            g.globalAlpha = 0.25;
-            g.beginPath();
-            g.arc((s * 23) % 64, (s * 17) % 64, 4 + (s % 3), 0, Math.PI * 2);
-            g.fill();
-          }
-          g.globalAlpha = 1;
-        }
+        draw(c.getContext("2d"));
         var t = new THREE.Texture(c);
         t.needsUpdate = true;
         return crunch(t);
+      }
+      THREE.ImageUtils = THREE.ImageUtils || {};
+      THREE.ImageUtils.loadTexture = function (url) {
+        var name = String(url);
+        if (name.indexOf("floor") !== -1) {
+          return canvasTex(function (g) {
+            g.fillStyle = "#b89834";
+            g.fillRect(0, 0, 64, 64);
+            for (var i = 0; i < 180; i++) {
+              g.fillStyle = i % 5 === 0 ? "#7a6428" : "#c4a83a";
+              g.fillRect((i * 19) % 64, (i * 11) % 64, 2, 2);
+            }
+            g.globalAlpha = 0.45;
+            g.fillStyle = "#5a4418";
+            g.beginPath(); g.arc(18, 40, 16, 0, Math.PI * 2); g.fill();
+            g.beginPath(); g.arc(48, 22, 12, 0, Math.PI * 2); g.fill();
+            g.globalAlpha = 0.3;
+            g.fillStyle = "#3a3010";
+            g.beginPath(); g.arc(36, 52, 14, 0, Math.PI * 2); g.fill();
+            g.globalAlpha = 1;
+          });
+        }
+        if (name.indexOf("ceil") !== -1) {
+          return canvasTex(function (g) {
+            g.fillStyle = "#c8c09a";
+            g.fillRect(0, 0, 64, 64);
+            g.strokeStyle = "#a8a080";
+            g.strokeRect(0.5, 0.5, 63, 63);
+            g.beginPath();
+            g.moveTo(32, 0); g.lineTo(32, 64);
+            g.stroke();
+            g.globalAlpha = 0.28;
+            g.fillStyle = "#8a7040";
+            g.beginPath(); g.arc(22, 44, 12, 0, Math.PI * 2); g.fill();
+            g.globalAlpha = 1;
+          });
+        }
+        return canvasTex(paintWall);
       };
     </script>
     <script src="https://cdn.jsdelivr.net/gh/jobbojobson/WebGLMaze@385d329bbe9f/js/maze.js"></script>
@@ -74,6 +88,49 @@
       var _mazeRenderer;
       var _sprites = [];
       var _wallMap = THREE.ImageUtils.loadTexture("img/brickwall.jpg");
+      var _missingMat = new THREE.MeshLambertMaterial({
+        side: THREE.DoubleSide,
+        map: canvasTex(function (g) {
+          g.fillStyle = "#080806";
+          g.fillRect(0, 0, 64, 64);
+          g.strokeStyle = "#1a1810";
+          g.strokeRect(1, 1, 62, 62);
+        })
+      });
+      var _wetMat = new THREE.MeshLambertMaterial({
+        side: THREE.DoubleSide,
+        map: canvasTex(function (g) {
+          g.fillStyle = "#6a5420";
+          g.fillRect(0, 0, 64, 64);
+          g.fillStyle = "#4a3a14";
+          for (var i = 0; i < 80; i++) g.fillRect((i * 17) % 64, (i * 13) % 64, 3, 3);
+          g.globalAlpha = 0.55;
+          g.fillStyle = "#2a2008";
+          g.beginPath(); g.arc(32, 36, 22, 0, Math.PI * 2); g.fill();
+          g.globalAlpha = 1;
+        })
+      });
+      var _exitMat = new THREE.MeshLambertMaterial({
+        side: THREE.DoubleSide,
+        map: canvasTex(function (g) {
+          paintWall(g);
+          g.fillStyle = "#1a1808";
+          g.fillRect(6, 20, 52, 24);
+          g.fillStyle = "#c8b878";
+          var glyph = [
+            [1,1,1,0,1,0,1,0,1,1,1,0,1,1,1],
+            [1,0,0,0,1,0,1,0,0,1,0,0,0,1,0],
+            [1,1,1,0,0,1,0,0,0,1,0,0,0,1,0],
+            [1,0,0,0,1,0,1,0,0,1,0,0,0,1,0],
+            [1,1,1,0,1,0,1,0,1,1,1,0,0,1,0]
+          ];
+          for (var r = 0; r < glyph.length; r++) {
+            for (var c = 0; c < glyph[r].length; c++) {
+              if (glyph[r][c]) g.fillRect(10 + c * 3, 24 + r * 3, 3, 3);
+            }
+          }
+        })
+      });
       var _buzz;
       _webgl.setSize(window.innerWidth, window.innerHeight);
       _webgl.setClearColor(0xb8a84a);
@@ -144,24 +201,69 @@
         doomed.forEach(function (obj) { scene.remove(obj); });
       }
 
+      function inBay(x, z, bay) {
+        return x >= bay.x0 && x <= bay.x1 && z >= bay.z0 && z <= bay.z1;
+      }
+
+      function dressSurfaces(maze) {
+        var col0 = 2 + Math.floor(Math.random() * Math.max(1, maze.form.cols - 8));
+        var row0 = 2 + Math.floor(Math.random() * Math.max(1, maze.form.rows - 7));
+        var bay = {
+          x0: col0 * CELL - CELL,
+          x1: (col0 + 5) * CELL,
+          z0: row0 * CELL,
+          z1: (row0 + 4) * CELL + CELL
+        };
+        var ceilings = _mazeRenderer.ceilingGroup.children;
+        var floors = _mazeRenderer.floorGroup.children;
+        var walls = _mazeRenderer.wallGroup.children;
+        var lights = _mazeRenderer.lightGroup.children;
+        var i;
+        for (i = 0; i < ceilings.length; i++) {
+          var c = ceilings[i];
+          if (inBay(c.position.x, c.position.z, bay) && Math.random() < 0.55) {
+            c.material = _missingMat;
+          } else if (Math.random() < 0.04) {
+            c.material = _missingMat;
+          }
+        }
+        for (i = 0; i < floors.length; i++) {
+          var f = floors[i];
+          if (inBay(f.position.x, f.position.z, bay) || Math.random() < 0.12) {
+            f.material = _wetMat;
+          }
+        }
+        _buzz = null;
+        for (i = 0; i < lights.length; i++) {
+          var light = lights[i];
+          if (!(light instanceof THREE.PointLight)) continue;
+          light.color.setHex(0xdde8b0);
+          light.position.y = 2.1;
+          light.distance = 16;
+          if (inBay(light.position.x, light.position.z, bay)) {
+            light.intensity = 0;
+          } else {
+            light.intensity = 0.48;
+            if (!_buzz && Math.random() < 0.15) _buzz = light;
+          }
+        }
+        var inner = [];
+        var maxX = maze.form.cols * CELL;
+        var maxZ = maze.form.rows * CELL;
+        for (i = 0; i < walls.length; i++) {
+          var w = walls[i];
+          if (w.position.x > CELL && w.position.x < maxX - CELL &&
+              w.position.z > CELL && w.position.z < maxZ - CELL) {
+            inner.push(w);
+          }
+        }
+        if (inner.length) inner[Math.floor(Math.random() * inner.length)].material = _exitMat;
+      }
+
       function placePillars(scene, maze) {
         _sprites.forEach(function (p) { scene.remove(p); });
         _sprites = [];
         var blocked = pathSet(maze.path);
-        var lights = _mazeRenderer.lightGroup.children;
-        _buzz = null;
-        for (var i = 0; i < lights.length; i++) {
-          var light = lights[i];
-          if (!(light instanceof THREE.PointLight)) continue;
-          light.color.setHex(0xdde8b0);
-          light.intensity = 0.48;
-          light.distance = 16;
-          light.position.y = 2.1;
-        }
-        if (lights.length) {
-          _buzz = lights[Math.floor(Math.random() * lights.length)];
-          if (!(_buzz instanceof THREE.PointLight)) _buzz = null;
-        }
         var want = 22 + Math.floor(Math.random() * 10);
         var tries = 0;
         while (_sprites.length < want && tries < 120) {
@@ -196,6 +298,7 @@
         scene.fog = new THREE.Fog(0xc4b44a, 7, 34);
         scene.add(new THREE.AmbientLight(0x2a2814));
         stripGoal(scene);
+        dressSurfaces(maze);
         placePillars(scene, maze);
         _walker = new MazeWalker({
           cam: _cam,
