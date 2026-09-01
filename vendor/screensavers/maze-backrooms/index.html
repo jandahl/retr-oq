@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Backrooms</title>
+    <style>
+      html, body { margin: 0; overflow: hidden; background: #c4b44a; }
+      #container { width: 100%; height: 100%; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
+    <script>
+      THREE.ImageUtils = THREE.ImageUtils || {};
+      THREE.ImageUtils.loadTexture = function (url) {
+        var c = document.createElement("canvas");
+        c.width = c.height = 64;
+        var g = c.getContext("2d");
+        var name = String(url);
+        if (name.indexOf("floor") !== -1) {
+          g.fillStyle = "#c2a63d";
+          g.fillRect(0, 0, 64, 64);
+          for (var i = 0; i < 220; i++) {
+            g.fillStyle = i % 7 === 0 ? "#a88c32" : "#d4b84a";
+            g.fillRect((i * 19) % 64, (i * 11) % 64, 2, 2);
+          }
+        } else if (name.indexOf("ceil") !== -1) {
+          g.fillStyle = "#d8d0b0";
+          g.fillRect(0, 0, 64, 64);
+          g.strokeStyle = "#b8b090";
+          g.strokeRect(1, 1, 62, 62);
+          g.fillStyle = "#c4b070";
+          g.beginPath();
+          g.arc(18, 22, 10, 0, Math.PI * 2);
+          g.fill();
+          g.fillStyle = "#9a8040";
+          g.beginPath();
+          g.arc(44, 48, 7, 0, Math.PI * 2);
+          g.fill();
+        } else if (name.indexOf("smiley") !== -1) {
+          g.fillStyle = "#1a1810";
+          g.fillRect(0, 0, 64, 64);
+          g.fillStyle = "#e6d45a";
+          g.fillRect(8, 4, 48, 8);
+        } else {
+          g.fillStyle = "#e5d35c";
+          g.fillRect(0, 0, 64, 64);
+          g.fillStyle = "#d8c44e";
+          for (var x = 0; x < 64; x += 8) g.fillRect(x, 0, 3, 64);
+          g.fillStyle = "#c4a83a";
+          for (var s = 0; s < 8; s++) {
+            g.globalAlpha = 0.25;
+            g.beginPath();
+            g.arc((s * 23) % 64, (s * 17) % 64, 4 + (s % 3), 0, Math.PI * 2);
+            g.fill();
+          }
+          g.globalAlpha = 1;
+        }
+        var t = new THREE.Texture(c);
+        t.needsUpdate = true;
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        return t;
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/jobbojobson/WebGLMaze@385d329bbe9f/js/maze.js"></script>
+  </head>
+  <body>
+    <div id="container"></div>
+    <script>
+      var _cam = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      var _webgl = new THREE.WebGLRenderer();
+      var _walker;
+      var _mazeRenderer;
+      _webgl.setSize(window.innerWidth, window.innerHeight);
+      _webgl.setClearColor(0xb8a84a);
+      document.getElementById("container").appendChild(_webgl.domElement);
+      window.addEventListener("resize", function () {
+        _cam.aspect = window.innerWidth / window.innerHeight;
+        _cam.updateProjectionMatrix();
+        _webgl.setSize(window.innerWidth, window.innerHeight);
+      }, false);
+      buildScene();
+      requestAnimationFrame(render);
+      animate();
+      function buildScene() {
+        var maze = new Maze(14, 18);
+        _mazeRenderer = new MazeRenderer(maze, new THREE.Scene());
+        var scene = _mazeRenderer.getScene();
+        scene.fog = new THREE.FogExp2(0xc4b44a, 0.085);
+        _walker = new MazeWalker({ cam: _cam, path: maze.path, cellWidth: 5 });
+      }
+      function render() {
+        _webgl.render(_mazeRenderer.getScene(), _cam);
+      }
+      function animate() {
+        if (Math.random() < 0.035) _webgl.setClearColor(0x6a6228);
+        else _webgl.setClearColor(0xb8a84a);
+        render();
+        if (_walker.atGoal) {
+          _mazeRenderer.resizeWalls(-0.01);
+          if (!_mazeRenderer.wallsUp) buildScene();
+        }
+        _walker.advance();
+        requestAnimationFrame(animate);
+      }
+    </script>
+  </body>
+</html>
