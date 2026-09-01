@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>3D Pipes</title>
+    <style>
+      html, body { margin: 0; background: #000; overflow: hidden; width: 100%; height: 100%; }
+      #canvas-container { position: relative; width: 100%; height: 100%; }
+      canvas { position: absolute; left: 0; top: 0; }
+      .controls { position: absolute; left: -9999px; }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <button id="fullscreen-button" type="button">Fullscreen</button>
+      <label>Joint Type:
+        <select id="joint-types">
+          <option value="elbow">Elbow</option>
+          <option value="ball">Ball</option>
+          <option value="mixed" selected>Mixed</option>
+          <option value="cycle">Cycle</option>
+        </select>
+      </label>
+      <button id="toggle-controls" type="button">
+        <span class="normal-controls-enabled">Control Camera</span>
+        <span hidden class="orbit-controls-enabled">Relinquish Camera</span>
+      </button>
+    </div>
+    <div id="canvas-container">
+      <canvas id="canvas-webgl"></canvas>
+      <canvas id="canvas-2d" style="pointer-events: none"></canvas>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/98/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/1j01/pipes@86e8eb1418f9/lib/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/1j01/pipes@86e8eb1418f9/lib/TeapotBufferGeometry.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/1j01/pipes@86e8eb1418f9/screensaver.js"></script>
+  </body>
+</html>
