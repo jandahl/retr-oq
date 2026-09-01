@@ -73,6 +73,7 @@
       var _walker;
       var _mazeRenderer;
       var _sprites = [];
+      var _wallMap = THREE.ImageUtils.loadTexture("img/brickwall.jpg");
       var _buzz;
       _webgl.setSize(window.innerWidth, window.innerHeight);
       _webgl.setClearColor(0xb8a84a);
@@ -122,36 +123,11 @@
         }
       }
 
-      function texSprite(draw, w, h) {
-        var c = document.createElement("canvas");
-        c.width = 64;
-        c.height = 64;
-        var g = c.getContext("2d");
-        g.clearRect(0, 0, 64, 64);
-        draw(g);
-        var t = new THREE.Texture(c);
-        t.needsUpdate = true;
-        crunch(t);
-        var mat = new THREE.SpriteMaterial({ map: t, transparent: true, fog: true });
+      function wallSprite(w, h) {
+        var mat = new THREE.SpriteMaterial({ map: _wallMap, fog: true });
         var spr = new THREE.Sprite(mat);
         spr.scale.set(w, h, 1);
         return spr;
-      }
-
-      function drawPillar(g) {
-        g.fillStyle = "#4a4018";
-        g.fillRect(14, 0, 36, 64);
-        g.fillStyle = "#e5d35c";
-        g.fillRect(17, 3, 30, 58);
-        g.fillStyle = "#d8c44e";
-        for (var x = 20; x < 44; x += 7) g.fillRect(x, 3, 3, 58);
-        g.fillStyle = "#c4a83a";
-        g.globalAlpha = 0.35;
-        g.beginPath(); g.arc(32, 22, 8, 0, Math.PI * 2); g.fill();
-        g.globalAlpha = 1;
-        g.fillStyle = "#8a7828";
-        g.fillRect(14, 0, 36, 6);
-        g.fillRect(14, 58, 36, 6);
       }
 
       function pathSet(path) {
@@ -201,7 +177,7 @@
           } else {
             blocked[row + "," + col] = true;
           }
-          var pillar = texSprite(drawPillar, 1.5, 4.7);
+          var pillar = wallSprite(1.5, 4.7);
           pillar.position.set(col * CELL + ox, 0, row * CELL + CELL / 2 + oz);
           scene.add(pillar);
           _sprites.push(pillar);
