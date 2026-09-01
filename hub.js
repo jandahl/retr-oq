@@ -96,6 +96,7 @@
         });
         var visibleCount = renderHub(filter);
         count.textContent = visibleCount + " of " + machines.length + " machines";
+        updateNavigation(document.querySelector(".timeline"));
       });
     });
   }
@@ -139,6 +140,61 @@
     );
   }
 
+  function enableNavigation(timeline) {
+    var previous = document.querySelector(".timeline-nav--prev");
+    var next = document.querySelector(".timeline-nav--next");
+    var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    function page(direction) {
+      var amount = 0.8;
+      if (window.matchMedia(DESKTOP_QUERY).matches) {
+        timeline.scrollBy({
+          left: direction * timeline.clientWidth * amount,
+          behavior: reducedMotion.matches ? "auto" : "smooth"
+        });
+      } else {
+        window.scrollBy({
+          top: direction * window.innerHeight * amount,
+          behavior: reducedMotion.matches ? "auto" : "smooth"
+        });
+      }
+    }
+
+    previous.addEventListener("click", function () { page(-1); });
+    next.addEventListener("click", function () { page(1); });
+    timeline.addEventListener("scroll", function () { updateNavigation(timeline); });
+    window.addEventListener("scroll", function () { updateNavigation(timeline); }, { passive: true });
+    window.addEventListener("resize", function () { updateNavigation(timeline); });
+    updateNavigation(timeline);
+  }
+
+  function updateNavigation(timeline) {
+    var previous = document.querySelector(".timeline-nav--prev");
+    var next = document.querySelector(".timeline-nav--next");
+    var isDesktop = window.matchMedia(DESKTOP_QUERY).matches;
+    var canGoBack;
+    var canGoForward;
+
+    if (isDesktop) {
+      canGoBack = timeline.scrollLeft > 1;
+      canGoForward = timeline.scrollLeft + timeline.clientWidth < timeline.scrollWidth - 1;
+      previous.setAttribute("aria-label", "Scroll timeline left");
+      next.setAttribute("aria-label", "Scroll timeline right");
+      previous.textContent = "<";
+      next.textContent = ">";
+    } else {
+      var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      canGoBack = window.scrollY > 1;
+      canGoForward = window.scrollY < maxScroll - 1;
+      previous.setAttribute("aria-label", "Scroll page up");
+      next.setAttribute("aria-label", "Scroll page down");
+      previous.textContent = "↑";
+      next.textContent = "↓";
+    }
+    previous.hidden = !canGoBack;
+    next.hidden = !canGoForward;
+  }
+
   function runBootScreen() {
     var boot = document.getElementById("boot-screen");
     var main = document.getElementById("hub-main");
@@ -174,6 +230,7 @@
     initialCount + " of " + (window.OqHubMachines || []).length + " machines";
   enableFilters();
   enableWheelPan(document.querySelector(".timeline"));
+  enableNavigation(document.querySelector(".timeline"));
   window.addEventListener("resize", function () {
     syncTimelineGeometry(document.querySelector(".timeline"));
   });

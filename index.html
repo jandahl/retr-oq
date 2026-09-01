@@ -66,6 +66,9 @@
       display: flex;
       align-items: center;
       min-height: 0;
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      position: relative;
     }
   }
 
@@ -139,11 +142,9 @@
   }
 
   /* Timeline: a literal line with a dot per callout, centered in the
-     viewport with callouts alternating above/below -- full-bleed (breaks
-     out of <main>'s max-width via the 100vw/left-50%/translateX trick) so
-     it uses the full screen width rather than being boxed to the prose
-     column. The media query below drops the alternation for a single
-     top-to-bottom column on mobile.
+     full-bleed viewport with callouts alternating above/below. The media
+     query below drops the alternation for a single top-to-bottom column on
+     mobile.
      --tile-half is the distance from the line to a tile's outer edge
      (icon+text+gaps); it sizes both the timeline's height and the
      above/below offsets, so if the icon or text block changes, update it
@@ -164,21 +165,12 @@
     align-items: center;
     gap: var(--space-6);
     height: calc(var(--tile-half) * 2 + 24px);
-    width: 100vw;
+    width: 100%;
     position: relative;
-    left: 50%;
-    transform: translateX(-50%);
     padding-inline: max(4rem, var(--timeline-edge-padding, calc(50vw - 66px)));
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-gutter: stable;
-  }
-
-  .timeline-hint {
-    margin: var(--space-2) 0 0;
-    color: var(--fg-subtle);
-    font-size: 0.6875rem;
-    text-align: center;
   }
 
   .timeline-line {
@@ -191,6 +183,38 @@
     opacity: 0.5;
     pointer-events: none;
   }
+
+  .timeline-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--fg-subtle);
+    border-radius: 50%;
+    background: var(--bg-elev);
+    color: var(--fg);
+    font: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: default;
+    transform: translateY(-50%);
+  }
+
+  .timeline-nav:hover,
+  .timeline-nav:focus-visible {
+    border-color: var(--fg);
+    background: var(--bg);
+  }
+
+  .timeline-nav:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  .timeline-nav--prev { left: 12px; }
+  .timeline-nav--next { right: 12px; }
 
   .timeline .entry {
     flex: 0 0 auto;
@@ -354,6 +378,23 @@
       overflow-y: visible;
     }
 
+    .timeline-viewport {
+      position: relative;
+      width: 100%;
+    }
+
+    .timeline-nav {
+      position: fixed;
+      right: 12px;
+      left: auto;
+      width: 36px;
+      height: 36px;
+      transform: none;
+    }
+
+    .timeline-nav--prev { top: calc(50% - 24px); }
+    .timeline-nav--next { top: calc(50% + 24px); }
+
     .timeline-line {
       top: 0;
       bottom: 0;
@@ -468,9 +509,6 @@
     #boot-screen, #hub-main { transition: none; }
   }
 
-  @media (max-width: 640px) {
-    .timeline-hint { display: none; }
-  }
 </style>
 </head>
 <body class="no-js">
@@ -508,8 +546,9 @@
     </header>
 
     <div class="timeline-viewport">
+      <button class="timeline-nav timeline-nav--prev" type="button" hidden aria-label="Scroll timeline left">&lt;</button>
       <ul class="timeline"></ul>
-      <p class="timeline-hint">Scroll horizontally to explore the timeline</p>
+      <button class="timeline-nav timeline-nav--next" type="button" hidden aria-label="Scroll timeline right">&gt;</button>
     </div>
 
     <footer>
