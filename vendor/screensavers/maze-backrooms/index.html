@@ -44,6 +44,25 @@
         t.needsUpdate = true;
         return crunch(t);
       }
+      function paintWallN(g, s) {
+        g.fillStyle = "#e6d65c";
+        g.fillRect(0, 0, s, s);
+        g.fillStyle = "#dccb4e";
+        var stripe = Math.max(2, s / 32);
+        var step = s / 8;
+        for (var x = 0; x < s; x += step) g.fillRect(x, 0, stripe, s);
+      }
+      function canvasTexFine(draw, size) {
+        var c = document.createElement("canvas");
+        c.width = c.height = size;
+        draw(c.getContext("2d"), size);
+        var t = new THREE.Texture(c);
+        t.needsUpdate = true;
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        t.magFilter = t.minFilter = THREE.LinearFilter;
+        t.generateMipmaps = false;
+        return t;
+      }
       THREE.ImageUtils = THREE.ImageUtils || {};
       THREE.ImageUtils.loadTexture = function (url) {
         var name = String(url);
@@ -71,12 +90,30 @@
     <div id="container"></div>
     <script>
       var CELL = 5;
-      // Test knobs, all optional: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0
+      // Test knobs: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0&fisheye=1&eye=floor
       function q(name, fallback) {
         var m = String(location.search).match(new RegExp("[?&]" + name + "=([^&]*)"));
         if (!m) return fallback;
         var n = parseFloat(decodeURIComponent(m[1].replace(/\+/g, " ")));
         return isFinite(n) ? n : fallback;
+      }
+      function qHas(name) {
+        return new RegExp("[?&]" + name + "=").test(String(location.search));
+      }
+      function qflag(name, chance) {
+        return qHas(name) ? q(name, 0) > 0 : Math.random() < chance;
+      }
+      function pickEye() {
+        var m = String(location.search).match(/[?&]eye=([^&]*)/);
+        var raw = m ? decodeURIComponent(m[1].replace(/\+/g, " ")).toLowerCase() : null;
+        if (raw === "floor" || raw === "-1") return -1.7;
+        if (raw === "ceil" || raw === "ceiling" || raw === "1") return 1.7;
+        if (raw === "mid" || raw === "0") return 0;
+        if (raw && isFinite(parseFloat(raw))) return Math.max(-2.1, Math.min(2.1, parseFloat(raw)));
+        var r = Math.random();
+        if (r < 0.12) return -1.7;
+        if (r < 0.24) return 1.7;
+        return 0;
       }
       var odds = {
         missing: Math.max(0, Math.round(q("missing", 2))),
@@ -85,9 +122,11 @@
         exit: Math.max(0, Math.round(q("exit", 1))),
         red: q("red", 1) > 0,
         bay: q("bay", 1) > 0,
-        warp: q("warp", 1) > 0
+        warp: q("warp", 1) > 0,
+        fisheye: qflag("fisheye", 0.16)
       };
-      var _cam = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.2, 36);
+      var _eyeY = pickEye();
+      var _cam = new THREE.PerspectiveCamera(odds.fisheye ? 125 : 70, window.innerWidth / window.innerHeight, 0.15, odds.fisheye ? 44 : 36);
       var _webgl = new THREE.WebGLRenderer({ antialias: false });
       var _walker;
       var _mazeRenderer;
@@ -117,24 +156,20 @@
       });
       var _exitMat = new THREE.MeshLambertMaterial({
         side: THREE.DoubleSide,
-        map: canvasTex(function (g) {
-          paintWall(g);
+        map: canvasTexFine(function (g, s) {
+          paintWallN(g, s);
+          var pw = Math.round(s * 0.12);
+          var ph = Math.round(s * 0.055);
+          var px = s - pw - Math.round(s * 0.07);
+          var py = s - ph - Math.round(s * 0.1);
           g.fillStyle = "#2a2810";
-          g.fillRect(44, 48, 16, 10);
+          g.fillRect(px, py, pw, ph);
           g.fillStyle = "#d4c878";
-          var glyph = [
-            [1,1,1,0,1,0,1,0,1,1,1,0,1,1,1],
-            [1,0,0,0,1,0,1,0,0,1,0,0,0,1,0],
-            [1,1,1,0,0,1,0,0,0,1,0,0,0,1,0],
-            [1,0,0,0,1,0,1,0,0,1,0,0,0,1,0],
-            [1,1,1,0,1,0,1,0,1,1,1,0,0,1,0]
-          ];
-          for (var r = 0; r < glyph.length; r++) {
-            for (var c = 0; c < glyph[r].length; c++) {
-              if (glyph[r][c]) g.fillRect(45 + c, 49 + r, 1, 1);
-            }
-          }
-        })
+          g.font = "bold " + Math.max(8, Math.round(ph * 0.7)) + "px sans-serif";
+          g.textAlign = "center";
+          g.textBaseline = "middle";
+          g.fillText("EXIT", px + pw / 2, py + ph / 2 + 0.5);
+        }, 256)
       });
       var _redMat = new THREE.MeshLambertMaterial({
         side: THREE.DoubleSide,
@@ -155,17 +190,25 @@
       });
       var _outletMat = new THREE.MeshLambertMaterial({
         side: THREE.DoubleSide,
-        map: canvasTex(function (g) {
-          paintWall(g);
-          g.fillStyle = "#d8d0b4";
-          g.fillRect(26, 36, 12, 18);
-          g.strokeStyle = "#9a9278";
-          g.strokeRect(26, 36, 12, 18);
+        map: canvasTexFine(function (g, s) {
+          paintWallN(g, s);
+          var w = Math.round(s * 0.05);
+          var h = Math.round(s * 0.08);
+          var x = Math.round(s * 0.47);
+          var y = Math.round(s * 0.62);
+          g.fillStyle = "#e8e2cc";
+          g.fillRect(x, y, w, h);
+          g.strokeStyle = "#b0a88e";
+          g.lineWidth = 1;
+          g.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
+          var sw = Math.max(2, Math.round(w * 0.22));
+          var sh = Math.max(3, Math.round(h * 0.2));
           g.fillStyle = "#3a3828";
-          g.fillRect(29, 40, 2, 5);
-          g.fillRect(33, 40, 2, 5);
-          g.fillRect(29, 48, 6, 2);
-        })
+          g.fillRect(x + w * 0.22, y + h * 0.16, sw, sh);
+          g.fillRect(x + w * 0.56, y + h * 0.16, sw, sh);
+          g.fillRect(x + w * 0.22, y + h * 0.55, sw, sh);
+          g.fillRect(x + w * 0.56, y + h * 0.55, sw, sh);
+        }, 256)
       });
       var _warpT0 = (typeof performance !== "undefined" ? performance.now() : Date.now());
       var _buzz;
@@ -221,6 +264,8 @@
         var mat = new THREE.SpriteMaterial({ map: _wallMap, fog: true });
         var spr = new THREE.Sprite(mat);
         spr.scale.set(w, h, 1);
+        spr.userData.bw = w;
+        spr.userData.bh = h;
         return spr;
       }
 
@@ -235,6 +280,8 @@
         });
         var spr = new THREE.Sprite(mat);
         spr.scale.set(w, h, 1);
+        spr.userData.bw = w;
+        spr.userData.bh = h;
         return spr;
       }
 
@@ -388,16 +435,25 @@
       animate();
 
       function warpScene(scene) {
-        if (!odds.warp) return;
         var now = (typeof performance !== "undefined" ? performance.now() : Date.now());
         var tt = (now - _warpT0) * 0.00012;
-        var sx = 1 + 0.08 * Math.sin(tt);
-        var sy = 1 + 0.06 * Math.sin(tt * 0.61 + 1.1);
-        var sz = 1 + 0.08 * Math.sin(tt * 0.47 + 2.2);
-        var sh = 0.09 * Math.sin(tt * 0.29 + 0.7);
-        scene.matrixAutoUpdate = false;
-        scene.matrix.set(sx, sh, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0, 0, 0, 0, 1);
-        scene.matrixWorldNeedsUpdate = true;
+        var sx = 1, sy = 1, sz = 1, sh = 0;
+        if (odds.warp) {
+          sx = 1 + 0.08 * Math.sin(tt);
+          sy = 1 + 0.06 * Math.sin(tt * 0.61 + 1.1);
+          sz = 1 + 0.08 * Math.sin(tt * 0.47 + 2.2);
+          sh = 0.09 * Math.sin(tt * 0.29 + 0.7);
+          scene.matrixAutoUpdate = false;
+          scene.matrix.set(sx, sh, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0, 0, 0, 0, 1);
+          scene.matrixWorldNeedsUpdate = true;
+        }
+        for (var i = 0; i < _sprites.length; i++) {
+          var spr = _sprites[i];
+          var bw = spr.userData.bw || spr.scale.x;
+          var bh = spr.userData.bh || spr.scale.y;
+          spr.scale.set(bw * sx, bh * sy, 1);
+          if (spr.material) spr.material.rotation = sh;
+        }
       }
 
       function buildScene() {
@@ -434,6 +490,7 @@
           if (!_mazeRenderer.wallsUp) buildScene();
         }
         _walker.advance();
+        _cam.position.y = _eyeY;
         requestAnimationFrame(animate);
       }
     </script>
