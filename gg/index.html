@@ -6,7 +6,7 @@
 <title>retr-oq — Game Gear prototype</title>
 <!-- ?v= cache-busting, same convention as gb/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=4" />
+<link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <!-- Sega Game Gear is a pocket Master System, not a color Game Boy.
@@ -18,9 +18,13 @@
   <div class="gg-shell" id="gg-shell">
     <div class="gg-body">
       <div class="gg-left gg-controls">
-        <div class="gg-speaker" aria-hidden="true">
-          <span></span><span></span><span></span><span></span>
-          <span></span><span></span><span></span><span></span>
+        <div class="gg-gear-mark" role="img" aria-label="Game Gear">
+          <div class="gg-gear-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+          <strong>GAME<br />GEAR</strong>
+        </div>
+        <div class="gg-power">
+          <span class="gg-led" aria-hidden="true"></span>
+          <span>POWER</span>
         </div>
         <div class="pad-dpad" role="group" aria-label="D-pad">
           <span class="pad-plus-v" aria-hidden="true"></span>
@@ -30,6 +34,12 @@
           <button type="button" class="pad-btn pad-left" data-input="left" aria-label="Left"></button>
           <button type="button" class="pad-btn pad-right" data-input="right" aria-label="Right"></button>
           <button type="button" class="pad-btn pad-down" data-input="down" aria-label="Down"></button>
+        </div>
+        <div class="gg-speaker" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span>
         </div>
       </div>
 
@@ -127,16 +137,15 @@
             <div class="gg-lcd-wash" aria-hidden="true"></div>
           </div>
         </div>
-        <div class="gg-under gg-controls">
-          <span class="gg-brand">COLOR GEAR</span>
-          <button type="button" class="pad-pill" data-input="start" aria-label="Start">START</button>
-        </div>
       </div>
 
       <div class="gg-right gg-controls">
-        <span class="gg-led" aria-hidden="true"></span>
-        <div class="gg-sliders" aria-hidden="true">
-          <span></span><span></span>
+        <div class="gg-sega-mark">
+          <strong>SEGA</strong>
+          <span>PORTABLE<br />VIDEO GAME<br />SYSTEM</span>
+        </div>
+        <div class="gg-start-cluster">
+          <button type="button" class="pad-pill" data-input="start" aria-label="Start">START</button>
         </div>
         <div class="pad-face" role="group" aria-label="Action buttons">
           <button type="button" class="pad-round pad-2" data-input="a" aria-label="2"><span>2</span></button>

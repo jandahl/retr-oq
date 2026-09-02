@@ -169,29 +169,6 @@ window.OqHubMachines = [
     `,
   },
   {
-    href: "gg/",
-    name: "Game Gear",
-    year: "1990",
-    category: "handheld",
-    hasGames: false,
-    meta: "Master System",
-    iconNote: "Landscape handheld, navy SMS VDP, red 1/2",
-    icon: `
-      <rect width="32" height="32" fill="#1a1c22"/>
-      <rect x="1" y="8" width="30" height="16" rx="3" fill="#2a2c32"/>
-      <rect x="8" y="10" width="16" height="10" fill="#0a1028"/>
-      <rect x="9" y="11" width="14" height="8" fill="#001878"/>
-      <rect x="11" y="13" width="3" height="3" fill="#58d8f8"/>
-      <rect x="15" y="13" width="3" height="3" fill="#f8d030"/>
-      <rect x="19" y="13" width="2" height="3" fill="#f83078"/>
-      <rect x="3" y="13" width="4" height="4" fill="#3a3e46"/>
-      <rect x="4" y="14" width="2" height="2" fill="#121418"/>
-      <rect x="25" y="12" width="3" height="3" fill="#c43a3a"/>
-      <rect x="26" y="16" width="3" height="3" fill="#c43a3a"/>
-      <rect x="14" y="21" width="4" height="2" fill="#1a1c22"/>
-    `,
-  },
-  {
     href: "snes/",
     name: "Super Nintendo",
     year: "1991",
