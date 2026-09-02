@@ -82,7 +82,8 @@
   }
 
   function vendor(name) {
-    return "../vendor/screensavers/" + name + "/index.html";
+    var bust = name === "maze-backrooms" ? "?v=4" : "";
+    return "../vendor/screensavers/" + name + "/index.html" + bust;
   }
 
   function themeKey() {
