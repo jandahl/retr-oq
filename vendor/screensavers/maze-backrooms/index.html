@@ -318,28 +318,33 @@
       }
 
       function wallSprite(w, h) {
-        var mat = new THREE.SpriteMaterial({ map: _wallMap, fog: true });
-        var spr = new THREE.Sprite(mat);
-        spr.scale.set(w, h, 1);
-        spr.userData.bw = w;
-        spr.userData.bh = h;
-        return spr;
+        var mat = new THREE.MeshLambertMaterial({
+          map: _wallMap,
+          fog: true,
+          side: THREE.DoubleSide
+        });
+        var mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+        mesh.scale.set(w, h, 1);
+        mesh.userData.yawBillboard = true;
+        return mesh;
       }
 
       function texSprite(draw, w, h) {
-        var mat = new THREE.SpriteMaterial({
+        var mat = new THREE.MeshLambertMaterial({
           map: canvasTex(function (g) {
             g.clearRect(0, 0, 64, 64);
             draw(g);
           }),
           transparent: true,
-          fog: true
+          depthWrite: false,
+          fog: true,
+          side: THREE.DoubleSide
         });
-        var spr = new THREE.Sprite(mat);
-        spr.scale.set(w, h, 1);
-        spr.userData.bw = w;
-        spr.userData.bh = h;
-        return spr;
+        var mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat);
+        mesh.scale.set(w, h, 1);
+        mesh.rotation.x = -Math.PI / 2;
+        mesh.userData.yawBillboard = false;
+        return mesh;
       }
 
       function paintHalfTile(g) {
@@ -504,12 +509,9 @@
           scene.matrix.set(sx, sh, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0, 0, 0, 0, 1);
           scene.matrixWorldNeedsUpdate = true;
         }
+        var yaw = _cam.rotation.y;
         for (var i = 0; i < _sprites.length; i++) {
-          var spr = _sprites[i];
-          var bw = spr.userData.bw || spr.scale.x;
-          var bh = spr.userData.bh || spr.scale.y;
-          spr.scale.set(bw * sx, bh * sy, 1);
-          if (spr.material) spr.material.rotation = sh;
+          if (_sprites[i].userData.yawBillboard) _sprites[i].rotation.y = yaw;
         }
       }
 
