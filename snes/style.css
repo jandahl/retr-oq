@@ -132,6 +132,24 @@ button:not(:disabled),
   text-align: left;
 }
 
+/* Attract sits on the CRT (z-index under scanlines/glow), never the pad. */
+.snes-attract {
+  z-index: 6;
+  padding: 0;
+  background: var(--snes-black);
+}
+.attract-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: var(--snes-black);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
 .title-logo {
   margin: 0.2em 0 0.45em;
   display: flex;

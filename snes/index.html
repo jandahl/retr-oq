@@ -6,7 +6,7 @@
 <title>retr-oq — Super KAL-Q!</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=12" />
+<link rel="stylesheet" href="style.css?v=13" />
 </head>
 <body>
   <!-- PAL Super Nintendo, not the NA purple toaster and not a window
@@ -106,6 +106,12 @@
         <p class="title-copy">30 LIVES REMAINING</p>
       </div>
 
+      <!-- In-LCD attract: Mode 7 checkerboard lives on the CRT only.
+           The PAL gray dogbone stays; this is not a fullscreen overlay. -->
+      <div class="snes-screen snes-attract" id="attract-screen" hidden>
+        <canvas class="attract-canvas" id="attract-canvas" width="256" height="224" aria-hidden="true"></canvas>
+      </div>
+
       <div class="snes-scanlines" aria-hidden="true"></div>
       <div class="snes-glow" aria-hidden="true"></div>
     </div>
@@ -154,6 +160,6 @@
 <script src="../shared/decon-app.js?v=4"></script>
 <script src="../shared/morph-puzzles.js?v=4"></script>
 <script src="../shared/klax-game.js?v=10"></script>
-<script src="app.js?v=22"></script>
+<script src="app.js?v=23"></script>
 </body>
 </html>

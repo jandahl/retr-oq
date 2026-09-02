@@ -457,7 +457,189 @@
     highlightOqRow();
   }
 
+
+  // In-LCD attract -- plasma / palette-cycle on the 160×144 VDP, not a
+  // fullscreen overlay. The landscape slab stays in view; the washed teal
+  // LCD filter is chrome sitting on top of this canvas, not the plasma.
+  // Silent. No SEGA mark. Idle 45s; any handleInput (keyboard or pad)
+  // dismisses without also performing that press. Pauses while hidden.
+  // prefers-reduced-motion freezes the plasma (still shows).
+  const attractLcd = document.getElementById("gg-lcd");
+  const attractCanvas = attractLcd
+    ? attractLcd.querySelector("#gg-attract")
+    : document.getElementById("gg-attract");
+  const ATTRACT_W = 160;
+  const ATTRACT_H = 144;
+  const ATTRACT_COLORS = 32;
+  const ATTRACT_IDLE_MS = 45000;
+  const attractReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const attractCtx = attractCanvas && attractCanvas.getContext("2d");
+  const attractFrame = attractCtx ? attractCtx.createImageData(ATTRACT_W, ATTRACT_H) : null;
+  const attractPixels = attractFrame ? attractFrame.data : null;
+  let attractOn = false;
+  let attractRaf = 0;
+  let attractIdleTimer = 0;
+  let attractT0 = 0;
+  let attractFrozen = 0;
+  let attractPalette = null;
+
+  function buildAttractPalette() {
+    // navy → cyan → magenta → gold, 32 slots, 4-bit VDP quantize (4096).
+    const stops = [
+      [0, 16, 96],
+      [88, 216, 248],
+      [248, 48, 120],
+      [248, 208, 48],
+    ];
+    const pal = new Uint8Array(ATTRACT_COLORS * 3);
+    const n = stops.length;
+    for (let i = 0; i < ATTRACT_COLORS; i++) {
+      const t = (i / ATTRACT_COLORS) * n;
+      const a = Math.floor(t) % n;
+      const b = (a + 1) % n;
+      const f = t - Math.floor(t);
+      pal[i * 3] = (stops[a][0] + (stops[b][0] - stops[a][0]) * f) & 0xf0;
+      pal[i * 3 + 1] = (stops[a][1] + (stops[b][1] - stops[a][1]) * f) & 0xf0;
+      pal[i * 3 + 2] = (stops[a][2] + (stops[b][2] - stops[a][2]) * f) & 0xf0;
+    }
+    return pal;
+  }
+
+  function attractTime() {
+    if (attractReduce.matches) return 0;
+    return (performance.now() - attractT0) / 1000;
+  }
+
+  function drawAttract(t) {
+    if (!attractPixels || !attractPalette) return;
+    const cycle = (t * 14) | 0;
+    const px = attractPixels;
+    const pal = attractPalette;
+    for (let y = 0; y < ATTRACT_H; y++) {
+      for (let x = 0; x < ATTRACT_W; x++) {
+        const v =
+          Math.sin(x * 0.11 + t) +
+          Math.sin(y * 0.13 + t * 1.25) +
+          Math.sin((x + y) * 0.08 + t * 0.7) +
+          Math.sin(Math.hypot(x - 80, y - 72) * 0.1 - t * 1.05);
+        const idx = (((v + 4) * 4 + cycle) & 31);
+        const o = (y * ATTRACT_W + x) * 4;
+        const p = idx * 3;
+        px[o] = pal[p];
+        px[o + 1] = pal[p + 1];
+        px[o + 2] = pal[p + 2];
+        px[o + 3] = 255;
+      }
+    }
+    attractCtx.putImageData(attractFrame, 0, 0);
+  }
+
+  function attractLoop() {
+    attractRaf = 0;
+    if (!attractOn || document.hidden || attractReduce.matches) return;
+    drawAttract(attractTime());
+    attractRaf = requestAnimationFrame(attractLoop);
+  }
+
+  function stopAttractLoop() {
+    if (attractRaf) {
+      cancelAnimationFrame(attractRaf);
+      attractRaf = 0;
+    }
+  }
+
+  function startAttract() {
+    if (attractOn || !attractCanvas || !attractCtx) return;
+    if (document.hidden) return;
+    attractOn = true;
+    clearTimeout(attractIdleTimer);
+    attractIdleTimer = 0;
+    if (!attractPalette) attractPalette = buildAttractPalette();
+    attractCanvas.hidden = false;
+    attractCtx.imageSmoothingEnabled = false;
+    if (document.activeElement && document.activeElement.blur) {
+      document.activeElement.blur();
+    }
+    if (attractReduce.matches) {
+      attractT0 = performance.now();
+      drawAttract(0);
+      return;
+    }
+    attractT0 = performance.now() - attractFrozen * 1000;
+    attractLoop();
+  }
+
+  function stopAttract() {
+    if (!attractOn) {
+      pingAttract();
+      return;
+    }
+    attractOn = false;
+    attractFrozen = 0;
+    stopAttractLoop();
+    if (attractCanvas) attractCanvas.hidden = true;
+    pingAttract();
+  }
+
+  function dismissAttract() {
+    if (!attractOn) return false;
+    stopAttract();
+    return true;
+  }
+
+  function pingAttract() {
+    if (attractOn) return;
+    clearTimeout(attractIdleTimer);
+    attractIdleTimer = 0;
+    if (document.hidden) return;
+    attractIdleTimer = window.setTimeout(startAttract, ATTRACT_IDLE_MS);
+  }
+
+  function pauseAttractForHidden() {
+    if (document.hidden) {
+      clearTimeout(attractIdleTimer);
+      attractIdleTimer = 0;
+      if (attractOn && !attractReduce.matches) {
+        attractFrozen = attractTime();
+        stopAttractLoop();
+      }
+      return;
+    }
+    if (attractOn && !attractReduce.matches) {
+      attractT0 = performance.now() - attractFrozen * 1000;
+      if (!attractRaf) attractLoop();
+    } else {
+      pingAttract();
+    }
+  }
+
+  if (attractCanvas) {
+    attractCanvas.addEventListener("pointerdown", (event) => {
+      if (!attractOn) return;
+      event.preventDefault();
+      event.stopPropagation();
+      stopAttract();
+    });
+  }
+  document.addEventListener("visibilitychange", pauseAttractForHidden);
+  attractReduce.addEventListener("change", () => {
+    if (!attractOn) return;
+    stopAttractLoop();
+    if (attractReduce.matches) {
+      drawAttract(0);
+    } else if (!document.hidden) {
+      attractT0 = performance.now();
+      attractFrozen = 0;
+      attractLoop();
+    }
+  });
+  document.addEventListener("input", () => { if (!attractOn) pingAttract(); });
+  document.addEventListener("pointerdown", () => { if (!attractOn) pingAttract(); }, true);
+  pingAttract();
+
   function handleInput(action) {
+    if (dismissAttract()) return;
+    pingAttract();
     unlockAudio();
     if (currentScreen === "boot") {
       sfx("boot");

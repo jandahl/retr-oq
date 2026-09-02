@@ -73,13 +73,13 @@
 
   window.OqRouter = { getParams, navigate, onChange };
 
-  // Redmond themes: load the screensaver host from next to this file.
-  if (/\/(win31|win98|xp|win7)(\/|$)/.test(location.pathname)) {
+  // Desktop + text-mode themes: load the screensaver host from next to this file.
+  if (/\/(win31|win98|xp|win7|kde|mac8|mac1984|amiga|next|dos|c64)(\/|$)/.test(location.pathname)) {
     const s = document.createElement("script");
     const src = document.currentScript && document.currentScript.src;
     s.src = src
-      ? src.replace(/router\.js.*$/, "redmond/screensaver.js?v=11")
-      : "../shared/redmond/screensaver.js?v=11";
+      ? src.replace(/router\.js.*$/, "redmond/screensaver.js?v=13")
+      : "../shared/redmond/screensaver.js?v=13";
     document.head.appendChild(s);
   }
 })();

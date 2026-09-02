@@ -46,7 +46,7 @@
       if (running) return;
       running = true;
       clearTimeout(timer);
-      frame.src = src;
+      frame.src = typeof src === "function" ? src() : src;
       overlay.hidden = false;
     }
 
@@ -58,7 +58,7 @@
 
     function setSrc(next) {
       src = next;
-      if (running) frame.src = src;
+      if (running) frame.src = typeof src === "function" ? src() : src;
     }
 
     // iframe is pointer-events:none so tap/click hits the overlay, not the
@@ -92,6 +92,13 @@
     if (p.includes("/win98/")) return "win98";
     if (p.includes("/win7/")) return "win7";
     if (p.includes("/xp/")) return "xp";
+    if (p.includes("/mac1984/")) return "mac1984";
+    if (p.includes("/mac8/")) return "mac8";
+    if (p.includes("/kde/")) return "kde";
+    if (p.includes("/amiga/")) return "amiga";
+    if (p.includes("/next/")) return "next";
+    if (p.includes("/dos/")) return "dos";
+    if (p.includes("/c64/")) return "c64";
     return null;
   }
 
@@ -183,6 +190,73 @@
         host.setSrc(vendor("pipes"));
         host.start();
       });
+      return;
+    }
+
+    if (theme === "kde") {
+      var kdeGl = [
+        ["flux", "Flux (GL)"],
+        ["euphoria", "Euphoria (GL)"],
+        ["solarwinds", "Solar Winds (GL)"],
+        ["helios", "Helios (GL)"],
+        ["lattice", "Lattice (GL)"],
+        ["hyperspace", "Hyperspace (GL)"],
+        ["cyclone", "Cyclone (GL)"],
+        ["fieldlines", "Field Lines (GL)"],
+        ["flocks", "Flocks (GL)"],
+        ["pixelcity", "Pixel City (GL)"],
+        ["lorenz", "Lorenz (GL)"],
+        ["glmatrix", "GL Matrix (GL)"],
+        ["skyrocket", "Skyrocket (GL)"]
+      ];
+      var host = attach({
+        src: function () {
+          return vendor(kdeGl[Math.floor(Math.random() * kdeGl.length)][0]);
+        },
+        idleMs: 45000
+      });
+      var kmenu = document.getElementById("k-menu");
+      var sep = kmenu && kmenu.querySelector(".k-sep");
+      kdeGl.forEach(function (pair) {
+        if (!kmenu) return;
+        var li = document.createElement("li");
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = pair[1];
+        btn.addEventListener("click", function () {
+          kmenu.hidden = true;
+          host.setSrc(vendor(pair[0]));
+          host.start();
+        });
+        li.appendChild(btn);
+        if (sep) kmenu.insertBefore(li, sep);
+        else kmenu.appendChild(li);
+      });
+      return;
+    }
+    if (theme === "mac8") {
+      attach({ src: vendor("afterdark-night"), idleMs: 45000 });
+      return;
+    }
+    if (theme === "mac1984") {
+      attach({ src: vendor("mac-stars"), idleMs: 45000 });
+      return;
+    }
+    if (theme === "amiga") {
+      attach({ src: vendor("boing"), idleMs: 45000 });
+      return;
+    }
+    if (theme === "next") {
+      attach({ src: vendor("backspace"), idleMs: 45000 });
+      return;
+    }
+    if (theme === "dos") {
+      attach({ src: vendor("cga-stars"), idleMs: 45000 });
+      return;
+    }
+    if (theme === "c64") {
+      attach({ src: vendor("raster-stars"), idleMs: 45000 });
+      return;
     }
   }
 

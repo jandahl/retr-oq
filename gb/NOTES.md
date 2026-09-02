@@ -15,3 +15,7 @@ against the real fixed Game Boy palette, not just family baseline).
   gamut-limited) — a gamut failure there means fix the color, not loosen
   the check.
 - `tests/test_gb.py` runs in CI when this theme changes.
+- In-LCD attract (45s idle): `fox-idle.png` bounces inside `#gb-lcd` only,
+  never over the brick/pad. Any `handleInput` / pad press dismisses. No
+  Nintendo logo, no audio. Pauses when the tab is hidden.
+  `prefers-reduced-motion` parks the fox in a corner.

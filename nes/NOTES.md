@@ -15,3 +15,4 @@ See root `CLAUDE.md` → Theme invariants → `nes/`/`gb/`/`snes/`/`gg/`
   pointer; don't add the actual sequence to any comment or help text.
 - `tests/test_nes.py` runs in CI for this theme — check it before
   reworking `handleInput()` or the screen IDs it drives.
+- In-LCD attract (45s idle, `#attract-canvas` over the TV picture only): any `handleInput` / pad / key dismisses and resets the timer. Pauses on `document.hidden`. `prefers-reduced-motion` slows the stars.

@@ -6,7 +6,7 @@
 <title>retr-oq — Game Gear prototype</title>
 <!-- ?v= cache-busting, same convention as gb/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=5" />
+<link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
   <!-- Sega Game Gear is a pocket Master System, not a color Game Boy.
@@ -133,6 +133,7 @@
               <p class="title-copy">30 LIVES REMAINING</p>
             </div>
 
+            <canvas class="gg-attract" id="gg-attract" width="160" height="144" hidden aria-hidden="true"></canvas>
             <div class="gg-pixels" aria-hidden="true"></div>
             <div class="gg-lcd-wash" aria-hidden="true"></div>
           </div>
@@ -160,6 +161,6 @@
 <script src="../shared/router.js?v=1"></script>
 <script type="module" src="../shared/oq-analysis.js?v=11"></script>
 <script src="../shared/decon-app.js?v=4"></script>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
