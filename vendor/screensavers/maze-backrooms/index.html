@@ -16,18 +16,25 @@
         return t;
       }
       function paintWall(g) {
-        g.fillStyle = "#e5d35c";
+        g.fillStyle = "#e6d65c";
         g.fillRect(0, 0, 64, 64);
-        g.fillStyle = "#d8c44e";
-        for (var x = 0; x < 64; x += 8) g.fillRect(x, 0, 3, 64);
-        g.fillStyle = "#c4a83a";
-        for (var s = 0; s < 8; s++) {
-          g.globalAlpha = 0.25;
-          g.beginPath();
-          g.arc((s * 23) % 64, (s * 17) % 64, 4 + (s % 3), 0, Math.PI * 2);
-          g.fill();
-        }
-        g.globalAlpha = 1;
+        g.fillStyle = "#dccb4e";
+        for (var x = 0; x < 64; x += 8) g.fillRect(x, 0, 2, 64);
+      }
+      function paintRedWall(g) {
+        g.fillStyle = "#c45a46";
+        g.fillRect(0, 0, 64, 64);
+        g.fillStyle = "#b04a38";
+        for (var x = 0; x < 64; x += 8) g.fillRect(x, 0, 2, 64);
+      }
+      function paintCeil(g) {
+        g.fillStyle = "#d4ccb0";
+        g.fillRect(0, 0, 64, 64);
+        g.strokeStyle = "#b8b090";
+        g.strokeRect(0.5, 0.5, 63, 63);
+        g.beginPath();
+        g.moveTo(32, 0); g.lineTo(32, 64);
+        g.stroke();
       }
       function canvasTex(draw) {
         var c = document.createElement("canvas");
@@ -42,46 +49,44 @@
         var name = String(url);
         if (name.indexOf("floor") !== -1) {
           return canvasTex(function (g) {
-            g.fillStyle = "#b89834";
+            g.fillStyle = "#c8b45a";
             g.fillRect(0, 0, 64, 64);
-            for (var i = 0; i < 180; i++) {
-              g.fillStyle = i % 5 === 0 ? "#7a6428" : "#c4a83a";
-              g.fillRect((i * 19) % 64, (i * 11) % 64, 2, 2);
+            g.fillStyle = "#beaa50";
+            for (var y = 0; y < 64; y += 4) {
+              for (var x = 0; x < 64; x += 4) {
+                if ((x + y) % 8 === 0) g.fillRect(x, y, 2, 2);
+              }
             }
-            g.globalAlpha = 0.45;
-            g.fillStyle = "#5a4418";
-            g.beginPath(); g.arc(18, 40, 16, 0, Math.PI * 2); g.fill();
-            g.beginPath(); g.arc(48, 22, 12, 0, Math.PI * 2); g.fill();
-            g.globalAlpha = 0.3;
-            g.fillStyle = "#3a3010";
-            g.beginPath(); g.arc(36, 52, 14, 0, Math.PI * 2); g.fill();
-            g.globalAlpha = 1;
           });
         }
         if (name.indexOf("ceil") !== -1) {
-          return canvasTex(function (g) {
-            g.fillStyle = "#c8c09a";
-            g.fillRect(0, 0, 64, 64);
-            g.strokeStyle = "#a8a080";
-            g.strokeRect(0.5, 0.5, 63, 63);
-            g.beginPath();
-            g.moveTo(32, 0); g.lineTo(32, 64);
-            g.stroke();
-            g.globalAlpha = 0.28;
-            g.fillStyle = "#8a7040";
-            g.beginPath(); g.arc(22, 44, 12, 0, Math.PI * 2); g.fill();
-            g.globalAlpha = 1;
-          });
+          return canvasTex(paintCeil);
         }
         return canvasTex(paintWall);
       };
     </script>
-    <script src="https://cdn.jsdelivr.net/gh/jobbojobson/WebGLMaze@385d329bbe9f/js/maze.js"></script>
+    <script src="js/maze.js"></script>
   </head>
   <body>
     <div id="container"></div>
     <script>
       var CELL = 5;
+      // Test knobs, all optional: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0
+      function q(name, fallback) {
+        var m = String(location.search).match(new RegExp("[?&]" + name + "=([^&]*)"));
+        if (!m) return fallback;
+        var n = parseFloat(decodeURIComponent(m[1].replace(/\+/g, " ")));
+        return isFinite(n) ? n : fallback;
+      }
+      var odds = {
+        missing: Math.max(0, Math.round(q("missing", 2))),
+        outlets: Math.max(0, Math.round(q("outlets", 3))),
+        wet: Math.max(0, Math.round(q("wet", 4))),
+        exit: Math.max(0, Math.round(q("exit", 1))),
+        red: q("red", 1) > 0,
+        bay: q("bay", 1) > 0,
+        warp: q("warp", 1) > 0
+      };
       var _cam = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.2, 36);
       var _webgl = new THREE.WebGLRenderer({ antialias: false });
       var _walker;
@@ -100,13 +105,13 @@
       var _wetMat = new THREE.MeshLambertMaterial({
         side: THREE.DoubleSide,
         map: canvasTex(function (g) {
-          g.fillStyle = "#6a5420";
+          g.fillStyle = "#8a7438";
           g.fillRect(0, 0, 64, 64);
-          g.fillStyle = "#4a3a14";
-          for (var i = 0; i < 80; i++) g.fillRect((i * 17) % 64, (i * 13) % 64, 3, 3);
-          g.globalAlpha = 0.55;
-          g.fillStyle = "#2a2008";
-          g.beginPath(); g.arc(32, 36, 22, 0, Math.PI * 2); g.fill();
+          g.fillStyle = "#7a642c";
+          for (var y = 0; y < 64; y += 4) { for (var x = 0; x < 64; x += 4) { if ((x + y) % 8 === 0) g.fillRect(x, y, 2, 2); } }
+          g.globalAlpha = 0.28;
+          g.fillStyle = "#5a4818";
+          g.beginPath(); g.arc(34, 38, 18, 0, Math.PI * 2); g.fill();
           g.globalAlpha = 1;
         })
       });
@@ -114,9 +119,9 @@
         side: THREE.DoubleSide,
         map: canvasTex(function (g) {
           paintWall(g);
-          g.fillStyle = "#1a1808";
-          g.fillRect(6, 20, 52, 24);
-          g.fillStyle = "#c8b878";
+          g.fillStyle = "#2a2810";
+          g.fillRect(44, 48, 16, 10);
+          g.fillStyle = "#d4c878";
           var glyph = [
             [1,1,1,0,1,0,1,0,1,1,1,0,1,1,1],
             [1,0,0,0,1,0,1,0,0,1,0,0,0,1,0],
@@ -126,11 +131,43 @@
           ];
           for (var r = 0; r < glyph.length; r++) {
             for (var c = 0; c < glyph[r].length; c++) {
-              if (glyph[r][c]) g.fillRect(10 + c * 3, 24 + r * 3, 3, 3);
+              if (glyph[r][c]) g.fillRect(45 + c, 49 + r, 1, 1);
             }
           }
         })
       });
+      var _redMat = new THREE.MeshLambertMaterial({
+        side: THREE.DoubleSide,
+        map: canvasTex(paintRedWall)
+      });
+      var _redFloorMat = new THREE.MeshLambertMaterial({
+        side: THREE.DoubleSide,
+        map: canvasTex(function (g) {
+          g.fillStyle = "#8a4030";
+          g.fillRect(0, 0, 64, 64);
+          g.fillStyle = "#7a3428";
+          for (var y = 0; y < 64; y += 4) {
+            for (var x = 0; x < 64; x += 4) {
+              if ((x + y) % 8 === 0) g.fillRect(x, y, 2, 2);
+            }
+          }
+        })
+      });
+      var _outletMat = new THREE.MeshLambertMaterial({
+        side: THREE.DoubleSide,
+        map: canvasTex(function (g) {
+          paintWall(g);
+          g.fillStyle = "#d8d0b4";
+          g.fillRect(26, 36, 12, 18);
+          g.strokeStyle = "#9a9278";
+          g.strokeRect(26, 36, 12, 18);
+          g.fillStyle = "#3a3828";
+          g.fillRect(29, 40, 2, 5);
+          g.fillRect(33, 40, 2, 5);
+          g.fillRect(29, 48, 6, 2);
+        })
+      });
+      var _warpT0 = (typeof performance !== "undefined" ? performance.now() : Date.now());
       var _buzz;
       _webgl.setSize(window.innerWidth, window.innerHeight);
       _webgl.setClearColor(0xb8a84a);
@@ -187,6 +224,50 @@
         return spr;
       }
 
+      function texSprite(draw, w, h) {
+        var mat = new THREE.SpriteMaterial({
+          map: canvasTex(function (g) {
+            g.clearRect(0, 0, 64, 64);
+            draw(g);
+          }),
+          transparent: true,
+          fog: true
+        });
+        var spr = new THREE.Sprite(mat);
+        spr.scale.set(w, h, 1);
+        return spr;
+      }
+
+      function paintHalfTile(g) {
+        paintCeil(g);
+        g.clearRect(32, 0, 32, 64);
+      }
+
+      function paintAskewTile(g) {
+        g.fillStyle = "#d4ccb0";
+        g.strokeStyle = "#b8b090";
+        g.fillRect(4, 6, 28, 22);
+        g.strokeRect(4, 6, 28, 22);
+        g.beginPath(); g.moveTo(18, 6); g.lineTo(18, 28); g.stroke();
+        g.save();
+        g.translate(42, 42);
+        g.rotate(0.55);
+        g.fillRect(-16, -11, 32, 22);
+        g.strokeRect(-16, -11, 32, 22);
+        g.beginPath(); g.moveTo(0, -11); g.lineTo(0, 11); g.stroke();
+        g.restore();
+      }
+
+      function pick(arr, n) {
+        var copy = arr.slice();
+        var out = [];
+        while (out.length < n && copy.length) {
+          out.push(copy.splice(Math.floor(Math.random() * copy.length), 1)[0]);
+        }
+        return out;
+      }
+
+
       function pathSet(path) {
         var s = {};
         for (var i = 0; i < path.length; i++) s[path[i][0] + "," + path[i][1]] = true;
@@ -205,7 +286,7 @@
         return x >= bay.x0 && x <= bay.x1 && z >= bay.z0 && z <= bay.z1;
       }
 
-      function dressSurfaces(maze) {
+      function dressSurfaces(scene, maze) {
         var col0 = 2 + Math.floor(Math.random() * Math.max(1, maze.form.cols - 8));
         var row0 = 2 + Math.floor(Math.random() * Math.max(1, maze.form.rows - 7));
         var bay = {
@@ -214,23 +295,25 @@
           z0: row0 * CELL,
           z1: (row0 + 4) * CELL + CELL
         };
+        var red = {
+          x0: (2 + Math.floor(Math.random() * Math.max(1, maze.form.cols - 7))) * CELL,
+          z0: (2 + Math.floor(Math.random() * Math.max(1, maze.form.rows - 6))) * CELL
+        };
+        red.x1 = red.x0 + 3 * CELL;
+        red.z1 = red.z0 + 3 * CELL;
         var ceilings = _mazeRenderer.ceilingGroup.children;
         var floors = _mazeRenderer.floorGroup.children;
         var walls = _mazeRenderer.wallGroup.children;
         var lights = _mazeRenderer.lightGroup.children;
         var i;
-        for (i = 0; i < ceilings.length; i++) {
-          var c = ceilings[i];
-          if (inBay(c.position.x, c.position.z, bay) && Math.random() < 0.55) {
-            c.material = _missingMat;
-          } else if (Math.random() < 0.04) {
-            c.material = _missingMat;
-          }
+        pick(ceilings, odds.missing).forEach(function (c) { c.material = _missingMat; });
+        if (odds.bay) {
+          pick(floors.filter(function (f) { return inBay(f.position.x, f.position.z, bay); }), odds.wet)
+            .forEach(function (f) { f.material = _wetMat; });
         }
-        for (i = 0; i < floors.length; i++) {
-          var f = floors[i];
-          if (inBay(f.position.x, f.position.z, bay) || Math.random() < 0.12) {
-            f.material = _wetMat;
+        if (odds.red) {
+          for (i = 0; i < floors.length; i++) {
+            if (inBay(floors[i].position.x, floors[i].position.z, red)) floors[i].material = _redFloorMat;
           }
         }
         _buzz = null;
@@ -240,8 +323,11 @@
           light.color.setHex(0xdde8b0);
           light.position.y = 2.1;
           light.distance = 16;
-          if (inBay(light.position.x, light.position.z, bay)) {
+          if (odds.bay && inBay(light.position.x, light.position.z, bay)) {
             light.intensity = 0;
+          } else if (odds.red && inBay(light.position.x, light.position.z, red)) {
+            light.color.setHex(0xc06040);
+            light.intensity = 0.35;
           } else {
             light.intensity = 0.48;
             if (!_buzz && Math.random() < 0.15) _buzz = light;
@@ -252,21 +338,32 @@
         var maxZ = maze.form.rows * CELL;
         for (i = 0; i < walls.length; i++) {
           var w = walls[i];
+          if (odds.red && inBay(w.position.x, w.position.z, red)) w.material = _redMat;
           if (w.position.x > CELL && w.position.x < maxX - CELL &&
               w.position.z > CELL && w.position.z < maxZ - CELL) {
             inner.push(w);
           }
         }
-        if (inner.length) inner[Math.floor(Math.random() * inner.length)].material = _exitMat;
+        pick(inner, odds.exit).forEach(function (w) { w.material = _exitMat; });
+        pick(inner, odds.outlets).forEach(function (w) {
+          if (w.material !== _exitMat && w.material !== _redMat) w.material = _outletMat;
+        });
+        var holes = ceilings.filter(function (c) { return c.material === _missingMat; });
+        var tileSpots = holes.length ? holes : (odds.missing ? pick(ceilings, odds.missing) : []);
+        tileSpots.forEach(function (c, idx) {
+          var spr = texSprite(idx % 2 ? paintAskewTile : paintHalfTile, 2.4, 2.4);
+          spr.position.set(c.position.x, 2.15, c.position.z);
+          scene.add(spr);
+          _sprites.push(spr);
+        });
       }
 
       function placePillars(scene, maze) {
-        _sprites.forEach(function (p) { scene.remove(p); });
-        _sprites = [];
         var blocked = pathSet(maze.path);
         var want = 22 + Math.floor(Math.random() * 10);
         var tries = 0;
-        while (_sprites.length < want && tries < 120) {
+        var start = _sprites.length;
+        while (_sprites.length < start + want && tries < 120) {
           tries++;
           var row = 1 + Math.floor(Math.random() * (maze.form.rows - 2));
           var col = 1 + Math.floor(Math.random() * (maze.form.cols - 2));
@@ -290,7 +387,21 @@
       requestAnimationFrame(render);
       animate();
 
+      function warpScene(scene) {
+        if (!odds.warp) return;
+        var now = (typeof performance !== "undefined" ? performance.now() : Date.now());
+        var tt = (now - _warpT0) * 0.00012;
+        var sx = 1 + 0.08 * Math.sin(tt);
+        var sy = 1 + 0.06 * Math.sin(tt * 0.61 + 1.1);
+        var sz = 1 + 0.08 * Math.sin(tt * 0.47 + 2.2);
+        var sh = 0.09 * Math.sin(tt * 0.29 + 0.7);
+        scene.matrixAutoUpdate = false;
+        scene.matrix.set(sx, sh, 0, 0, 0, sy, 0, 0, 0, 0, sz, 0, 0, 0, 0, 1);
+        scene.matrixWorldNeedsUpdate = true;
+      }
+
       function buildScene() {
+        _sprites = [];
         var maze = new Maze(16, 22);
         openRooms(maze);
         _mazeRenderer = new MazeRenderer(maze, new THREE.Scene());
@@ -298,7 +409,7 @@
         scene.fog = new THREE.Fog(0xc4b44a, 7, 34);
         scene.add(new THREE.AmbientLight(0x2a2814));
         stripGoal(scene);
-        dressSurfaces(maze);
+        dressSurfaces(scene, maze);
         placePillars(scene, maze);
         _walker = new MazeWalker({
           cam: _cam,
@@ -316,6 +427,7 @@
           if (Math.random() < 0.018) _buzz.intensity = 0.1;
           else if (_buzz.intensity < 0.48 && Math.random() < 0.07) _buzz.intensity = 0.48;
         }
+        warpScene(_mazeRenderer.getScene());
         render();
         if (_walker.atGoal) {
           _mazeRenderer.resizeWalls(-0.01);
