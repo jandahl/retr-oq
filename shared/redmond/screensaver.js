@@ -4,7 +4,7 @@
   const CSS = [
     "#oq-ss-overlay{position:fixed;inset:0;z-index:2147483646;background:#000;}",
     "#oq-ss-overlay[hidden]{display:none !important;}",
-    "#oq-ss-overlay iframe{width:100%;height:100%;border:0;display:block;background:#000;}",
+    "#oq-ss-overlay iframe{width:100%;height:100%;border:0;display:block;background:#000;pointer-events:none;}",
     ".icon-ss{background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23000000'/%3E%3Crect x='1' y='1' width='6' height='6' fill='%23c00000'/%3E%3Crect x='9' y='1' width='6' height='6' fill='%2300a000'/%3E%3Crect x='1' y='9' width='6' height='6' fill='%230000c0'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%23c0c000'/%3E%3C/svg%3E\");}",
   ].join("");
 
@@ -61,7 +61,12 @@
       if (running) frame.src = src;
     }
 
-    overlay.addEventListener("pointerdown", (event) => stop(event));
+    // iframe is pointer-events:none so tap/click hits the overlay, not the
+    // nested document (parent window never sees iframe pointer events).
+    function tapOut(event) { stop(event); }
+    overlay.addEventListener("pointerdown", tapOut);
+    overlay.addEventListener("click", tapOut);
+    overlay.addEventListener("touchstart", tapOut, { passive: false });
     window.addEventListener("keydown", (event) => {
       if (running) stop(event);
       else ping();
