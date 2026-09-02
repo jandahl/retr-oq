@@ -750,3 +750,105 @@ html.is-keyboard .gg-center {
   .gg-led { animation: none; }
   .boot-drop, .boot-tag, .boot-spec { animation: none; }
 }
+
+/* Hardware-faithful shell: the original Game Gear is a broad, soft-edged
+   charcoal appliance with a glossy black control surround. The screen and
+   labels are deliberately quieter than the software picture inside it. */
+:root {
+  --gg-shell: #303238;
+  --gg-shell-hi: #4a4c52;
+  --gg-shell-lo: #1d1e22;
+  --gg-black: #0b0c0f;
+  --gg-blue: #373caa;
+  --gg-blue-hi: #5c64d8;
+  --gg-blue-lo: #171b6c;
+  --gg-label: #c6c9c9;
+  --gg-frame: #777b7d;
+  --gg-frame-hi: #8b8e8e;
+  --gg-green: #38b952;
+}
+
+html, body { background: #ecebe8; }
+.gg-shell {
+  background: radial-gradient(circle at 50% 42%, #faf9f5 0, #e7e5e0 72%);
+  padding: 18px;
+}
+.gg-body {
+  width: min(1180px, 100%);
+  height: min(610px, 100%);
+  grid-template-columns: 174px minmax(0, 1fr) 190px;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "left screen right";
+  background: linear-gradient(180deg, var(--gg-shell-hi) 0, var(--gg-shell) 12%, #292a2f 70%, var(--gg-shell-lo) 100%);
+  border-radius: 34px 34px 42px 42px;
+  border: 1px solid #151619;
+  box-shadow: inset 0 2px 1px rgba(255,255,255,.18), inset 0 -4px 0 #131417,
+    0 8px 0 #0f1012, 0 22px 42px rgba(16,17,20,.35);
+  padding: 28px 30px 26px;
+}
+.gg-center { position: relative; z-index: 0; padding: 0 3px; }
+.gg-center::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -17px -112px 42px;
+  background: linear-gradient(145deg, #111216, #030406 70%, #17191d);
+  border: 1px solid #56585c;
+  clip-path: polygon(9% 0, 91% 0, 100% 84%, 91% 100%, 9% 100%, 0 84%);
+  box-shadow: 0 3px 0 #08090b;
+}
+.gg-bezel {
+  background: linear-gradient(145deg, var(--gg-frame), #414448 55%, var(--gg-frame-hi));
+  border-radius: 14px 14px 23px 23px;
+  padding: 13px 16px 17px;
+  box-shadow: inset 0 2px 0 #b7b9b8, inset 0 -3px 0 #242629, 0 0 0 5px #090a0c, 0 4px 0 #030405;
+}
+.gg-lcd {
+  border: 5px solid #202225;
+  background: #030b40;
+  box-shadow: inset 0 0 0 2px #090a0c, 0 1px 0 #65686c;
+}
+.gg-left, .gg-right { position: relative; z-index: 1; padding: 0 12px; }
+.gg-left { justify-content: space-between; align-items: center; }
+.gg-right { justify-content: flex-start; align-items: center; }
+.gg-gear-mark { margin-top: 4px; text-align: center; color: #e4e5e2; line-height: 1; }
+.gg-gear-mark strong { display: block; font: 700 20px/1.02 Arial, sans-serif; letter-spacing: -1px; }
+.gg-gear-lights { display: flex; justify-content: center; gap: 7px; margin-bottom: 7px; }
+.gg-gear-lights i { width: 16px; height: 9px; border-radius: 100% 0; transform: rotate(-35deg); }
+.gg-gear-lights i:nth-child(1) { background: #ef4c3f; }
+.gg-gear-lights i:nth-child(2) { background: var(--gg-green); }
+.gg-gear-lights i:nth-child(3) { background: #2895d2; }
+.gg-power { display: flex; align-items: center; gap: 7px; margin-top: -48px; margin-left: 4px; color: var(--gg-label); font: 9px Arial, sans-serif; letter-spacing: .08em; }
+.gg-power .gg-led { width: 11px; height: 11px; }
+.gg-speaker { grid-template-columns: repeat(4, 8px); gap: 6px 7px; padding: 5px; margin-bottom: 1px; }
+.gg-speaker span { width: 8px; height: 8px; background: #101115; box-shadow: inset 0 1px 0 #000, 0 1px 0 #55575b; }
+.pad-dpad { width: 94px; height: 94px; background: #282a2f; box-shadow: inset 0 4px 0 #111216, inset 0 -3px 0 #5a5c60, 0 2px 2px #17181b; }
+.pad-plus-v { left: 35px; top: 6px; width: 25px; height: 82px; }
+.pad-plus-h { left: 6px; top: 35px; width: 82px; height: 25px; }
+.pad-plus-v, .pad-plus-h { background: #101114; box-shadow: inset 2px 2px 0 #34363b, inset -2px -2px 0 #050608; border-radius: 5px; }
+.pad-plus-nub { width: 10px; height: 10px; margin: -5px 0 0 -5px; }
+.pad-up, .pad-down { left: 35px; width: 25px; height: 43px; }
+.pad-left, .pad-right { top: 35px; width: 43px; height: 25px; }
+.pad-up { top: 4px; } .pad-down { bottom: 4px; } .pad-left { left: 4px; } .pad-right { right: 4px; }
+.gg-sega-mark { align-self: flex-start; margin: 36px 0 0 20px; color: #d4d6d3; }
+.gg-sega-mark strong { display: block; font: 700 22px/1 Arial, sans-serif; letter-spacing: 1px; text-shadow: 1px 1px 0 #111; }
+.gg-sega-mark span { display: block; margin-top: 6px; color: #65b9aa; font: 9px/1.2 Arial, sans-serif; letter-spacing: .04em; }
+.gg-start-cluster { display: flex; align-items: center; align-self: flex-end; gap: 7px; margin: 26px 8px 30px 0; }
+.pad-pill { min-width: 0; min-height: 0; padding: 0; width: 48px; height: 42px; border-radius: 48% 52% 42% 58%; background: linear-gradient(145deg, var(--gg-blue-hi), var(--gg-blue) 55%, var(--gg-blue-lo)); color: #eef0ff; font: 10px Arial, sans-serif; letter-spacing: .05em; box-shadow: inset 2px 2px 2px rgba(255,255,255,.25), inset -3px -3px 2px rgba(0,0,0,.35), 0 3px 0 #11143e; transform: rotate(-14deg); }
+.pad-pill:active { transform: rotate(-14deg) translateY(2px); box-shadow: inset 2px 2px 2px rgba(255,255,255,.2), inset -3px -3px 2px rgba(0,0,0,.35), 0 1px 0 #11143e; }
+.pad-face { gap: 18px; transform: rotate(-13deg); }
+.pad-round { width: 55px; height: 55px; background: radial-gradient(circle at 35% 28%, #51545a, #202226 65%, #0b0c0f); color: #d0d2d2; box-shadow: inset 2px 2px 3px #63666a, inset -3px -3px 3px #090a0c, 0 3px 0 #101114; font: 12px Arial, sans-serif; }
+.pad-round:active { transform: translateY(2px); box-shadow: inset 2px 2px 3px #55585c, inset -3px -3px 3px #090a0c, 0 1px 0 #101114; }
+.pad-2 { margin-left: 25px; } .pad-1 { margin-right: 25px; }
+.gg-under { display: none; }
+
+@media (max-width: 700px) {
+  .gg-shell { padding: 6px; }
+  .gg-body { grid-template-columns: 104px minmax(0, 1fr) 116px; padding: 18px 10px 16px; border-radius: 25px; }
+  .gg-bezel { padding: 14px 12px 16px; border-radius: 20px 20px 28px 28px; }
+  .gg-gear-mark strong { font-size: 14px; } .gg-gear-lights i { width: 11px; height: 7px; }
+  .gg-sega-mark { margin: 25px 0 0 4px; } .gg-sega-mark strong { font-size: 16px; } .gg-sega-mark span { font-size: 7px; }
+  .pad-dpad { width: 72px; height: 72px; } .pad-plus-v { left: 26px; width: 20px; height: 62px; } .pad-plus-h { top: 26px; width: 62px; height: 20px; }
+  .pad-up, .pad-down { left: 26px; width: 20px; height: 32px; } .pad-left, .pad-right { top: 26px; width: 32px; height: 20px; }
+  .pad-round { width: 42px; height: 42px; } .pad-pill { width: 40px; height: 34px; font-size: 8px; }
+}
