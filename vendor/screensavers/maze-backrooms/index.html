@@ -90,7 +90,7 @@
     <div id="container"></div>
     <script>
       var CELL = 5;
-      // Test knobs: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0&fisheye=70&crt=70&track=70&head=70&dropout=70&grain=70&error=70&eye=floor
+      // Test knobs: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0&fisheye=70&crt=70&track=70&head=70&dropout=70&grain=70&error=70&smear=70&ghost=70&pulse=70&hud=70&eye=floor
       function q(name, fallback) {
         var m = String(location.search).match(new RegExp("[?&]" + name + "=([^&]*)"));
         if (!m) return fallback;
@@ -137,6 +137,10 @@
       odds.dropout = q100("dropout", vhsMaster);
       odds.grain = q100("grain", vhsMaster);
       odds.error = q100("error", vhsMaster);
+      odds.smear = q100("smear", 0);
+      odds.ghost = q100("ghost", 0);
+      odds.pulse = q100("pulse", 0);
+      odds.hud = q100("hud", 0);
       var _eyeY = pickEye();
       var _cam = new THREE.PerspectiveCamera(70 + odds.fisheye * 48, window.innerWidth / window.innerHeight, 0.15, 36 + odds.fisheye * 10);
       var _webgl = new THREE.WebGLRenderer({ antialias: false });
@@ -224,6 +228,74 @@
       });
       var _warpT0 = (typeof performance !== "undefined" ? performance.now() : Date.now());
       var _buzz;
+      var _pulseLights = [];
+      var _hudC = document.createElement("canvas");
+      _hudC.width = 256;
+      _hudC.height = 32;
+      var _hudG = _hudC.getContext("2d");
+      var _hudTex = new THREE.Texture(_hudC);
+      _hudTex.magFilter = _hudTex.minFilter = THREE.NearestFilter;
+      _hudTex.generateMipmaps = false;
+      _hudTex.needsUpdate = true;
+      var _hudGlyphs = {
+        "0": ["111","101","101","101","111"],
+        "1": ["010","110","010","010","111"],
+        "2": ["111","001","111","100","111"],
+        "3": ["111","001","111","001","111"],
+        "4": ["101","101","111","001","001"],
+        "5": ["111","100","111","001","111"],
+        "6": ["111","100","111","101","111"],
+        "7": ["111","001","001","010","010"],
+        "8": ["111","101","111","101","111"],
+        "9": ["111","101","111","001","111"],
+        "R": ["110","101","110","101","101"],
+        "E": ["111","100","110","100","111"],
+        "C": ["011","100","100","100","011"],
+        "P": ["110","101","110","100","100"],
+        "L": ["100","100","100","100","111"],
+        "A": ["010","101","111","101","101"],
+        "Y": ["101","101","010","010","010"],
+        ":": ["0","1","0","1","0"],
+        ".": ["0","0","0","0","1"],
+        " ": ["0","0","0","0","0"]
+      };
+      function hudBlit(g, str, x, y, color, sc) {
+        g.fillStyle = color;
+        for (var i = 0; i < str.length; i++) {
+          var rows = _hudGlyphs[str.charAt(i)] || _hudGlyphs[" "];
+          var rowW = rows[0].length;
+          for (var ry = 0; ry < rows.length; ry++) {
+            for (var rx = 0; rx < rowW; rx++) {
+              if (rows[ry].charAt(rx) === "1") g.fillRect(x + rx * sc, y + ry * sc, sc, sc);
+            }
+          }
+          x += (rowW + 1) * sc;
+        }
+      }
+      function paintHud(t) {
+        var g = _hudG;
+        g.clearRect(0, 0, 256, 32);
+        if (odds.hud < 0.01) {
+          _hudTex.needsUpdate = true;
+          return;
+        }
+        var blink = Math.floor(t * 2.0) % 2 === 0;
+        g.fillStyle = blink ? "#e02020" : "#5a1010";
+        g.fillRect(6, 6, 6, 6);
+        hudBlit(g, "REC", 16, 5, "#e8e0d0", 2);
+        var sec = Math.floor(t) % 86400;
+        var hh = 3;
+        var mm = Math.floor(sec / 60) % 60;
+        var ss = sec % 60;
+        function two(n) { return (n < 10 ? "0" : "") + n; }
+        hudBlit(g, "1998.07.14 " + two(hh) + ":" + two(mm) + ":" + two(ss), 92, 5, "#d0c8b0", 2);
+        hudBlit(g, "PLAY", 6, 20, "#c8c0a8", 2);
+        g.fillStyle = "#c8c0a8";
+        g.fillRect(40, 22, 5, 5);
+        g.fillRect(46, 20, 3, 7);
+        _hudTex.needsUpdate = true;
+      }
+
       var _rt;
       var _fxScene = new THREE.Scene();
       var _fxCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -237,6 +309,10 @@
           dropout: { type: "f", value: odds.dropout },
           grain: { type: "f", value: odds.grain },
           error: { type: "f", value: odds.error },
+          smear: { type: "f", value: odds.smear },
+          ghost: { type: "f", value: odds.ghost },
+          hud: { type: "f", value: odds.hud },
+          tHud: { type: "t", value: _hudTex },
           time: { type: "f", value: 0 },
           aspect: { type: "f", value: window.innerWidth / window.innerHeight },
           resolution: { type: "v2", value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
@@ -257,6 +333,10 @@
           "uniform float dropout;",
           "uniform float grain;",
           "uniform float error;",
+          "uniform float smear;",
+          "uniform float ghost;",
+          "uniform float hud;",
+          "uniform sampler2D tHud;",
           "uniform float time;",
           "uniform float aspect;",
           "uniform vec2 resolution;",
@@ -294,6 +374,18 @@
           "    float cg = texture2D(tDiffuse, uvS).g;",
           "    float cb = texture2D(tDiffuse, uvS - ca).b;",
           "    col = vec3(cr, cg, cb);",
+          "    if (smear > 0.001) {",
+          "      vec2 smUv = uvS + vec2(smear * (0.016 + 0.008 * sin(time * 2.2)), 0.0);",
+          "      vec3 sm = texture2D(tDiffuse, smUv).rgb;",
+          "      float Y = dot(col, vec3(0.299, 0.587, 0.114));",
+          "      float Ys = dot(sm, vec3(0.299, 0.587, 0.114));",
+          "      col = mix(col, vec3(Y) + (sm - vec3(Ys)), smear);",
+          "    }",
+          "    if (ghost > 0.001) {",
+          "      vec2 gUv = uvS + vec2(ghost * (0.032 + 0.006 * sin(time * 0.7)), ghost * -0.012);",
+          "      vec3 echo = texture2D(tDiffuse, fract(gUv + 1.0)).rgb;",
+          "      col = mix(col, mix(col, echo, 0.42), ghost);",
+          "    }",
           "  }",
           "  float scan = 0.7 + 0.3 * sin(uvS.y * resolution.y * 3.14159265);",
           "  col *= mix(1.0, scan, crt * 0.82);",
@@ -312,6 +404,14 @@
           "  col.r += error * trackBand * 0.14;",
           "  col.b -= error * trackBand * 0.08;",
           "  col = mix(col, vec3(gN * 0.35), headBar * head * (0.35 + 0.5 * nLine));",
+          "  if (hud > 0.001) {",
+          "    float strip = 0.11;",
+          "    if (vUv.y > 1.0 - strip) {",
+          "      vec2 hu = vec2(vUv.x, (vUv.y - (1.0 - strip)) / strip);",
+          "      vec4 h = texture2D(tHud, hu);",
+          "      col = mix(col, h.rgb, h.a * hud);",
+          "    }",
+          "  }",
           "  gl_FragColor = vec4(mix(voidCol, col, disc), 1.0);",
           "}"
         ].join("\n"),
@@ -489,14 +589,17 @@
           }
         }
         _buzz = null;
+        _pulseLights = [];
         for (i = 0; i < lights.length; i++) {
           var light = lights[i];
           if (!(light instanceof THREE.PointLight)) continue;
           light.color.setHex(0xdde8b0);
           light.position.y = 2.1;
           light.distance = 16;
+          var dead = false;
           if (odds.bay && inBay(light.position.x, light.position.z, bay)) {
             light.intensity = 0;
+            dead = true;
           } else if (odds.red && inBay(light.position.x, light.position.z, red)) {
             light.color.setHex(0xc06040);
             light.intensity = 0.35;
@@ -504,6 +607,7 @@
             light.intensity = 0.48;
             if (!_buzz && Math.random() < 0.15) _buzz = light;
           }
+          _pulseLights.push({ light: light, base: light.intensity, dead: dead });
         }
         var inner = [];
         var maxX = maze.form.cols * CELL;
@@ -599,7 +703,7 @@
       }
       function render() {
         var scene = _mazeRenderer.getScene();
-        if (odds.fisheye > 0.01 || odds.crt > 0.01 || odds.track > 0.01 || odds.head > 0.01 || odds.dropout > 0.01 || odds.grain > 0.01 || odds.error > 0.01) {
+        if (odds.fisheye > 0.01 || odds.crt > 0.01 || odds.track > 0.01 || odds.head > 0.01 || odds.dropout > 0.01 || odds.grain > 0.01 || odds.error > 0.01 || odds.smear > 0.01 || odds.ghost > 0.01 || odds.hud > 0.01) {
           _webgl.render(scene, _cam, _rt, true);
           _fxMat.uniforms.amount.value = odds.fisheye;
           _fxMat.uniforms.crt.value = odds.crt;
@@ -608,6 +712,9 @@
           _fxMat.uniforms.dropout.value = odds.dropout;
           _fxMat.uniforms.grain.value = odds.grain;
           _fxMat.uniforms.error.value = odds.error;
+          _fxMat.uniforms.smear.value = odds.smear;
+          _fxMat.uniforms.ghost.value = odds.ghost;
+          _fxMat.uniforms.hud.value = odds.hud;
           _fxMat.uniforms.time.value = ((typeof performance !== "undefined" ? performance.now() : Date.now()) - _warpT0) * 0.001;
           _webgl.render(_fxScene, _fxCam);
         } else {
@@ -615,10 +722,23 @@
         }
       }
       function animate() {
-        if (_buzz) {
+        var nowA = (typeof performance !== "undefined" ? performance.now() : Date.now());
+        var tA = (nowA - _warpT0) * 0.001;
+        if (odds.pulse > 0.01) {
+          for (var pi = 0; pi < _pulseLights.length; pi++) {
+            var pl = _pulseLights[pi];
+            if (pl.dead) continue;
+            var hum = 0.58 + 0.42 * Math.sin(tA * (6.8 + pi * 0.31) + pi);
+            var dip = 1;
+            if (Math.random() < 0.02 * odds.pulse) dip = 0.08;
+            else if (Math.sin(tA * 0.9 + pi * 1.7) > 0.94) dip = 0.18;
+            pl.light.intensity = pl.base * (1 - odds.pulse * (1 - hum * dip));
+          }
+        } else if (_buzz) {
           if (Math.random() < 0.018) _buzz.intensity = 0.1;
           else if (_buzz.intensity < 0.48 && Math.random() < 0.07) _buzz.intensity = 0.48;
         }
+        if (odds.hud > 0.01) paintHud(tA);
         warpScene(_mazeRenderer.getScene());
         render();
         if (_walker.atGoal) {
