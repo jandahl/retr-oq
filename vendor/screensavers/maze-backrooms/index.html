@@ -90,7 +90,7 @@
     <div id="container"></div>
     <script>
       var CELL = 5;
-      // Test knobs: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0&fisheye=1&eye=floor
+      // Test knobs: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0&fisheye=70&eye=floor
       function q(name, fallback) {
         var m = String(location.search).match(new RegExp("[?&]" + name + "=([^&]*)"));
         if (!m) return fallback;
@@ -123,7 +123,7 @@
         red: q("red", 1) > 0,
         bay: q("bay", 1) > 0,
         warp: q("warp", 1) > 0,
-        fisheye: qHas("fisheye") ? Math.max(0, Math.min(1, q("fisheye", 0))) : Math.pow(Math.random(), 1.7)
+        fisheye: qHas("fisheye") ? Math.max(0, Math.min(1, q("fisheye", 0) / 100)) : Math.pow(Math.random(), 1.7)
       };
       var _eyeY = pickEye();
       var _cam = new THREE.PerspectiveCamera(70 + odds.fisheye * 48, window.innerWidth / window.innerHeight, 0.15, 36 + odds.fisheye * 10);
