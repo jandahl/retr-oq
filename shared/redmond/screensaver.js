@@ -82,7 +82,7 @@
   }
 
   function vendor(name) {
-    var bust = name === "maze-backrooms" ? "?v=8" : "";
+    var bust = name === "maze-backrooms" ? "?v=9" : "";
     return "../vendor/screensavers/" + name + "/index.html" + bust;
   }
 
