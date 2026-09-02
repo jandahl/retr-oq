@@ -90,7 +90,7 @@
     <div id="container"></div>
     <script>
       var CELL = 5;
-      // Test knobs: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0&fisheye=1&eye=floor
+      // Test knobs: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0&fisheye=70&eye=floor
       function q(name, fallback) {
         var m = String(location.search).match(new RegExp("[?&]" + name + "=([^&]*)"));
         if (!m) return fallback;
@@ -123,10 +123,10 @@
         red: q("red", 1) > 0,
         bay: q("bay", 1) > 0,
         warp: q("warp", 1) > 0,
-        fisheye: qflag("fisheye", 0.16)
+        fisheye: qHas("fisheye") ? Math.max(0, Math.min(1, q("fisheye", 0) / 100)) : Math.pow(Math.random(), 1.7)
       };
       var _eyeY = pickEye();
-      var _cam = new THREE.PerspectiveCamera(odds.fisheye ? 125 : 70, window.innerWidth / window.innerHeight, 0.15, odds.fisheye ? 44 : 36);
+      var _cam = new THREE.PerspectiveCamera(70 + odds.fisheye * 48, window.innerWidth / window.innerHeight, 0.15, 36 + odds.fisheye * 10);
       var _webgl = new THREE.WebGLRenderer({ antialias: false });
       var _walker;
       var _mazeRenderer;
@@ -212,13 +212,70 @@
       });
       var _warpT0 = (typeof performance !== "undefined" ? performance.now() : Date.now());
       var _buzz;
+      var _rt;
+      var _fxScene = new THREE.Scene();
+      var _fxCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      var _fxMat = new THREE.ShaderMaterial({
+        uniforms: {
+          tDiffuse: { type: "t", value: null },
+          amount: { type: "f", value: odds.fisheye },
+          aspect: { type: "f", value: window.innerWidth / window.innerHeight }
+        },
+        vertexShader: [
+          "varying vec2 vUv;",
+          "void main() {",
+          "  vUv = uv;",
+          "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
+          "}"
+        ].join("\n"),
+        fragmentShader: [
+          "uniform sampler2D tDiffuse;",
+          "uniform float amount;",
+          "uniform float aspect;",
+          "varying vec2 vUv;",
+          "void main() {",
+          "  vec2 p = vUv * 2.0 - 1.0;",
+          "  p.x *= aspect;",
+          "  float r = length(p);",
+          "  float k = amount;",
+          "  float r2 = r * r;",
+          "  float srcR = r * (1.0 + k * 0.9 * r2 + k * k * 0.55 * r2 * r2);",
+          "  vec2 q = p;",
+          "  if (r > 0.00001) q *= srcR / r;",
+          "  q.x /= aspect;",
+          "  vec2 uvS = q * 0.5 + 0.5;",
+          "  vec3 voidCol = vec3(0.06, 0.055, 0.035);",
+          "  float disc = mix(1.0, smoothstep(1.06, 0.88, r / mix(2.2, 1.0, k)), k);",
+          "  vec3 col = voidCol;",
+          "  if (uvS.x > 0.0 && uvS.x < 1.0 && uvS.y > 0.0 && uvS.y < 1.0) {",
+          "    col = texture2D(tDiffuse, uvS).rgb;",
+          "  }",
+          "  gl_FragColor = vec4(mix(voidCol, col, disc), 1.0);",
+          "}"
+        ].join("\n"),
+        depthTest: false,
+        depthWrite: false
+      });
+      _fxScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), _fxMat));
+      function sizeRt() {
+        if (_rt) _rt.dispose();
+        _rt = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
+          minFilter: THREE.LinearFilter,
+          magFilter: THREE.LinearFilter,
+          format: THREE.RGBFormat
+        });
+        _fxMat.uniforms.tDiffuse.value = _rt;
+        _fxMat.uniforms.aspect.value = window.innerWidth / window.innerHeight;
+      }
       _webgl.setSize(window.innerWidth, window.innerHeight);
       _webgl.setClearColor(0xb8a84a);
+      sizeRt();
       document.getElementById("container").appendChild(_webgl.domElement);
       window.addEventListener("resize", function () {
         _cam.aspect = window.innerWidth / window.innerHeight;
         _cam.updateProjectionMatrix();
         _webgl.setSize(window.innerWidth, window.innerHeight);
+        sizeRt();
       }, false);
 
       function carveRect(form, r0, c0, rh, cw) {
@@ -476,7 +533,14 @@
         });
       }
       function render() {
-        _webgl.render(_mazeRenderer.getScene(), _cam);
+        var scene = _mazeRenderer.getScene();
+        if (odds.fisheye > 0.01) {
+          _webgl.render(scene, _cam, _rt, true);
+          _fxMat.uniforms.amount.value = odds.fisheye;
+          _webgl.render(_fxScene, _fxCam);
+        } else {
+          _webgl.render(scene, _cam);
+        }
       }
       function animate() {
         if (_buzz) {
