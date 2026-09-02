@@ -90,7 +90,7 @@
     <div id="container"></div>
     <script>
       var CELL = 5;
-      // Test knobs: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0&fisheye=70&crt=70&eye=floor
+      // Test knobs: ?missing=12&outlets=20&wet=16&exit=4&red=1&bay=1&warp=0&fisheye=70&crt=70&vhs=70&eye=floor
       function q(name, fallback) {
         var m = String(location.search).match(new RegExp("[?&]" + name + "=([^&]*)"));
         if (!m) return fallback;
@@ -124,7 +124,8 @@
         bay: q("bay", 1) > 0,
         warp: q("warp", 1) > 0,
         fisheye: qHas("fisheye") ? Math.max(0, Math.min(1, q("fisheye", 0) / 100)) : Math.pow(Math.random(), 1.7),
-        crt: qHas("crt") ? Math.max(0, Math.min(1, q("crt", 0) / 100)) : 0.32
+        crt: qHas("crt") ? Math.max(0, Math.min(1, q("crt", 0) / 100)) : 0.32,
+        vhs: qHas("vhs") ? Math.max(0, Math.min(1, q("vhs", 0) / 100)) : 0.22
       };
       var _eyeY = pickEye();
       var _cam = new THREE.PerspectiveCamera(70 + odds.fisheye * 48, window.innerWidth / window.innerHeight, 0.15, 36 + odds.fisheye * 10);
@@ -221,6 +222,7 @@
           tDiffuse: { type: "t", value: null },
           amount: { type: "f", value: odds.fisheye },
           crt: { type: "f", value: odds.crt },
+          vhs: { type: "f", value: odds.vhs },
           time: { type: "f", value: 0 },
           aspect: { type: "f", value: window.innerWidth / window.innerHeight },
           resolution: { type: "v2", value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
@@ -236,6 +238,7 @@
           "uniform sampler2D tDiffuse;",
           "uniform float amount;",
           "uniform float crt;",
+          "uniform float vhs;",
           "uniform float time;",
           "uniform float aspect;",
           "uniform vec2 resolution;",
@@ -254,6 +257,15 @@
           "  vec2 pc = uvS * 2.0 - 1.0;",
           "  pc *= 1.0 + crt * 0.14 * dot(pc, pc);",
           "  uvS = pc * 0.5 + 0.5;",
+          "  float nLine = fract(sin((uvS.y * 931.0 + time * 2.4) * 12.9898) * 43758.5453);",
+          "  float nSlow = fract(sin((uvS.y * 41.0 + time * 0.55) * 78.233) * 23421.631);",
+          "  float hit = step(0.88, fract(sin(floor(time * 1.15) * 91.7) * 31337.1));",
+          "  float bandY = fract(time * 0.08 + 0.17);",
+          "  float trackBand = smoothstep(0.09, 0.0, abs(uvS.y - bandY));",
+          "  float head = smoothstep(0.9, 1.0, uvS.y);",
+          "  uvS.x += vhs * (0.01 * (nLine - 0.5) + 0.045 * trackBand * (nSlow - 0.5) + 0.07 * hit * trackBand * (nLine - 0.5) + 0.09 * head * (nLine - 0.5));",
+          "  uvS.y += vhs * 0.005 * sin(time * 1.4 + uvS.y * 8.0);",
+          "  uvS.x = fract(uvS.x + 1.0);",
           "  vec3 voidCol = vec3(0.05, 0.045, 0.03);",
           "  float disc = mix(1.0, smoothstep(1.06, 0.88, r / mix(2.2, 1.0, k)), k);",
           "  vec3 col = voidCol;",
@@ -274,6 +286,13 @@
           "  col *= 1.0 + crt * 0.028 * sin(time * 51.0);",
           "  float roll = abs(fract(uvS.y * 0.18 - time * 0.035) - 0.5);",
           "  col *= 1.0 - crt * 0.08 * (1.0 - smoothstep(0.0, 0.04, roll));",
+          "  float grain = fract(sin(dot(uvS + time * 0.13, vec2(12.9898, 78.233))) * 43758.5453);",
+          "  col += vhs * 0.09 * (grain - 0.5);",
+          "  float drop = step(0.996 - vhs * 0.03, fract(sin(floor(uvS.y * resolution.y * 0.5) * 17.3 + floor(time * 11.0)) * 93133.1));",
+          "  col = mix(col, vec3(0.12 + 0.7 * grain), drop * vhs);",
+          "  col.r += vhs * trackBand * 0.14;",
+          "  col.b -= vhs * trackBand * 0.08;",
+          "  col = mix(col, vec3(grain * 0.35), head * vhs * (0.35 + 0.5 * nLine));",
           "  gl_FragColor = vec4(mix(voidCol, col, disc), 1.0);",
           "}"
         ].join("\n"),
@@ -561,10 +580,11 @@
       }
       function render() {
         var scene = _mazeRenderer.getScene();
-        if (odds.fisheye > 0.01 || odds.crt > 0.01) {
+        if (odds.fisheye > 0.01 || odds.crt > 0.01 || odds.vhs > 0.01) {
           _webgl.render(scene, _cam, _rt, true);
           _fxMat.uniforms.amount.value = odds.fisheye;
           _fxMat.uniforms.crt.value = odds.crt;
+          _fxMat.uniforms.vhs.value = odds.vhs;
           _fxMat.uniforms.time.value = ((typeof performance !== "undefined" ? performance.now() : Date.now()) - _warpT0) * 0.001;
           _webgl.render(_fxScene, _fxCam);
         } else {
