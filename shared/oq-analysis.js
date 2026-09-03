@@ -27,7 +27,7 @@
 (async () => {
   let api;
   try {
-    api = await import("https://jandahl.github.io/oq-api/api/v0.0.2/public-api.js");
+    api = await import("https://jandahl.github.io/oq-api/api/v0.0.5/public-api.js");
   } catch (err) {
     // window.OqAnalysis.analyzeWord still exists and is still a function
     // that returns a rejected Promise -- callers (dos/app.js's
