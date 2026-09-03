@@ -587,6 +587,7 @@ button.kde-btn.default {
   border-right: 1px solid var(--kde-hi);
 }
 .quicklaunch button {
+  position: relative;
   width: 30px;
   height: 28px;
   padding: 2px;
@@ -596,6 +597,27 @@ button.kde-btn.default {
   border-radius: 2px;
 }
 .quicklaunch button:hover { background: rgba(255,255,255,0.4); }
+.quicklaunch button::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 7px);
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border: 1px solid #687080;
+  border-radius: 3px;
+  background: linear-gradient(#f9f9ff, #d9dbe5);
+  color: #1a1a1a;
+  box-shadow: 1px 2px 4px rgba(0,0,0,.35), inset 0 1px #fff;
+  font: 11px var(--font);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 100ms ease;
+  z-index: 20;
+}
+.quicklaunch button:hover::after,
+.quicklaunch button:focus-visible::after { opacity: 1; }
 .quicklaunch img { width: 22px; height: 22px; object-fit: contain; }
 
 .tasks {
@@ -709,6 +731,28 @@ button.kde-btn.default {
   margin: 4px 6px;
   box-shadow: 0 1px 0 var(--kde-hi);
 }
+.k-submenu { position: relative; }
+.k-submenu > button { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; }
+.k-submenu > .k-menu {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: -4px;
+  min-width: 170px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.k-submenu:hover > .k-menu,
+.k-submenu:focus-within > .k-menu,
+.k-submenu.open > .k-menu { display: block; }
+.screensaver-settings { display: flex; flex-direction: column; }
+.screensaver-controls { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+.screensaver-settings select, .screensaver-settings input { padding: 3px; font: 12px var(--font); }
+.screensaver-settings input { width: 4.5rem; }
+#screensaver-preview { display: block; width: 100%; flex: 1; min-height: 230px; border: 1px solid #777; background: #000; }
+.screensaver-preview-row { display: flex; flex-direction: column; flex: 1; min-height: 260px; gap: 8px; }
+.screensaver-preview-row .kde-btn { align-self: flex-end; }
+.screensaver-hint { margin: 8px 0 0; font-size: 11px; color: #555; }
 
 /* ---------- Desktop right-click menu ---------- */
 

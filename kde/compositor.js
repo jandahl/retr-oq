@@ -36,6 +36,71 @@
 
   const canvas = document.getElementById("compositor");
   const ctx = canvas.getContext("2d", { alpha: true });
+  const cubeCanvas = document.createElement("canvas");
+  cubeCanvas.id = "gl-desktop-cube";
+  cubeCanvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;z-index:4001;visibility:hidden;pointer-events:none;background:#03010d url('art/galaxy.png') center/cover no-repeat";
+  document.body.appendChild(cubeCanvas);
+  const gl = cubeCanvas.getContext("webgl", { alpha: true, antialias: true });
+  let glCube = null;
+  let glRaf = 0;
+  let glProgram = null;
+  let glBuffer = null;
+  let glTexture = null;
+  function initGl() {
+    if (!gl || glProgram) return !!gl;
+    const vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, "attribute vec3 p; attribute vec2 uv; uniform mat4 m; varying vec2 v; void main(){gl_Position=m*vec4(p,1.0);v=uv;}"); gl.compileShader(vs);
+    const fs = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fs, "precision mediump float; uniform sampler2D tex; uniform float shade; varying vec2 v; void main(){gl_FragColor=texture2D(tex,v)*vec4(vec3(shade),1.0);}"); gl.compileShader(fs);
+    glProgram = gl.createProgram(); gl.attachShader(glProgram, vs); gl.attachShader(glProgram, fs); gl.linkProgram(glProgram);
+    glBuffer = gl.createBuffer();
+    return gl.getProgramParameter(glProgram, gl.LINK_STATUS);
+  }
+  function perspective(fov, aspect, near, far) {
+    const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
+    return [f / aspect,0,0,0, 0,f,0,0, 0,0,(far+near)*nf,-1, 0,0,2*far*near*nf,0];
+  }
+  function mul(a,b) { const out = new Array(16).fill(0); for(let c=0;c<4;c++) for(let r=0;r<4;r++) for(let k=0;k<4;k++) out[c*4+r]+=a[k*4+r]*b[c*4+k]; return out; }
+  function rotY(a) { const c=Math.cos(a),s=Math.sin(a); return [c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1]; }
+  function translate(z) { return [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,z,1]; }
+  function scale3(s) { return [s,0,0,0, 0,s,0,0, 0,0,s,0, 0,0,0,1]; }
+  const cubeVerts = [
+    [-1,-.75,1,0,0, 1,-.75,1,1,0, 1,.75,1,1,1, -1,.75,1,0,1],
+    [1,-.75,1,0,0, 1,-.75,-1,1,0, 1,.75,-1,1,1, 1,.75,1,0,1],
+    [1,-.75,-1,0,0, -1,-.75,-1,1,0, -1,.75,-1,1,1, 1,.75,-1,0,1],
+    [-1,-.75,-1,0,0, -1,-.75,1,1,0, -1,.75,1,1,1, -1,.75,-1,0,1],
+  ];
+  function drawGlCube() {
+    if (!glCube || !gl) return;
+    const now = performance.now();
+    let cubeScale = 0.7 + 0.3 * Math.min(1, (now - glCube.started) / 900);
+    if (!glCube.holding) glCube.angle = Math.min(Math.PI / 2, (now - glCube.started) / 900 * Math.PI / 2);
+    if (glCube.closing) {
+      const closeT = Math.min(1, (now - glCube.closeStarted) / 420);
+      glCube.angle *= 1 - closeT;
+      glCube.pitch *= 1 - closeT;
+      cubeScale = 1 + closeT * 0.68;
+      if (closeT >= 1) { finishGlCube(); return; }
+    }
+    cubeCanvas.width = Math.max(1, Math.round(innerWidth * devicePixelRatio)); cubeCanvas.height = Math.max(1, Math.round(innerHeight * devicePixelRatio));
+    gl.viewport(0,0,cubeCanvas.width,cubeCanvas.height); gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
+    gl.useProgram(glProgram); gl.bindBuffer(gl.ARRAY_BUFFER,glBuffer);
+    const data=[]; for(const face of cubeVerts) data.push(...face.slice(0,5),...face.slice(5,10),...face.slice(10,15),...face.slice(15,20));
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STREAM_DRAW);
+    const p=gl.getAttribLocation(glProgram,"p"), u=gl.getAttribLocation(glProgram,"uv"); gl.enableVertexAttribArray(p); gl.enableVertexAttribArray(u); gl.vertexAttribPointer(p,3,gl.FLOAT,false,20,0); gl.vertexAttribPointer(u,2,gl.FLOAT,false,20,12);
+    gl.uniformMatrix4fv(gl.getUniformLocation(glProgram,"m"),false,new Float32Array(mul(perspective(Math.PI/3,innerWidth/innerHeight,.1,100),mul(translate(-4),mul(rotX(glCube.pitch),mul(rotY(glCube.angle),scale3(cubeScale)))))));
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,glTexture); gl.uniform1i(gl.getUniformLocation(glProgram,"tex"),0);
+    for(let i=0;i<4;i++){ gl.uniform1f(gl.getUniformLocation(glProgram,"shade"),i===0?1:.55); gl.drawArrays(gl.TRIANGLE_FAN,i*4,4); }
+    glRaf=requestAnimationFrame(drawGlCube);
+  }
+  function rotX(a) { const c=Math.cos(a),s=Math.sin(a); return [1,0,0,0, 0,c,s,0, 0,-s,c,0, 0,0,0,1]; }
+  function finishGlCube() { if(!glCube)return; glCube.root.style.visibility=""; document.getElementById("kicker").style.visibility=""; cubeCanvas.style.pointerEvents="none"; cubeCanvas.style.visibility="hidden"; glCube=null; if(glRaf)cancelAnimationFrame(glRaf); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT); }
+  function closeGlCube() { if (!glCube || glCube.closing) return; glCube.closing=true; glCube.closeStarted=performance.now(); }
+  let cubeDrag = null;
+  cubeCanvas.addEventListener("pointerdown", (event) => { if (!glCube) return; cubeDrag={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false}; cubeCanvas.setPointerCapture(event.pointerId); event.preventDefault(); });
+  cubeCanvas.addEventListener("pointermove", (event) => { if (!cubeDrag || !glCube || cubeDrag.id !== event.pointerId) return; const dx=event.clientX-cubeDrag.x,dy=event.clientY-cubeDrag.y; if(Math.abs(dx)+Math.abs(dy)>3)cubeDrag.moved=true; glCube.holding=true; glCube.angle+=dx*.012; glCube.pitch=Math.max(-.9,Math.min(.9,glCube.pitch+dy*.009)); cubeDrag.x=event.clientX; cubeDrag.y=event.clientY; });
+  cubeCanvas.addEventListener("pointerup", (event) => { if(!cubeDrag || cubeDrag.id !== event.pointerId)return; if(!cubeDrag.moved) closeGlCube(); cubeDrag=null; });
+  cubeCanvas.addEventListener("pointercancel", () => { cubeDrag=null; });
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = "high";
   let dpr = 1;
@@ -93,7 +158,7 @@
     el.style.filter = "";
   }
 
-  function snapshot(el) {
+  function snapshot(el, options = {}) {
     if (typeof html2canvas !== "function") {
       return Promise.reject(new Error("html2canvas is required for Compiz effects"));
     }
@@ -112,13 +177,32 @@
       windowWidth: w,
       windowHeight: h,
       ignoreElements: (node) =>
-        node.id === "compositor" ||
-        !!(node.classList && (node.classList.contains("kde-resize") || node.classList.contains("kicker"))),
+        node.id === "compositor" || node.id === "gl-desktop-cube" ||
+        !!(node.classList && (node.classList.contains("kde-resize") || (node.classList.contains("kicker") && !options.includeShell))),
     });
     const timeout = new Promise((_, reject) => {
       setTimeout(() => reject(new Error("snapshot timeout")), 1500);
     });
     return Promise.race([shot, timeout]);
+  }
+  async function snapshotShell() {
+    const shell = await snapshot(document.body, { includeShell: true });
+    // html2canvas cannot cross an iframe boundary. The saver preview is
+    // same-origin here, so composite its live canvas into the shell texture
+    // before uploading the texture to WebGL.
+    const frame = document.getElementById("screensaver-preview");
+    try {
+      if (frame && frame.contentDocument && frame.contentDocument.body) {
+        const preview = await snapshot(frame.contentDocument.body);
+        const rect = frame.getBoundingClientRect();
+        const scale = shell.width / Math.max(1, innerWidth);
+        const out = document.createElement("canvas"); out.width = shell.width; out.height = shell.height;
+        const outCtx = out.getContext("2d"); outCtx.drawImage(shell, 0, 0);
+        outCtx.drawImage(preview, rect.left * scale, rect.top * scale, rect.width * scale, rect.height * scale);
+        return out;
+      }
+    } catch (_) { /* iframe may still be loading; retain its captured fallback */ }
+    return shell;
   }
 
   function makeMesh(x, y, w, h, cols, rows) {
@@ -434,38 +518,56 @@
     if (!cube) return;
     cube.t += 0.018;
     const t = Math.min(1, cube.t);
-    const ang = t * Math.PI;
+    const ang = t * Math.PI / 2;
     const img = cube.img;
     const cw = window.innerWidth;
     const ch = window.innerHeight;
-    const persp = 900;
-    function project(x, z) {
-      const zz = persp / (persp + z);
-      return { x: cw / 2 + (x - cw / 2) * zz, s: zz };
+    const persp = 760;
+    const half = Math.min(cw * 0.32, ch * 0.42);
+    const halfH = ch * 0.34;
+    const faces = [];
+    function project(x, z, y) {
+      const scale = persp / (persp + z);
+      return { x: cw / 2 + x * scale, y: ch / 2 + y * scale, scale };
     }
-    const half = cw * 0.42;
-    const top = ch * 0.12;
-    const bot = ch * 0.78;
-    const zL = Math.sin(ang) * half;
-    const zR = Math.sin(ang + Math.PI) * half;
-    const xL = cw / 2 + Math.cos(ang) * -half;
-    const xR = cw / 2 + Math.cos(ang) * half;
-    const pL = project(xL, zL);
-    const pR = project(xR, zR);
+    // Four identical faces are intentional: the pager is an illusion and
+    // all faces lead back to the one shared Desktop 1 surface.
+    for (let i = 0; i < 4; i++) {
+      const a = ang + i * Math.PI / 2;
+      const left = project(Math.sin(a - Math.PI / 4) * half, Math.cos(a - Math.PI / 4) * half, 0);
+      const right = project(Math.sin(a + Math.PI / 4) * half, Math.cos(a + Math.PI / 4) * half, 0);
+      const depth = (left.scale + right.scale) / 2;
+      faces.push({ left, right, depth, i });
+    }
+    faces.sort((a, b) => a.depth - b.depth);
     ctx.save();
     ctx.globalAlpha = t < 0.15 ? t / 0.15 : t > 0.85 ? (1 - t) / 0.15 : 1;
-    ctx.fillStyle = "#0a2a4a";
-    ctx.beginPath();
-    ctx.moveTo(pL.x * dpr, top * dpr);
-    ctx.lineTo(pR.x * dpr, top * dpr);
-    ctx.lineTo(pR.x * dpr, bot * dpr);
-    ctx.lineTo(pL.x * dpr, bot * dpr);
-    ctx.closePath();
-    ctx.fill();
-    const dw = pR.x - pL.x;
-    if (Math.abs(dw) > 2) {
-      ctx.setTransform((dw * dpr) / img.width, 0, 0, ((bot - top) * dpr) / img.height, pL.x * dpr, top * dpr);
-      ctx.drawImage(img, 0, 0);
+    for (const face of faces) {
+      const x0 = face.left.x;
+      const x1 = face.right.x;
+      const y0 = ch / 2 - halfH * face.left.scale;
+      const y1 = ch / 2 + halfH * face.left.scale;
+      const width = x1 - x0;
+      if (Math.abs(width) < 2) continue;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.beginPath();
+      ctx.moveTo(x0 * dpr, y0 * dpr);
+      ctx.lineTo(x1 * dpr, y0 * dpr);
+      ctx.lineTo(x1 * dpr, y1 * dpr);
+      ctx.lineTo(x0 * dpr, y1 * dpr);
+      ctx.closePath();
+      ctx.fillStyle = "#0a2a4a";
+      ctx.fill();
+      ctx.save();
+      ctx.clip();
+      ctx.globalAlpha = 0.42 + face.depth * 0.58;
+      ctx.drawImage(img, x0 * dpr, y0 * dpr, width * dpr, (y1 - y0) * dpr);
+      ctx.restore();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = "rgba(8, 28, 48, 0.7)";
+      ctx.font = `700 ${Math.max(14, Math.round(ch * 0.025))}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText("Desktop 1", ((x0 + x1) / 2) * dpr, (y0 + 34) * dpr);
     }
     ctx.restore();
     if (cube.t >= 1) {
@@ -531,10 +633,13 @@
     const el = fx && fx.el;
     fx = null;
     sparks = [];
+    // Hide the live element before resolving the effect. The window manager
+    // changes it to `.minimized` in the promise continuation; deferring this
+    // cleanup by a frame briefly exposes the last captured frame above Kicker.
+    if (el) clearLiveFx(el);
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (done) done();
-    requestAnimationFrame(() => {
-      if (el && !fx) el.classList.remove("compiz-captured");
-    });
   }
 
   function gridFor() {
@@ -890,7 +995,19 @@
   }
 
   async function spinCube(rootEl) {
-    if (reduceMotion() || cube) return;
+    if (reduceMotion() || cube || glCube) return;
+    if (initGl()) {
+      let img;
+      try { img = await snapshotShell(); } catch { return; }
+      glTexture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, glTexture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
+      glCube = { root: rootEl, started: performance.now(), angle: 0, pitch: 0.44, closing: false };
+      rootEl.style.visibility = "hidden";
+      document.getElementById("kicker").style.visibility = "hidden";
+      cubeCanvas.style.visibility = "visible"; cubeCanvas.style.pointerEvents = "auto"; drawGlCube();
+      return;
+    }
+    if (cube) return;
     if (!canCanvas()) {
       await cssCube(rootEl);
       return;
@@ -906,6 +1023,24 @@
       cube = { img, t: 0, onDone: resolve };
       startLoop();
     });
+  }
+
+  async function restore(el, sourceRect) {
+    if (reduceMotion()) return;
+    const rect = el.getBoundingClientRect();
+    const tx = sourceRect.left + sourceRect.width / 2;
+    const ty = sourceRect.top + sourceRect.height / 2;
+    const ox = rect.width ? ((tx - rect.left) / rect.width) * 100 : 50;
+    const oy = rect.height ? ((ty - rect.top) / rect.height) * 100 : 100;
+    el.style.transformOrigin = `${ox}% ${oy}%`;
+    el.style.transform = "scale(0.04)";
+    el.style.opacity = "0";
+    el.classList.add("compiz-lamping");
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    el.style.transform = "scale(1)";
+    el.style.opacity = "1";
+    await onceDone(el, "transitionend", 500);
+    clearLiveFx(el);
   }
 
   function setRain(on) {
@@ -951,6 +1086,7 @@
     burn,
     lamp,
     spinCube,
+    restore,
     setRain,
     ripple,
     setRainOn: setRain,
