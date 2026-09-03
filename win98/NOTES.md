@@ -23,5 +23,5 @@ not the SCSS source. Greenlandic flag, not a Windows logo.
 - Hot Dog Stand scheme is a real, selectable Display Properties option,
   not an egg.
 - Screen saver idle (45s) is Aquarium (`vendor/screensavers/aquarium/`, MIT,
-  original Plus!-style remake). Start menu also offers Aquarium, 3D Pipes,
-  3D Maze, Backrooms.
+  original Plus!-style remake). Start → Screen Savers flyout lists Aquarium,
+  3D Pipes, 3D Maze, Backrooms (same host injects the flyout on xp/win7).
