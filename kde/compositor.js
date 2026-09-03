@@ -73,8 +73,23 @@
   function drawGlCube() {
     if (!glCube || !gl) return;
     const now = performance.now();
-    let cubeScale = 0.7 + 0.3 * Math.min(1, (now - glCube.started) / 900);
-    if (!glCube.holding) glCube.angle = Math.min(Math.PI / 2, (now - glCube.started) / 900 * Math.PI / 2);
+    const opening = Math.min(1, (now - glCube.started) / 900);
+    const shellScale = 1 - opening * 0.28;
+    glCube.root.style.transformOrigin = "center center";
+    glCube.root.style.transform = `scale(${shellScale})`;
+    glCube.root.style.opacity = String(1 - opening);
+    const kicker = document.getElementById("kicker");
+    kicker.style.transformOrigin = "center center";
+    kicker.style.transform = `scale(${shellScale})`;
+    kicker.style.opacity = String(1 - opening);
+    cubeCanvas.style.opacity = String(opening);
+    let cubeScale = 0.7 + 0.3 * opening;
+    if (!glCube.holding) glCube.angle = Math.min(Math.PI / 2, opening * Math.PI / 2);
+    if (opening >= 1 && !glCube.shellHidden) {
+      glCube.root.style.visibility = "hidden";
+      kicker.style.visibility = "hidden";
+      glCube.shellHidden = true;
+    }
     if (glCube.closing) {
       const closeT = Math.min(1, (now - glCube.closeStarted) / 420);
       glCube.angle *= 1 - closeT;
@@ -94,7 +109,7 @@
     glRaf=requestAnimationFrame(drawGlCube);
   }
   function rotX(a) { const c=Math.cos(a),s=Math.sin(a); return [1,0,0,0, 0,c,s,0, 0,-s,c,0, 0,0,0,1]; }
-  function finishGlCube() { if(!glCube)return; glCube.root.style.visibility=""; document.getElementById("kicker").style.visibility=""; cubeCanvas.style.pointerEvents="none"; cubeCanvas.style.visibility="hidden"; glCube=null; if(glRaf)cancelAnimationFrame(glRaf); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT); }
+  function finishGlCube() { if(!glCube)return; glCube.root.style.visibility=""; glCube.root.style.transform=""; glCube.root.style.opacity=""; const kicker=document.getElementById("kicker"); kicker.style.visibility=""; kicker.style.transform=""; kicker.style.opacity=""; cubeCanvas.style.opacity=""; cubeCanvas.style.pointerEvents="none"; cubeCanvas.style.visibility="hidden"; glCube=null; if(glRaf)cancelAnimationFrame(glRaf); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT); }
   function closeGlCube() { if (!glCube || glCube.closing) return; glCube.closing=true; glCube.closeStarted=performance.now(); }
   let cubeDrag = null;
   cubeCanvas.addEventListener("pointerdown", (event) => { if (!glCube) return; cubeDrag={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false}; cubeCanvas.setPointerCapture(event.pointerId); event.preventDefault(); });
@@ -1002,9 +1017,9 @@
       glTexture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, glTexture);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
       glCube = { root: rootEl, started: performance.now(), angle: 0, pitch: 0.44, closing: false };
-      rootEl.style.visibility = "hidden";
-      document.getElementById("kicker").style.visibility = "hidden";
-      cubeCanvas.style.visibility = "visible"; cubeCanvas.style.pointerEvents = "auto"; drawGlCube();
+      rootEl.style.visibility = "visible";
+      document.getElementById("kicker").style.visibility = "visible";
+      cubeCanvas.style.visibility = "visible"; cubeCanvas.style.opacity = "0"; cubeCanvas.style.pointerEvents = "auto"; drawGlCube();
       return;
     }
     if (cube) return;
