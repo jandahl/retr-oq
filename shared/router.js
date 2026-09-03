@@ -78,8 +78,8 @@
     const s = document.createElement("script");
     const src = document.currentScript && document.currentScript.src;
     s.src = src
-      ? src.replace(/router\.js.*$/, "redmond/screensaver.js?v=14")
-      : "../shared/redmond/screensaver.js?v=13";
+      ? src.replace(/router\.js.*$/, "redmond/screensaver.js?v=15")
+      : "../shared/redmond/screensaver.js?v=15";
     document.head.appendChild(s);
   }
 })();
