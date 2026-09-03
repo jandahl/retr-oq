@@ -176,3 +176,63 @@ def test_select_cycles_menu(page, base_url):
     page.keyboard.press("Tab")
     page.wait_for_timeout(40)
     assert "is-selected" in page.locator("#menu-about").get_attribute("class")
+
+
+def test_attract_is_in_lcd_not_fullscreen(page, base_url):
+    """Attract paints the LCD only -- the landscape slab stays on screen."""
+    goto_gg(page, base_url)
+    info = page.evaluate(
+        """() => {
+          const lcd = document.getElementById("gg-lcd");
+          const attract = document.getElementById("gg-attract");
+          const pad = document.querySelector(".pad-dpad");
+          return {
+            inLcd: !!(lcd && attract && lcd.contains(attract)),
+            padOutside: !!(pad && attract && !attract.contains(pad) && !lcd.contains(pad)),
+            w: attract && attract.width,
+            h: attract && attract.height,
+            hidden: attract && attract.hidden,
+          };
+        }"""
+    )
+    assert info["inLcd"]
+    assert info["padOutside"]
+    assert info["w"] == 160
+    assert info["h"] == 144
+    assert info["hidden"]
+    assert page.locator(".gg-body").is_visible()
+    assert page.locator(".pad-dpad").is_visible()
+    assert page.locator("#title-screen").is_visible()
+
+
+def test_attract_idle_then_input_dismisses(page, base_url):
+    """45s idle shows the in-LCD attract; any handleInput/pad dismisses it
+    without also activating Start on the title screen."""
+    if not hasattr(page, "clock"):
+        import pytest
+        pytest.skip("playwright clock API required")
+    page.clock.install()
+    goto_gg(page, base_url)
+    assert page.locator("#gg-attract").is_hidden()
+    page.clock.fast_forward(45000)
+    page.wait_for_function("() => !document.getElementById('gg-attract').hidden", timeout=2000)
+    assert page.locator("#gg-attract").is_visible()
+    assert page.locator(".gg-body").is_visible()
+    page.keyboard.press("Enter")
+    page.wait_for_function("() => document.getElementById('gg-attract').hidden", timeout=2000)
+    assert page.locator("#title-screen").is_visible()
+    assert page.locator("#menu-screen").is_hidden()
+
+
+def test_attract_pad_dismisses(touch_page, base_url):
+    if not hasattr(touch_page, "clock"):
+        import pytest
+        pytest.skip("playwright clock API required")
+    touch_page.clock.install()
+    goto_gg(touch_page, base_url)
+    touch_page.clock.fast_forward(45000)
+    touch_page.wait_for_function("() => !document.getElementById('gg-attract').hidden", timeout=2000)
+    touch_page.locator("[data-input=start]").tap()
+    touch_page.wait_for_function("() => document.getElementById('gg-attract').hidden", timeout=2000)
+    assert touch_page.locator("#title-screen").is_visible()
+    assert touch_page.locator("#menu-screen").is_hidden()

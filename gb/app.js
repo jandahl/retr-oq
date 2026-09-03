@@ -786,7 +786,162 @@
     highlightOqRow();
   }
 
+  // ---------- In-LCD attract (tiny fox screensaver) ----------
+  // DVD-logo bounce of the original 16×16 fox inside #gb-lcd only -- never
+  // a fullscreen overlay, never over the brick/pad, no Nintendo logo, no
+  // audio. 45s idle; any handleInput (keyboard or on-screen pad) dismisses
+  // without also performing that press. Pauses when the tab is hidden.
+  // prefers-reduced-motion parks the fox in a corner instead of bouncing.
+  const ATTRACT_IDLE_MS = 45000;
+  const ATTRACT_W = 160;
+  const ATTRACT_H = 144;
+  const ATTRACT_FOX = 16;
+  const ATTRACT_STEP_MS = 50;
+  const attractCanvas = document.getElementById("gb-attract");
+  const attractCtx = attractCanvas.getContext("2d");
+  attractCtx.imageSmoothingEnabled = false;
+  attractCtx.webkitImageSmoothingEnabled = false;
+  const attractFox = new Image();
+  attractFox.src = "sprites/fox-idle.png?v=8";
+  const attractReduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let attractTimer = 0;
+  let attractRaf = 0;
+  let attractRunning = false;
+  let attractX = 0;
+  let attractY = 0;
+  let attractVx = 1;
+  let attractVy = 1;
+  let attractLastTs = 0;
+
+  function lcdGreen(varName) {
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  }
+
+  function drawAttract() {
+    attractCtx.imageSmoothingEnabled = false;
+    attractCtx.webkitImageSmoothingEnabled = false;
+    attractCtx.fillStyle = lcdGreen("--gb-lightest");
+    attractCtx.fillRect(0, 0, ATTRACT_W, ATTRACT_H);
+    if (attractFox.complete && attractFox.naturalWidth) {
+      attractCtx.drawImage(attractFox, attractX | 0, attractY | 0, ATTRACT_FOX, ATTRACT_FOX);
+    }
+  }
+
+  function parkAttract() {
+    attractX = 2;
+    attractY = ATTRACT_H - ATTRACT_FOX - 2;
+    attractVx = 0;
+    attractVy = 0;
+  }
+
+  function bounceAttract(steps) {
+    attractX += attractVx * steps;
+    attractY += attractVy * steps;
+    if (attractX <= 0) { attractX = 0; attractVx = 1; }
+    else if (attractX >= ATTRACT_W - ATTRACT_FOX) { attractX = ATTRACT_W - ATTRACT_FOX; attractVx = -1; }
+    if (attractY <= 0) { attractY = 0; attractVy = 1; }
+    else if (attractY >= ATTRACT_H - ATTRACT_FOX) { attractY = ATTRACT_H - ATTRACT_FOX; attractVy = -1; }
+  }
+
+  function stopAttractAnim() {
+    if (attractRaf) cancelAnimationFrame(attractRaf);
+    attractRaf = 0;
+    attractLastTs = 0;
+  }
+
+  function tickAttract(ts) {
+    if (!attractRunning || attractReduceMotion) return;
+    if (document.hidden) {
+      attractLastTs = 0;
+      return;
+    }
+    if (!attractLastTs) attractLastTs = ts;
+    const dt = ts - attractLastTs;
+    if (dt >= ATTRACT_STEP_MS) {
+      const n = Math.floor(dt / ATTRACT_STEP_MS);
+      attractLastTs += n * ATTRACT_STEP_MS;
+      bounceAttract(n);
+      drawAttract();
+    }
+    attractRaf = requestAnimationFrame(tickAttract);
+  }
+
+  function startAttract() {
+    if (attractRunning) return;
+    attractRunning = true;
+    clearTimeout(attractTimer);
+    attractTimer = 0;
+    if (attractReduceMotion) {
+      parkAttract();
+    } else {
+      attractX = Math.floor(Math.random() * (ATTRACT_W - ATTRACT_FOX));
+      attractY = Math.floor(Math.random() * (ATTRACT_H - ATTRACT_FOX));
+      attractVx = Math.random() < 0.5 ? 1 : -1;
+      attractVy = Math.random() < 0.5 ? 1 : -1;
+    }
+    attractCanvas.hidden = false;
+    attractCanvas.setAttribute("aria-hidden", "false");
+    drawAttract();
+    if (!attractReduceMotion) {
+      attractLastTs = 0;
+      attractRaf = requestAnimationFrame(tickAttract);
+    }
+  }
+
+  function pingAttract() {
+    if (attractRunning) return;
+    clearTimeout(attractTimer);
+    attractTimer = 0;
+    if (document.hidden) return;
+    attractTimer = window.setTimeout(startAttract, ATTRACT_IDLE_MS);
+  }
+
+  function stopAttract() {
+    if (!attractRunning) return;
+    attractRunning = false;
+    stopAttractAnim();
+    attractCanvas.hidden = true;
+    attractCanvas.setAttribute("aria-hidden", "true");
+    pingAttract();
+  }
+
+  attractFox.addEventListener("load", () => { if (attractRunning) drawAttract(); });
+
+  attractCanvas.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (attractRunning) stopAttract();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      clearTimeout(attractTimer);
+      attractTimer = 0;
+      stopAttractAnim();
+      return;
+    }
+    if (attractRunning) {
+      if (!attractReduceMotion) {
+        attractLastTs = 0;
+        attractRaf = requestAnimationFrame(tickAttract);
+      }
+      return;
+    }
+    pingAttract();
+  });
+
+  // Typing in SEARCH/WORD never hits handleInput -- still counts as activity.
+  document.addEventListener("input", () => { if (!attractRunning) pingAttract(); });
+  document.addEventListener("pointerdown", () => { if (!attractRunning) pingAttract(); }, true);
+
+  pingAttract();
+
   function handleInput(action) {
+    if (attractRunning) {
+      stopAttract();
+      return;
+    }
+    pingAttract();
     unlockAudio();
     if (currentScreen === "boot") {
       sfx("boot");

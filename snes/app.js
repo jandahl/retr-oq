@@ -19,6 +19,10 @@
     about: document.getElementById("about-screen"),
     gameover: document.getElementById("gameover-screen"),
   };
+  // Attract is an in-LCD overlay, not a router screen -- keep it out of
+  // SCREENS so showScreen() cannot land on it and hide the CRT chrome.
+  const attractScreen = document.getElementById("attract-screen");
+  const attractCanvas = document.getElementById("attract-canvas");
 
   const MENU_ORDER = ["oq", "decon", "about", "klax", "quit"];
   const menuButtons = MENU_ORDER.map((id) => document.getElementById(`menu-${id}`));
@@ -107,6 +111,7 @@
   applyRegion(getStoredRegion());
 
   function showScreen(name) {
+    if (attractRunning) hideAttract();
     currentScreen = name;
     for (const [key, el] of Object.entries(SCREENS)) {
       el.hidden = key !== name;
@@ -118,6 +123,7 @@
       document.activeElement.blur();
     }
     syncMusic();
+    pingIdle();
   }
 
   function setMenuIndex(next) {
@@ -474,6 +480,8 @@
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) klaxUpHeld = false;
+    if (pageHidden()) pauseAttractClock();
+    else resumeAttractClock();
     if (!audioCtx) return;
     // Only suspend the top-level page. A preview iframe often reports
     // hidden while the user is looking at it, which is what killed the
@@ -482,7 +490,207 @@
     else audioCtx.resume();
   });
 
+  // In-LCD attract: Mode 7-style perspective checkerboard at 256×224,
+  // drawn only on the CRT. The PAL gray dogbone stays visible -- this is
+  // not a fullscreen overlay. Silent. Idle 45s; any handleInput / on-screen
+  // pad dismisses. Pauses when the tab is hidden (top-level only, same
+  // iframe caveat as the APU). prefers-reduced-motion freezes the camera.
+  const ATTRACT_W = 256;
+  const ATTRACT_H = 224;
+  const ATTRACT_IDLE_MS = 45000;
+  const ATTRACT_TILE = 24;
+  const attractReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const attractCtx = attractCanvas.getContext("2d", { alpha: false });
+  const attractFrame = attractCtx.createImageData(ATTRACT_W, ATTRACT_H);
+  const attractPix = new Uint32Array(attractFrame.data.buffer);
 
+  let attractRunning = false;
+  let attractRaf = 0;
+  let attractTime = 0;
+  let attractLast = 0;
+  let idleTimer = 0;
+
+  function packSnes(r, g, b) {
+    r &= 248; g &= 248; b &= 248;
+    r |= r >> 5; g |= g >> 5; b |= b >> 5;
+    return (255 << 24) | (b << 16) | (g << 8) | r;
+  }
+
+  // 15-bit SNES-ish pens, quantized from this theme's own family
+  // (--snes-black/navy/gold/x/mist/white), not a Nintendo logo palette.
+  const ATTR_SKY_TOP = packSnes(16, 20, 48);
+  const ATTR_SKY_HORIZ = packSnes(232, 168, 56);
+  const ATTR_SUN = packSnes(240, 200, 48);
+  const ATTR_SUN_HALO = packSnes(232, 152, 48);
+  const ATTR_STAR = packSnes(244, 244, 240);
+  const ATTR_TILE_A = packSnes(28, 36, 48);
+  const ATTR_TILE_B = packSnes(48, 96, 216);
+  const ATTR_FOG = packSnes(200, 176, 120);
+
+  function mixPack(a, b, t) {
+    if (t <= 0) return a;
+    if (t >= 1) return b;
+    const ar = a & 255, ag = (a >> 8) & 255, ab = (a >> 16) & 255;
+    const br = b & 255, bg = (b >> 8) & 255, bb = (b >> 16) & 255;
+    return packSnes(ar + (br - ar) * t, ag + (bg - ag) * t, ab + (bb - ab) * t);
+  }
+
+  function pageHidden() {
+    return document.hidden && window.top === window;
+  }
+
+  function drawMode7(t) {
+    const reduce = attractReduce.matches;
+    const yaw = reduce ? 0.55 : t * 0.18;
+    const pitch = reduce ? 0.1 : Math.sin(t * 0.32) * 0.2;
+    const roll = reduce ? 0 : Math.sin(t * 0.41) * 0.2;
+    const horizon = (90 - pitch * 72) | 0;
+    const camH = 42 + pitch * 16;
+    const focal = 168;
+    const camX = reduce ? 8 : t * 14;
+    const camZ = reduce ? 32 : t * 20;
+    const cos = Math.cos(yaw);
+    const sin = Math.sin(yaw);
+    const sunX = 128 + cos * 36;
+    const sunY = horizon - 26;
+    const pix = attractPix;
+
+    for (let y = 0; y < ATTRACT_H; y++) {
+      const rowOff = y * ATTRACT_W;
+      if (y <= horizon) {
+        const u = horizon <= 0 ? 1 : y / horizon;
+        const sky = mixPack(ATTR_SKY_TOP, ATTR_SKY_HORIZ, u * u);
+        for (let x = 0; x < ATTRACT_W; x++) {
+          const dx = x - sunX;
+          const dy = y - sunY;
+          const d2 = dx * dx + dy * dy;
+          let c = sky;
+          if (d2 < 72) c = ATTR_SUN;
+          else if (d2 < 210) c = mixPack(ATTR_SUN_HALO, sky, (d2 - 72) / 138);
+          else {
+            let n = (x * 374761393 + y * 668265263) | 0;
+            n = Math.imul(n ^ (n >>> 13), 1274126177);
+            if (((n >>> 0) & 1023) < 2 && u < 0.72) c = ATTR_STAR;
+          }
+          pix[rowOff + x] = c;
+        }
+      } else {
+        const row = y - horizon;
+        const z = (camH * focal) / row;
+        const scale = z / focal;
+        const fog = Math.max(0, 1 - row / 108);
+        const x0 = -128 + roll * row;
+        let wx = camX + z * sin + x0 * scale * cos;
+        let wz = camZ + z * cos - x0 * scale * sin;
+        const dwx = scale * cos;
+        const dwz = -scale * sin;
+        for (let x = 0; x < ATTRACT_W; x++) {
+          const tx = Math.floor(wx / ATTRACT_TILE);
+          const tz = Math.floor(wz / ATTRACT_TILE);
+          const tile = ((tx ^ tz) & 1) ? ATTR_TILE_B : ATTR_TILE_A;
+          pix[rowOff + x] = mixPack(tile, ATTR_FOG, fog);
+          wx += dwx;
+          wz += dwz;
+        }
+      }
+    }
+    attractCtx.putImageData(attractFrame, 0, 0);
+  }
+
+  function tickAttract(now) {
+    if (!attractRunning) return;
+    if (pageHidden()) {
+      attractRaf = 0;
+      attractLast = 0;
+      return;
+    }
+    if (attractLast) attractTime += Math.min(0.1, (now - attractLast) / 1000);
+    attractLast = now;
+    drawMode7(attractReduce.matches ? 2.8 : attractTime);
+    if (attractReduce.matches) {
+      attractRaf = 0;
+      return;
+    }
+    attractRaf = requestAnimationFrame(tickAttract);
+  }
+
+  function showAttract() {
+    if (attractRunning || pageHidden()) return;
+    if (currentScreen === "boot") return;
+    attractRunning = true;
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = 0;
+    }
+    attractScreen.hidden = false;
+    attractLast = 0;
+    attractRaf = requestAnimationFrame(tickAttract);
+  }
+
+  function hideAttract() {
+    const was = attractRunning;
+    attractRunning = false;
+    attractScreen.hidden = true;
+    if (attractRaf) {
+      cancelAnimationFrame(attractRaf);
+      attractRaf = 0;
+    }
+    attractLast = 0;
+    if (was) pingIdle();
+  }
+
+  function pingIdle() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = 0;
+    }
+    if (attractRunning) return;
+    if (pageHidden()) return;
+    if (currentScreen === "boot") return;
+    idleTimer = window.setTimeout(showAttract, ATTRACT_IDLE_MS);
+  }
+
+  function pauseAttractClock() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = 0;
+    }
+    if (attractRaf) {
+      cancelAnimationFrame(attractRaf);
+      attractRaf = 0;
+    }
+    attractLast = 0;
+  }
+
+  function resumeAttractClock() {
+    if (pageHidden()) return;
+    if (attractRunning) {
+      attractLast = 0;
+      if (!attractRaf) attractRaf = requestAnimationFrame(tickAttract);
+    } else {
+      pingIdle();
+    }
+  }
+
+  attractScreen.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    hideAttract();
+  });
+  if (attractReduce.addEventListener) {
+    attractReduce.addEventListener("change", () => {
+      if (!attractRunning) return;
+      if (attractReduce.matches) {
+        if (attractRaf) {
+          cancelAnimationFrame(attractRaf);
+          attractRaf = 0;
+        }
+        drawMode7(2.8);
+      } else if (!attractRaf) {
+        attractLast = 0;
+        attractRaf = requestAnimationFrame(tickAttract);
+      }
+    });
+  }
 
   // ---------- OQ! (dictionary) ----------
   function renderOqRows(rows) {
@@ -1294,6 +1502,7 @@
   });
 
   oqFilter.addEventListener("input", () => {
+    pingIdle();
     renderOqResults();
     window.OqRouter.navigate({ filter: oqFilter.value || null }, { replace: true });
   });
@@ -1330,6 +1539,11 @@
   }
 
   function handleInput(action) {
+    if (attractRunning) {
+      hideAttract();
+      return;
+    }
+    pingIdle();
     unlockAudio();
     if (currentScreen === "boot") {
       sfx("boot");
@@ -1435,6 +1649,11 @@
   }
 
   document.addEventListener("keydown", (event) => {
+    if (attractRunning) {
+      event.preventDefault();
+      hideAttract();
+      return;
+    }
     const keyMap = {
       ArrowUp: "up",
       ArrowDown: "down",
@@ -1499,6 +1718,10 @@
     const btn = event.target.closest("[data-input]");
     if (!btn) return;
     event.preventDefault();
+    if (attractRunning) {
+      hideAttract();
+      return;
+    }
     const raw = btn.dataset.input;
     if (raw === "l" || raw === "r") {
       try { btn.setPointerCapture(event.pointerId); } catch (err) { /* old browser */ }
@@ -1564,4 +1787,6 @@
   // ran before these listeners existed -- catch that initial focus so a
   // deep link into OQ! doesn't leave the pad up under the keyboard.
   syncKeyboardChrome();
+  document.addEventListener("input", pingIdle, true);
+  pingIdle();
 })();

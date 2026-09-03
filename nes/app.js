@@ -1049,9 +1049,11 @@
   });
 
   oqFilter.addEventListener("input", () => {
+    pingAttract();
     renderOqResults();
     window.OqRouter.navigate({ filter: oqFilter.value || null }, { replace: true });
   });
+  deconWord.addEventListener("input", () => { pingAttract(); });
   deconWord.addEventListener("keydown", (event) => {
     if (event.key !== "Enter") return;
     event.preventDefault();
@@ -1062,17 +1064,19 @@
 
   menuButtons.forEach((btn, i) => {
     btn.addEventListener("click", () => {
+      pingAttract();
       setMenuIndex(i);
       sfx("ok");
       chooseMenuItem(MENU_ORDER[i]);
     });
   });
-  continueYes.addEventListener("click", () => { sfx("ok"); goMenu(); });
-  continueNo.addEventListener("click", () => { sfx("back"); goTitle(); });
+  continueYes.addEventListener("click", () => { pingAttract(); sfx("ok"); goMenu(); });
+  continueNo.addEventListener("click", () => { pingAttract(); sfx("back"); goTitle(); });
   // One listener on the whole title screen -- PRESS START is inside it, so
   // a second listener on #press-start would fire navigate() twice.
-  SCREENS.title.addEventListener("click", () => { sfx("start"); goMenu(); });
+  SCREENS.title.addEventListener("click", () => { pingAttract(); sfx("start"); goMenu(); });
   SCREENS.boot.addEventListener("click", () => {
+    pingAttract();
     unlockAudio();
     sfx("boot");
     finishBoot();
@@ -1084,7 +1088,156 @@
     highlightOqRow();
   }
 
+  // In-LCD attract mode. 256x240 starfield over the TV picture only --
+  // never the grey bezel or the pad. Original PPU-feel warp (2C02 colors
+  // from --nes-ppu-* in style.css); no Nintendo logo, no Mario, no audio.
+  const ATTRACT_IDLE_MS = 45000;
+  const ATTRACT_W = 256;
+  const ATTRACT_H = 240;
+  const attractCanvas = document.getElementById("attract-canvas");
+  const attractCtx = attractCanvas.getContext("2d", { alpha: false });
+  attractCtx.imageSmoothingEnabled = false;
+
+  const reduceMotionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  function attractStarSpeed() {
+    return reduceMotionMq.matches ? 0.42 : 1.7;
+  }
+
+  function ppuColor(name, fallback) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+  const PPU_BLACK = ppuColor("--nes-ppu-black", "#000000");
+  const PPU_NAVY = ppuColor("--nes-ppu-navy", "#0000bc");
+  const PPU_BLUE = ppuColor("--nes-ppu-blue", "#0058f8");
+  const PPU_CYAN = ppuColor("--nes-ppu-cyan", "#3cbcfc");
+  const PPU_GREY = ppuColor("--nes-ppu-grey", "#7c7c7c");
+  const PPU_SILVER = ppuColor("--nes-ppu-silver", "#bcbcbc");
+  const PPU_WHITE = ppuColor("--nes-ppu-white", "#fcfcfc");
+  const STAR_PAL = [PPU_NAVY, PPU_GREY, PPU_BLUE, PPU_SILVER, PPU_CYAN, PPU_WHITE];
+
+  const STAR_COUNT = 64;
+  const attractStars = [];
+  function spawnStar(star, far) {
+    star.x = (Math.random() * 2 - 1) * 128;
+    star.y = (Math.random() * 2 - 1) * 120;
+    star.z = far ? 256 : 1 + Math.random() * 255;
+    star.hue = (Math.random() * STAR_PAL.length) | 0;
+  }
+  for (let i = 0; i < STAR_COUNT; i++) {
+    const s = { x: 0, y: 0, z: 1, hue: 0 };
+    spawnStar(s, false);
+    attractStars.push(s);
+  }
+
+  let attractOn = false;
+  let attractRaf = 0;
+  let attractLast = 0;
+  let attractIdleTimer = 0;
+
+  function pingAttract() {
+    if (attractIdleTimer) {
+      clearTimeout(attractIdleTimer);
+      attractIdleTimer = 0;
+    }
+    if (attractOn || document.hidden) return;
+    attractIdleTimer = window.setTimeout(showAttract, ATTRACT_IDLE_MS);
+  }
+
+  function showAttract() {
+    if (attractOn || document.hidden) return;
+    attractOn = true;
+    attractCanvas.hidden = false;
+    attractLast = 0;
+    if (!attractRaf) attractRaf = requestAnimationFrame(tickAttract);
+  }
+
+  function hideAttract() {
+    if (!attractOn) return false;
+    attractOn = false;
+    attractCanvas.hidden = true;
+    if (attractRaf) {
+      cancelAnimationFrame(attractRaf);
+      attractRaf = 0;
+    }
+    pingAttract();
+    return true;
+  }
+
+  function tickAttract(now) {
+    if (!attractOn) {
+      attractRaf = 0;
+      return;
+    }
+    if (document.hidden) {
+      attractRaf = 0;
+      attractLast = 0;
+      return;
+    }
+    const dt = attractLast ? Math.min(50, now - attractLast) / 16.6667 : 1;
+    attractLast = now;
+    const speed = attractStarSpeed() * dt;
+    const ctx = attractCtx;
+    ctx.fillStyle = PPU_BLACK;
+    ctx.fillRect(0, 0, ATTRACT_W, ATTRACT_H);
+
+    for (let i = 0; i < attractStars.length; i++) {
+      const s = attractStars[i];
+      s.z -= speed;
+      if (s.z <= 1) spawnStar(s, true);
+      const k = 128 / s.z;
+      const px = (s.x * k + 128);
+      const py = (s.y * k + 120);
+      if (px < 0 || px >= ATTRACT_W || py < 0 || py >= ATTRACT_H) {
+        spawnStar(s, true);
+        continue;
+      }
+      const near = 1 - s.z / 256;
+      let color;
+      if (near > 0.72) color = PPU_WHITE;
+      else if (near > 0.5) color = s.hue === 4 ? PPU_CYAN : PPU_SILVER;
+      else if (near > 0.28) color = s.hue === 2 ? PPU_BLUE : PPU_GREY;
+      else color = s.hue === 0 ? PPU_NAVY : PPU_GREY;
+      ctx.fillStyle = color;
+      const sz = near > 0.68 ? 2 : 1;
+      const ix = px | 0;
+      const iy = py | 0;
+      ctx.fillRect(ix, iy, sz, sz);
+      // Short warp streak on near stars -- still 1px NES dots, not a fade.
+      if (near > 0.55 && !reduceMotionMq.matches) {
+        const k2 = 128 / (s.z + 10);
+        ctx.fillStyle = near > 0.72 ? PPU_SILVER : PPU_GREY;
+        ctx.fillRect((s.x * k2 + 128) | 0, (s.y * k2 + 120) | 0, 1, 1);
+      }
+    }
+    attractRaf = requestAnimationFrame(tickAttract);
+  }
+
+  attractCanvas.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    hideAttract();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      if (attractIdleTimer) {
+        clearTimeout(attractIdleTimer);
+        attractIdleTimer = 0;
+      }
+      if (attractRaf) {
+        cancelAnimationFrame(attractRaf);
+        attractRaf = 0;
+      }
+      attractLast = 0;
+    } else if (attractOn) {
+      attractRaf = requestAnimationFrame(tickAttract);
+    } else {
+      pingAttract();
+    }
+  });
+
   function handleInput(action) {
+    if (hideAttract()) return;
+    pingAttract();
     unlockAudio();
     if (currentScreen === "boot") {
       sfx("boot");
@@ -1187,6 +1340,12 @@
   }
 
   document.addEventListener("keydown", (event) => {
+    pingAttract();
+    if (attractOn) {
+      event.preventDefault();
+      hideAttract();
+      return;
+    }
     const keyMap = {
       ArrowUp: "up",
       ArrowDown: "down",
@@ -1286,4 +1445,5 @@
   // ran before these listeners existed -- catch that initial focus so a
   // deep link into OQ! doesn't leave the pad up under the keyboard.
   syncKeyboardChrome();
+  pingAttract();
 })();

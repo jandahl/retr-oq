@@ -7,7 +7,7 @@
 <!-- ?v= cache-busting, same convention as dos/index.html and c64/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
 <link rel="stylesheet" href="../vendor/nes/nes.min.css" />
-<link rel="stylesheet" href="style.css?v=9" />
+<link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body class="is-dark">
   <!-- NES was a game console, not a window manager: no overlapping windows,
@@ -109,6 +109,8 @@
         <p class="title-copy">30 LIVES REMAINING</p>
       </div>
 
+      <!-- In-LCD attract: covers the picture only, never the TV bezel or pad. -->
+      <canvas class="nes-attract" id="attract-canvas" width="256" height="240" hidden aria-hidden="true"></canvas>
       <div class="nes-scanlines" aria-hidden="true"></div>
     </div>
 
@@ -146,6 +148,6 @@
 <script src="../shared/decon-app.js?v=4"></script>
 <script src="../shared/morph-puzzles.js?v=2"></script>
 <script src="../shared/klax-game.js?v=9"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

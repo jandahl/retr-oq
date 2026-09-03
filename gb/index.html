@@ -6,7 +6,7 @@
 <title>retr-oq — Game Boy prototype</title>
 <!-- ?v= cache-busting, same convention as nes/index.html -- bump when
      style.css or app.js actually changes. -->
-<link rel="stylesheet" href="style.css?v=12" />
+<link rel="stylesheet" href="style.css?v=13" />
 </head>
 <body>
   <!-- Original Game Boy (DMG-01), not a window manager and not the NES
@@ -124,6 +124,7 @@
             <p class="title-copy">30 LIVES REMAINING</p>
           </div>
 
+          <canvas class="gb-attract" id="gb-attract" width="160" height="144" hidden aria-hidden="true" role="img" aria-label="Screen saver"></canvas>
           <div class="gb-pixels" aria-hidden="true"></div>
         </div>
         <p class="gb-dotmatrix">DOT MATRIX WITH STEREO SOUND</p>
@@ -163,6 +164,6 @@
 <script src="../shared/decon-app.js?v=4"></script>
 <script src="../shared/morph-game.js?v=2"></script>
 <script src="../shared/morph-puzzles.js?v=4"></script>
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

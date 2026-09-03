@@ -15,3 +15,4 @@ not NES-style pulse/triangle/noise, despite sharing a family row in
   (RGB-distance against the theme's own declared palette) is the only
   check that runs.
 - `tests/test_snes.py` runs in CI when this theme changes.
+- In-LCD attract (45s idle, Mode 7 checkerboard on `#attract-canvas` inside `#snes-tv` only — PAL dogbone stays). Any `handleInput` / pad / key dismisses. Pauses on `document.hidden`. `prefers-reduced-motion` freezes the camera. Silent.

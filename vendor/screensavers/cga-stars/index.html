@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CGA Stars</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+        position: fixed;
+        inset: 0;
+        touch-action: none;
+        cursor: none;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: pixelated;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c" aria-label="CGA starfield">CGA starfield</canvas>
+    <script>
+      (function () {
+        "use strict";
+
+        // 1981 CGA idle: warp starfield, palette 1 (black / cyan /
+        // magenta / white) plus EGA dim gray. Stars are plotted as
+        // SCALE×SCALE blocks on a full-viewport 2d canvas. No UI,
+        // no audio, no logos.
+
+        var SCALE = 3;
+        var Z_MAX = 72;
+        var STAR_N = 168;
+        var BLACK = "#000000";
+        var DIM = "#555555";
+        var CYAN = "#00AAAA";
+        var CYAN_HI = "#55FFFF";
+        var MAGENTA = "#AA00AA";
+        var MAGENTA_HI = "#FF55FF";
+        var GRAY = "#AAAAAA";
+        var WHITE = "#FFFFFF";
+
+        var canvas = document.getElementById("c");
+        var ctx = canvas.getContext("2d", { alpha: false });
+        var reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+        var reduced = reduceMq.matches;
+        var stars = [];
+        var w = 1;
+        var h = 1;
+        var cx = 0;
+        var cy = 0;
+        var raf = 0;
+        var last = 0;
+
+        function speed() {
+          return reduced ? 0.07 : 0.28;
+        }
+
+        function shade(kind, near) {
+          if (kind === 1) {
+            if (near > 0.62) return MAGENTA_HI;
+            if (near > 0.28) return MAGENTA;
+            return DIM;
+          }
+          if (near > 0.78) return WHITE;
+          if (near > 0.55) return CYAN_HI;
+          if (near > 0.32) return GRAY;
+          if (near > 0.14) return CYAN;
+          return DIM;
+        }
+
+        function spawn(z) {
+          return {
+            x: Math.random() * 2 - 1,
+            y: Math.random() * 2 - 1,
+            z: z == null ? Math.random() * Z_MAX + 1 : z,
+            kind: Math.random() < 0.12 ? 1 : 0,
+            px: 0,
+            py: 0,
+            seen: 0
+          };
+        }
+
+        function resize() {
+          var vw = Math.max(1, window.innerWidth | 0);
+          var vh = Math.max(1, window.innerHeight | 0);
+          if (canvas.width !== vw || canvas.height !== vh) {
+            canvas.width = vw;
+            canvas.height = vh;
+            ctx.imageSmoothingEnabled = false;
+          }
+          w = Math.max(1, (vw / SCALE) | 0);
+          h = Math.max(1, (vh / SCALE) | 0);
+          cx = (w / 2) | 0;
+          cy = (h / 2) | 0;
+        }
+
+        function init() {
+          stars.length = 0;
+          var i;
+          for (i = 0; i < STAR_N; i++) stars.push(spawn());
+        }
+
+        function plot(x, y, size, color) {
+          ctx.fillStyle = color;
+          ctx.fillRect(x * SCALE, y * SCALE, size * SCALE, size * SCALE);
+        }
+
+        function streak(x0, y0, x1, y1, size, color) {
+          var dx = x1 - x0;
+          var dy = y1 - y0;
+          var steps = Math.max(Math.abs(dx), Math.abs(dy), 1);
+          var cap = reduced ? 2 : 10;
+          if (steps > cap) steps = cap;
+          var i;
+          var t;
+          ctx.fillStyle = color;
+          for (i = 0; i <= steps; i++) {
+            t = i / steps;
+            plot((x0 + dx * t) | 0, (y0 + dy * t) | 0, size, color);
+          }
+        }
+
+        function frame(now) {
+          raf = 0;
+          if (document.hidden) return;
+          if (!last) last = now;
+          var dt = Math.min(48, now - last) / 16.67;
+          last = now;
+
+          ctx.fillStyle = BLACK;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          var spread = Math.max(w, h);
+          var dz = speed() * dt;
+          var i;
+          var s;
+          var k;
+          var x;
+          var y;
+          var near;
+          var size;
+          var color;
+          var xi;
+          var yi;
+
+          for (i = 0; i < stars.length; i++) {
+            s = stars[i];
+            s.z -= dz;
+            if (s.z < 0.45) {
+              stars[i] = spawn(Z_MAX);
+              continue;
+            }
+            k = spread / s.z;
+            x = cx + s.x * k;
+            y = cy + s.y * k;
+            if (x < -4 || y < -4 || x > w + 4 || y > h + 4) {
+              stars[i] = spawn(Z_MAX);
+              continue;
+            }
+            near = 1 - s.z / Z_MAX;
+            size = 1;
+            if (near > 0.86) size = 3;
+            else if (near > 0.62) size = 2;
+            color = shade(s.kind, near);
+            xi = x | 0;
+            yi = y | 0;
+            if (!reduced && s.seen && near > 0.42) {
+              streak(s.px, s.py, xi, yi, size, color);
+            } else {
+              plot(xi, yi, size, color);
+            }
+            s.px = xi;
+            s.py = yi;
+            s.seen = 1;
+          }
+
+          raf = requestAnimationFrame(frame);
+        }
+
+        function start() {
+          last = 0;
+          if (!raf) raf = requestAnimationFrame(frame);
+        }
+
+        function stop() {
+          if (raf) cancelAnimationFrame(raf);
+          raf = 0;
+          last = 0;
+        }
+
+        function onReduce(event) {
+          reduced = event.matches;
+        }
+
+        window.addEventListener("resize", resize);
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) stop();
+          else start();
+        });
+        if (reduceMq.addEventListener) reduceMq.addEventListener("change", onReduce);
+        else if (reduceMq.addListener) reduceMq.addListener(onReduce);
+
+        resize();
+        init();
+        start();
+      })();
+    </script>
+  </body>
+</html>

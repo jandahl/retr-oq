@@ -44,20 +44,20 @@ audio demo, or an easter egg. Source of truth: `shared/games.js`.
 
 | Theme | Extra games / demos / eggs |
 | --- | --- |
-| `dos/` | DOOM (undocumented egg) |
-| `c64/` | MORPH! |
-| `mac1984/` | — |
-| `nes/` | Konami Code |
-| `amiga/` | Boing Ball, Copper bars |
-| `gb/` | MORPH!, Konami Code |
-| `gg/` | Konami Code |
-| `snes/` | Super KAL-Q! (Klax), Konami Code |
+| `dos/` | DOOM (undocumented egg), CGA starfield idle |
+| `c64/` | MORPH!, raster-star idle |
+| `mac1984/` | 1-bit starfield idle |
+| `nes/` | Konami Code, CRT starfield attract |
+| `amiga/` | Boing Ball, Copper bars, Boing idle |
+| `gb/` | MORPH!, Konami Code, LCD fox attract |
+| `gg/` | Konami Code, LCD plasma attract |
+| `snes/` | Super KAL-Q! (Klax), Konami Code, Mode 7 attract |
 | `win31/` | Solitaire (joke), hidden credits |
-| `next/` | Kernel panic (undocumented egg) |
-| `mac8/` | — |
+| `next/` | Kernel panic (undocumented egg), BackSpace idle |
+| `mac8/` | Starry-night idle |
 | `win98/` | Hot Dog Stand scheme |
 | `xp/` | — |
-| `kde/` | Compiz rain, desktop cube |
+| `kde/` | Compiz rain, desktop cube, 13 GL idle savers |
 | `win7/` | — |
 
 **`shared/`** — `dict-source.js`, `hyphenation.js`, `router.js`,

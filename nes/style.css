@@ -41,6 +41,16 @@
   --nes-gold: #f7d51d;
   --nes-purple: #7c3aed;
   --nes-orange: #e76e55;
+  /* Attract-mode picture colors -- real 2C02 PPU entries (not chrome).
+     Named so family check treats them as this theme's current palette.
+     $0F black, $02 dark blue, $12 mid blue, $21 cyan, $00/$10/$30 greys. */
+  --nes-ppu-black: #000000;
+  --nes-ppu-navy: #0000bc;
+  --nes-ppu-blue: #0058f8;
+  --nes-ppu-cyan: #3cbcfc;
+  --nes-ppu-grey: #7c7c7c;
+  --nes-ppu-silver: #bcbcbc;
+  --nes-ppu-white: #fcfcfc;
   /* Press Start 2P is a 1em-wide pixel font, same problem c64/'s C64 Pro
      Mono has: a size that fits a desktop CRT is unreadably huge on a
      phone, and a size that fits 390px is tiny on a monitor. clamp() is
@@ -95,6 +105,23 @@ button:not(:disabled),
     inset 0 0 0 3px #111111,
     0 4px 0 #2a2a2a;
   overflow: hidden;
+}
+
+.nes-attract {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Integer NES pixels, stretched to the TV picture -- never the bezel. */
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background: var(--nes-ppu-black);
+  pointer-events: auto;
+}
+.nes-attract[hidden] {
+  display: none;
 }
 
 .nes-scanlines {

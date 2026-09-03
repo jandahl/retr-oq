@@ -177,3 +177,50 @@ def test_select_cycles_menu(page, base_url):
     page.keyboard.press("Tab")
     page.wait_for_timeout(40)
     assert "is-selected" in page.locator("#menu-about").get_attribute("class")
+
+
+def test_attract_is_in_lcd_not_fullscreen(page, base_url):
+    """Attract paints the CRT only -- the PAL dogbone stays on screen."""
+    goto_snes(page, base_url)
+    info = page.evaluate(
+        """() => {
+          const tv = document.getElementById('snes-tv');
+          const attract = document.getElementById('attract-screen');
+          const canvas = document.getElementById('attract-canvas');
+          const pad = document.getElementById('snes-controller');
+          return {
+            inTv: !!(tv && attract && tv.contains(attract)),
+            padOutside: !!(pad && attract && !attract.contains(pad) && !tv.contains(pad)),
+            w: canvas && canvas.width,
+            h: canvas && canvas.height,
+            hidden: attract && attract.hidden,
+          };
+        }"""
+    )
+    assert info["inTv"]
+    assert info["padOutside"]
+    assert info["w"] == 256
+    assert info["h"] == 224
+    assert info["hidden"]
+    assert page.locator("#snes-controller").is_visible()
+    assert page.locator("#title-screen").is_visible()
+
+
+def test_attract_idle_then_input_dismisses(page, base_url):
+    """45s idle shows the in-LCD attract; any handleInput/pad dismisses it
+    without also activating Start on the title screen."""
+    if not hasattr(page, "clock"):
+        import pytest
+        pytest.skip("playwright clock API required")
+    page.clock.install()
+    goto_snes(page, base_url)
+    assert page.locator("#attract-screen").is_hidden()
+    page.clock.fast_forward(45000)
+    page.wait_for_function("() => !document.getElementById('attract-screen').hidden", timeout=2000)
+    assert page.locator("#attract-screen").is_visible()
+    assert page.locator("#snes-controller").is_visible()
+    page.keyboard.press("Enter")
+    page.wait_for_function("() => document.getElementById('attract-screen').hidden", timeout=2000)
+    assert page.locator("#title-screen").is_visible()
+    assert page.locator("#menu-screen").is_hidden()
+

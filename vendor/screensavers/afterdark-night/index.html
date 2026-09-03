@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Night Sky</title>
+    <style>
+      html, body {
+        margin: 0;
+        background: #02040c;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        inset: 0;
+        color-scheme: dark;
+      }
+      canvas {
+        display: block;
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="sky"></canvas>
+    <script>
+      (function () {
+        var canvas = document.getElementById("sky");
+        var ctx = canvas.getContext("2d", { alpha: false });
+        var mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+        var reduced = mq.matches;
+        var running = false;
+        var raf = 0;
+        var cssW = 0;
+        var cssH = 0;
+        var last = 0;
+        var nextMeteorAt = 0;
+        var stars = [];
+        var clouds = [];
+        var rain = [];
+        var meteors = [];
+        var moon = { u: 0.78, v: 0.17, r: 1 };
+        var skyLayer = null;
+        var hillLayer = null;
+
+        function hash(i) {
+          var x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
+          return x - Math.floor(x);
+        }
+
+        function lerp(a, b, t) {
+          return a + (b - a) * t;
+        }
+
+        function seedField() {
+          var i;
+          stars = [];
+          for (i = 0; i < 760; i++) {
+            var u = hash(i);
+            var v = hash(i + 91) * 0.9;
+            var band = Math.abs(v - (0.22 + u * 0.48));
+            var inBand = band < 0.09;
+            stars.push({
+              u: u,
+              v: v,
+              r: inBand ? 0.35 + hash(i + 4) * 0.9 : 0.45 + hash(i + 4) * 1.7,
+              warm: hash(i + 21),
+              phase: hash(i + 41) * Math.PI * 2,
+              freq: 0.35 + hash(i + 8) * 2.4,
+              depth: 0.25 + hash(i + 13) * 0.75,
+              spike: hash(i + 53) > 0.93,
+              band: inBand
+            });
+          }
+          for (i = 0; i < 140; i++) {
+            stars.push({
+              u: hash(i + 800),
+              v: 0.22 + hash(i + 800) * 0.48 + (hash(i + 811) - 0.5) * 0.1,
+              r: 0.3 + hash(i + 820) * 0.55,
+              warm: 0.15,
+              phase: hash(i + 830) * Math.PI * 2,
+              freq: 0.5 + hash(i + 840),
+              depth: 0.12 + hash(i + 850) * 0.25,
+              spike: false,
+              band: true
+            });
+          }
+
+          clouds = [];
+          for (i = 0; i < 5; i++) {
+            var parts = [];
+            var pn = 6 + ((hash(i + 400) * 4) | 0);
+            var p;
+            for (p = 0; p < pn; p++) {
+              parts.push({
+                dx: (hash(i * 20 + p) - 0.5) * 180,
+                dy: (hash(i * 20 + p + 3) - 0.5) * 42,
+                rx: 50 + hash(i * 20 + p + 7) * 90,
+                ry: 16 + hash(i * 20 + p + 11) * 28
+              });
+            }
+            clouds.push({
+              x: hash(i + 410) * cssW,
+              y: cssH * (0.12 + hash(i + 420) * 0.5),
+              vx: 5 + hash(i + 430) * 8,
+              parts: parts,
+              alpha: 0.1 + hash(i + 440) * 0.12
+            });
+          }
+
+          rain = [];
+          var drops = Math.max(48, Math.min(96, (cssW * cssH) / 14000));
+          for (i = 0; i < drops; i++) {
+            rain.push({
+              x: hash(i + 900) * (cssW + 80) - 40,
+              y: hash(i + 910) * cssH,
+              len: 9 + hash(i + 920) * 12,
+              spd: 200 + hash(i + 930) * 240,
+              a: 0.1 + hash(i + 940) * 0.18
+            });
+          }
+
+          meteors = [];
+          moon.r = Math.min(cssW, cssH) * 0.05;
+        }
+
+        function paintMoon(g, w, h) {
+          var mx = moon.u * w;
+          var my = moon.v * h;
+          var r = moon.r;
+          var glow = g.createRadialGradient(mx, my, r * 0.35, mx, my, r * 4.4);
+          glow.addColorStop(0, "rgba(220, 226, 240, 0.2)");
+          glow.addColorStop(0.4, "rgba(170, 188, 230, 0.06)");
+          glow.addColorStop(1, "rgba(170, 188, 230, 0)");
+          g.fillStyle = glow;
+          g.beginPath();
+          g.arc(mx, my, r * 4.4, 0, Math.PI * 2);
+          g.fill();
+
+          var dim = Math.max(8, Math.ceil(r * 2 + 4));
+          var mc = document.createElement("canvas");
+          mc.width = mc.height = dim;
+          var mg = mc.getContext("2d");
+          var c = dim / 2;
+          mg.fillStyle = "#e6ebf4";
+          mg.beginPath();
+          mg.arc(c, c, r, 0, Math.PI * 2);
+          mg.fill();
+          mg.fillStyle = "rgba(176, 184, 200, 0.4)";
+          mg.beginPath();
+          mg.arc(c - r * 0.28, c + r * 0.2, r * 0.18, 0, Math.PI * 2);
+          mg.fill();
+          mg.beginPath();
+          mg.arc(c + r * 0.2, c - r * 0.28, r * 0.11, 0, Math.PI * 2);
+          mg.fill();
+          mg.globalCompositeOperation = "destination-out";
+          mg.beginPath();
+          mg.arc(c + r * 0.46, c - r * 0.1, r * 0.9, 0, Math.PI * 2);
+          mg.fill();
+          g.drawImage(mc, mx - c, my - c);
+        }
+
+        function paintSky(g, w, h) {
+          var grd = g.createLinearGradient(0, 0, 0, h);
+          grd.addColorStop(0, "#01010a");
+          grd.addColorStop(0.22, "#04081c");
+          grd.addColorStop(0.48, "#0a1432");
+          grd.addColorStop(0.72, "#142246");
+          grd.addColorStop(0.9, "#1c2c54");
+          grd.addColorStop(1, "#2a385c");
+          g.fillStyle = grd;
+          g.fillRect(0, 0, w, h);
+
+          var haze = g.createRadialGradient(w * 0.5, h * 0.98, 20, w * 0.5, h * 0.98, w * 0.7);
+          haze.addColorStop(0, "rgba(70, 82, 120, 0.28)");
+          haze.addColorStop(1, "rgba(70, 82, 120, 0)");
+          g.fillStyle = haze;
+          g.fillRect(0, 0, w, h);
+
+          g.save();
+          g.translate(w * 0.42, h * 0.38);
+          g.rotate(-0.55);
+          var milk = g.createLinearGradient(0, -h * 0.08, 0, h * 0.08);
+          milk.addColorStop(0, "rgba(160, 180, 220, 0)");
+          milk.addColorStop(0.5, "rgba(170, 190, 230, 0.07)");
+          milk.addColorStop(1, "rgba(160, 180, 220, 0)");
+          g.fillStyle = milk;
+          g.fillRect(-w, -h * 0.1, w * 2, h * 0.2);
+          g.restore();
+
+          var dither = document.createElement("canvas");
+          dither.width = dither.height = 4;
+          var dg = dither.getContext("2d");
+          dg.fillStyle = "rgba(255,255,255,0.035)";
+          dg.fillRect(0, 0, 1, 1);
+          dg.fillRect(2, 1, 1, 1);
+          dg.fillRect(1, 2, 1, 1);
+          dg.fillRect(3, 3, 1, 1);
+          dg.fillStyle = "rgba(0,0,0,0.04)";
+          dg.fillRect(1, 0, 1, 1);
+          dg.fillRect(3, 1, 1, 1);
+          dg.fillRect(0, 3, 1, 1);
+          g.fillStyle = g.createPattern(dither, "repeat");
+          g.fillRect(0, 0, w, h);
+
+          paintMoon(g, w, h);
+        }
+
+        function paintHills(g, w, h) {
+          var y0 = h * 0.86;
+          g.beginPath();
+          g.moveTo(0, h);
+          g.lineTo(0, y0 + 28);
+          var x;
+          for (x = 0; x <= w; x += 8) {
+            var y =
+              y0 +
+              Math.sin(x * 0.0082 + 0.4) * 22 +
+              Math.sin(x * 0.021 + 1.7) * 12 +
+              Math.sin(x * 0.041) * 6;
+            g.lineTo(x, y);
+          }
+          g.lineTo(w, h);
+          g.closePath();
+          g.fillStyle = "#010208";
+          g.fill();
+          g.strokeStyle = "rgba(40, 52, 80, 0.45)";
+          g.lineWidth = 1;
+          g.beginPath();
+          g.moveTo(0, y0 + 28);
+          for (x = 0; x <= w; x += 8) {
+            var y2 =
+              y0 +
+              Math.sin(x * 0.0082 + 0.4) * 22 +
+              Math.sin(x * 0.021 + 1.7) * 12 +
+              Math.sin(x * 0.041) * 6;
+            g.lineTo(x, y2);
+          }
+          g.stroke();
+        }
+
+        function rebuildLayers() {
+          var dprX = canvas.width / cssW;
+          var dprY = canvas.height / cssH;
+          skyLayer = document.createElement("canvas");
+          skyLayer.width = Math.max(1, canvas.width);
+          skyLayer.height = Math.max(1, canvas.height);
+          var sg = skyLayer.getContext("2d");
+          sg.setTransform(dprX, 0, 0, dprY, 0, 0);
+          paintSky(sg, cssW, cssH);
+
+          hillLayer = document.createElement("canvas");
+          hillLayer.width = skyLayer.width;
+          hillLayer.height = skyLayer.height;
+          var hg = hillLayer.getContext("2d");
+          hg.setTransform(dprX, 0, 0, dprY, 0, 0);
+          paintHills(hg, cssW, cssH);
+        }
+
+        function resize() {
+          var dpr = Math.min(window.devicePixelRatio || 1, 2);
+          cssW = Math.max(1, window.innerWidth);
+          cssH = Math.max(1, window.innerHeight);
+          canvas.width = Math.max(1, Math.floor(cssW * dpr));
+          canvas.height = Math.max(1, Math.floor(cssH * dpr));
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          seedField();
+          rebuildLayers();
+          if (reduced) draw(0, 0);
+        }
+
+        function starColor(warm, a) {
+          var r = lerp(176, 255, warm);
+          var gCol = lerp(196, 236, warm);
+          var b = lerp(230, 200, warm);
+          return "rgba(" + (r | 0) + "," + (gCol | 0) + "," + (b | 0) + "," + a + ")";
+        }
+
+        function drawStars(t) {
+          var mx = moon.u * cssW;
+          var my = moon.v * cssH;
+          var keepR = moon.r * 1.25;
+          var i;
+          for (i = 0; i < stars.length; i++) {
+            var s = stars[i];
+            var x = s.u * cssW;
+            var y = s.v * cssH;
+            var dx = x - mx;
+            var dy = y - my;
+            if (dx * dx + dy * dy < keepR * keepR) continue;
+            var tw = reduced ? 0.72 : 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * s.freq + s.phase));
+            var a = s.depth * tw * (s.band ? 0.7 : 1);
+            ctx.fillStyle = starColor(s.warm, a);
+            ctx.beginPath();
+            ctx.arc(x, y, s.r, 0, Math.PI * 2);
+            ctx.fill();
+            if (s.spike && !reduced) {
+              var sp = s.r * (2.4 + tw * 3.2);
+              ctx.strokeStyle = starColor(s.warm, a * 0.45);
+              ctx.lineWidth = 0.7;
+              ctx.beginPath();
+              ctx.moveTo(x - sp, y);
+              ctx.lineTo(x + sp, y);
+              ctx.moveTo(x, y - sp);
+              ctx.lineTo(x, y + sp);
+              ctx.stroke();
+            }
+          }
+        }
+
+        function drawClouds(dt) {
+          var i;
+          var p;
+          for (i = 0; i < clouds.length; i++) {
+            var c = clouds[i];
+            if (!reduced) {
+              c.x += c.vx * dt;
+              if (c.x > cssW + 220) c.x = -220;
+            }
+            for (p = 0; p < c.parts.length; p++) {
+              var part = c.parts[p];
+              var px = c.x + part.dx;
+              var py = c.y + part.dy;
+              var rg = ctx.createRadialGradient(px, py, 4, px, py, part.rx);
+              rg.addColorStop(0, "rgba(28, 36, 58, " + (c.alpha + 0.08) + ")");
+              rg.addColorStop(0.55, "rgba(18, 26, 46, " + c.alpha + ")");
+              rg.addColorStop(1, "rgba(18, 26, 46, 0)");
+              ctx.fillStyle = rg;
+              ctx.beginPath();
+              ctx.ellipse(px, py, part.rx, part.ry, 0, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+
+        function drawRain(dt) {
+          if (reduced) return;
+          ctx.lineWidth = 1;
+          var i;
+          for (i = 0; i < rain.length; i++) {
+            var d = rain[i];
+            d.y += d.spd * dt;
+            d.x += d.spd * 0.18 * dt;
+            if (d.y > cssH + 20) {
+              d.y = -20;
+              d.x = Math.random() * cssW;
+            }
+            if (d.x > cssW + 20) d.x -= cssW + 40;
+            ctx.strokeStyle = "rgba(170, 196, 230, " + d.a + ")";
+            ctx.beginPath();
+            ctx.moveTo(d.x, d.y);
+            ctx.lineTo(d.x - d.len * 0.22, d.y + d.len);
+            ctx.stroke();
+          }
+        }
+
+        function spawnMeteor() {
+          var fromLeft = Math.random() > 0.32;
+          var x = fromLeft ? cssW * (0.05 + Math.random() * 0.5) : cssW * (0.4 + Math.random() * 0.5);
+          var y = cssH * (0.02 + Math.random() * 0.26);
+          var spd = 420 + Math.random() * 280;
+          var ang = fromLeft
+            ? 0.42 + Math.random() * 0.28
+            : Math.PI - (0.42 + Math.random() * 0.28);
+          meteors.push({
+            x: x,
+            y: y,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            life: 0,
+            max: 0.55 + Math.random() * 0.5,
+            len: 70 + Math.random() * 90
+          });
+        }
+
+        function drawMeteors(dt, now) {
+          if (reduced) return;
+          if (now >= nextMeteorAt && meteors.length === 0) {
+            spawnMeteor();
+            nextMeteorAt = now + 7000 + Math.random() * 11000;
+          }
+          var i;
+          for (i = meteors.length - 1; i >= 0; i--) {
+            var m = meteors[i];
+            m.life += dt;
+            m.x += m.vx * dt;
+            m.y += m.vy * dt;
+            var k = m.life / m.max;
+            if (k >= 1 || m.y > cssH * 0.88) {
+              meteors.splice(i, 1);
+              continue;
+            }
+            var fade = k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85;
+            var hyp = Math.hypot(m.vx, m.vy) || 1;
+            var tx = m.x - (m.vx / hyp) * m.len;
+            var ty = m.y - (m.vy / hyp) * m.len;
+            var trail = ctx.createLinearGradient(tx, ty, m.x, m.y);
+            trail.addColorStop(0, "rgba(255, 220, 160, 0)");
+            trail.addColorStop(0.7, "rgba(255, 236, 210, " + (0.45 * fade) + ")");
+            trail.addColorStop(1, "rgba(255, 255, 255, " + (0.95 * fade) + ")");
+            ctx.strokeStyle = trail;
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(tx, ty);
+            ctx.lineTo(m.x, m.y);
+            ctx.stroke();
+            ctx.fillStyle = "rgba(255, 252, 245, " + fade + ")";
+            ctx.beginPath();
+            ctx.arc(m.x, m.y, 1.7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        function draw(t, dt) {
+          if (skyLayer) ctx.drawImage(skyLayer, 0, 0, cssW, cssH);
+          else {
+            ctx.fillStyle = "#02040c";
+            ctx.fillRect(0, 0, cssW, cssH);
+          }
+          drawStars(t);
+          drawMeteors(dt, performance.now());
+          drawClouds(dt);
+          drawRain(dt);
+          if (hillLayer) ctx.drawImage(hillLayer, 0, 0, cssW, cssH);
+        }
+
+        function frame(now) {
+          if (!running) return;
+          var dt = Math.min(0.05, (now - last) / 1000);
+          last = now;
+          draw(now / 1000, dt);
+          raf = requestAnimationFrame(frame);
+        }
+
+        function start() {
+          if (running || reduced) return;
+          running = true;
+          last = performance.now();
+          nextMeteorAt = last + 3500 + Math.random() * 6000;
+          raf = requestAnimationFrame(frame);
+        }
+
+        function stop() {
+          running = false;
+          if (raf) cancelAnimationFrame(raf);
+          raf = 0;
+        }
+
+        function onReduceChange(ev) {
+          reduced = ev.matches;
+          if (reduced) {
+            stop();
+            meteors = [];
+            draw(0, 0);
+          } else if (!document.hidden) {
+            start();
+          }
+        }
+
+        if (mq.addEventListener) mq.addEventListener("change", onReduceChange);
+        else if (mq.addListener) mq.addListener(onReduceChange);
+
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) stop();
+          else if (!reduced) start();
+        });
+
+        window.addEventListener("resize", resize);
+        resize();
+        if (!reduced && !document.hidden) start();
+      })();
+    </script>
+  </body>
+</html>

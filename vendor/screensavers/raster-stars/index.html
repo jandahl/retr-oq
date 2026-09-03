@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Raster Stars</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000000;
+        position: fixed;
+        inset: 0;
+        touch-action: none;
+        cursor: none;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: #000000;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c" aria-label="C64 raster bars and starfield">C64 raster bars and starfield</canvas>
+    <script>
+      (function () {
+        "use strict";
+
+        // C64 demo-idle: VIC-II raster bars (copper-like horizontal bands)
+        // cycling the hardware 16, plus a chunky starfield.
+        // Multicolor 160×200 feel. No logo, no audio, no UI.
+        // Palette is the same POKE 53280/53281 table as c64/style.css.
+
+        var C64_W = 160;
+        var C64_H = 200;
+        var Z_MAX = 72;
+        var STAR_N = 140;
+        var BAR_N = 8;
+        // Rainbow-ish walk through the 16 (not POKE order) so adjacent
+        // bars read as a copper wash; every index still appears.
+        var CYCLE = [6, 14, 3, 5, 13, 7, 8, 2, 10, 4, 9, 11, 12, 15, 1, 0];
+
+        var PAL = [
+          "#000000",
+          "#ffffff",
+          "#883932",
+          "#67b6bd",
+          "#8b3f96",
+          "#55a049",
+          "#40318d",
+          "#bfce72",
+          "#8b5429",
+          "#574200",
+          "#b86962",
+          "#505050",
+          "#787878",
+          "#94e089",
+          "#7c70da",
+          "#a3a3a3"
+        ];
+
+        // Shadow → peak (center). Indices into PAL only.
+        var RAMPS = [
+          [0, 11, 12, 15],
+          [12, 15, 1],
+          [0, 2, 10, 1],
+          [6, 3, 1],
+          [0, 4, 10, 1],
+          [0, 5, 13, 1],
+          [0, 6, 14, 1],
+          [9, 7, 1],
+          [9, 8, 7],
+          [0, 9, 8],
+          [2, 10, 1],
+          [0, 11, 12, 15],
+          [11, 12, 15, 1],
+          [5, 13, 1],
+          [6, 14, 1],
+          [12, 15, 1]
+        ];
+
+        var canvas = document.getElementById("c");
+        var ctx = canvas.getContext("2d", { alpha: false });
+        var reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+        var reduced = reduceMq.matches;
+        var stars = [];
+        var w = 1;
+        var h = 1;
+        var cx = 0;
+        var cy = 0;
+        var raf = 0;
+        var last = 0;
+
+        function starSpeed() {
+          return reduced ? 0.06 : 0.26;
+        }
+
+        function spawn(z) {
+          return {
+            x: Math.random() * 2 - 1,
+            y: Math.random() * 2 - 1,
+            z: z == null ? Math.random() * Z_MAX + 1 : z,
+            px: 0,
+            py: 0,
+            seen: 0
+          };
+        }
+
+        function starColor(near) {
+          if (near > 0.78) return PAL[1];
+          if (near > 0.52) return PAL[15];
+          if (near > 0.28) return PAL[12];
+          return PAL[11];
+        }
+
+        function resize() {
+          var vw = window.innerWidth || C64_W;
+          var vh = window.innerHeight || C64_H;
+          var cell = Math.max(2, Math.round(Math.min(vw / C64_W, vh / C64_H)));
+          var nw = Math.max(1, (vw / cell) | 0);
+          var nh = Math.max(1, (vh / cell) | 0);
+          if (canvas.width !== nw || canvas.height !== nh) {
+            canvas.width = nw;
+            canvas.height = nh;
+            ctx.imageSmoothingEnabled = false;
+          }
+          w = nw;
+          h = nh;
+          cx = (w / 2) | 0;
+          cy = (h / 2) | 0;
+        }
+
+        function init() {
+          stars.length = 0;
+          var i;
+          for (i = 0; i < STAR_N; i++) stars.push(spawn());
+        }
+
+        function paintBar(cyBar, ramp) {
+          var thick = Math.max(7, (h * 0.075) | 0);
+          if ((thick & 1) === 0) thick += 1;
+          var half = (thick / 2) | 0;
+          var lastIdx = ramp.length - 1;
+          var i;
+          var y;
+          var dist;
+          var ri;
+          for (i = 0; i < thick; i++) {
+            y = (cyBar - half + i) | 0;
+            if (y < 0 || y >= h) continue;
+            dist = half ? Math.abs(i - half) / half : 0;
+            ri = Math.round((1 - dist) * lastIdx);
+            if (ri < 0) ri = 0;
+            if (ri > lastIdx) ri = lastIdx;
+            ctx.fillStyle = PAL[ramp[ri]];
+            ctx.fillRect(0, y, w, 1);
+          }
+        }
+
+        function drawBars(now) {
+          var shift = reduced ? 3 : ((now / 640) | 0);
+          var i;
+          var phase;
+          var rest;
+          var y;
+          var ci;
+          for (i = 0; i < BAR_N; i++) {
+            phase = i * 0.71;
+            rest = h * (0.10 + (i + 0.5) / BAR_N * 0.80);
+            if (reduced) {
+              y = rest;
+            } else {
+              y =
+                rest +
+                Math.sin(now * 0.00068 + phase) * h * 0.22 +
+                Math.sin(now * 0.00115 + phase * 1.6) * h * 0.07;
+            }
+            ci = CYCLE[(i + shift) % 16];
+            paintBar(y, RAMPS[ci]);
+          }
+        }
+
+        function drawStars(dt) {
+          var spread = Math.max(w, h);
+          var dz = starSpeed() * dt;
+          var i;
+          var s;
+          var k;
+          var x;
+          var y;
+          var near;
+          var size;
+          var xi;
+          var yi;
+          var dx;
+          var dy;
+          var steps;
+          var cap;
+          var n;
+          var u;
+
+          for (i = 0; i < stars.length; i++) {
+            s = stars[i];
+            s.z -= dz;
+            if (s.z < 0.45) {
+              stars[i] = spawn(Z_MAX);
+              continue;
+            }
+            k = spread / s.z;
+            x = cx + s.x * k;
+            y = cy + s.y * k;
+            if (x < -4 || y < -4 || x > w + 4 || y > h + 4) {
+              stars[i] = spawn(Z_MAX);
+              continue;
+            }
+            near = 1 - s.z / Z_MAX;
+            // 2×1 multicolor pixels; near stars grow 2×2.
+            size = near > 0.84 ? 2 : 1;
+            xi = (x | 0) & ~1;
+            yi = y | 0;
+            ctx.fillStyle = starColor(near);
+            if (!reduced && s.seen && near > 0.48) {
+              dx = xi - s.px;
+              dy = yi - s.py;
+              steps = Math.max(Math.abs(dx), Math.abs(dy), 1);
+              cap = 8;
+              if (steps > cap) steps = cap;
+              for (n = 0; n <= steps; n++) {
+                u = n / steps;
+                ctx.fillRect(((s.px + dx * u) | 0) & ~1, (s.py + dy * u) | 0, 2, size);
+              }
+            } else {
+              ctx.fillRect(xi, yi, 2, size);
+            }
+            s.px = xi;
+            s.py = yi;
+            s.seen = 1;
+          }
+        }
+
+        function frame(now) {
+          raf = 0;
+          if (document.hidden) return;
+          if (!last) last = now;
+          var dt = Math.min(48, now - last) / 16.67;
+          last = now;
+
+          ctx.fillStyle = PAL[0];
+          ctx.fillRect(0, 0, w, h);
+          drawStars(dt);
+          drawBars(now);
+
+          raf = requestAnimationFrame(frame);
+        }
+
+        function start() {
+          last = 0;
+          if (!raf) raf = requestAnimationFrame(frame);
+        }
+
+        function stop() {
+          if (raf) cancelAnimationFrame(raf);
+          raf = 0;
+          last = 0;
+        }
+
+        function onReduce(event) {
+          reduced = event.matches;
+        }
+
+        window.addEventListener("resize", resize);
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) stop();
+          else start();
+        });
+        if (reduceMq.addEventListener) reduceMq.addEventListener("change", onReduce);
+        else if (reduceMq.addListener) reduceMq.addListener(onReduce);
+
+        resize();
+        init();
+        start();
+      })();
+    </script>
+  </body>
+</html>
