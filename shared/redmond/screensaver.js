@@ -9,7 +9,7 @@
   ].join("");
 
   function attach(opts) {
-    const idleMs = opts.idleMs == null ? 45000 : opts.idleMs;
+    let idleMs = opts.idleMs == null ? 45000 : opts.idleMs;
     let src = opts.src;
     if (!document.getElementById("oq-ss-style")) {
       const style = document.createElement("style");
@@ -60,6 +60,10 @@
       src = next;
       if (running) frame.src = typeof src === "function" ? src() : src;
     }
+    function setIdleMs(next) {
+      idleMs = Math.max(0, Number(next) || 0);
+      ping();
+    }
 
     // iframe is pointer-events:none so tap/click hits the overlay, not the
     // nested document (parent window never sees iframe pointer events).
@@ -78,7 +82,7 @@
       else ping();
     });
     ping();
-    return { start, stop, setSrc, ping };
+    return { start, stop, setSrc, setIdleMs, ping };
   }
 
   function vendor(name) {
@@ -218,23 +222,7 @@
         },
         idleMs: 45000
       });
-      var kmenu = document.getElementById("k-menu");
-      var sep = kmenu && kmenu.querySelector(".k-sep");
-      kdeGl.forEach(function (pair) {
-        if (!kmenu) return;
-        var li = document.createElement("li");
-        var btn = document.createElement("button");
-        btn.type = "button";
-        btn.textContent = pair[1];
-        btn.addEventListener("click", function () {
-          kmenu.hidden = true;
-          host.setSrc(vendor(pair[0]));
-          host.start();
-        });
-        li.appendChild(btn);
-        if (sep) kmenu.insertBefore(li, sep);
-        else kmenu.appendChild(li);
-      });
+      global.OqScreensaver.kde = host;
       return;
     }
     if (theme === "mac8") {
@@ -263,7 +251,7 @@
     }
   }
 
-  global.OqScreensaver = { attach };
+  global.OqScreensaver = global.OqScreensaver || { attach };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);
   } else {

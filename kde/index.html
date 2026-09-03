@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — KDE 3.5 / Compiz Fusion</title>
-<link rel="stylesheet" href="style.css?v=7" />
+<link rel="stylesheet" href="style.css?v=9" />
 </head>
 <body>
   <section class="boot-screen" id="boot-screen" aria-label="KDE startup" aria-live="polite">
@@ -230,6 +230,18 @@ Type `help` for a list of commands.
       <div class="kde-resize kde-resize-se" data-dir="se"></div>
       <div class="kde-resize kde-resize-sw" data-dir="sw"></div>
     </section>
+
+    <section class="kde-window closed" id="win-screensaver" data-icon="kmenu" style="top: 34px; left: 180px; width: 30rem; height: 24rem;">
+      <div class="title-bar"><img class="title-bar-icon" src="art/icon-kmenu.png" alt="" /><div class="title-bar-text">Screen Saver Settings</div><div class="title-bar-controls"><button type="button" class="win-minimize" aria-label="Minimize"></button><button type="button" class="win-maximize" aria-label="Maximize"></button><button type="button" class="win-close" aria-label="Close"></button></div></div>
+      <div class="window-body screensaver-settings">
+        <div class="screensaver-controls"><label for="screensaver-select">Screen saver:</label>
+        <select id="screensaver-select"><option value="random" selected>Random</option></select>
+        <label for="screensaver-timer">Start after:</label>
+        <input id="screensaver-timer" type="number" min="0" max="120" step="1" value="45" /> seconds</div>
+        <div class="screensaver-preview-row"><iframe id="screensaver-preview" title="Screen saver preview" src="about:blank"></iframe><button type="button" class="kde-btn" id="screensaver-preview-button">Preview</button></div>
+        <p class="screensaver-hint">0 seconds disables the idle saver. Random chooses a different saver each time.</p>
+      </div>
+    </section>
   </div>
 
   <canvas id="compositor" aria-hidden="true"></canvas>
@@ -240,15 +252,15 @@ Type `help` for a list of commands.
       Menu
     </button>
     <div class="quicklaunch">
-      <button type="button" data-open="win-home" title="Home"><img src="art/icon-home.png" alt="" /></button>
-      <button type="button" data-open="win-oq" title="OQ!"><img src="art/icon-oq.png" alt="" /></button>
-      <button type="button" data-open="win-decon" title="DECON"><img src="art/icon-decon.png" alt="" /></button>
-      <button type="button" data-open="win-konsole" title="Konsole"><img src="art/icon-konsole.png" alt="" /></button>
+      <button type="button" data-open="win-home" data-tooltip="Home" aria-label="Home"><img src="art/icon-home.png" alt="" /></button>
+      <button type="button" data-open="win-oq" data-tooltip="OQ!" aria-label="OQ!"><img src="art/icon-oq.png" alt="" /></button>
+      <button type="button" data-open="win-decon" data-tooltip="DECON" aria-label="DECON"><img src="art/icon-decon.png" alt="" /></button>
+      <button type="button" data-open="win-konsole" data-tooltip="Konsole" aria-label="Konsole"><img src="art/icon-konsole.png" alt="" /></button>
     </div>
     <div class="tasks" id="tasks"></div>
     <div class="pager" aria-label="Desktops">
       <button type="button" class="current" title="Desktop 1"></button>
-      <button type="button" id="pager-cube" title="Rotate cube"></button>
+      <button type="button" id="pager-cube" title="Desktop Cube (3D)" aria-label="Desktop Cube (3D)"></button>
       <button type="button" title="Desktop 3"></button>
       <button type="button" title="Desktop 4"></button>
     </div>
@@ -261,6 +273,11 @@ Type `help` for a list of commands.
     <li><button type="button" data-open="win-konsole"><img src="art/icon-konsole.png" alt="" /> Konsole</button></li>
     <li><button type="button" data-open="win-home"><img src="art/icon-home.png" alt="" /> Home</button></li>
     <li><button type="button" data-open="win-about"><img src="art/icon-kmenu.png" alt="" /> About retr-oq</button></li>
+    <li class="k-submenu"><button type="button"><img src="art/icon-home.png" alt="" /><span>Screensavers</span><span aria-hidden="true">›</span></button><ul class="k-menu" id="screensavers-menu">
+      <li><button type="button" data-saver="flux">Flux (GL)</button></li><li><button type="button" data-saver="euphoria">Euphoria (GL)</button></li><li><button type="button" data-saver="solarwinds">Solar Winds (GL)</button></li><li><button type="button" data-saver="helios">Helios (GL)</button></li><li><button type="button" data-saver="lattice">Lattice (GL)</button></li><li><button type="button" data-saver="hyperspace">Hyperspace (GL)</button></li><li><button type="button" data-saver="cyclone">Cyclone (GL)</button></li><li><button type="button" data-saver="fieldlines">Field Lines (GL)</button></li><li><button type="button" data-saver="flocks">Flocks (GL)</button></li><li><button type="button" data-saver="pixelcity">Pixel City (GL)</button></li><li><button type="button" data-saver="lorenz">Lorenz (GL)</button></li><li><button type="button" data-saver="glmatrix">GL Matrix (GL)</button></li><li><button type="button" data-saver="skyrocket">Skyrocket (GL)</button></li>
+    </ul></li>
+    <li><button type="button" id="screensaver-settings-open"><img src="art/icon-kmenu.png" alt="" /> Screen Saver Settings</button></li>
+    <li><button type="button" id="desktop-cube-menu">Desktop Cube (3D)</button></li>
     <li class="k-sep"></li>
     <li><button type="button" id="menu-leave">Leave…</button></li>
   </ul>
@@ -291,7 +308,7 @@ Type `help` for a list of commands.
   <script src="../vendor/kde/html2canvas.min.js"></script>
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="compositor.js?v=4"></script>
-  <script src="app.js?v=6"></script>
+  <script src="compositor.js?v=13"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

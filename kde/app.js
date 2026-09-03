@@ -24,11 +24,10 @@
   const MIN_H = 140;
   let zTop = 10;
 
-  // Real KDE never showed a browser's own right-click menu over the
-  // desktop -- suppress it over the bare desktop background.
-  desktop.addEventListener("contextmenu", (event) => {
-    if (event.target === desktop) event.preventDefault();
-  });
+  // The browser menu is not part of the KDE shell. Suppress it everywhere in
+  // the desktop, including windows and Kicker (the desktop menu below still
+  // handles the bare background itself).
+  document.addEventListener("contextmenu", (event) => event.preventDefault());
 
   // ---------- Desktop right-click menu: Refresh Desktop / Show Desktop Icons ----------
   const desktopContextMenu = document.getElementById("desktop-context-menu");
@@ -169,6 +168,17 @@
     if (win.id === "win-oq") startOqLoad();
   }
 
+  async function restoreWindow(win) {
+    const s = state.get(win);
+    const taskRect = s.taskBtn && s.taskBtn.getBoundingClientRect();
+    win.classList.remove("closed", "minimized");
+    taskBtnFor(win);
+    focus(win);
+    clamp(win);
+    if (taskRect && !Compiz.reduceMotion() && Compiz.restore) await Compiz.restore(win, taskRect);
+    if (win.id === "win-oq") startOqLoad();
+  }
+
   function openWindow(win) {
     if (win.id === "win-oq") {
       window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null });
@@ -201,7 +211,7 @@
 
   async function toggleMin(win) {
     if (win.classList.contains("minimized")) {
-      forceOpen(win);
+      restoreWindow(win);
       return;
     }
     const s = state.get(win);
@@ -509,20 +519,80 @@
   // exposes one; default to 24-hour when it doesn't (leaving hour12
   // undefined here would fall back to the locale's own default, which is
   // 12-hour AM/PM for e.g. en-US regardless of the OS setting).
-  let use24Hour = true;
-  try {
-    const resolved = Intl.DateTimeFormat(undefined, { hour: "numeric" }).resolvedOptions();
-    if (typeof resolved.hour12 === "boolean") use24Hour = !resolved.hour12;
-  } catch {}
   function tickClock() {
     const n = new Date();
-    clockEl.textContent = n.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: !use24Hour });
+    clockEl.textContent = n.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
   }
   tickClock();
   setInterval(tickClock, 1000);
 
   document.getElementById("pager-cube").addEventListener("click", () => {
     Compiz.spinCube(desktop);
+  });
+  const pagerButtons = Array.from(document.querySelectorAll(".pager button"));
+  pagerButtons.forEach((button, index) => {
+    if (index === 1) return;
+    button.addEventListener("click", () => {
+      // This prototype keeps one shared desktop surface. Other pager cells
+      // are intentionally an illusion and return to Desktop 1 after the
+      // same cube transition.
+      pagerButtons.forEach((item, itemIndex) => item.classList.toggle("current", itemIndex === 0));
+      Compiz.spinCube(desktop);
+    });
+  });
+  document.getElementById("desktop-cube-menu").addEventListener("click", () => {
+    closeKMenu();
+    Compiz.spinCube(desktop);
+  });
+
+  const saverEntries = [
+    ["flux", "Flux (GL)"], ["euphoria", "Euphoria (GL)"], ["solarwinds", "Solar Winds (GL)"],
+    ["helios", "Helios (GL)"], ["lattice", "Lattice (GL)"], ["hyperspace", "Hyperspace (GL)"],
+    ["cyclone", "Cyclone (GL)"], ["fieldlines", "Field Lines (GL)"], ["flocks", "Flocks (GL)"],
+    ["pixelcity", "Pixel City (GL)"], ["lorenz", "Lorenz (GL)"], ["glmatrix", "GL Matrix (GL)"],
+    ["skyrocket", "Skyrocket (GL)"],
+  ];
+  const saverMenu = document.getElementById("screensavers-menu");
+  const saverSettings = document.getElementById("win-screensaver");
+  const saverSelect = document.getElementById("screensaver-select");
+  const saverPreview = document.getElementById("screensaver-preview");
+  const saverTimer = document.getElementById("screensaver-timer");
+  const saverPreviewButton = document.getElementById("screensaver-preview-button");
+  const saverSubmenu = saverMenu.parentElement;
+  saverSubmenu.querySelector(":scope > button").addEventListener("click", (event) => {
+    event.stopPropagation();
+    saverSubmenu.classList.toggle("open");
+  });
+  const saverSrc = (id) => `../vendor/screensavers/${id}/index.html`;
+  function previewSaver(id) {
+    if (id === "random") id = saverEntries[Math.floor(Math.random() * saverEntries.length)][0];
+    saverPreview.src = saverSrc(id);
+  }
+  for (const [id, label] of saverEntries) {
+    const option = document.createElement("option");
+    option.value = id; option.textContent = label; saverSelect.appendChild(option);
+    const button = saverMenu.querySelector(`[data-saver="${id}"]`);
+    if (!button) continue;
+    button.addEventListener("click", () => {
+      if (window.OqScreensaver && window.OqScreensaver.kde) {
+        window.OqScreensaver.kde.setSrc(saverSrc(id));
+        window.OqScreensaver.kde.start();
+      }
+      closeKMenu();
+    });
+  }
+  saverSelect.addEventListener("change", () => previewSaver(saverSelect.value));
+  saverPreviewButton.addEventListener("click", () => {
+    previewSaver(saverSelect.value);
+    saverPreview.contentWindow && saverPreview.contentWindow.focus();
+  });
+  saverTimer.addEventListener("change", () => {
+    if (window.OqScreensaver && window.OqScreensaver.kde) {
+      window.OqScreensaver.kde.setIdleMs(Number(saverTimer.value) * 1000);
+    }
+  });
+  document.getElementById("screensaver-settings-open").addEventListener("click", () => {
+    closeKMenu(); openWindow(saverSettings); previewSaver(saverSelect.value);
   });
 
   // ---------- Konsole ----------
