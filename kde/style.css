@@ -1,1 +1,8 @@
-PLACEHOLDER
+/* Restored from master 6c88b4f2. Nested .k-menu was inheriting
+   position:fixed + bottom:kicker from the root K menu; clear those. */
+@import url("https://raw.githubusercontent.com/jandahl/retr-oq/6c88b4f2174ed3a6f016729d73e3dc705defb9dd/kde/style.css");
+
+.k-submenu > .k-menu {
+  bottom: auto;
+  right: auto;
+}
