@@ -9,7 +9,10 @@ wall. No mesh props.
 Original idle remakes (no upstream copy): mac-stars, afterdark-night, boing,
 cga-stars, raster-stars, backspace, flux, euphoria, solarwinds, helios, lattice,
 hyperspace, cyclone, fieldlines, flocks, pixelcity, lorenz, glmatrix, skyrocket,
-backrooms-ii.
+backrooms-ii, mystify, starfield, marquee, beziers, flying-toasters.
 KDE GL set is inspired by Really Slick / rss-glx / xscreensaver looks, written
 from scratch (MIT). backrooms-ii is the Windows XP OpenGL showroom drift (not
 the 98 maze-backrooms saver). Console attract modes live in nes/ gb/ gg/ snes/, not here.
+Win 3.1 set (mystify, starfield, marquee, beziers) is original 2D canvas,
+VGA-palette geometry — not Microsoft binaries. Flying Toasters is gag box+wing
+geometry, not Berkeley Systems art.
