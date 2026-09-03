@@ -284,10 +284,23 @@ button,
 .wb-boing {
   position: absolute;
   z-index: 8;
-  width: 96px;
-  height: 96px;
-  image-rendering: auto;
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
   touch-action: none;
+}
+.wb-boing-shadow {
+  position: absolute;
+  z-index: 7;
+  width: 34px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.wb-boing-shadow.is-off {
+  display: none;
 }
 .wb-boing.is-off {
   display: none;

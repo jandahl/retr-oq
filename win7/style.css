@@ -716,6 +716,24 @@ html, body {
   transition: transform 0.1s ease, filter 0.15s ease;
 }
 
+/* 7.css draws a menu-gutter pseudo-element on every [role=menu]. That
+   vertical rule belongs to the classic flat menu kit, not Aero glass. */
+#start-menu::before,
+#desktop-context-menu::before {
+  display: none;
+}
+
+/* The filtered SVG wallpaper produced hard rectangular filter bounds in
+   some browsers. Keep the same Harmony-inspired palette with compositor-
+   friendly gradients instead. */
+.desktop {
+  background:
+    radial-gradient(ellipse 48% 24% at 82% 72%, rgba(111, 190, 255, 0.82), transparent 70%),
+    radial-gradient(ellipse 52% 20% at 38% 76%, rgba(45, 112, 224, 0.86), transparent 72%),
+    radial-gradient(ellipse 22% 30% at 78% 18%, rgba(42, 86, 170, 0.7), transparent 75%),
+    linear-gradient(155deg, #152e68 0%, #081b4b 42%, #02091f 100%);
+}
+
 .start-orb::after {
   content: "";
   position: absolute;
@@ -907,9 +925,9 @@ html, body {
 }
 
 .start-menu-divider {
-  height: 1px;
-  margin: 4px 2px;
-  background: rgba(0, 0, 0, 0.12);
+  height: 8px;
+  margin: 0 2px;
+  background: transparent;
 }
 
 /* ---------- Desktop right-click menu (issue #100) ----------

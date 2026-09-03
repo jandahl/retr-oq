@@ -593,7 +593,8 @@
   // ---------- Boing ball (the 1984 show-floor mascot, checkered sphere) ----------
   const boing = document.getElementById("boing");
   const boingCtx = boing.getContext("2d");
-  const BOING_SIZE = 96;
+  const BOING_SIZE = 32;
+  const boingShadow = document.getElementById("boing-shadow");
   let boingOn = true;
   let bx = Math.max(160, (desktop.clientWidth || 640) - 200);
   let by = 28;
@@ -615,19 +616,14 @@
     const cx = BOING_SIZE / 2;
     const cy = BOING_SIZE / 2 - 2;
     const R = BOING_SIZE * 0.38;
-    const nLon = 10;
-    const nLat = 8;
+    const nLon = 8;
+    const nLat = 6;
     boingCtx.clearRect(0, 0, BOING_SIZE, BOING_SIZE);
 
     const squash = reduceMotion ? 1 : 1 - Math.max(0, (by + BOING_SIZE - (desktop.clientHeight - 8)) / 80) * 0.18;
     boingCtx.save();
     boingCtx.translate(cx, cy + (1 - squash) * R);
     boingCtx.scale(1, squash);
-
-    boingCtx.fillStyle = "rgba(0,0,0,0.35)";
-    boingCtx.beginPath();
-    boingCtx.ellipse(0, R + 10, R * 0.72, 4, 0, 0, Math.PI * 2);
-    boingCtx.fill();
 
     const quads = [];
     for (let i = 0; i < nLat; i++) {
@@ -677,6 +673,8 @@
   function placeBoing() {
     boing.style.left = `${bx}px`;
     boing.style.top = `${by}px`;
+    boingShadow.style.left = `${bx + BOING_SIZE / 2}px`;
+    boingShadow.style.top = `${desktop.clientHeight - 14}px`;
   }
 
   function tickBoing(t) {
@@ -714,6 +712,7 @@
     closeMenu();
     boingOn = !boingOn;
     boing.classList.toggle("is-off", !boingOn);
+    boingShadow.classList.toggle("is-off", !boingOn);
   });
 
   drawBoing();

@@ -11,15 +11,11 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — 1984 Mac desktop prototype</title>
 <link rel="stylesheet" href="../vendor/mac1984/system.css" />
-<link rel="stylesheet" href="style.css?v=1" />
+<link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <div id="boot-screen">
-    <button type="button" id="power-btn">
-      <span class="power-icon" aria-hidden="true">⏻</span>
-      <span>Click to power on</span>
-    </button>
-    <div id="boot-sequence" hidden>
+    <div id="boot-sequence" class="visible">
       <svg class="happy-mac" viewBox="0 0 16 16" shape-rendering="crispEdges" fill="#000000" role="img" aria-label="Happy Mac"><rect x="2" y="0" width="1" height="1"/><rect x="3" y="0" width="1" height="1"/><rect x="4" y="0" width="1" height="1"/><rect x="5" y="0" width="1" height="1"/><rect x="6" y="0" width="1" height="1"/><rect x="7" y="0" width="1" height="1"/><rect x="8" y="0" width="1" height="1"/><rect x="9" y="0" width="1" height="1"/><rect x="10" y="0" width="1" height="1"/><rect x="11" y="0" width="1" height="1"/><rect x="12" y="0" width="1" height="1"/><rect x="13" y="0" width="1" height="1"/><rect x="1" y="1" width="1" height="1"/><rect x="2" y="1" width="1" height="1"/><rect x="3" y="1" width="1" height="1"/><rect x="4" y="1" width="1" height="1"/><rect x="5" y="1" width="1" height="1"/><rect x="6" y="1" width="1" height="1"/><rect x="7" y="1" width="1" height="1"/><rect x="8" y="1" width="1" height="1"/><rect x="9" y="1" width="1" height="1"/><rect x="10" y="1" width="1" height="1"/><rect x="11" y="1" width="1" height="1"/><rect x="12" y="1" width="1" height="1"/><rect x="13" y="1" width="1" height="1"/><rect x="14" y="1" width="1" height="1"/><rect x="0" y="2" width="1" height="1"/><rect x="1" y="2" width="1" height="1"/><rect x="14" y="2" width="1" height="1"/><rect x="15" y="2" width="1" height="1"/><rect x="0" y="3" width="1" height="1"/><rect x="15" y="3" width="1" height="1"/><rect x="0" y="4" width="1" height="1"/><rect x="3" y="4" width="1" height="1"/><rect x="4" y="4" width="1" height="1"/><rect x="11" y="4" width="1" height="1"/><rect x="12" y="4" width="1" height="1"/><rect x="15" y="4" width="1" height="1"/><rect x="0" y="5" width="1" height="1"/><rect x="3" y="5" width="1" height="1"/><rect x="4" y="5" width="1" height="1"/><rect x="11" y="5" width="1" height="1"/><rect x="12" y="5" width="1" height="1"/><rect x="15" y="5" width="1" height="1"/><rect x="0" y="6" width="1" height="1"/><rect x="15" y="6" width="1" height="1"/><rect x="0" y="7" width="1" height="1"/><rect x="15" y="7" width="1" height="1"/><rect x="0" y="8" width="1" height="1"/><rect x="4" y="8" width="1" height="1"/><rect x="5" y="8" width="1" height="1"/><rect x="10" y="8" width="1" height="1"/><rect x="11" y="8" width="1" height="1"/><rect x="15" y="8" width="1" height="1"/><rect x="0" y="9" width="1" height="1"/><rect x="5" y="9" width="1" height="1"/><rect x="6" y="9" width="1" height="1"/><rect x="9" y="9" width="1" height="1"/><rect x="10" y="9" width="1" height="1"/><rect x="15" y="9" width="1" height="1"/><rect x="0" y="10" width="1" height="1"/><rect x="6" y="10" width="1" height="1"/><rect x="7" y="10" width="1" height="1"/><rect x="8" y="10" width="1" height="1"/><rect x="9" y="10" width="1" height="1"/><rect x="15" y="10" width="1" height="1"/><rect x="0" y="11" width="1" height="1"/><rect x="15" y="11" width="1" height="1"/><rect x="0" y="12" width="1" height="1"/><rect x="1" y="12" width="1" height="1"/><rect x="14" y="12" width="1" height="1"/><rect x="15" y="12" width="1" height="1"/><rect x="1" y="13" width="1" height="1"/><rect x="2" y="13" width="1" height="1"/><rect x="3" y="13" width="1" height="1"/><rect x="4" y="13" width="1" height="1"/><rect x="5" y="13" width="1" height="1"/><rect x="6" y="13" width="1" height="1"/><rect x="7" y="13" width="1" height="1"/><rect x="8" y="13" width="1" height="1"/><rect x="9" y="13" width="1" height="1"/><rect x="10" y="13" width="1" height="1"/><rect x="11" y="13" width="1" height="1"/><rect x="12" y="13" width="1" height="1"/><rect x="13" y="13" width="1" height="1"/><rect x="14" y="13" width="1" height="1"/><rect x="2" y="14" width="1" height="1"/><rect x="3" y="14" width="1" height="1"/><rect x="4" y="14" width="1" height="1"/><rect x="5" y="14" width="1" height="1"/><rect x="6" y="14" width="1" height="1"/><rect x="7" y="14" width="1" height="1"/><rect x="8" y="14" width="1" height="1"/><rect x="9" y="14" width="1" height="1"/><rect x="10" y="14" width="1" height="1"/><rect x="11" y="14" width="1" height="1"/><rect x="12" y="14" width="1" height="1"/><rect x="13" y="14" width="1" height="1"/><rect x="4" y="15" width="1" height="1"/><rect x="5" y="15" width="1" height="1"/><rect x="6" y="15" width="1" height="1"/><rect x="7" y="15" width="1" height="1"/><rect x="8" y="15" width="1" height="1"/><rect x="9" y="15" width="1" height="1"/><rect x="10" y="15" width="1" height="1"/><rect x="11" y="15" width="1" height="1"/></svg>
       <p>Welcome to Macintosh.</p>
     </div>
@@ -110,54 +106,6 @@
     </button>
   </div>
 
-  <section class="window desktop-window" id="win0" style="top: 3rem; left: 2rem;">
-    <div class="inactive-title-bar" id="win0-titlebar">
-      <button type="button" aria-label="Close" class="close" id="win0-close"></button>
-      <h1 class="title">Background Window</h1>
-      <button type="button" aria-label="Zoom" class="resize"></button>
-    </div>
-    <div class="separator"></div>
-    <div class="window-pane">
-      <p>
-        This window sits behind Test Window and is INACTIVE: the framework's
-        own <code>.inactive-title-bar</code> class draws a plain bar with just
-        the centered title -- no pinstripes, no close/zoom buttons. Click
-        anywhere in it to bring it to front and make it active instead.
-      </p>
-    </div>
-    <div class="growbox"></div>
-  </section>
-
-  <section class="window desktop-window" id="win1" style="top: 5rem; left: 4rem;">
-    <div class="title-bar" id="win1-titlebar">
-      <button type="button" aria-label="Close" class="close" id="win1-close"></button>
-      <h1 class="title">Test Window</h1>
-      <button type="button" aria-label="Zoom" class="resize"></button>
-    </div>
-    <div class="separator"></div>
-    <div class="window-pane">
-      <p>
-        This window has a fixed size and position. Dragging it by the title
-        bar moves the whole frame; scrolling inside it only moves the
-        content below -- the frame itself, and the desktop around it, never
-        move.
-      </p>
-      <p>Scroll down inside this window to see the desktop stay put around it.</p>
-      <p>Card 1 — scroll me</p>
-      <p>Card 2</p>
-      <p>Card 3</p>
-      <p>Card 4</p>
-      <p>Card 5</p>
-      <p>Card 6</p>
-      <p>Card 7</p>
-      <p>Card 8</p>
-      <p>Card 9</p>
-      <p>Card 10</p>
-      <p>Card 11 — bottom of the scrollable content</p>
-    </div>
-    <div class="growbox"></div>
-  </section>
-
   <!-- Opened by the "Notes" desktop icon (#win2-icon); starts .closed so it
        reuses the same open/close/focus machinery as every other window. -->
   <section class="window desktop-window closed" id="win2" style="top: 6rem; left: 7rem;">
@@ -177,15 +125,6 @@
     <div class="growbox"></div>
   </section>
 
-  <p class="desktop-note">
-    retr-oq: a real fixed-size, fixed-position window on a real
-    full-viewport desktop, with its own internal scroll, built on the real
-    vendored framework (vendor/mac1984/system.css, from npm's
-    @sakun/system.css) instead of hand-rolled chrome. Drag a title bar;
-    click a window to make it active; scroll inside a window; close and
-    reopen it. See README.md for how this relates to jandahl/oq.
-  </p>
-
-<script src="app.js?v=1"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>

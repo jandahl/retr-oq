@@ -6,7 +6,10 @@
 (function () {
   "use strict";
 
-  if (typeof THREE === "undefined") return;
+  if (typeof THREE === "undefined") {
+    document.body.innerHTML = '<div style="display:grid;place-items:center;height:100vh;color:#fff;font:16px sans-serif">Screen saver unavailable offline.</div>';
+    return;
+  }
 
   var reduced = false;
   try {

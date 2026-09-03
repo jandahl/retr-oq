@@ -12,8 +12,9 @@
       activePointerId = event.pointerId;
       const rect = target.getBoundingClientRect();
       const parentRect = target.offsetParent.getBoundingClientRect();
-      origX = rect.left - parentRect.left;
-      origY = rect.top - parentRect.top;
+      const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+      origX = (rect.left - parentRect.left) / zoomFactor;
+      origY = (rect.top - parentRect.top) / zoomFactor;
       startX = event.clientX;
       startY = event.clientY;
       handle.setPointerCapture(event.pointerId);
@@ -22,8 +23,9 @@
 
     function onPointerMove(event) {
       if (event.pointerId !== activePointerId) return;
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
+      const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+      const dx = (event.clientX - startX) / zoomFactor;
+      const dy = (event.clientY - startY) / zoomFactor;
       target.style.left = `${origX + dx}px`;
       target.style.top = `${origY + dy}px`;
     }
@@ -55,8 +57,9 @@
       if (activePointerId !== null) return;
       activePointerId = event.pointerId;
       const rect = target.getBoundingClientRect();
-      startW = rect.width;
-      startH = rect.height;
+      const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+      startW = rect.width / zoomFactor;
+      startH = rect.height / zoomFactor;
       startX = event.clientX;
       startY = event.clientY;
       handle.setPointerCapture(event.pointerId);
@@ -66,8 +69,9 @@
 
     function onPointerMove(event) {
       if (event.pointerId !== activePointerId) return;
-      const dx = event.clientX - startX;
-      const dy = event.clientY - startY;
+      const zoomFactor = parseFloat(getComputedStyle(document.documentElement).zoom) || 1;
+      const dx = (event.clientX - startX) / zoomFactor;
+      const dy = (event.clientY - startY) / zoomFactor;
       target.style.width = `${Math.max(minWidth, startW + dx)}px`;
       target.style.height = `${Math.max(minHeight, startH + dy)}px`;
     }
@@ -153,7 +157,7 @@
   }
 
   reopenBtn.addEventListener("click", () => {
-    const target = document.getElementById(reopenBtn.dataset.target || "win1");
+    const target = document.getElementById(reopenBtn.dataset.target || "win2");
     target.classList.remove("closed");
     reopenBtn.classList.remove("visible");
     focus(target);
@@ -224,41 +228,9 @@
     if (openMenuItem && !menuBar.contains(event.target)) closeMenu();
   });
 
-  // Boot screen: gated behind a real click so the AudioContext is created
-  // synchronously inside a user gesture, satisfying autoplay policies.
+  // Boot screen: passive startup, with no user gesture or audio required.
   const bootScreen = document.getElementById("boot-screen");
-  const powerBtn = document.getElementById("power-btn");
   const bootSequence = document.getElementById("boot-sequence");
-
-  function playBeep() {
-    try {
-      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-      const ctx = new AudioContextClass();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "square"; // the real 128K Mac's startup beep, not the later multi-note chimes
-      osc.frequency.value = 500;
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.3);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.3);
-    } catch {
-      // Web Audio unavailable/blocked -- boot proceeds silently
-    }
-  }
-
-  powerBtn.addEventListener(
-    "click",
-    () => {
-      playBeep();
-      powerBtn.hidden = true;
-      bootSequence.hidden = false;
-      bootSequence.classList.add("visible");
-      setTimeout(() => {
-        bootScreen.classList.add("hidden");
-      }, 1400);
-    },
-    { once: true },
-  );
+  bootSequence.classList.add("visible");
+  setTimeout(() => bootScreen.classList.add("hidden"), 1400);
 })();

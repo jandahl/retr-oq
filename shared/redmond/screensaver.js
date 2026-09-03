@@ -185,9 +185,12 @@
     }
 
     if (theme === "win7") {
-      const host = attach({ src: vendor("pipes"), idleMs: 45000 });
-      addStartItem(document.getElementById("start-menu"), "3D Pipes", () => {
-        host.setSrc(vendor("pipes"));
+      // 3D Maze was part of the Windows-era screen-saver family; Pipes is
+      // associated with the older NT/98 collection and reads as a placeholder
+      // in the Aero shell.
+      const host = attach({ src: vendor("maze"), idleMs: 45000 });
+      addStartItem(document.getElementById("start-menu"), "3D Maze", () => {
+        host.setSrc(vendor("maze"));
         host.start();
       });
       return;
