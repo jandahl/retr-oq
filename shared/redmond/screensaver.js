@@ -157,8 +157,12 @@
     }
 
     if (theme === "win98") {
-      const host = attach({ src: vendor("pipes"), idleMs: 45000 });
+      const host = attach({ src: vendor("aquarium"), idleMs: 45000 });
       const menu = document.getElementById("start-menu");
+      addStartItem(menu, "Aquarium", () => {
+        host.setSrc(vendor("aquarium"));
+        host.start();
+      });
       addStartItem(menu, "3D Pipes", () => {
         host.setSrc(vendor("pipes"));
         host.start();
