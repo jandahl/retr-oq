@@ -6,6 +6,11 @@
     "#oq-ss-overlay[hidden]{display:none !important;}",
     "#oq-ss-overlay iframe{width:100%;height:100%;border:0;display:block;background:#000;pointer-events:none;}",
     ".icon-ss{background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23000000'/%3E%3Crect x='1' y='1' width='6' height='6' fill='%23c00000'/%3E%3Crect x='9' y='1' width='6' height='6' fill='%2300a000'/%3E%3Crect x='1' y='9' width='6' height='6' fill='%230000c0'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%23c0c000'/%3E%3C/svg%3E\");}",
+    ".start-menu-submenu{position:relative;}",
+    ".start-menu-submenu>.start-menu-item{width:100%;}",
+    ".start-menu-caret{margin-left:auto;padding-left:0.75rem;}",
+    ".start-menu-flyout{display:none;position:absolute;left:100%;bottom:0;z-index:3;margin:0;padding:3px;list-style:none;min-width:11rem;background:silver;box-shadow:inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px grey, inset 2px 2px #fff;}",
+    ".start-menu-submenu:hover>.start-menu-flyout,.start-menu-submenu:focus-within>.start-menu-flyout,.start-menu-submenu.open>.start-menu-flyout{display:block;}",
   ].join("");
 
   function attach(opts) {
@@ -106,8 +111,46 @@
     return null;
   }
 
+  function saverFlyout(menu) {
+    let wrap = menu.querySelector("#start-ss-submenu");
+    if (wrap) return wrap.querySelector(".start-menu-flyout");
+    wrap = document.createElement("li");
+    wrap.id = "start-ss-submenu";
+    wrap.className = "start-menu-submenu";
+    const parent = document.createElement("div");
+    parent.setAttribute("role", "menu-item");
+    parent.className = "start-menu-item";
+    parent.setAttribute("aria-haspopup", "true");
+    const icon = document.createElement("span");
+    icon.className = "start-menu-icon icon-ss";
+    icon.setAttribute("aria-hidden", "true");
+    const caret = document.createElement("span");
+    caret.className = "start-menu-caret";
+    caret.setAttribute("aria-hidden", "true");
+    caret.textContent = "\u25B8";
+    parent.append(icon, document.createTextNode(" Screen Savers"), caret);
+    parent.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      wrap.classList.toggle("open");
+    });
+    const fly = document.createElement("ul");
+    fly.className = "start-menu-flyout";
+    fly.setAttribute("role", "menu");
+    wrap.append(parent, fly);
+    const about = menu.querySelector('[data-open="win-about"]');
+    if (about) menu.insertBefore(wrap, about);
+    else {
+      const shutdown = menu.querySelector("#start-menu-shutdown");
+      if (shutdown) menu.insertBefore(wrap, shutdown);
+      else menu.appendChild(wrap);
+    }
+    return fly;
+  }
+
   function addStartItem(menu, label, onClick) {
     if (!menu) return;
+    const fly = saverFlyout(menu);
     const item = document.createElement("li");
     item.setAttribute("role", "menu-item");
     item.className = "start-menu-item";
@@ -117,11 +160,11 @@
     item.append(icon, document.createTextNode(" " + label));
     item.addEventListener("click", () => {
       menu.hidden = true;
+      const wrap = menu.querySelector("#start-ss-submenu");
+      if (wrap) wrap.classList.remove("open");
       onClick();
     });
-    const about = menu.querySelector('[data-open="win-about"]');
-    if (about) menu.insertBefore(item, about);
-    else menu.appendChild(item);
+    fly.appendChild(item);
   }
 
   function bindAccessory(el, start) {
@@ -157,8 +200,12 @@
     }
 
     if (theme === "win98") {
-      const host = attach({ src: vendor("pipes"), idleMs: 45000 });
+      const host = attach({ src: vendor("aquarium"), idleMs: 45000 });
       const menu = document.getElementById("start-menu");
+      addStartItem(menu, "Aquarium", () => {
+        host.setSrc(vendor("aquarium"));
+        host.start();
+      });
       addStartItem(menu, "3D Pipes", () => {
         host.setSrc(vendor("pipes"));
         host.start();
