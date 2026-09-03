@@ -74,18 +74,21 @@
     if (!glCube || !gl) return;
     const now = performance.now();
     const opening = Math.min(1, (now - glCube.started) / 900);
-    const shellScale = 1 - opening * 0.28;
+    const shellScale = 1;
     glCube.root.style.transformOrigin = "center center";
     glCube.root.style.transform = `scale(${shellScale})`;
-    glCube.root.style.opacity = String(1 - opening);
+    glCube.root.style.opacity = "1";
     const kicker = document.getElementById("kicker");
     kicker.style.transformOrigin = "center center";
     kicker.style.transform = `scale(${shellScale})`;
-    kicker.style.opacity = String(1 - opening);
-    cubeCanvas.style.opacity = String(opening);
-    let cubeScale = 0.7 + 0.3 * opening;
-    if (!glCube.holding) glCube.angle = Math.min(Math.PI / 2, opening * Math.PI / 2);
-    if (opening >= 1 && !glCube.shellHidden) {
+    kicker.style.opacity = "1";
+    cubeCanvas.style.opacity = "1";
+    let cubeScale = 1.72 - 0.72 * opening;
+    if (!glCube.holding) {
+      glCube.angle = Math.min(Math.PI / 2, opening * Math.PI / 2);
+      glCube.pitch = 0.44 * opening;
+    }
+    if (opening >= 0.12 && !glCube.shellHidden) {
       glCube.root.style.visibility = "hidden";
       kicker.style.visibility = "hidden";
       glCube.shellHidden = true;
@@ -1016,7 +1019,7 @@
       try { img = await snapshotShell(); } catch { return; }
       glTexture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, glTexture);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,img);
-      glCube = { root: rootEl, started: performance.now(), angle: 0, pitch: 0.44, closing: false };
+      glCube = { root: rootEl, started: performance.now(), angle: 0, pitch: 0, closing: false };
       rootEl.style.visibility = "visible";
       document.getElementById("kicker").style.visibility = "visible";
       cubeCanvas.style.visibility = "visible"; cubeCanvas.style.opacity = "0"; cubeCanvas.style.pointerEvents = "auto"; drawGlCube();
