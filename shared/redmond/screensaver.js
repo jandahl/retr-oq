@@ -12,6 +12,7 @@
     ".start-menu-flyout{display:none;position:absolute;left:100%;top:auto;bottom:0;z-index:20;margin:0;padding:3px;list-style:none;min-width:14rem;width:max-content;max-height:70vh;overflow-x:hidden;overflow-y:auto;height:auto;background:silver;box-shadow:inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px grey, inset 2px 2px #fff;}",
     ".start-menu-flyout .start-menu-item{display:flex;align-items:center;min-height:1.75rem;white-space:nowrap;}",
     ".start-menu-submenu:hover>.start-menu-flyout,.start-menu-submenu:focus-within>.start-menu-flyout,.start-menu-submenu.open>.start-menu-flyout{display:block;}",
+    ".k-submenu>.k-menu{position:absolute!important;left:100%!important;top:auto!important;bottom:0!important;height:auto!important;min-width:14rem!important;width:max-content!important;max-height:70vh!important;overflow-x:hidden!important;overflow-y:auto!important;z-index:1003!important;}",
   ].join("");
 
   function attach(opts) {
