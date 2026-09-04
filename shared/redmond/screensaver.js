@@ -206,6 +206,12 @@
     if (theme === "win98") {
       const host = attach({ src: vendor("aquarium"), idleMs: 45000 });
       const menu = document.getElementById("start-menu");
+      const extra = document.createElement("script");
+      extra.src = "start-extra.js?v=1";
+      extra.onload = function () {
+        if (window.OqWin98Start) window.OqWin98Start(menu);
+      };
+      document.head.appendChild(extra);
       addStartItem(menu, "Aquarium", () => {
         host.setSrc(vendor("aquarium"));
         host.start();
