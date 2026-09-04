@@ -6,11 +6,13 @@
     "#oq-ss-overlay[hidden]{display:none !important;}",
     "#oq-ss-overlay iframe{width:100%;height:100%;border:0;display:block;background:#000;pointer-events:none;}",
     ".icon-ss{background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23000000'/%3E%3Crect x='1' y='1' width='6' height='6' fill='%23c00000'/%3E%3Crect x='9' y='1' width='6' height='6' fill='%2300a000'/%3E%3Crect x='1' y='9' width='6' height='6' fill='%230000c0'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%23c0c000'/%3E%3C/svg%3E\");}",
-    ".start-menu-submenu{position:relative;}",
+    ".start-menu-submenu{position:relative;overflow:visible;}",
     ".start-menu-submenu>.start-menu-item{width:100%;}",
     ".start-menu-caret{margin-left:auto;padding-left:0.75rem;}",
-    ".start-menu-flyout{display:none;position:absolute;left:100%;bottom:0;z-index:3;margin:0;padding:3px;list-style:none;min-width:11rem;background:silver;box-shadow:inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px grey, inset 2px 2px #fff;}",
+    ".start-menu-flyout{display:none;position:absolute;left:100%;top:auto;bottom:0;z-index:20;margin:0;padding:3px;list-style:none;min-width:14rem;width:max-content;max-height:70vh;overflow-x:hidden;overflow-y:auto;height:auto;background:silver;box-shadow:inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px grey, inset 2px 2px #fff;}",
+    ".start-menu-flyout .start-menu-item{display:flex;align-items:center;min-height:1.75rem;white-space:nowrap;}",
     ".start-menu-submenu:hover>.start-menu-flyout,.start-menu-submenu:focus-within>.start-menu-flyout,.start-menu-submenu.open>.start-menu-flyout{display:block;}",
+    ".k-submenu>.k-menu{position:absolute!important;left:100%!important;top:auto!important;bottom:0!important;height:auto!important;min-width:14rem!important;width:max-content!important;max-height:70vh!important;overflow-x:hidden!important;overflow-y:auto!important;z-index:1003!important;}",
   ].join("");
 
   function attach(opts) {
@@ -70,8 +72,6 @@
       ping();
     }
 
-    // iframe is pointer-events:none so tap/click hits the overlay, not the
-    // nested document (parent window never sees iframe pointer events).
     function tapOut(event) { stop(event); }
     overlay.addEventListener("pointerdown", tapOut);
     overlay.addEventListener("click", tapOut);
@@ -236,9 +236,6 @@
     }
 
     if (theme === "win7") {
-      // 3D Maze was part of the Windows-era screen-saver family; Pipes is
-      // associated with the older NT/98 collection and reads as a placeholder
-      // in the Aero shell.
       const host = attach({ src: vendor("maze"), idleMs: 45000 });
       addStartItem(document.getElementById("start-menu"), "3D Maze", () => {
         host.setSrc(vendor("maze"));
