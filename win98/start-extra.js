@@ -65,17 +65,4 @@ window.OqWin98Start = function (menu) {
     }),
     shutdown
   );
-  menu.insertBefore(
-    addItem("Run…", "icon-run", {
-      onClick: function () {
-        const name = window.prompt("Type the name of a program, folder, or document:");
-        if (!name) return;
-        const key = name.trim().toLowerCase();
-        if (key === "update" || key === "windows update") {
-          window.open("https://www.debian.org/", "_blank", "noopener");
-        }
-      },
-    }),
-    shutdown
-  );
 };
