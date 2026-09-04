@@ -122,6 +122,7 @@
   }
 
   function runCommand(raw, theme) {
+    theme = theme || themeKey();
     const key = normalize(raw);
     if (!key) return true;
     if (key === "winver" || key === "ver" || key === "winversion") {

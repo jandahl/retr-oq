@@ -1,0 +1,59 @@
+"""Start → Run across win98 / xp / win7 via router query params.
+
+?nosplash=1 skips the boot overlay.
+?run=CMD runs that command through OqRedmondRun (empty ?run= opens the dialog).
+"""
+
+import pytest
+
+THEMES = ("win98", "xp", "win7")
+
+
+def goto_theme(page, base_url, theme, extra=""):
+    q = "nosplash=1" + (("&" + extra) if extra else "")
+    page.goto(f"{base_url}/{theme}/index.html?{q}")
+    page.wait_for_function("() => window.OqRedmondRun", timeout=8000)
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_nosplash_hides_boot(page, base_url, theme):
+    goto_theme(page, base_url, theme)
+    boot = page.query_selector("#boot-screen")
+    if boot:
+        assert "is-done" in (boot.get_attribute("class") or "")
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_run_query_opens_dialog(page, base_url, theme):
+    goto_theme(page, base_url, theme, extra="run=")
+    page.wait_for_selector("#run-overlay:not([hidden])", timeout=4000)
+    assert page.is_visible("#run-input")
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_run_backrooms_query(page, base_url, theme):
+    goto_theme(page, base_url, theme, extra="run=backrooms")
+    page.wait_for_selector("#oq-ss-overlay:not([hidden])", timeout=4000)
+    src = page.get_attribute("#oq-ss-overlay iframe", "src") or ""
+    assert "maze-backrooms" in src
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_run_winver_query(page, base_url, theme):
+    goto_theme(page, base_url, theme, extra="run=WINVER.EXE")
+    page.wait_for_selector("#winver-overlay:not([hidden])", timeout=4000)
+    body = page.text_content("#winver-overlay")
+    assert "oq-api" in body.lower() or "Oq!" in body
+
+
+@pytest.mark.parametrize("theme", THEMES)
+def test_unknown_command_stays_in_dialog(page, base_url, theme):
+    goto_theme(page, base_url, theme, extra="run=")
+    page.wait_for_selector("#run-input", timeout=4000)
+    page.fill("#run-input", "not-a-real-program")
+    page.click("#run-ok")
+    page.wait_for_timeout(150)
+    assert page.get_attribute("#run-overlay", "hidden") is None
+    err = page.text_content("#run-error")
+    assert "cannot find" in err.lower()
+    assert "not-a-real-program" in err

@@ -71,7 +71,18 @@ jobs:
             win98:
               - "win98/**"
               - "vendor/win98/**"
+              - "shared/redmond/**"
+              - "shared/router.js"
               - "tests/test_win98.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
+            redmond_run:
+              - "shared/redmond/**"
+              - "shared/router.js"
+              - "win98/**"
+              - "xp/**"
+              - "win7/**"
+              - "tests/test_redmond_run.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
 
