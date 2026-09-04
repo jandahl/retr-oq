@@ -60,7 +60,7 @@
   }
 
   /**
-   * @param {(params: URLSearchParams) => void) callback invoked once
+   * @param {(params: URLSearchParams) => void} callback invoked once
    *   immediately with the current params, then again on every future route
    *   change (back/forward navigation, or any navigate() call above --
    *   including ones from other listeners, same as oq's applyRoute pattern).
