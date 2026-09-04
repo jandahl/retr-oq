@@ -33,19 +33,50 @@
       .trim();
   }
 
+  function saverUrl(id) {
+    return "../vendor/screensavers/" + id + "/index.html" + (id === "maze-backrooms" ? "?v=11" : "");
+  }
+
   function startSaver(id) {
+    const vendor = saverUrl(id);
     const ss = global.OqScreensaver || {};
-    let host = ss.host || ss.kde;
-    const vendor = "../vendor/screensavers/" + id + "/index.html" + (id === "maze-backrooms" ? "?v=11" : "");
-    if (!host && typeof ss.attach === "function" && !document.getElementById("oq-ss-overlay")) {
-      host = ss.attach({ src: vendor, idleMs: 0 });
-      ss.host = host;
-      global.OqScreensaver = ss;
+    const host = ss.host || ss.kde;
+    if (host && typeof host.setSrc === "function" && typeof host.start === "function") {
+      host.setSrc(vendor);
+      host.start();
+      return true;
     }
-    if (!host || typeof host.setSrc !== "function") return false;
-    host.setSrc(vendor);
-    host.start();
-    return true;
+    const overlay = document.getElementById("oq-ss-overlay");
+    if (overlay) {
+      const frame = overlay.querySelector("iframe");
+      if (frame) frame.src = vendor;
+      overlay.hidden = false;
+      return true;
+    }
+    const labels = {
+      "maze-backrooms": "Backrooms",
+      aquarium: "Aquarium",
+      pipes: "3D Pipes",
+      maze: "3D Maze",
+    };
+    const fly = document.querySelector("#start-ss-submenu .start-menu-flyout");
+    if (fly && labels[id]) {
+      const items = fly.querySelectorAll(".start-menu-item");
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].textContent.replace(/^\s+/, "").indexOf(labels[id]) !== -1) {
+          items[i].click();
+          return true;
+        }
+      }
+    }
+    if (typeof ss.attach === "function") {
+      const next = ss.attach({ src: vendor, idleMs: 45000 });
+      ss.host = next;
+      global.OqScreensaver = ss;
+      next.start();
+      return true;
+    }
+    return false;
   }
 
   function openApp(id) {
