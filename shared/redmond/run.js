@@ -1,6 +1,6 @@
 // Start → Run across win98 / xp / win7: a real themed dialog, not a
-// browser prompt. Commands are case-insensitive; .exe and path prefixes
-// are ignored.
+// browser prompt. Commands are case-insensitive; .exe, paths, and
+// internal spaces are ignored (so "WinVer.EXE" and "3D Pipes" match).
 (function (global) {
   function themeKey() {
     const p = location.pathname;
@@ -12,24 +12,12 @@
 
   function chrome(theme) {
     if (theme === "xp") {
-      return {
-        overlay: "xp-dialog-overlay",
-        dialog: "window xp-dialog",
-        body: "window-body xp-window-body",
-      };
+      return { overlay: "xp-dialog-overlay", dialog: "window xp-dialog", body: "window-body xp-window-body" };
     }
     if (theme === "win7") {
-      return {
-        overlay: "win7-dialog-overlay",
-        dialog: "window win7-dialog glass",
-        body: "window-body win7-window-body",
-      };
+      return { overlay: "win7-dialog-overlay", dialog: "window win7-dialog glass", body: "window-body win7-window-body" };
     }
-    return {
-      overlay: "win98-dialog-overlay",
-      dialog: "window win98-dialog",
-      body: "window-body win98-window-body",
-    };
+    return { overlay: "win98-dialog-overlay", dialog: "window win98-dialog", body: "window-body win98-window-body" };
   }
 
   function normalize(raw) {
@@ -41,6 +29,7 @@
       .pop()
       .replace(/\.exe$/i, "")
       .replace(/\.com$/i, "")
+      .replace(/\s+/g, "")
       .trim();
   }
 
@@ -48,7 +37,7 @@
     const ss = global.OqScreensaver || {};
     let host = ss.host || ss.kde;
     const vendor = "../vendor/screensavers/" + id + "/index.html" + (id === "maze-backrooms" ? "?v=11" : "");
-    if (!host && typeof ss.attach === "function") {
+    if (!host && typeof ss.attach === "function" && !document.getElementById("oq-ss-overlay")) {
       host = ss.attach({ src: vendor, idleMs: 0 });
       ss.host = host;
       global.OqScreensaver = ss;
@@ -108,7 +97,7 @@
       showWinver(theme);
       return true;
     }
-    if (key === "backrooms" || key === "maze-backrooms") return startSaver("maze-backrooms");
+    if (key === "backrooms" || key === "mazebackrooms") return startSaver("maze-backrooms");
     if (key === "aquarium") return startSaver("aquarium");
     if (key === "pipes" || key === "3dpipes") return startSaver("pipes");
     if (key === "maze" || key === "3dmaze") return startSaver("maze");
@@ -118,8 +107,8 @@
     }
     if (key === "oq" || key === "oq!") return openApp("win-oq");
     if (key === "decon") return openApp("win-decon");
-    if (key === "help") return openApp("win-help") || (window.alert("retr-oq prototype. Shut Down returns to the theme picker."), true);
-    if (key === "find") return openApp("win-find") || (window.alert("Find is a stub."), true);
+    if (key === "help") return openApp("win-help") || (showWinver(theme), true);
+    if (key === "find") return openApp("win-find") || false;
     if (key === "settings" || key === "control") return openApp("win-settings");
     return false;
   }
@@ -137,6 +126,7 @@
       '<div class="title-bar"><div class="title-bar-text">Run</div></div>' +
       '<div class="' + c.body + '">' +
       "<p>Type the name of a program, folder, document, or Internet resource, and Windows will open it for you.</p>" +
+      '<p id="run-error" hidden style="color:#c00000"></p>' +
       '<div class="field-row" style="display:flex;gap:0.5rem;align-items:center">' +
       '<label for="run-input">Open:</label>' +
       '<input type="text" id="run-input" autocomplete="off" style="flex:1" />' +
@@ -147,13 +137,21 @@
       "</div></div></section>";
     document.body.appendChild(overlay);
     const input = overlay.querySelector("#run-input");
-    function close() { overlay.hidden = true; }
+    const err = overlay.querySelector("#run-error");
+    function close() {
+      overlay.hidden = true;
+      err.hidden = true;
+    }
     function accept() {
       const raw = input.value;
-      close();
       if (!runCommand(raw, theme)) {
-        window.alert("Windows cannot find '" + raw + "'. Make sure you typed the name correctly.");
+        err.textContent = "Windows cannot find '" + raw + "'. Make sure you typed the name correctly.";
+        err.hidden = false;
+        input.focus();
+        input.select();
+        return;
       }
+      close();
     }
     overlay.querySelector("#run-ok").addEventListener("click", accept);
     overlay.querySelector("#run-cancel").addEventListener("click", close);
@@ -181,6 +179,8 @@
       const overlay = ensureRunDialog(theme);
       overlay.hidden = false;
       const input = overlay.querySelector("#run-input");
+      const err = overlay.querySelector("#run-error");
+      if (err) err.hidden = true;
       input.focus();
       input.select();
     });
