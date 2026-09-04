@@ -20,11 +20,14 @@ def dismiss_boot(page):
 def goto_theme(page, base_url, theme):
     page.goto(f"{base_url}/{theme}/index.html")
     dismiss_boot(page)
-    page.wait_for_selector("#start-menu-run", timeout=8000)
+    # The Run item lives inside #start-menu, which starts hidden -- wait for
+    # attached, not visible.
+    page.wait_for_selector("#start-menu-run", state="attached", timeout=8000)
 
 
 def open_run(page):
     page.click("#start-button")
+    page.wait_for_selector("#start-menu-run", state="visible", timeout=3000)
     page.click("#start-menu-run")
     page.wait_for_selector("#run-overlay:not([hidden])", timeout=3000)
     page.wait_for_selector("#run-input")
