@@ -20,10 +20,23 @@
 (() => {
   "use strict";
 
+  /** @returns {URLSearchParams} the current query string, read fresh every call -- never cached, since history navigation can change it out from under a stale copy. */
   function getParams() {
     return new URLSearchParams(location.search);
   }
 
+  /**
+   * Merges `updates` into the current query string (a key set to `null` or
+   * `undefined` is removed rather than stringified to "null") and pushes or
+   * replaces that as the new URL. Fires "oq-route-change" either way, since
+   * pushState/replaceState never fire "popstate" on their own -- listeners
+   * need one consistent event for "the route changed" regardless of how.
+   * @param {Record<string, string|null|undefined>} updates
+   * @param {{replace?: boolean}} [options] replace: true for in-place
+   *   refinements (e.g. typing into a filter field) that shouldn't each get
+   *   their own back-button stop; omit/false for a real navigation (e.g.
+   *   opening or closing a full-screen app) that should.
+   */
   function navigate(updates, options = {}) {
     const params = getParams();
     for (const [key, value] of Object.entries(updates)) {
@@ -39,10 +52,19 @@
     try {
       history[method](null, "", url);
     } catch {
+      // pushState/replaceState can fail in sandboxed iframes -- the route
+      // change event below still fires, so in-page state stays consistent
+      // even if the address bar itself can't be updated.
     }
     window.dispatchEvent(new CustomEvent("oq-route-change", { detail: { params } }));
   }
 
+  /**
+   * @param {(params: URLSearchParams) => void} callback invoked once
+   *   immediately with the current params, then again on every future route
+   *   change (back/forward navigation, or any navigate() call above --
+   *   including ones from other listeners, same as oq's applyRoute pattern).
+   */
   function onChange(callback) {
     callback(getParams());
     window.addEventListener("popstate", () => callback(getParams()));
@@ -51,6 +73,7 @@
 
   window.OqRouter = { getParams, navigate, onChange };
 
+  // Desktop + text-mode themes: load the screensaver host from next to this file.
   if (/\/(win31|win98|xp|win7|kde|mac8|mac1984|amiga|next|dos|c64)(\/|$)/.test(location.pathname)) {
     const s = document.createElement("script");
     const src = document.currentScript && document.currentScript.src;
