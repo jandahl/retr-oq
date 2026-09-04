@@ -9,9 +9,12 @@
     ".start-menu-submenu{position:relative;overflow:visible;}",
     ".start-menu-submenu>.start-menu-item{width:100%;}",
     ".start-menu-caret{margin-left:auto;padding-left:0.75rem;}",
-    ".start-menu-flyout{display:none;position:absolute;left:100%;top:auto;bottom:0;z-index:20;margin:0;padding:3px;list-style:none;min-width:14rem;width:max-content;max-height:70vh;overflow-x:hidden;overflow-y:auto;height:auto;background:silver;box-shadow:inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px grey, inset 2px 2px #fff;}",
+    "#start-menu{overflow:visible!important;}",
+    ".start-menu-flyout,#start-menu ul[role=menu].start-menu-flyout{display:none;position:absolute!important;left:100%!important;right:auto!important;top:auto!important;bottom:0!important;z-index:20!important;margin:0!important;padding:3px!important;list-style:none;min-width:14rem!important;width:max-content!important;max-width:18rem;max-height:70vh!important;overflow-x:hidden!important;overflow-y:auto!important;height:auto!important;background:silver;box-shadow:inset -1px -1px #0a0a0a, inset 1px 1px #dfdfdf, inset -2px -2px grey, inset 2px 2px #fff;}",
     ".start-menu-flyout .start-menu-item{display:flex;align-items:center;min-height:1.75rem;white-space:nowrap;}",
-    ".start-menu-submenu:hover>.start-menu-flyout,.start-menu-submenu:focus-within>.start-menu-flyout,.start-menu-submenu.open>.start-menu-flyout{display:block;}",
+    ".start-menu-submenu:hover>.start-menu-flyout,.start-menu-submenu:focus-within>.start-menu-flyout,.start-menu-submenu.open>.start-menu-flyout{display:block!important;}",
+    "body.theme-xp .start-menu-flyout{background:#fff!important;border:1px solid #0a4fc4;border-radius:0 3px 3px 0;box-shadow:2px 2px 6px rgba(0,0,0,.35),0 0 0 1px #7aa6ec!important;}",
+    "body.theme-win7 .start-menu-flyout{background:rgba(245,249,255,.95)!important;border:1px solid rgba(255,255,255,.55);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,10,.4),inset 0 1px rgba(255,255,255,.6)!important;}",
     ".k-submenu>.k-menu{position:absolute!important;left:100%!important;top:auto!important;bottom:0!important;height:auto!important;min-width:14rem!important;width:max-content!important;max-height:70vh!important;overflow-x:hidden!important;overflow-y:auto!important;z-index:1003!important;}",
   ].join("");
 
@@ -179,6 +182,7 @@
   function boot() {
     const theme = themeKey();
     if (!theme) return;
+    document.body.classList.add("theme-" + theme);
 
     if (theme === "win31") {
       const host = attach({ src: vendor("flying-windows"), idleMs: 45000 });
