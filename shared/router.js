@@ -60,7 +60,7 @@
   }
 
   /**
-   * @param {(params: URLSearchParams) => void} callback invoked once
+   * @param {(params: URLSearchParams) => void) callback invoked once
    *   immediately with the current params, then again on every future route
    *   change (back/forward navigation, or any navigate() call above --
    *   including ones from other listeners, same as oq's applyRoute pattern).
@@ -78,8 +78,8 @@
     const s = document.createElement("script");
     const src = document.currentScript && document.currentScript.src;
     s.src = src
-      ? src.replace(/router\.js.*$/, "redmond/screensaver.js?v=18")
-      : "../shared/redmond/screensaver.js?v=18";
+      ? src.replace(/router\.js.*$/, "redmond/screensaver.js?v=19")
+      : "../shared/redmond/screensaver.js?v=19";
     document.head.appendChild(s);
   }
 })();
