@@ -41,19 +41,31 @@ window.OqWin98Start = function (menu) {
   menu.insertBefore(div0, firstReal);
   menu.insertBefore(update, div0);
 
-  const extras = [
-    addItem("Favorites", "icon-favorites", { disabled: true }),
-    addItem("Documents", "icon-documents", { disabled: true }),
+  const programs = menu.querySelector(".icon-programs");
+  const programsItem = programs && programs.closest("li");
+  const settings = menu.querySelector('[data-open="win-settings"]');
+  const afterPrograms = programsItem && programsItem.nextSibling;
+  menu.insertBefore(addItem("Favorites", "icon-favorites", { disabled: true }), afterPrograms || settings || shutdown);
+  menu.insertBefore(addItem("Documents", "icon-documents", { disabled: true }), settings || shutdown);
+
+  const afterSettings = settings && settings.nextSibling;
+  menu.insertBefore(
     addItem("Find", "icon-find", {
       onClick: function () {
         window.alert("Find is a stub — there is no file system to search.");
       },
     }),
+    afterSettings || shutdown
+  );
+  menu.insertBefore(
     addItem("Help", "icon-help", {
       onClick: function () {
         window.alert("retr-oq Windows 98 prototype. Shut Down returns to the theme picker.");
       },
     }),
+    shutdown
+  );
+  menu.insertBefore(
     addItem("Run…", "icon-run", {
       onClick: function () {
         const name = window.prompt("Type the name of a program, folder, or document:");
@@ -64,10 +76,6 @@ window.OqWin98Start = function (menu) {
         }
       },
     }),
-  ];
-  const settings = menu.querySelector('[data-open="win-settings"]');
-  const anchor = settings || shutdown;
-  extras.forEach(function (el) {
-    menu.insertBefore(el, anchor);
-  });
+    shutdown
+  );
 };
