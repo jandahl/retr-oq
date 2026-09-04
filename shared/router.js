@@ -16,6 +16,11 @@
 // this file only owns reading/writing the query string and telling
 // listeners when it changed, the same generic job router.js does in oq
 // before any view-specific logic layers on top.
+//
+// Shared desk params (Redmond and anyone else with a #boot-screen):
+//   ?nosplash=1  skip the boot overlay
+//   ?run=backrooms   Start → Run that command (win98/xp/win7)
+//   ?run=            just open the Run dialog
 
 (() => {
   "use strict";
@@ -80,11 +85,41 @@
     document.head.appendChild(s);
   }
 
+  function applyDeskParams() {
+    const params = getParams();
+    if (params.has("nosplash")) {
+      const boot = document.getElementById("boot-screen");
+      if (boot) {
+        boot.classList.add("is-done");
+        boot.setAttribute("hidden", "");
+      }
+    }
+    if (!params.has("run")) return;
+    const cmd = params.get("run") || "";
+    let tries = 0;
+    function kick() {
+      const api = window.OqRedmondRun;
+      if (api) {
+        if (cmd) api.run(cmd);
+        else api.open();
+        return;
+      }
+      if (tries++ < 40) window.setTimeout(kick, 50);
+    }
+    kick();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applyDeskParams);
+  } else {
+    applyDeskParams();
+  }
+
   // Desktop + text-mode themes: load the screensaver host from next to this file.
   if (/\/(win31|win98|xp|win7|kde|mac8|mac1984|amiga|next|dos|c64)(\/|$)/.test(location.pathname)) {
     loadNextToRouter("redmond/screensaver.js?v=20");
   }
   if (/\/(win98|xp|win7)(\/|$)/.test(location.pathname)) {
-    loadNextToRouter("redmond/run.js?v=3");
+    loadNextToRouter("redmond/run.js?v=4");
   }
 })();
