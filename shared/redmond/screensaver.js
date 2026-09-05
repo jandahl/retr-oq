@@ -241,19 +241,34 @@
     if (theme === "win31") {
       const host = attach({ src: vendor("flying-windows"), idleMs: 45000 });
       const group = document.querySelector("#win-group-acc .group-icons");
-      if (group && !document.getElementById("acc-ss")) {
+      const savers = [
+        ["acc-ss", "Flying Windows", "flying-windows"],
+        ["acc-ss-mystify", "Mystify", "mystify"],
+        ["acc-ss-starfield", "Starfield", "starfield"],
+        ["acc-ss-marquee", "Marquee", "marquee"],
+        ["acc-ss-beziers", "Beziers", "beziers"],
+        ["acc-ss-toasters", "Flying Toasters", "flying-toasters"],
+      ];
+      savers.forEach(function (row) {
+        const id = row[0];
+        const label = row[1];
+        const name = row[2];
+        if (!group || document.getElementById(id)) return;
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = "prog-icon";
-        btn.id = "acc-ss";
+        btn.id = id;
         btn.innerHTML =
           '<span class="prog-icon-glyph icon-ss" aria-hidden="true"></span>' +
-          '<span class="prog-icon-label">Flying Windows</span>';
+          '<span class="prog-icon-label">' + label + "</span>";
         const about = document.getElementById("acc-about");
         if (about) group.insertBefore(btn, about);
         else group.appendChild(btn);
-        bindAccessory(btn, host.start);
-      }
+        bindAccessory(btn, function () {
+          host.setSrc(vendor(name));
+          host.start();
+        });
+      });
       return;
     }
 
