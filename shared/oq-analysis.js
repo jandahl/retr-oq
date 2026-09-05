@@ -28,6 +28,8 @@
 (async () => {
   let api;
   try {
+    // This deployment refreshes the rolling alias after oq-api 0.1.1; keep
+    // the URL unpinned so later compatible patches need no code PR.
     api = await import("https://jandahl.github.io/oq-api/api/v0.1-latest/public-api.js");
   } catch (err) {
     // window.OqAnalysis.analyzeWord still exists and is still a function
