@@ -1,14 +1,14 @@
 const scene = new THREE.Scene();
 const fov = 75;
 const aspect = window.innerWidth / window.innerHeight;
-const near = 0.1;
+const near = 1;
 const far = 1000;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false });
 renderer.setClearColor(0x000000, 1);
 
 function greenlandFlagTexture() {
-  // Erfalasorput: 12×18 units, disk diameter 8, center 7 from the hoist.
+  // Erfalasorput: 12×18, white over red, disk diameter 8, center 7 from hoist.
   const unit = 16;
   const c = document.createElement("canvas");
   c.width = 18 * unit;
@@ -16,9 +16,9 @@ function greenlandFlagTexture() {
   const g = c.getContext("2d");
   const red = "#C8102E";
   const white = "#FFFFFF";
-  g.fillStyle = red;
-  g.fillRect(0, 0, c.width, c.height / 2);
   g.fillStyle = white;
+  g.fillRect(0, 0, c.width, c.height / 2);
+  g.fillStyle = red;
   g.fillRect(0, c.height / 2, c.width, c.height / 2);
   const cx = c.width * (7 / 18);
   const cy = c.height / 2;
@@ -27,7 +27,7 @@ function greenlandFlagTexture() {
   g.beginPath();
   g.rect(0, 0, c.width, c.height / 2);
   g.clip();
-  g.fillStyle = white;
+  g.fillStyle = red;
   g.beginPath();
   g.arc(cx, cy, r, 0, Math.PI * 2);
   g.fill();
@@ -36,7 +36,7 @@ function greenlandFlagTexture() {
   g.beginPath();
   g.rect(0, c.height / 2, c.width, c.height / 2);
   g.clip();
-  g.fillStyle = red;
+  g.fillStyle = white;
   g.beginPath();
   g.arc(cx, cy, r, 0, Math.PI * 2);
   g.fill();
@@ -96,48 +96,22 @@ function animate() {
 }
 
 function createFlyingWindows(qty) {
-  const width = 1.5;
-  const height = 1;
-  const depth = 0.01;
-
-  const geometry = new THREE.BoxGeometry(width, height, depth);
-  const flyingWindows = [];
-
-  const windowImageMaterial = new THREE.MeshBasicMaterial({
+  // One plane, flag only. A thin box with a palette back sat in the same
+  // depth as the flag and z-fought with the old Windows-logo colors.
+  const geometry = new THREE.PlaneGeometry(1.5, 1);
+  const material = new THREE.MeshBasicMaterial({
     map: greenlandFlagTexture(),
     transparent: false,
-    side: THREE.FrontSide,
-  });
-
-  const blackMaterial = new THREE.MeshBasicMaterial({
-    color: 0x000000,
     side: THREE.DoubleSide,
-    polygonOffset: true,
-    polygonOffsetFactor: -1,
-    polygonOffsetUnits: 1,
+    depthWrite: true,
+    depthTest: true,
   });
-
+  const flyingWindows = [];
   for (let i = 0; i < qty; i++) {
-    const color = getRandomColor();
-    const colorMaterial = new THREE.MeshBasicMaterial({
-      color,
-      side: THREE.BackSide,
-    });
-
-    const materials = [
-      blackMaterial,
-      blackMaterial,
-      blackMaterial,
-      blackMaterial,
-      windowImageMaterial,
-      colorMaterial,
-    ];
-
-    const flyingWindow = new THREE.Mesh(geometry, materials);
+    const flyingWindow = new THREE.Mesh(geometry, material);
     randomlyPositionFlyingWindow(flyingWindow, camera);
     flyingWindows.push(flyingWindow);
   }
-
   return flyingWindows;
 }
 
@@ -155,13 +129,6 @@ function randomlyPositionFlyingWindow(flyingWindow, camera) {
   if (Math.random() > 0.5) {
     flyingWindow.position.y *= -1;
   }
-
-  const color = getRandomColor();
-  flyingWindow.material[0].color.setHex = color;
-  flyingWindow.material[1].color.setHex = color;
-  flyingWindow.material[2].color.setHex = color;
-  flyingWindow.material[3].color.setHex = color;
-  flyingWindow.material[5].color.setHex = color;
 }
 
 function onWindowResize() {

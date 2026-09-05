@@ -150,8 +150,19 @@ test("Starfield keeps warp trails short and adds shooting stars", () => {
 
 test("Flying Windows face is the Greenland flag, not a four-pane logo", () => {
   const src = read("vendor/screensavers/flying-windows/app.js");
+  const html = read("vendor/screensavers/flying-windows/index.html");
   assert.match(src, /greenlandFlagTexture/);
   assert.match(src, /#C8102E/);
+  assert.match(src, /PlaneGeometry/);
   assert.doesNotMatch(src, /gagWindowTexture/);
   assert.doesNotMatch(src, /#c00000/);
+  assert.doesNotMatch(src, /BoxGeometry/);
+  assert.doesNotMatch(src, /getRandomColor/);
+  assert.doesNotMatch(src, /THREE\.BackSide/);
+  assert.doesNotMatch(html, /flying-windows-256-colors/);
+  // White over red (Erfalasorput). Red-on-top was the upside-down paint.
+  assert.match(src, /fillStyle = white;\s*\n\s*g\.fillRect\(0, 0,/);
+  assert.match(src, /fillStyle = red;\s*\n\s*g\.fillRect\(0, c\.height \/ 2,/);
 });
+
+
