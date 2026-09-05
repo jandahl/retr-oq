@@ -200,13 +200,14 @@ def test_host_launch_url_carries_oqret(page, base_url):
 
 
 def test_xp_run_backrooms_is_ii_not_maze(page, base_url):
+    # Dual-path host unhides the overlay, then two rAFs later assigns
+    # iframe.src. Waiting only for overlay visibility races that
+    # assignment (master CI failed with src '').
     page.goto(f"{base_url}/xp/index.html?nosplash=1&run=backrooms")
-    page.wait_for_selector("#oq-ss-overlay:not([hidden])", timeout=8000)
-    src = page.evaluate(
-        "() => (document.querySelector('#oq-ss-overlay iframe') || {}).src || ''"
-    )
-    assert "backrooms-ii" in src
+    size = wait_overlay_saver(page, "backrooms-ii")
+    src = size.get("src") or ""
     assert "maze-backrooms" not in src
+    assert "oqret=" not in src
 
 
 def test_nested_iframe_navigates_with_oqret(page, base_url):
