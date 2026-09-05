@@ -21,7 +21,11 @@ def goto_win98(page, base_url):
     unexpected_404s = []
     page.on(
         "response",
-        lambda r: unexpected_404s.append(r.url) if r.status == 404 and not r.url.endswith("/favicon.ico") else None,
+        lambda r: unexpected_404s.append(r.url)
+        if r.status == 404
+        and not r.url.endswith("/favicon.ico")
+        and r.url.startswith(base_url)
+        else None,
     )
     console_errors = []
     page.on("console", lambda m: console_errors.append(m.text) if m.type == "error" else None)
@@ -45,10 +49,10 @@ def goto_win98(page, base_url):
 def test_loads_without_errors(page, base_url):
     errors, console_errors, unexpected_404s = goto_win98(page, base_url)
     assert errors == []
-    # No 404 other than the harmless favicon (every page in this repo gets
-    # one, since none of them ship a favicon) -- checked against the real
-    # response, not string-matched against the console message, which
-    # never actually includes the URL.
+    # No 404 on this theme's own assets other than the harmless favicon
+    # (every page in this repo gets one, since none of them ship a favicon).
+    # Off-origin 404s (oq-api Pages) are a degraded DECON path already
+    # caught by shared/oq-analysis.js -- they must not fail the desk load.
     assert unexpected_404s == []
     # Any remaining console "error" is real, once the generic
     # "Failed to load resource ... 404" text (already proven above to be
