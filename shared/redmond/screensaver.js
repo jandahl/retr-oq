@@ -172,7 +172,7 @@
   }
 
   function vendor(name) {
-    var bust = name === "maze-backrooms" ? "?v=14" : name === "backrooms-ii" ? "?v=6" : "?v=ss4";
+    var bust = name === "maze-backrooms" ? "?v=14" : name === "backrooms-ii" ? "?v=6" : name === "flying-windows" ? "?v=ss5" : "?v=ss4";
     return "../vendor/screensavers/" + name + "/index.html" + bust;
   }
 
