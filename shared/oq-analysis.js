@@ -8,12 +8,12 @@
 // directly (browser ES module or Node)"). This repo targets http(s)
 // hosting, not file://, so that's not a constraint here.
 //
-// Imported from oq-api's rolling 0.0 alias rather than vendored —
+// Imported from oq-api's rolling 0.1 alias rather than vendored —
 // public-api.js's whole point is to be a stable import boundary;
 // vendoring a copy would defeat that and silently drift stale.
 //
-// api/v0.0-latest tracks the newest 0.0.x (oq-api-0.0-latest tarball)
-// until a breaking 0.1 line. Frozen v0.0.N URLs are for reproducible
+// api/v0.1-latest tracks the newest 0.1.x (oq-api-0.1-latest tarball)
+// until a breaking 0.2 line. Frozen v0.1.N URLs are for reproducible
 // pins only.
 //
 // Dynamic import(), not a static top-level `import` -- a static import
@@ -28,7 +28,7 @@
 (async () => {
   let api;
   try {
-    api = await import("https://jandahl.github.io/oq-api/api/v0.0-latest/public-api.js");
+    api = await import("https://jandahl.github.io/oq-api/api/v0.1-latest/public-api.js");
   } catch (err) {
     // window.OqAnalysis.analyzeWord still exists and is still a function
     // that returns a rejected Promise -- callers (dos/app.js's
