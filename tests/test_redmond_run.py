@@ -42,8 +42,24 @@ def test_run_query_opens_dialog(page, base_url, theme):
     ],
 )
 def test_run_backrooms_query(page, base_url, theme, needle):
+    # Dual-path host: top-level (this suite) unhides the overlay, then two
+    # rAFs later assigns iframe.src. Waiting only for the overlay being
+    # visible races that assignment (CI failed with src ''). Nested
+    # preview iframes instead navigate this document with ?oqret=.
     page.goto(f"{base_url}/{theme}/index.html?nosplash=1&run=backrooms")
-    page.wait_for_selector("#oq-ss-overlay:not([hidden])", timeout=8000)
+    page.wait_for_function(
+        """(needle) => {
+          if (location.href.indexOf(needle) !== -1) return true;
+          const frame = document.querySelector("#oq-ss-overlay iframe");
+          const src = (frame && (frame.getAttribute("src") || frame.src)) || "";
+          return src.indexOf(needle) !== -1;
+        }""",
+        arg=needle,
+        timeout=8000,
+    )
+    if needle in page.url:
+        assert "oqret=" in page.url
+        return
     src = page.get_attribute("#oq-ss-overlay iframe", "src") or ""
     assert needle in src
     assert "oqret=" not in src
