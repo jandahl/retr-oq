@@ -10,4 +10,5 @@ WM via `shared/redmond/window-manager.js`. XP.css dist build vendored.
   `shared/redmond/window-manager.js`; this theme has no custom context
   menu of its own layered on top (unlike `win98/`).
 - Shut Down → `../`, same reference pattern as `win98/`.
-- 3D Pipes remake (`vendor/screensavers/pipes/`, MIT) on idle (45s) and Start → 3D Pipes.
+- 3D Pipes remake (`vendor/screensavers/pipes/`, MIT) on idle (45s) and Start → Screen Savers → 3D Pipes.
+- Backrooms II (`vendor/screensavers/backrooms-ii/`) on Start → Screen Savers. Original OpenGL showroom drift; not maze-backrooms.

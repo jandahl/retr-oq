@@ -34,49 +34,29 @@
   }
 
   function saverUrl(id) {
-    return "../vendor/screensavers/" + id + "/index.html" + (id === "maze-backrooms" ? "?v=11" : "");
+    var bust = id === "maze-backrooms" ? "?v=14" : id === "backrooms-ii" ? "?v=6" : "?v=ss3";
+    return "../vendor/screensavers/" + id + "/index.html" + bust;
   }
 
   function startSaver(id) {
     const vendor = saverUrl(id);
-    const ss = global.OqScreensaver || {};
-    const host = ss.host || ss.kde;
-    if (host && typeof host.setSrc === "function" && typeof host.start === "function") {
-      host.setSrc(vendor);
-      host.start();
-      return true;
-    }
-    const overlay = document.getElementById("oq-ss-overlay");
-    if (overlay) {
-      const frame = overlay.querySelector("iframe");
-      if (frame) frame.src = vendor;
-      overlay.hidden = false;
-      return true;
-    }
-    const labels = {
-      "maze-backrooms": "Backrooms",
-      aquarium: "Aquarium",
-      pipes: "3D Pipes",
-      maze: "3D Maze",
-    };
-    const fly = document.querySelector("#start-ss-submenu .start-menu-flyout");
-    if (fly && labels[id]) {
-      const items = fly.querySelectorAll(".start-menu-item");
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].textContent.replace(/^\s+/, "").indexOf(labels[id]) !== -1) {
-          items[i].click();
-          return true;
-        }
+    function go() {
+      const ss = global.OqScreensaver || {};
+      const host = ss.host || ss.kde;
+      if (host && typeof host.setSrc === "function" && typeof host.start === "function") {
+        host.setSrc(vendor);
+        host.start();
+        return true;
       }
+      return false;
     }
-    if (typeof ss.attach === "function") {
-      const next = ss.attach({ src: vendor, idleMs: 45000 });
-      ss.host = next;
-      global.OqScreensaver = ss;
-      next.start();
-      return true;
-    }
-    return false;
+    if (go()) return true;
+    let tries = 0;
+    (function kick() {
+      if (go()) return;
+      if (tries++ < 40) window.setTimeout(kick, 50);
+    })();
+    return true;
   }
 
   function openApp(id) {
@@ -129,7 +109,10 @@
       showWinver(theme);
       return true;
     }
-    if (key === "backrooms" || key === "mazebackrooms") return startSaver("maze-backrooms");
+    if (key === "backroomsii" || key === "backrooms2") return startSaver("backrooms-ii");
+    if (key === "backrooms" || key === "mazebackrooms") {
+      return startSaver(theme === "xp" ? "backrooms-ii" : "maze-backrooms");
+    }
     if (key === "aquarium") return startSaver("aquarium");
     if (key === "pipes" || key === "3dpipes") return startSaver("pipes");
     if (key === "maze" || key === "3dmaze") return startSaver("maze");

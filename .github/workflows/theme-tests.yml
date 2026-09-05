@@ -85,6 +85,18 @@ jobs:
               - "tests/test_redmond_run.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+            screensavers:
+              - "vendor/screensavers/**"
+              - "shared/redmond/**"
+              - "shared/router.js"
+              - "xp/**"
+              - "win98/**"
+              - "win7/**"
+              - "win31/**"
+              - "kde/**"
+              - "tests/test_screensavers.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
 
   shared-node-tests:
     # shared/morph-puzzles.js, shared/morph-game.js and shared/klax-game.js

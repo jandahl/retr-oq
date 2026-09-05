@@ -1,5 +1,10 @@
-// Fullscreen iframe host for vendored screensaver remakes.
-// Auto-wires win31 / win98 / xp / win7. Themes may also call attach() by hand.
+// Fullscreen screensaver host for vendored remakes.
+// Auto-wires win31 / win98 / xp / win7 / kde / mac / amiga / next / dos / c64.
+// Nested browsing contexts (live-preview iframes) composite child-iframe
+// WebGL as black, so start() navigates this document with ?oqret= when
+// nested. Top-level (GitHub Pages, Playwright) uses #oq-ss-overlay:
+// unhide the overlay, then set iframe src so GL is not 0×0. ss-exit.js
+// returns to the desk when ?oqret= is present.
 (function (global) {
   const CSS = [
     "#oq-ss-overlay{position:fixed;inset:0;z-index:2147483646;background:#000;}",
@@ -40,6 +45,15 @@
     const frame = overlay.querySelector("iframe");
     let timer = 0;
     let running = false;
+    let ignoreUntil = 0;
+
+    function nestedFrame() {
+      try {
+        return window.self !== window.top;
+      } catch (e) {
+        return true;
+      }
+    }
 
     function stop(event) {
       if (event && running) {
@@ -52,12 +66,41 @@
       ping();
     }
 
+    function resolveSrc() {
+      return typeof src === "function" ? src() : src;
+    }
+
+    function returnUrl() {
+      var path = location.pathname || "/";
+      if (!/\/$/.test(path)) path = path.replace(/[^/]+$/, "");
+      if (!path) path = "/";
+      return path + "?nosplash=1";
+    }
+
+    function launchUrl() {
+      var url = resolveSrc();
+      var join = url.indexOf("?") >= 0 ? "&" : "?";
+      return url + join + "oqret=" + encodeURIComponent(returnUrl());
+    }
+
     function start() {
+      // Nested browsing contexts (live-preview iframes, embeds) composite
+      // child-iframe WebGL as black. Navigate this document instead.
+      if (nestedFrame()) {
+        location.href = launchUrl();
+        return;
+      }
       if (running) return;
       running = true;
       clearTimeout(timer);
-      frame.src = typeof src === "function" ? src() : src;
+      ignoreUntil = Date.now() + 800;
       overlay.hidden = false;
+      frame.removeAttribute("src");
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          frame.src = resolveSrc();
+        });
+      });
     }
 
     function ping() {
@@ -68,17 +111,25 @@
 
     function setSrc(next) {
       src = next;
-      if (running) frame.src = typeof src === "function" ? src() : src;
+      if (running && !nestedFrame()) frame.src = resolveSrc();
     }
     function setIdleMs(next) {
       idleMs = Math.max(0, Number(next) || 0);
       ping();
     }
 
-    function tapOut(event) { stop(event); }
+    function tapOut(event) {
+      if (Date.now() < ignoreUntil) return;
+      stop(event);
+    }
     overlay.addEventListener("pointerdown", tapOut);
     overlay.addEventListener("click", tapOut);
     overlay.addEventListener("touchstart", tapOut, { passive: false });
+    frame.addEventListener("load", () => {
+      try {
+        frame.contentWindow.dispatchEvent(new Event("resize"));
+      } catch (e) {}
+    });
     window.addEventListener("keydown", (event) => {
       if (running) stop(event);
       else ping();
@@ -90,11 +141,14 @@
       else ping();
     });
     ping();
-    return { start, stop, setSrc, setIdleMs, ping };
+    const api = { start, stop, setSrc, setIdleMs, ping, launchUrl };
+    global.OqScreensaver = global.OqScreensaver || { attach };
+    global.OqScreensaver.host = api;
+    return api;
   }
 
   function vendor(name) {
-    var bust = name === "maze-backrooms" ? "?v=11" : "";
+    var bust = name === "maze-backrooms" ? "?v=14" : name === "backrooms-ii" ? "?v=6" : "?v=ss3";
     return "../vendor/screensavers/" + name + "/index.html" + bust;
   }
 
@@ -238,8 +292,8 @@
         host.setSrc(vendor("pipes"));
         host.start();
       });
-      addStartItem(menu, "Backrooms", () => {
-        host.setSrc(vendor("maze-backrooms"));
+      addStartItem(menu, "Backrooms II", () => {
+        host.setSrc(vendor("backrooms-ii"));
         host.start();
       });
       return;

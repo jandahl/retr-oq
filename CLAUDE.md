@@ -147,7 +147,9 @@ an open PR, say so in the description and check both actually reached
 ## Tests
 
 `tests/test_win98.py`, `test_nes.py`, `test_gb.py`, `test_snes.py`,
-`test_gg.py` run in GitHub Actions when those themes change.
+`test_gg.py`, `test_redmond_run.py`, `test_screensavers.py` run in GitHub
+Actions when those themes (or the shared screensaver host) change.
+`tests/shared/*.mjs` always runs (Node, no browser).
 
 ```bash
 pip install -r tests/requirements.txt
