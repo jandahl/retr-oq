@@ -15,4 +15,4 @@ teal desktop, close lives only in the Control-menu (double-click the box).
   credits — undocumented beyond this pointer.
 - Don't add a title-bar close "for touch" — see `CLAUDE.md`, this is a
   deliberate period-accurate omission, not a bug.
-- Idle screen saver stays Flying Windows (`vendor/screensavers/flying-windows/`, MIT; gag four-pane mark), 45s. Accessories also has Mystify, Starfield, Marquee, Beziers (Win 3.1-style canvas remakes) and Flying Toasters (gag geometry, not After Dark art).
+- Idle screen saver stays Flying Windows (`vendor/screensavers/flying-windows/`, MIT; Greenland flag, not a Windows logo), 45s. Accessories also has Mystify, Starfield, Marquee (`oq!` in Times New Roman fuchsia), Beziers (Win 3.1-style canvas remakes) and Flying Toasters (gag geometry, not After Dark art).

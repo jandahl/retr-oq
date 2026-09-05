@@ -84,6 +84,8 @@ test("host navigates with oqret when nested; overlay when top-level", () => {
   assert.match(src, /oqret=/);
   assert.match(src, /encodeURIComponent\(returnUrl\(\)\)/);
   assert.match(src, /OqScreensaver\.host\s*=\s*api/);
+  assert.match(src, /function layoutOverlay\(/);
+  assert.match(src, /getComputedStyle\(document\.documentElement\)\.zoom/);
   // Unhide before assigning iframe src so WebGL does not init at 0×0.
   const unhide = start[0].indexOf("overlay.hidden = false");
   const assign = start[0].indexOf("frame.src = resolveSrc()");
@@ -128,4 +130,28 @@ test("Run on XP maps backrooms to Backrooms II, not the 98 maze", () => {
   assert.match(src, /theme === "xp"\s*\?\s*"backrooms-ii"\s*:\s*"maze-backrooms"/);
   assert.doesNotMatch(src, /frame\.src\s*=\s*vendor/);
   assert.match(src, /host\.start\(\)/);
+});
+
+test("Win 3.1 Marquee is Times New Roman fuchsia oq!", () => {
+  const src = read("vendor/screensavers/marquee/app.js");
+  assert.match(src, /["']oq!["']/);
+  assert.match(src, /Times New Roman/);
+  assert.match(src, /#ff00ff/i);
+  assert.doesNotMatch(src, /Windows 3\.1/);
+  assert.doesNotMatch(src, /MS Sans Serif/);
+});
+
+test("Starfield keeps warp trails short and adds shooting stars", () => {
+  const src = read("vendor/screensavers/starfield/app.js");
+  assert.match(src, /spawnMeteor/);
+  assert.match(src, /maxTrail/);
+  assert.match(src, /nextMeteor/);
+});
+
+test("Flying Windows face is the Greenland flag, not a four-pane logo", () => {
+  const src = read("vendor/screensavers/flying-windows/app.js");
+  assert.match(src, /greenlandFlagTexture/);
+  assert.match(src, /#C8102E/);
+  assert.doesNotMatch(src, /gagWindowTexture/);
+  assert.doesNotMatch(src, /#c00000/);
 });

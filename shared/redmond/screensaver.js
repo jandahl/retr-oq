@@ -7,9 +7,9 @@
 // returns to the desk when ?oqret= is present.
 (function (global) {
   const CSS = [
-    "#oq-ss-overlay{position:fixed;inset:0;z-index:2147483646;background:#000;}",
+    "#oq-ss-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:2147483646;background:#000;}",
     "#oq-ss-overlay[hidden]{display:none !important;}",
-    "#oq-ss-overlay iframe{width:100%;height:100%;border:0;display:block;background:#000;pointer-events:none;}",
+    "#oq-ss-overlay iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#000;pointer-events:none;}",
     ".icon-ss{background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23000000'/%3E%3Crect x='1' y='1' width='6' height='6' fill='%23c00000'/%3E%3Crect x='9' y='1' width='6' height='6' fill='%2300a000'/%3E%3Crect x='1' y='9' width='6' height='6' fill='%230000c0'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%23c0c000'/%3E%3C/svg%3E\");}",
     ".start-menu-submenu{position:relative;overflow:visible;}",
     ".start-menu-submenu>.start-menu-item{width:100%;}",
@@ -46,6 +46,23 @@
     let timer = 0;
     let running = false;
     let ignoreUntil = 0;
+
+    function layoutOverlay() {
+      // win31/mac8/mac1984 set html { zoom }. style.width is pre-zoom and
+      // gets multiplied on render; innerWidth/visualViewport are post-zoom.
+      // inset:0 alone leaves a teal (or desktop) strip under the overlay.
+      var z = parseFloat(getComputedStyle(document.documentElement).zoom);
+      if (!isFinite(z) || z <= 0) z = 1;
+      var vv = window.visualViewport;
+      var top = vv ? vv.offsetTop : 0;
+      var left = vv ? vv.offsetLeft : 0;
+      var vw = vv && vv.width ? vv.width : window.innerWidth;
+      var vh = vv && vv.height ? vv.height : window.innerHeight;
+      overlay.style.top = top / z + "px";
+      overlay.style.left = left / z + "px";
+      overlay.style.width = vw / z + "px";
+      overlay.style.height = vh / z + "px";
+    }
 
     function nestedFrame() {
       try {
@@ -95,9 +112,11 @@
       clearTimeout(timer);
       ignoreUntil = Date.now() + 800;
       overlay.hidden = false;
+      layoutOverlay();
       frame.removeAttribute("src");
       requestAnimationFrame(function () {
         requestAnimationFrame(function () {
+          layoutOverlay();
           frame.src = resolveSrc();
         });
       });
@@ -130,6 +149,11 @@
         frame.contentWindow.dispatchEvent(new Event("resize"));
       } catch (e) {}
     });
+    window.addEventListener("resize", layoutOverlay);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", layoutOverlay);
+      window.visualViewport.addEventListener("scroll", layoutOverlay);
+    }
     window.addEventListener("keydown", (event) => {
       if (running) stop(event);
       else ping();
@@ -148,7 +172,7 @@
   }
 
   function vendor(name) {
-    var bust = name === "maze-backrooms" ? "?v=14" : name === "backrooms-ii" ? "?v=6" : "?v=ss3";
+    var bust = name === "maze-backrooms" ? "?v=14" : name === "backrooms-ii" ? "?v=6" : "?v=ss4";
     return "../vendor/screensavers/" + name + "/index.html" + bust;
   }
 
