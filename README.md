@@ -56,7 +56,7 @@ audio demo, or an easter egg. Source of truth: `shared/games.js`.
 | `next/` | Kernel panic (undocumented egg), BackSpace idle |
 | `mac8/` | Starry-night idle |
 | `win98/` | Hot Dog Stand scheme |
-| `xp/` | — |
+| `xp/` | 3D Pipes idle, Backrooms II (OpenGL showroom) |
 | `kde/` | Compiz rain, desktop cube, 13 GL idle savers |
 | `win7/` | — |
 
@@ -66,7 +66,7 @@ audio demo, or an easter egg. Source of truth: `shared/games.js`.
 hires frames — not GB-locked; theme sprites stay in the theme dir).
 
 **`vendor/<theme>/`** — upstream dist + LICENSE, not SCSS sources.
-**`tests/`** — Playwright/pytest for `win98/`, `nes/`, `gb/`, `snes/`, `gg/`.
+**`tests/`** — Playwright/pytest for `win98/`, `nes/`, `gb/`, `snes/`, `gg/`, Redmond Run, and the screensaver host. `tests/shared/*.mjs` is Node-only and runs on every PR.
 
 ## License
 

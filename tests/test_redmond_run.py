@@ -12,7 +12,10 @@ THEMES = ("win98", "xp", "win7")
 def goto_theme(page, base_url, theme, extra=""):
     q = "nosplash=1" + (("&" + extra) if extra else "")
     page.goto(f"{base_url}/{theme}/index.html?{q}")
-    page.wait_for_function("() => window.OqRedmondRun", timeout=8000)
+    page.wait_for_function(
+        "() => window.OqRedmondRun && window.OqScreensaver && window.OqScreensaver.host",
+        timeout=8000,
+    )
 
 
 @pytest.mark.parametrize("theme", THEMES)
@@ -30,12 +33,36 @@ def test_run_query_opens_dialog(page, base_url, theme):
     assert page.is_visible("#run-input")
 
 
-@pytest.mark.parametrize("theme", THEMES)
-def test_run_backrooms_query(page, base_url, theme):
-    goto_theme(page, base_url, theme, extra="run=backrooms")
-    page.wait_for_selector("#oq-ss-overlay:not([hidden])", timeout=4000)
+@pytest.mark.parametrize(
+    "theme,needle",
+    [
+        ("win98", "maze-backrooms"),
+        ("xp", "backrooms-ii"),
+        ("win7", "maze-backrooms"),
+    ],
+)
+def test_run_backrooms_query(page, base_url, theme, needle):
+    # Dual-path host: top-level (this suite) unhides the overlay, then two
+    # rAFs later assigns iframe.src. Waiting only for the overlay being
+    # visible races that assignment (CI failed with src ''). Nested
+    # preview iframes instead navigate this document with ?oqret=.
+    page.goto(f"{base_url}/{theme}/index.html?nosplash=1&run=backrooms")
+    page.wait_for_function(
+        """(needle) => {
+          if (location.href.indexOf(needle) !== -1) return true;
+          const frame = document.querySelector("#oq-ss-overlay iframe");
+          const src = (frame && (frame.getAttribute("src") || frame.src)) || "";
+          return src.indexOf(needle) !== -1;
+        }""",
+        arg=needle,
+        timeout=8000,
+    )
+    if needle in page.url:
+        assert "oqret=" in page.url
+        return
     src = page.get_attribute("#oq-ss-overlay iframe", "src") or ""
-    assert "maze-backrooms" in src
+    assert needle in src
+    assert "oqret=" not in src
 
 
 @pytest.mark.parametrize("theme", THEMES)
