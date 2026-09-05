@@ -29,9 +29,18 @@
 
   let curves = [];
 
+  function viewSize() {
+    const vv = window.visualViewport;
+    return {
+      w: Math.max(1, Math.floor((vv && vv.width) || window.innerWidth || 320)),
+      h: Math.max(1, Math.floor((vv && vv.height) || window.innerHeight || 200)),
+    };
+  }
+
   function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
+    const s = viewSize();
+    w = canvas.width = s.w;
+    h = canvas.height = s.h;
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, w, h);
     if (!curves.length) {
@@ -81,6 +90,9 @@
   }
 
   window.addEventListener("resize", resize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", resize);
+  }
   resize();
   requestAnimationFrame(frame);
 })();

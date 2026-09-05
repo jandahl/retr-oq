@@ -5,16 +5,35 @@
   document.body.appendChild(canvas);
   const ctx = canvas.getContext("2d");
 
-  const TEXT = "Windows 3.1";
+  // Period Marquee: Times New Roman, fuchsia on black. Copy is oq!.
+  const TEXT = "oq!";
+  const FACE = "#ff00ff";
   let w = 0;
   let h = 0;
   let x = 0;
   let y = 0;
-  let bounce = 0;
+
+  function viewSize() {
+    const vv = window.visualViewport;
+    return {
+      w: Math.max(1, Math.floor((vv && vv.width) || window.innerWidth || 320)),
+      h: Math.max(1, Math.floor((vv && vv.height) || window.innerHeight || 200)),
+    };
+  }
+
+  function fontSize() {
+    return Math.max(48, Math.min(w, h) * 0.18);
+  }
+
+  function randomY(size) {
+    const pad = size;
+    return pad + Math.random() * Math.max(1, h - pad * 2);
+  }
 
   function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
+    const s = viewSize();
+    w = canvas.width = s.w;
+    h = canvas.height = s.h;
     x = w + 40;
     y = h * 0.5;
   }
@@ -27,33 +46,28 @@
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, w, h);
 
-    const size = Math.max(28, Math.min(w, h) * 0.09);
-    ctx.font = "bold " + size + "px \"MS Sans Serif\", Tahoma, sans-serif";
+    const size = fontSize();
+    ctx.font = "bold " + size + 'px "Times New Roman", Times, Georgia, serif';
     ctx.textBaseline = "middle";
+    ctx.textAlign = "left";
     const tw = ctx.measureText(TEXT).width;
 
-    bounce += dt;
-    y += Math.sin(bounce * 1.6) * 18 * dt * 8;
-    if (y < size) y = size;
-    if (y > h - size) y = h - size;
-
-    x -= Math.max(90, w * 0.12) * dt;
+    x -= Math.max(110, w * 0.14) * dt;
     if (x < -tw - 40) {
       x = w + 40;
-      y = 40 + Math.random() * (h - 80);
+      y = randomY(size);
     }
 
-    ctx.fillStyle = "#00ffff";
+    ctx.fillStyle = FACE;
     ctx.fillText(TEXT, x, y);
-    ctx.fillStyle = "#ffff00";
-    ctx.fillText(TEXT, x + 2, y + 2);
-    ctx.fillStyle = "#000080";
-    ctx.fillRect(x - 4, y + size * 0.42, tw + 8, 4);
 
     requestAnimationFrame(frame);
   }
 
   window.addEventListener("resize", resize);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", resize);
+  }
   resize();
   requestAnimationFrame(frame);
 })();

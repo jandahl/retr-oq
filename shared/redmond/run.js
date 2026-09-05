@@ -74,7 +74,7 @@
 
   function showWinver(theme) {
     let overlay = document.getElementById("winver-overlay");
-    const api = (global.OqAnalysis && global.OqAnalysis.API_VERSION) || "v0.0.5";
+    const api = (global.OqAnalysis && global.OqAnalysis.API_VERSION) || "v0.0.4";
     const apiPath = String(api).indexOf("v") === 0 ? api : "v" + api;
     const label = theme === "xp" ? "Oq!XP" : theme === "win7" ? "Oq!7" : "Oq!98";
     if (!overlay) {
