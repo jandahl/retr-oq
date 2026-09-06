@@ -18,7 +18,9 @@ name: theme tests
 on:
   push:
     branches: [master]
-  pull_request: {}
+    paths-ignore: ['**/*.md']
+  pull_request:
+    paths-ignore: ['**/*.md']
 
 jobs:
   changes:
