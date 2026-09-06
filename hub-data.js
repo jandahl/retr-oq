@@ -220,6 +220,16 @@ window.OqHubMachines = [
     `,
   },
   {
+    href: "os2/",
+    name: "OS/2 Warp",
+    year: "1994",
+    category: "home-computer",
+    hasGames: false,
+    meta: "Workplace Shell",
+    iconNote: "Blue Warp desktop, System folder, compatibility session",
+    icon: `<rect width="32" height="32" fill="#4f7899"/><rect x="3" y="4" width="20" height="18" fill="#d7d7d7"/><rect x="3" y="4" width="20" height="3" fill="#0055aa"/><rect x="5" y="9" width="6" height="5" fill="#0055aa"/><rect x="13" y="9" width="6" height="5" fill="#d7d7d7" stroke="#0055aa"/><rect y="27" width="32" height="5" fill="#d7d7d7"/><rect x="2" y="28" width="6" height="3" fill="#0055aa"/>`,
+  },
+  {
     href: "next/",
     name: "NeXT",
     year: "1995",
@@ -269,16 +279,6 @@ window.OqHubMachines = [
       <rect x="12" y="16" width="2" height="2" fill="#e24b4b"/>
       <rect x="18" y="16" width="2" height="2" fill="#f0c030"/>
     `,
-  },
-  {
-    href: "os2/",
-    name: "OS/2 Warp",
-    year: "1994",
-    category: "home-computer",
-    hasGames: false,
-    meta: "Workplace Shell",
-    iconNote: "Blue Warp desktop, System folder, compatibility session",
-    icon: `<rect width="32" height="32" fill="#4f7899"/><rect x="3" y="4" width="20" height="18" fill="#d7d7d7"/><rect x="3" y="4" width="20" height="3" fill="#0055aa"/><rect x="5" y="9" width="6" height="5" fill="#0055aa"/><rect x="13" y="9" width="6" height="5" fill="#d7d7d7" stroke="#0055aa"/><rect y="27" width="32" height="5" fill="#d7d7d7"/><rect x="2" y="28" width="6" height="3" fill="#0055aa"/>`,
   },
   {
     href: "win98/",
