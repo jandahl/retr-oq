@@ -4,6 +4,29 @@ Use this checklist with the root `README.md` (catalogue) and `CLAUDE.md`
 (cross-theme invariants). Each theme is an independent static GitHub Pages
 entry point, not a component in a shared UI framework.
 
+## Reuse-first workflow
+
+Treat a new theme as a new presentation layer over existing behavior wherever
+possible. Before creating a file or copying a handler:
+
+1. Search `shared/`, the closest family, and the theme tests for an existing
+   implementation of the behavior.
+2. Separate the behavior from its appearance: routing, dictionary loading,
+   DECON, games, screen savers, pointer capture, and test fixtures are usually
+   reusable; chrome, layout, art, and historical interaction rules usually
+   are not.
+3. Prefer configuring an existing helper with options or callbacks over
+   duplicating it in the new theme.
+4. If two themes need the same behavior, extract the smallest stable shared
+   helper and migrate both consumers in the same change.
+5. Keep adapters thin: a theme adapter should translate DOM/palette/layout
+   details into a shared API, not reimplement the shared algorithm.
+
+Do not abstract code solely because it looks similar. Share code only when its
+state model, lifecycle, input semantics, and error behavior are the same.
+Period-specific differences belong at the boundary and should be recorded in
+`NOTES.md`.
+
 ## Choose the right family
 
 | Shape | Examples | Contract |
@@ -34,14 +57,11 @@ Keep theme-specific CSS and JavaScript in the theme directory. Reuse
 relative paths, and cache-bust every changed local file (`?v=N`), including
 HTML, CSS, JS, compositor code, and shared assets.
 
-Prefer reuse when the behavior is truly common: extend an existing shared
-helper or pattern before copying it into a new theme. Good reuse candidates
-include `shared/dict-source.js`, `shared/hyphenation.js`, `shared/router.js`,
-`shared/decon-app.js`, the Redmond window manager, shared game engines, shared
-screen savers, and the test fixtures. Keep the integration boundary narrow and
-document any theme-specific adapter. Do not force reuse merely to eliminate a
-few lines when it would couple different window managers, palettes, input
-models, or historical behaviors.
+The primary reusable building blocks are `shared/dict-source.js`,
+`shared/hyphenation.js`, `shared/router.js`, `shared/decon-app.js`, the Redmond
+window manager, shared game engines, shared screen savers, and the test
+fixtures. Reuse them through their existing public contracts, keep the
+integration boundary narrow, and document any adapter.
 
 OQ!/DECON must remain reachable through `window.OqRouter.navigate(...)` so the
 URL and UI stay synchronized. Use accessible native controls where possible;
@@ -56,9 +76,11 @@ taskbar, icons, windows, title bars, focus, minimize/restore, and quit/back to
 hub behavior. Decide explicitly which actions are real and which are
 period-accurate placeholders.
 
-Redmond themes configure the shared WM. Other desktop themes implement their
-own WM and document its special rules in `NOTES.md` (growbox-only resize,
-depth gadgets, miniwindows, or zoom behavior).
+Redmond themes configure the shared WM. Other desktop themes should first
+check whether a smaller shared primitive is enough (for example focus or
+pointer capture), but must keep a separate WM when window lifecycle or
+historical behavior differs. Document special rules in `NOTES.md` (growbox-
+only resize, depth gadgets, miniwindows, or zoom behavior).
 
 For all pointer interactions, listen for move/up on `window`, begin a drag only
 after movement, and do not await asynchronous work on the pointer path. Use
@@ -119,9 +141,10 @@ hub-link check. Exercise keyboard, touch, focus, drag/resize, mobile viewport,
 reduced-motion, hidden-tab, routing, and return-to-hub behavior relevant to
 the theme.
 
-Add `tests/test_<theme>.py` for meaningful browser interaction and register its
-paths in `.github/workflows/theme-tests.yml`. For palette-based consoles,
-ensure the family/gamut checker covers the intended scope.
+Add `tests/test_<theme>.py` for meaningful browser interaction and reuse
+`tests/conftest.py` fixtures and shared test helpers. Register its paths in
+`.github/workflows/theme-tests.yml`. For palette-based consoles, ensure the
+family/gamut checker covers the intended scope.
 
 ## Branch and PR checklist
 
