@@ -3,8 +3,10 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; font-family: os2-ui, Arial, sans-serif; font-size: 12px; }
 button { font: inherit; cursor: default; }
-#desktop { position: relative; height: 100%; min-height: 430px; overflow: hidden; color: white; background-color: var(--desktop); background-image: radial-gradient(#222cff 1px, transparent 1px), radial-gradient(#000080 1px, transparent 1px); background-position: 0 0, 2px 2px; background-size: 4px 4px; }
-#desktop::after { content: "OS/2"; position: absolute; inset: 24% 0 auto; z-index: 0; text-align: center; color: #f4f4f4; opacity: .95; font: 130px Georgia, serif; letter-spacing: -12px; transform: skew(-8deg); pointer-events: none; }
+#desktop { position: relative; height: 100%; min-height: 430px; overflow: hidden; color: white; background: linear-gradient(145deg, #111bd0 0%, #080b75 52%, #02033b 100%); }
+.warp-wordmark { position: absolute; z-index: 1; top: 27%; left: 18%; display: flex; align-items: center; transform: rotate(-2deg) skewX(-7deg); filter: drop-shadow(8px 10px 0 rgba(0, 0, 0, .45)); pointer-events: none; user-select: none; }
+.oq-word { color: #fff; font: 150px/0.8 Georgia, "Times New Roman", serif; letter-spacing: -15px; text-shadow: 5px 6px 0 #20226b; }
+.warp-word { margin-left: 22px; color: #6375d6; font: 900 125px/0.8 Arial, Helvetica, sans-serif; letter-spacing: -10px; text-shadow: 5px 7px 0 #20226b; transform: translateY(22px) rotate(5deg); }
 .desktop-icons { position: absolute; z-index: 2; top: 16px; left: 18px; display: flex; flex-direction: column; gap: 18px; width: 90px; }
 .object-icon, .program-icon { display: grid; justify-items: center; gap: 4px; border: 0; background: transparent; color: white; text-shadow: 1px 1px #000; }
 .object-icon { width: 90px; }
@@ -27,4 +29,4 @@ iframe { display: block; width: 100%; height: calc(100% - 24px); border: 0; back
 .launchpad { position: absolute; z-index: 10; right: 4px; bottom: 3px; display: flex; gap: 3px; align-items: center; min-height: 27px; padding: 2px 4px; color: #111; background: #c0c0c0; border: 2px outset #fff; }
 .warp-mark { padding-right: 8px; color: #000080; font-weight: bold; }
 .launchpad button { padding: 3px 8px; background: #c0c0c0; border: 2px outset #fff; }
-@media (max-width: 700px) { #desktop::after { font-size: 74px; } .system-window, .app-window, .guest-window, .dos-host { left: 13%; top: 16%; width: 74%; height: 68%; } .desktop-icons { flex-direction: row; flex-wrap: wrap; width: 290px; gap: 8px; } }
+@media (max-width: 700px) { .warp-wordmark { left: 20%; top: 32%; } .oq-word { font-size: 72px; letter-spacing: -8px; } .warp-word { margin-left: 12px; font-size: 60px; letter-spacing: -5px; } .system-window, .app-window, .guest-window, .dos-host { left: 13%; top: 16%; width: 74%; height: 68%; } .desktop-icons { flex-direction: row; flex-wrap: wrap; width: 290px; gap: 8px; } }
