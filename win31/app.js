@@ -23,6 +23,14 @@
   const winProgman = document.getElementById("win-progman");
   const winClock = document.getElementById("win-clock");
   const bootScreen = document.getElementById("boot-screen");
+  const standalone = new URLSearchParams(location.search).get("standalone") === "1";
+  if (standalone) {
+    winProgman.hidden = true;
+    bootScreen.hidden = true;
+    for (const win of windows) {
+      if (win !== winOq && win !== winDecon) win.classList.add("minimized");
+    }
+  }
 
   const wm = window.OqRedmond.initWindowManager({
     desktop,
@@ -727,6 +735,7 @@
   function finishBoot() {
     if (bootScreen.classList.contains("is-done")) return;
     bootScreen.classList.add("is-done");
+    if (standalone) return;
     forceOpenWindow(winProgman);
     syncChrome();
   }
