@@ -17,7 +17,9 @@ name: html lint
 on:
   push:
     branches: [master]
-  pull_request: {}
+    paths-ignore: ['**/*.md']
+  pull_request:
+    paths-ignore: ['**/*.md']
 
 env:
   PAGES: "index.html dos/index.html c64/index.html mac1984/index.html win31/index.html"
