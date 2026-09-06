@@ -4,9 +4,12 @@
 html, body { margin: 0; height: 100%; overflow: hidden; font-family: os2-ui, Arial, sans-serif; font-size: 12px; }
 button { font: inherit; cursor: default; }
 #desktop { position: relative; height: 100%; min-height: 430px; overflow: hidden; color: white; background: linear-gradient(145deg, #111bd0 0%, #080b75 52%, #02033b 100%); }
-.warp-wordmark { position: absolute; z-index: 1; top: 27%; left: 18%; display: flex; align-items: center; transform: rotate(-2deg) skewX(-7deg); filter: drop-shadow(8px 10px 0 rgba(0, 0, 0, .45)); pointer-events: none; user-select: none; }
-.oq-word { color: #fff; font: 150px/0.8 Georgia, "Times New Roman", serif; letter-spacing: -15px; text-shadow: 5px 6px 0 #20226b; }
-.warp-word { margin-left: 22px; color: #6375d6; font: 900 125px/0.8 Arial, Helvetica, sans-serif; letter-spacing: -10px; text-shadow: 5px 7px 0 #20226b; transform: translateY(22px) rotate(5deg); }
+.warp-wordmark { position: absolute; z-index: 1; top: 27%; left: 16%; display: flex; align-items: center; transform: rotate(-3deg) skewX(-8deg); filter: drop-shadow(9px 11px 0 rgba(0, 0, 0, .45)); pointer-events: none; user-select: none; }
+.warp-wordmark i { display: inline-block; font-style: normal; }
+.oq-word { color: #fff; font: 150px/0.8 Georgia, "Times New Roman", serif; letter-spacing: -14px; text-shadow: 5px 6px 0 #20226b; }
+.oq-word i:nth-child(1) { transform: translateY(18px) rotate(-10deg); }.oq-word i:nth-child(2) { transform: translateY(-12px) rotate(-3deg); }.oq-word i:nth-child(3) { transform: translateY(-28px) rotate(9deg); }.oq-word i:nth-child(4) { transform: translateY(-8px) rotate(17deg); }
+.warp-word { margin-left: 22px; color: #6e80e5; font: 900 125px/0.8 Arial, Helvetica, sans-serif; letter-spacing: -10px; text-shadow: 5px 7px 0 #20226b; }
+.warp-word i:nth-child(1) { transform: translateY(-30px) rotate(8deg); }.warp-word i:nth-child(2) { transform: translateY(-6px) rotate(4deg); }.warp-word i:nth-child(3) { transform: translateY(25px) rotate(-5deg); }.warp-word i:nth-child(4) { transform: translateY(40px) rotate(-12deg); }
 .desktop-icons { position: absolute; z-index: 2; top: 16px; left: 18px; display: flex; flex-direction: column; gap: 18px; width: 90px; }
 .object-icon, .program-icon { display: grid; justify-items: center; gap: 4px; border: 0; background: transparent; color: white; text-shadow: 1px 1px #000; }
 .object-icon { width: 90px; }
@@ -27,10 +30,12 @@ button { font: inherit; cursor: default; }
 .app-window { top: 95px; left: 200px; width: 570px; height: 390px; }
 .guest-window { top: 82px; left: 250px; width: min(720px, calc(100vw - 280px)); height: min(520px, calc(100vh - 105px)); }
 .dos-host { top: 125px; left: 295px; }
-.os2-titlebar { display: flex; align-items: center; height: 24px; padding: 2px; gap: 4px; color: #fff; background: #808080; font-weight: bold; }
-.os2-window:focus-within .os2-titlebar, .os2-window.active .os2-titlebar { background: linear-gradient(90deg, #000080, #1084d0); }
+.os2-titlebar { display: flex; align-items: center; height: 24px; padding: 2px; gap: 4px; color: #111; background: #fff; font-weight: bold; border-bottom: 1px solid #777; }
+.os2-window.active .os2-titlebar { color: #fff; background: #4b008f; }
 .os2-titlebar span { flex: 1; overflow: hidden; white-space: nowrap; cursor: text; user-select: text; }
-.sysmenu, .minimize { width: 19px; height: 18px; padding: 0; color: #111; background: #c0c0c0; border: 2px outset #fff; line-height: 12px; }
+.sysmenu, .minimize, .close-window { position: relative; width: 19px; height: 18px; padding: 0; color: #111; background: #c0c0c0; border: 2px outset #fff; line-height: 12px; }
+.sysmenu { font-size: 9px; }.close-window { font-size: 16px; line-height: 11px; }.minimize { font-size: 13px; line-height: 9px; }
+.active .sysmenu, .active .minimize, .active .close-window { color: #111; }
 .os2-menu { position: relative; display: flex; gap: 2px; height: 25px; padding: 2px 5px; border-bottom: 1px solid #808080; background: #d7d7d7; }
 .os2-menu > button { padding: 2px 6px; border: 0; background: transparent; }
 .os2-menu > button:hover, .os2-menu > button:focus { background: #000080; color: #fff; }
