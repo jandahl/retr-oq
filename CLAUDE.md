@@ -57,6 +57,7 @@ Don't mix window managers across families.
 | Own WM | `next/` `kde/` | each theme's own `app.js` — not Redmond |
 | Text mode | `dos/` `c64/` | no overlapping windows; full-screen takeovers |
 | Console | `nes/` `gb/` `snes/` `gg/` | one screen, one `handleInput()` |
+| OS/2 host | `os2/` | Workplace Shell host; Win-OS/2 and DOS guests reuse their source themes |
 
 ## `shared/`
 

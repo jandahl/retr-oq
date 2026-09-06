@@ -28,6 +28,7 @@ stays the cross-theme source of truth.
 | 1990 | [`gg/`](gg/) | Game Gear. Pocket Master System: 160×144, 32/4096. Landscape; 1/2, no Select |
 | 1991 | [`snes/`](snes/) | Super Nintendo (PAL). Gray dogbone, rainbow YXBA, Super OQ! wordmark |
 | 1992 | [`win31/`](win31/) | Program Manager. Redmond WM; no Start, no X |
+| 1994 | [`os2/`](os2/) | OS/2 Warp Workplace Shell with Win-OS/2 and DOS guests |
 | 1995 | [`next/`](next/) | NeXTSTEP 3.3 Workspace. Four grays, dock, TeX Gyre Heros |
 | 1998 | [`mac8/`](mac8/) | Mac OS 8.1 Platinum. [`classic.css`](https://github.com/npjg/classic.css) |
 | 1998 | [`win98/`](win98/) | 98 desktop. [`98.css`](https://github.com/jdan/98.css) dist |

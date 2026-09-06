@@ -99,6 +99,14 @@ jobs:
               - "tests/test_screensavers.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+            os2:
+              - "os2/**"
+              - "win31/**"
+              - "dos/**"
+              - "shared/**"
+              - "tests/test_os2.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
 
   shared-node-tests:
     # shared/morph-puzzles.js, shared/morph-game.js and shared/klax-game.js
