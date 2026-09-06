@@ -1,0 +1,28 @@
+:root { --os2-blue: #0055aa; --os2-light: #d7d7d7; --os2-shadow: #555; --os2-text: #111; --cursor-arrow: default; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; font-family: "Segoe UI", Arial, sans-serif; color: var(--os2-text); cursor: var(--cursor-arrow); }
+button { font: inherit; cursor: default; }
+#desktop { position: relative; width: 100%; height: 100%; min-height: 420px; background: #4f7899; background-image: radial-gradient(circle at 20% 20%, #6f96b3 0 1px, transparent 2px); }
+.desktop-icons { position: absolute; inset: 12px auto auto 12px; display: grid; gap: 18px; }
+.object-icon, .program-icon { border: 0; background: transparent; color: white; display: grid; gap: 3px; justify-items: center; text-shadow: 1px 1px #234; }
+.object-icon { width: 82px; }
+.object-icon span:last-child { font-size: 12px; }
+.icon-folder, .icon-computer, .icon-terminal { width: 38px; height: 30px; padding: 4px; background: #d7d7d7; color: #0055aa; border: 2px outset #eee; font-size: 20px; text-shadow: none; }
+.os2-window { position: absolute; background: var(--os2-light); border: 2px outset #eee; box-shadow: 4px 4px #234; min-width: 290px; min-height: 170px; resize: both; overflow: hidden; }
+.system-window { left: 130px; top: 54px; width: 440px; height: 300px; }
+.app-window { left: 180px; top: 100px; width: 560px; height: 360px; }
+.guest-window { left: 240px; top: 70px; width: min(700px, calc(100vw - 280px)); height: min(520px, calc(100vh - 110px)); }
+.dos-host { left: 300px; top: 110px; }
+.os2-titlebar { height: 25px; display: flex; align-items: center; gap: 6px; padding: 2px 4px; background: linear-gradient(#1478c4, #0055aa); color: white; font-weight: bold; font-size: 13px; }
+.os2-titlebar span { flex: 1; overflow: hidden; white-space: nowrap; }
+.sysmenu, .minimize { width: 20px; height: 19px; padding: 0; border: 1px outset #ddd; background: #d7d7d7; color: #111; line-height: 14px; }
+.os2-menu { height: 25px; border-bottom: 1px solid #999; padding: 4px 8px; font-size: 12px; background: #eee; }
+.folder-view { display: flex; flex-wrap: wrap; gap: 22px; padding: 25px; }
+.program-icon { color: #111; text-shadow: none; width: 70px; }
+.program-icon span { display: grid; place-items: center; width: 42px; height: 42px; border: 2px outset #eee; background: #d7d7d7; color: #0055aa; font-weight: bold; }
+.program-icon small { font-size: 11px; }
+iframe { display: block; width: 100%; height: calc(100% - 25px); border: 0; background: #000; }
+.app-window iframe { height: calc(100% - 50px); }
+.launchpad { position: absolute; right: 12px; bottom: 12px; display: flex; gap: 3px; padding: 4px; background: #d7d7d7; border: 2px outset #eee; }
+.launchpad button { border: 2px outset #eee; background: #d7d7d7; padding: 3px 7px; font-size: 11px; }
+@media (max-width: 700px) { .system-window, .app-window, .guest-window, .dos-host { left: 8%; top: 12%; width: 84%; height: 70%; } .desktop-icons { grid-template-columns: repeat(3, 82px); } }
