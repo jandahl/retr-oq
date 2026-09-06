@@ -124,7 +124,7 @@
    * @returns {Promise<{
    *   query: string,
    *   matches: Array<{
-   *     word: string, approximate: boolean, meaning: string,
+   *     word: string, approximate: boolean, meaning: string, presentationVariants: object|null,
    *     breakdown: Array<{ marker: string, text: string, gloss: string, leftPad: number, rightPad: number }>,
    *   }>,
    *   dictMatch: any | null,
@@ -171,6 +171,7 @@
         return {
           word: m.word,
           approximate: m.approximate,
+          presentationVariants: items.find((item) => item.presentationVariants)?.presentationVariants ?? null,
           // gloss (filled, fully composed), not shortGloss -- shortGloss is
           // each item's own compact, per-row contribution ("statement - I"
           // for a mood ending in isolation); gloss is the running-composed
