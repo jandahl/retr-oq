@@ -40,6 +40,7 @@
    * @param {(win: HTMLElement) => void} [opts.onOpen]
    * @param {(win: HTMLElement) => void} [opts.onClose]
    * @param {(win: HTMLElement) => void} [opts.onMinimize]
+   * @param {(win: HTMLElement, finish: () => void) => void} [opts.onMinimizeAnimating]
    * @param {(win: HTMLElement) => void} [opts.onRestore]
    * @param {object} [opts.animation]
    */
@@ -59,6 +60,7 @@
     onOpen,
     onClose,
     onMinimize,
+    onMinimizeAnimating,
     onRestore,
     animation,
   }) {
@@ -161,13 +163,35 @@
 
     function minimizeWindow(win) {
       if (win.classList.contains(closedClass) || win.classList.contains(minimizedClass)) return;
-      win.classList.add(minimizedClass);
+      if (win.dataset.osxMinimizing === "1") return;
+
+      const finishMinimize = () => {
+        win.classList.add(minimizedClass);
+        win.classList.add(inactiveClass);
+        delete win.dataset.osxMinimizing;
+        // Clear any theme animation leftovers so restore starts clean.
+        win.style.transition = "";
+        win.style.transform = "";
+        win.style.opacity = "";
+        win.style.transformOrigin = "";
+        win.style.pointerEvents = "";
+        if (onMinimize) onMinimize(win);
+      };
+
+      // Mark inactive + focus next immediately so the shell stays responsive
+      // while a theme genie (or similar) animates.
       win.classList.add(inactiveClass);
-      if (onMinimize) onMinimize(win);
       const next = list.find(
         (w) => w !== win && !w.classList.contains(closedClass) && !w.classList.contains(minimizedClass),
       );
       if (next) focus(next);
+
+      if (typeof onMinimizeAnimating === "function") {
+        win.dataset.osxMinimizing = "1";
+        onMinimizeAnimating(win, finishMinimize);
+      } else {
+        finishMinimize();
+      }
     }
 
     function restoreWindow(win) {

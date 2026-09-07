@@ -63,6 +63,7 @@ Put in the theme directory (not here):
 - Art / icons / wallpaper (original only — no Apple marks)
 - Menu labels and which items are real vs placeholders
 - Dock magnification feel, Stacks, Spaces (Leopard+)
+- Minimize "genie" animation via optional `onMinimizeAnimating(win, finish)` on the WM (backward compatible; omit = instant hide)
 - Fonts (Lucida-like sans; this family reuses TeX Gyre Heros from
   `vendor/next/` unless a theme vendors its own)
 

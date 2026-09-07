@@ -68,6 +68,60 @@
     }
   }
 
+  function prefersReducedMotion() {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
+  const GENIE_MS = 420;
+
+  function animateGenieMinimize(win, finish) {
+    if (prefersReducedMotion() || !dockApi) {
+      finish();
+      return;
+    }
+    const dockItem = dockApi.itemFor(win.id);
+    if (!dockItem) {
+      finish();
+      return;
+    }
+
+    const winRect = win.getBoundingClientRect();
+    const dockRect = dockItem.getBoundingClientRect();
+    const winCx = winRect.left + winRect.width / 2;
+    const winCy = winRect.top + winRect.height / 2;
+    const dockCx = dockRect.left + dockRect.width / 2;
+    const dockCy = dockRect.top + dockRect.height / 2;
+    const dx = dockCx - winCx;
+    const dy = dockCy - winCy;
+
+    // Keep the animating window above peers; .minimized is applied in finish().
+    win.style.zIndex = String(9000);
+    win.style.pointerEvents = "none";
+    win.style.transformOrigin = "50% 100%";
+    win.style.transition = "none";
+    void win.offsetWidth;
+    win.style.transition =
+      `transform ${GENIE_MS}ms cubic-bezier(0.45, 0.05, 0.55, 0.95), ` +
+      `opacity ${GENIE_MS}ms ease-in`;
+    win.style.transform = `translate(${dx}px, ${dy}px) scaleX(0.12) scaleY(0.06)`;
+    win.style.opacity = "0";
+
+    let done = false;
+    function complete() {
+      if (done) return;
+      done = true;
+      win.removeEventListener("transitionend", onEnd);
+      finish();
+    }
+    function onEnd(event) {
+      if (event.target === win && (event.propertyName === "transform" || event.propertyName === "opacity")) {
+        complete();
+      }
+    }
+    win.addEventListener("transitionend", onEnd);
+    setTimeout(complete, GENIE_MS + 80);
+  }
+
   const wm = window.OqOsx.initWindowManager({
     desktop,
     windows,
@@ -101,6 +155,9 @@
     onMinimize() {
       syncDockRunning();
     },
+    onMinimizeAnimating(win, finish) {
+      animateGenieMinimize(win, finish);
+    },
     onRestore() {
       syncDockRunning();
     },
@@ -127,6 +184,58 @@
       syncDockRunning();
     },
   });
+
+  // Classic Aqua continuous Dock magnification (theme-side; shared/osx
+  // only handles launch + running/bounce). Cosine falloff by pointer
+  // distance; reduced-motion falls back to a mild single-icon lift.
+  (function initDockMagnification() {
+    const dock = document.getElementById("dock");
+    if (!dock || !dockApi) return;
+    const items = dockApi.items;
+    const MAX_SCALE = 1.55;
+    const RANGE = 80; // px influence radius around each icon center
+    const LIFT = 14;
+
+    function resetMagnify() {
+      for (const el of items) {
+        if (el.classList.contains("is-bouncing")) continue;
+        el.style.transform = "";
+        el.style.zIndex = "";
+      }
+      dock.classList.remove("is-magnifying");
+    }
+
+    function applyMagnify(clientX) {
+      if (prefersReducedMotion()) return;
+      dock.classList.add("is-magnifying");
+      let best = null;
+      let bestScale = 1;
+      for (const el of items) {
+        if (el.classList.contains("is-bouncing")) continue;
+        const rect = el.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const dist = Math.abs(clientX - cx);
+        const t = Math.max(0, 1 - dist / RANGE);
+        // Cosine hump — neighbors fan like early Dock.
+        const scale = 1 + (MAX_SCALE - 1) * (0.5 - 0.5 * Math.cos(Math.PI * t));
+        const lift = LIFT * (scale - 1) / (MAX_SCALE - 1);
+        el.style.transform = `translateY(${-lift}px) scale(${scale})`;
+        el.style.zIndex = String(Math.round(scale * 100));
+        if (scale > bestScale) {
+          bestScale = scale;
+          best = el;
+        }
+      }
+      if (best) best.style.zIndex = "200";
+    }
+
+    dock.addEventListener("pointermove", (event) => {
+      if (prefersReducedMotion()) return;
+      applyMagnify(event.clientX);
+    });
+    dock.addEventListener("pointerleave", resetMagnify);
+    dock.addEventListener("pointercancel", resetMagnify);
+  })();
 
   // Desktop icons (single-click open — touch-friendly; Dock matches).
   let selectedIcon = null;
