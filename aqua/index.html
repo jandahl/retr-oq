@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta name="description" content="retr-oq — early OS X Aqua desktop (2001)" />
 <title>retr-oq — OS X Aqua</title>
-<link rel="stylesheet" href="style.css?v=1" />
+<link rel="stylesheet" href="style.css?v=2" />
 </head>
 <body>
   <div id="boot-screen">
@@ -259,14 +259,14 @@
   </div>
 
   <div class="osx-overlay" id="shutdown-overlay" hidden>
-    <section class="osx-window osx-dialog">
+    <section class="osx-window osx-dialog osx-sheet" role="dialog" aria-labelledby="shutdown-title">
       <header class="osx-titlebar">
-        <h1 class="osx-title">Shut Down</h1>
+        <h1 class="osx-title" id="shutdown-title">Shut Down</h1>
       </header>
       <div class="osx-body">
         <p>Are you sure you want to shut down your computer now?</p>
         <div class="osx-dialog-actions">
-          <button type="button" class="aqua-btn" id="shutdown-cancel">Cancel</button>
+          <button type="button" class="aqua-btn aqua-btn--secondary" id="shutdown-cancel">Cancel</button>
           <button type="button" class="aqua-btn" id="shutdown-ok">Shut Down</button>
         </div>
       </div>
@@ -279,9 +279,9 @@
   <script src="../shared/router.js?v=16"></script>
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="../shared/osx/window-manager.js?v=2"></script>
+  <script src="../shared/osx/window-manager.js?v=3"></script>
   <script src="../shared/osx/menubar.js?v=1"></script>
   <script src="../shared/osx/dock.js?v=1"></script>
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

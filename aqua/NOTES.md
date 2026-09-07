@@ -42,6 +42,19 @@ still shared via `shared/osx/`. Font: TeX Gyre Heros from
   glyph (concentric arcs), not an apple silhouette.
 - **Traffic lights** stay on the left (close / minimize / zoom). Inactive
   windows mute them via `.inactive` — early Aqua grayed the jewels.
+  Active titlebar hover reveals × − + via CSS `::before` (no glyph art
+  assets).
+- **Dock magnify** is theme JS in `app.js` (pointer-distance cosine
+  falloff on `#dock`). Shared `OqOsx.initDock` stays launch/running/
+  bounce only. `prefers-reduced-motion` skips continuous magnify and
+  keeps a mild CSS hover (or none).
+- **Genie minimize** uses optional WM `onMinimizeAnimating(win, finish)`
+  — aqua animates toward the matching Dock icon, then `finish()` applies
+  `.minimized`. Reduced motion = instant hide. Approximation only (no
+  Core Graphics mesh).
+- **Shut Down sheet** (`#shutdown-overlay .osx-sheet`) hangs under the
+  menu bar (top-aligned overlay + flat-top dialog), not a centered
+  modal.
 - **Minimize** hides the window (`.minimized`) and leaves a running dot
   on the Dock item; click the Dock icon to restore. Not a Redmond
   taskbar button.

@@ -335,25 +335,38 @@ select {
   align-items: center;
   gap: 6px;
   padding: 0 8px;
-  background: linear-gradient(
-    180deg,
-    var(--aqua-title-active-top) 0%,
-    #b7c8e6 48%,
-    var(--aqua-title-active-bot) 52%,
-    #7f98c8 100%
-  );
+  /* Horizontal ridge texture over the aqua title wash (classic Aqua). */
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.28) 0 1px,
+      rgba(0, 0, 0, 0.08) 1px 2px
+    ),
+    linear-gradient(
+      180deg,
+      var(--aqua-title-active-top) 0%,
+      #b7c8e6 48%,
+      var(--aqua-title-active-bot) 52%,
+      #7f98c8 100%
+    );
   border-bottom: 1px solid rgba(0, 0, 0, 0.28);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset;
 }
 
 .osx-window.inactive .osx-titlebar {
-  background: linear-gradient(
-    180deg,
-    var(--aqua-title-inactive-top) 0%,
-    #d4d4d4 48%,
-    var(--aqua-title-inactive-bot) 52%,
-    #b0b0b0 100%
-  );
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.14) 0 1px,
+      rgba(0, 0, 0, 0.04) 1px 2px
+    ),
+    linear-gradient(
+      180deg,
+      var(--aqua-title-inactive-top) 0%,
+      #d4d4d4 48%,
+      var(--aqua-title-inactive-bot) 52%,
+      #b0b0b0 100%
+    );
 }
 
 .osx-traffic {
@@ -384,6 +397,37 @@ select {
   border-color: rgba(0, 0, 0, 0.22);
 }
 
+/* Traffic-light glyphs (× − +) on hover of the active titlebar cluster.
+   Inactive windows stay muted — no loud glyphs. */
+.osx-window:not(.inactive) .osx-titlebar:hover .osx-traffic::before {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.osx-window:not(.inactive) .osx-titlebar:hover .osx-btn-close::before {
+  content: "\00d7"; /* × */
+}
+
+.osx-window:not(.inactive) .osx-titlebar:hover .osx-btn-minimize::before {
+  content: "\2212"; /* − */
+  font-size: 10px;
+  margin-top: -1px;
+}
+
+.osx-window:not(.inactive) .osx-titlebar:hover .osx-btn-zoom::before {
+  content: "+";
+  font-size: 10px;
+}
+
 .osx-title {
   flex: 1 1 auto;
   margin: 0;
@@ -395,11 +439,26 @@ select {
   text-overflow: ellipsis;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
   pointer-events: none;
+  /* Slight wash so ridges do not fight the centered label. */
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(180, 200, 230, 0.55) 18%,
+    rgba(180, 200, 230, 0.55) 82%,
+    transparent 100%
+  );
 }
 
 .osx-window.inactive .osx-title {
   color: #555;
   text-shadow: none;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(210, 210, 210, 0.45) 18%,
+    rgba(210, 210, 210, 0.45) 82%,
+    transparent 100%
+  );
 }
 
 .osx-body {
@@ -594,7 +653,10 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 120ms ease;
+  transform-origin: 50% 100%;
+  /* Continuous magnify is JS-driven; keep transition snappy between samples. */
+  transition: transform 60ms linear;
+  will-change: transform;
 }
 
 .osx-dock-item img,
@@ -605,10 +667,14 @@ select {
   pointer-events: none;
 }
 
-.osx-dock-item:hover,
 .osx-dock-item:focus-visible {
-  transform: translateY(-6px) scale(1.12);
   outline: none;
+}
+
+/* Without JS magnify (or reduced-motion): mild single-icon lift only. */
+.osx-dock:not(.is-magnifying) .osx-dock-item:hover,
+.osx-dock:not(.is-magnifying) .osx-dock-item:focus-visible {
+  transform: translateY(-4px) scale(1.08);
 }
 
 .osx-dock-item.is-running::after {
@@ -648,20 +714,29 @@ select {
   .osx-dock-item.is-bouncing {
     animation: none;
   }
+  .osx-dock-item {
+    transition: none;
+  }
+  .osx-dock:not(.is-magnifying) .osx-dock-item:hover,
+  .osx-dock:not(.is-magnifying) .osx-dock-item:focus-visible {
+    transform: none;
+  }
   #boot-screen {
     transition: none;
   }
 }
 
-/* ---------- Dialogs ---------- */
+/* ---------- Dialogs / Aqua sheet ---------- */
 .osx-overlay {
   position: fixed;
   inset: 0;
   z-index: 8000;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.28);
+  /* Hang just under the global menu bar (22px). */
+  padding-top: 22px;
+  background: rgba(40, 50, 70, 0.22);
 }
 
 .osx-overlay[hidden] {
@@ -675,6 +750,23 @@ select {
   min-height: 0;
 }
 
+/* Sheet: attached under the menu bar, flat top, rounded bottom. */
+.osx-dialog.osx-sheet {
+  border-radius: 0 0 10px 10px;
+  border-top: 0;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 12px 28px rgba(0, 0, 0, 0.32),
+    0 0 0 1px rgba(0, 0, 0, 0.2);
+  animation: aqua-sheet-drop 220ms ease-out;
+}
+
+.osx-dialog.osx-sheet .osx-titlebar {
+  border-radius: 0;
+  /* Sheets often use a flatter metal/aqua strip under the menu. */
+  min-height: 20px;
+}
+
 .osx-dialog .osx-body {
   cursor: default;
   -webkit-user-select: none;
@@ -686,6 +778,34 @@ select {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 12px;
+}
+
+.aqua-btn--secondary {
+  border-color: #7a7a7a;
+  color: #1a1a1a;
+  background: linear-gradient(180deg, #f6f6f6 0%, #d8d8d8 48%, #c0c0c0 52%, #d0d0d0 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+}
+
+.aqua-btn--secondary:active {
+  background: linear-gradient(180deg, #c8c8c8 0%, #b0b0b0 100%);
+}
+
+@keyframes aqua-sheet-drop {
+  from {
+    transform: translateY(-8px);
+    opacity: 0.4;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .osx-dialog.osx-sheet {
+    animation: none;
+  }
 }
 
 @media (max-width: 640px) {
