@@ -3,6 +3,15 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; font-family: os2-ui, Arial, sans-serif; font-size: 12px; }
 button { font: inherit; cursor: default; }
+.boot-manager { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; color: #fff; background: #000; font-family: "Courier New", monospace; }
+.boot-panel { width: min(650px, 90vw); padding: 28px 32px; border: 2px solid #aaa; background: #111; box-shadow: 0 0 0 2px #555, 10px 10px #000; }
+.boot-heading { margin-bottom: 24px; color: #ffcc00; font-size: 22px; font-weight: bold; letter-spacing: 2px; }
+.boot-copy { margin-bottom: 13px; }
+.boot-options { display: grid; gap: 5px; margin-bottom: 24px; }
+.boot-option { width: 100%; padding: 8px 12px; border: 0; color: #fff; background: transparent; text-align: left; }
+.boot-option.selected, .boot-option:focus { color: #000; background: #aaa; outline: 0; }
+.boot-footer { color: #aaa; font-size: 12px; }
+.boot-countdown { margin-top: 26px; color: #ffcc00; }
 #desktop { position: relative; height: 100%; min-height: 430px; overflow: hidden; color: white; background: linear-gradient(145deg, #111bd0 0%, #080b75 52%, #02033b 100%); }
 .warp-wordmark { position: absolute; z-index: 1; top: 27%; left: 16%; display: flex; align-items: center; transform: rotate(-3deg) skewX(-8deg); filter: drop-shadow(9px 11px 0 rgba(0, 0, 0, .45)); pointer-events: none; user-select: none; }
 .warp-wordmark i { display: inline-block; font-style: normal; }

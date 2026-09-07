@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="style.css?v=1" />
 </head>
 <body>
+  <section class="boot-manager" id="boot-manager" aria-label="OS/2 boot manager">
+    <div class="boot-panel">
+      <div class="boot-heading">OS/2 Boot Manager</div>
+      <div class="boot-copy">Select an operating system to start:</div>
+      <label class="boot-options">Operating system choices
+        <select id="boot-choice"><option value="warp">OS/2 Warp 4</option><option value="win">Win-OS/2 Windows 3.1</option></select>
+      </label>
+      <div class="boot-footer">Use ↑ ↓ to select, ENTER to boot</div>
+      <div class="boot-countdown">Starting selected system in <strong id="boot-count">5</strong> seconds...</div>
+    </div>
+  </section>
   <main id="desktop" aria-label="OS/2 Warp Workplace Shell desktop">
     <div class="warp-wordmark" aria-hidden="true"><span class="oq-word"><i>O</i><i>Q</i><i>!</i><i>2</i></span><span class="warp-word"><i>W</i><i>A</i><i>R</i><i>P</i></span></div>
     <div class="desktop-icons">
