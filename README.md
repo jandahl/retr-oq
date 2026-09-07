@@ -58,7 +58,7 @@ audio demo, or an easter egg. Source of truth: `shared/games.js`.
 | `next/` | Kernel panic (undocumented egg), BackSpace idle |
 | `mac8/` | Starry-night idle |
 | `win98/` | Hot Dog Stand scheme |
-| `beos/` | Pulse replicant, kernel debugger (undocumented egg) |
+| `beos/` | Pulse replicant, Workspaces, Twitcher, kernel debugger (undocumented egg) |
 | `xp/` | 3D Pipes idle, Backrooms II (OpenGL showroom) |
 | `kde/` | Compiz rain, desktop cube, 13 GL idle savers |
 | `win7/` | — |

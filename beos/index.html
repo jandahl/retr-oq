@@ -7,14 +7,14 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — BeOS R5</title>
-<link rel="stylesheet" href="style.css?v=2" />
+<link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <section class="boot-screen" id="boot-screen" aria-label="BeOS startup" aria-live="polite">
     <div class="boot-panel">
       <div class="boot-mark" aria-hidden="true"></div>
       <div class="boot-wordmark">BeOS</div>
-      <div class="boot-progress" aria-hidden="true">
+      <div class="boot-progress" id="boot-progress" aria-hidden="true">
         <span></span><span></span><span></span><span></span><span></span><span></span>
       </div>
     </div>
@@ -28,51 +28,80 @@
        Redmond. No Be logo. -->
 
   <aside class="be-deskbar" id="deskbar" aria-label="Deskbar">
-    <div class="be-deskbar-top">
+    <div class="be-deskbar-be">
       <button type="button" class="be-menu-btn" id="be-menu-btn" aria-haspopup="true" aria-expanded="false" aria-controls="be-menu">
         <span class="be-ring" aria-hidden="true"></span>
         Be
       </button>
-      <div class="be-clock" id="desk-clock" aria-hidden="true">12:00</div>
     </div>
-    <div class="be-replicant" id="cpu-replicant" title="CPU" aria-hidden="true">
-      <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+    <div class="be-status-view" id="status-view">
+      <div class="be-ws-replicant" id="ws-replicant" title="Workspaces" aria-label="Workspaces">
+        <button type="button" data-ws="0" class="is-current"></button>
+        <button type="button" data-ws="1"></button>
+        <button type="button" data-ws="2"></button>
+        <button type="button" data-ws="3"></button>
+      </div>
+      <div class="be-replicant" id="cpu-replicant" title="Pulse" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <button type="button" class="be-clock" id="desk-clock" title="Clock">12:00</button>
+      <button type="button" class="be-grip" id="desk-grip" aria-label="Move Deskbar" title="Drag to dock"></button>
+      <span class="be-dragger" hidden aria-hidden="true"></span>
     </div>
     <ul class="be-apps" id="desk-apps"></ul>
     <ul class="be-menu" id="be-menu" role="menu" hidden>
       <li><button type="button" class="be-menu-item" data-open="win-about" role="menuitem">About BeOS…</button></li>
-      <li><button type="button" class="be-menu-item" data-open="win-tracker" role="menuitem">Tracker</button></li>
+      <li><button type="button" class="be-menu-item" id="menu-find" role="menuitem">Find…</button></li>
+      <li><button type="button" class="be-menu-item" id="menu-replicants" role="menuitem"><span class="be-menu-check" id="replicants-check" aria-hidden="true"></span>Show Replicants</button></li>
       <li class="divider"></li>
-      <li><button type="button" class="be-menu-item" data-open="win-oq" role="menuitem">OQ!</button></li>
-      <li><button type="button" class="be-menu-item" data-open="win-decon" role="menuitem">DECON</button></li>
-      <li><button type="button" class="be-menu-item" data-open="win-term" role="menuitem">Terminal</button></li>
+      <li class="has-sub">
+        <button type="button" class="be-menu-item" role="menuitem" aria-haspopup="true">applications</button>
+        <ul class="be-submenu" role="menu">
+          <li><button type="button" class="be-menu-item" data-open="win-tracker" role="menuitem">Tracker</button></li>
+          <li><button type="button" class="be-menu-item" data-open="win-oq" role="menuitem">OQ!</button></li>
+          <li><button type="button" class="be-menu-item" data-open="win-decon" role="menuitem">DECON</button></li>
+          <li><button type="button" class="be-menu-item" data-open="win-term" role="menuitem">Terminal</button></li>
+        </ul>
+      </li>
+      <li class="has-sub">
+        <button type="button" class="be-menu-item" role="menuitem" aria-haspopup="true">preferences</button>
+        <ul class="be-submenu" role="menu">
+          <li><button type="button" class="be-menu-item" data-open="win-ws" role="menuitem">Workspaces</button></li>
+        </ul>
+      </li>
       <li class="divider"></li>
       <li><button type="button" class="be-menu-item" id="menu-legal" role="menuitem">Legal…</button></li>
       <li><button type="button" class="be-menu-item" id="menu-restart" role="menuitem">Restart…</button></li>
+      <li><button type="button" class="be-menu-item" id="menu-shutdown" role="menuitem">Shut Down…</button></li>
     </ul>
+    <ul class="be-app-menu" id="app-menu" role="menu" hidden></ul>
   </aside>
 
   <div class="be-desktop" id="desktop">
-    <div class="desktop-icons">
-      <button type="button" class="desktop-icon" data-open="win-tracker">
+    <div class="desktop-icons" id="desktop-icons">
+      <button type="button" class="desktop-icon" data-open="win-tracker" style="top:16px;left:16px">
+        <img src="art/icon-disk.svg" alt="" width="48" height="48" />
+        <span class="desktop-icon-label">BeOS</span>
+      </button>
+      <button type="button" class="desktop-icon" data-open="win-tracker" style="top:96px;left:16px">
         <img src="art/icon-home.svg" alt="" width="48" height="48" />
         <span class="desktop-icon-label">Home</span>
       </button>
-      <button type="button" class="desktop-icon" data-open="win-oq">
+      <button type="button" class="desktop-icon" data-open="win-oq" style="top:176px;left:16px">
         <img src="art/icon-oq.svg" alt="" width="48" height="48" />
         <span class="desktop-icon-label">OQ!</span>
       </button>
-      <button type="button" class="desktop-icon" data-open="win-decon">
+      <button type="button" class="desktop-icon" data-open="win-decon" style="top:256px;left:16px">
         <img src="art/icon-decon.svg" alt="" width="48" height="48" />
         <span class="desktop-icon-label">DECON</span>
       </button>
-      <button type="button" class="desktop-icon" data-open="win-term">
+      <button type="button" class="desktop-icon" data-open="win-term" style="top:336px;left:16px">
         <img src="art/icon-term.svg" alt="" width="48" height="48" />
         <span class="desktop-icon-label">Terminal</span>
       </button>
     </div>
 
-    <section class="be-window closed" id="win-oq" style="top: 36px; left: 24px; width: 28rem; height: 22rem;">
+    <section class="be-window closed" id="win-oq" data-team="OQ!" data-team-id="142" style="top: 36px; left: 24px; width: 30rem; height: 24rem;">
       <div class="be-titlebar" id="win-oq-titlebar">
         <div class="be-tab" id="win-oq-tab">
           <button type="button" class="be-close" id="win-oq-close" aria-label="Close"></button>
@@ -80,6 +109,7 @@
           <button type="button" class="be-zoom" id="win-oq-zoom" aria-label="Zoom"></button>
         </div>
       </div>
+      <div class="be-menubar"><span class="be-bar-item">File</span><span class="be-bar-item">Edit</span></div>
       <div class="be-body oq-body">
         <div class="be-field">
           <input type="text" id="oq-filter" placeholder="Search…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
@@ -98,7 +128,7 @@
       <div class="be-resize" id="win-oq-resize"></div>
     </section>
 
-    <section class="be-window closed" id="win-decon" style="top: 56px; left: 48px; width: 28rem; height: 22rem;">
+    <section class="be-window closed" id="win-decon" data-team="DECON" data-team-id="143" style="top: 56px; left: 48px; width: 28rem; height: 22rem;">
       <div class="be-titlebar" id="win-decon-titlebar">
         <div class="be-tab" id="win-decon-tab">
           <button type="button" class="be-close" id="win-decon-close" aria-label="Close"></button>
@@ -106,6 +136,7 @@
           <button type="button" class="be-zoom" id="win-decon-zoom" aria-label="Zoom"></button>
         </div>
       </div>
+      <div class="be-menubar"><span class="be-bar-item">File</span><span class="be-bar-item">Edit</span></div>
       <div class="be-body decon-body">
         <div class="be-field">
           <input type="text" id="decon-word" placeholder="Type a Kalaallisut word…" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
@@ -120,7 +151,7 @@
       <div class="be-resize" id="win-decon-resize"></div>
     </section>
 
-    <section class="be-window closed" id="win-tracker" style="top: 28px; left: 200px; width: 20rem; height: 16rem;">
+    <section class="be-window closed" id="win-tracker" data-team="Tracker" data-team-id="130" style="top: 28px; left: 200px; width: 22rem; height: 18rem;">
       <div class="be-titlebar" id="win-tracker-titlebar">
         <div class="be-tab" id="win-tracker-tab">
           <button type="button" class="be-close" id="win-tracker-close" aria-label="Close"></button>
@@ -128,30 +159,56 @@
           <button type="button" class="be-zoom" id="win-tracker-zoom" aria-label="Zoom"></button>
         </div>
       </div>
-      <div class="be-body">
-        <div class="tracker-list">
-          <button type="button" class="tracker-row" data-open="win-oq">
-            <img src="art/icon-oq.svg" alt="" width="24" height="24" />
-            OQ!
-          </button>
-          <button type="button" class="tracker-row" data-open="win-decon">
-            <img src="art/icon-decon.svg" alt="" width="24" height="24" />
-            DECON
-          </button>
-          <button type="button" class="tracker-row" data-open="win-term">
-            <img src="art/icon-term.svg" alt="" width="24" height="24" />
-            Terminal
-          </button>
-          <button type="button" class="tracker-row" data-open="win-about">
-            <img src="art/icon-disk.svg" alt="" width="24" height="24" />
-            About
-          </button>
+      <div class="be-menubar" id="tracker-menubar">
+        <button type="button" class="be-bar-item" id="tracker-file-btn" aria-haspopup="true">File</button>
+        <button type="button" class="be-bar-item" id="tracker-window-btn" aria-haspopup="true">Window</button>
+      </div>
+      <ul class="be-bar-menu" id="tracker-file-menu" role="menu" hidden>
+        <li><button type="button" class="be-menu-item" id="tracker-open" role="menuitem">Open</button></li>
+        <li><button type="button" class="be-menu-item" id="tracker-info" role="menuitem">Get Info</button></li>
+        <li class="divider"></li>
+        <li><button type="button" class="be-menu-item" data-close="win-tracker" role="menuitem">Close</button></li>
+      </ul>
+      <ul class="be-bar-menu" id="tracker-window-menu" role="menu" hidden>
+        <li><button type="button" class="be-menu-item" data-open="win-tracker" role="menuitem">New Tracker Window</button></li>
+        <li><button type="button" class="be-menu-item" data-close="win-tracker" role="menuitem">Close</button></li>
+      </ul>
+      <div class="be-body tracker-body">
+        <div class="be-panel tracker-panel">
+          <table class="tracker-table" id="tracker-table">
+            <thead>
+              <tr><th>Name</th><th>Size</th><th>Kind</th></tr>
+            </thead>
+            <tbody>
+              <tr class="tracker-row" data-open="win-oq" tabindex="0">
+                <td><img src="art/icon-oq.svg" alt="" width="16" height="16" />OQ!</td>
+                <td>24K</td>
+                <td>application</td>
+              </tr>
+              <tr class="tracker-row" data-open="win-decon" tabindex="0">
+                <td><img src="art/icon-decon.svg" alt="" width="16" height="16" />DECON</td>
+                <td>18K</td>
+                <td>application</td>
+              </tr>
+              <tr class="tracker-row" data-open="win-term" tabindex="0">
+                <td><img src="art/icon-term.svg" alt="" width="16" height="16" />Terminal</td>
+                <td>48K</td>
+                <td>application</td>
+              </tr>
+              <tr class="tracker-row" data-open="win-about" tabindex="0">
+                <td><img src="art/icon-disk.svg" alt="" width="16" height="16" />About</td>
+                <td>4K</td>
+                <td>document</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+        <div class="be-statusbar" id="tracker-status">4 items</div>
       </div>
       <div class="be-resize" id="win-tracker-resize"></div>
     </section>
 
-    <section class="be-window closed" id="win-about" style="top: 48px; left: 72px; width: 26rem; height: 22rem;">
+    <section class="be-window closed" id="win-about" data-team="AboutSystem" data-team-id="131" style="top: 48px; left: 72px; width: 26rem; height: 20rem;">
       <div class="be-titlebar" id="win-about-titlebar">
         <div class="be-tab" id="win-about-tab">
           <button type="button" class="be-close" id="win-about-close" aria-label="Close"></button>
@@ -160,22 +217,29 @@
         </div>
       </div>
       <div class="be-body about-body">
-        <p class="about-kicker">BeOS R5 Personal Edition</p>
-        <p>A Tracker / Deskbar prototype — yellow title tabs, a Deskbar
-          parked in the upper right, Swiss chrome around original icons.
-          The way a BeBox actually looked in 2000, minus the trademarked
-          leaf.</p>
-        <p>Double-click a tab to hide the window. Zoom (the square)
-          grows it. The Deskbar lists whatever is running.</p>
-        <p>Yellow-tab slant adapted from
+        <div class="about-hero">
+          <div class="boot-mark about-mark" aria-hidden="true"></div>
+          <div>
+            <p class="about-kicker">BeOS</p>
+            <p class="about-ver">Release 5.0.1 Personal Edition</p>
+          </div>
+        </div>
+        <table class="about-table">
+          <tr><th>Kernel</th><td>May 26 2000 (retr-oq)</td></tr>
+          <tr><th>Uptime</th><td id="about-uptime">0:00:00</td></tr>
+          <tr><th>Memory</th><td>96 MB used / 128 MB</td></tr>
+          <tr><th>CPU</th><td>2 × Intel Pentium III</td></tr>
+          <tr><th>Platform</th><td>BeBox / x86</td></tr>
+        </table>
+        <p class="about-note">Yellow-tab slant adapted from
           <a href="https://github.com/NovusGFX/retro-design-system">NovusGFX/retro-design-system</a>
           (MIT). Palette is R5 BeOS Blue, not theirs. Font is TeX Gyre
-          Heros (GFL).</p>
+          Heros (GFL). No Be logo, no Haiku leaf.</p>
       </div>
       <div class="be-resize" id="win-about-resize"></div>
     </section>
 
-    <section class="be-window closed" id="win-term" style="top: 80px; left: 40px; width: 28rem; height: 16rem;">
+    <section class="be-window closed" id="win-term" data-team="Terminal" data-team-id="144" style="top: 80px; left: 40px; width: 28rem; height: 16rem;">
       <div class="be-titlebar" id="win-term-titlebar">
         <div class="be-tab" id="win-term-tab">
           <button type="button" class="be-close" id="win-term-close" aria-label="Close"></button>
@@ -183,9 +247,10 @@
           <button type="button" class="be-zoom" id="win-term-zoom" aria-label="Zoom"></button>
         </div>
       </div>
+      <div class="be-menubar"><span class="be-bar-item">File</span><span class="be-bar-item">Edit</span><span class="be-bar-item">Windows</span></div>
       <div class="be-body console-body">
         <pre id="console-log" class="be-console">Welcome to the BeOS shell
-Release 5.0 (retr-oq)
+Release 5.0.1 (retr-oq)
 ~/ > 
 </pre>
         <div class="be-field">
@@ -193,6 +258,45 @@ Release 5.0 (retr-oq)
         </div>
       </div>
       <div class="be-resize" id="win-term-resize"></div>
+    </section>
+
+    <section class="be-window closed" id="win-ws" data-team="Workspaces" data-team-id="132" style="top: 120px; left: 280px; width: 18rem; height: 14rem;">
+      <div class="be-titlebar" id="win-ws-titlebar">
+        <div class="be-tab" id="win-ws-tab">
+          <button type="button" class="be-close" id="win-ws-close" aria-label="Close"></button>
+          <h1 class="be-title">Workspaces</h1>
+          <button type="button" class="be-zoom" id="win-ws-zoom" aria-label="Zoom"></button>
+        </div>
+      </div>
+      <div class="be-body ws-body">
+        <div class="ws-grid" id="ws-grid">
+          <button type="button" class="ws-cell is-current" data-ws="0" aria-label="Workspace 1"></button>
+          <button type="button" class="ws-cell" data-ws="1" aria-label="Workspace 2"></button>
+          <button type="button" class="ws-cell" data-ws="2" aria-label="Workspace 3"></button>
+          <button type="button" class="ws-cell" data-ws="3" aria-label="Workspace 4"></button>
+        </div>
+      </div>
+      <div class="be-resize" id="win-ws-resize"></div>
+    </section>
+
+    <section class="be-window closed" id="win-teams" data-team="Team Monitor" data-team-id="2" style="top: 64px; left: 160px; width: 26rem; height: 16rem;">
+      <div class="be-titlebar" id="win-teams-titlebar">
+        <div class="be-tab" id="win-teams-tab">
+          <button type="button" class="be-close" id="win-teams-close" aria-label="Close"></button>
+          <h1 class="be-title">Team Monitor</h1>
+          <button type="button" class="be-zoom" id="win-teams-zoom" aria-label="Zoom"></button>
+        </div>
+      </div>
+      <div class="be-body">
+        <p class="be-status">Teams currently running. Kill is a joke — this is a prototype.</p>
+        <div class="be-panel">
+          <table class="oq-table" id="teams-table">
+            <thead><tr><th>Team</th><th>ID</th><th></th></tr></thead>
+            <tbody id="teams-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="be-resize" id="win-teams-resize"></div>
     </section>
   </div>
 
@@ -208,15 +312,18 @@ Release 5.0 (retr-oq)
     <li role="menuitem">
       <button type="button" class="be-context-item" data-open="win-tracker">New Tracker Window</button>
     </li>
+    <li role="menuitem">
+      <button type="button" class="be-context-item" data-open="win-ws">Workspaces</button>
+    </li>
   </ul>
 
   <div class="be-overlay" id="quit-overlay" hidden>
     <section class="be-window be-panel-window">
       <div class="be-titlebar">
-        <div class="be-tab"><h1 class="be-title">Restart</h1></div>
+        <div class="be-tab"><h1 class="be-title" id="quit-title">Restart</h1></div>
       </div>
       <div class="be-body be-attention">
-        <p>Restart and return to the theme picker?</p>
+        <p id="quit-copy">Restart and return to the theme picker?</p>
         <div class="be-actions">
           <button type="button" class="be-push" id="quit-cancel">Cancel</button>
           <button type="button" class="be-push be-default" id="quit-ok">Restart</button>
@@ -245,6 +352,27 @@ Release 5.0 (retr-oq)
     </section>
   </div>
 
+  <div class="be-overlay" id="info-overlay" hidden>
+    <section class="be-window be-panel-window">
+      <div class="be-titlebar">
+        <div class="be-tab">
+          <button type="button" class="be-close" id="info-close" aria-label="Close"></button>
+          <h1 class="be-title">File info</h1>
+        </div>
+      </div>
+      <div class="be-body be-attention">
+        <p id="info-copy">No item selected.</p>
+        <div class="be-actions">
+          <button type="button" class="be-push be-default" id="info-ok">OK</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="be-twitcher" id="twitcher" hidden>
+    <div class="be-twitcher-panel" id="twitcher-panel"></div>
+  </div>
+
   <div class="be-panic" id="panic" hidden>
     <pre>*** KERNEL debugger ***
 CPU 1: General Protection Exception
@@ -259,6 +387,6 @@ Click to continue.</pre>
   <script src="../shared/router.js?v=16"></script>
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

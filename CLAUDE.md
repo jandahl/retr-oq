@@ -118,14 +118,16 @@ taskbar pill. Own WM. TeX Gyre Heros, not Helvetica. Menu items are
 `<a href="#">` — set `a:link { cursor: default }`.
 
 **`beos/`** — Own WM. Yellow title *tab* (not a full-width bar), Deskbar
-in the upper right. Close is the circle on the left of the tab; zoom is
-the square on the right; double-click the tab to hide (no minimize
-gadget). Shift-drag slides the tab along its window. Font is TeX Gyre
-Heros from `vendor/next/fonts/`, not Swiss 721. No Be logo, no Haiku
-leaf. Tab slant adapted from NovusGFX (MIT) — see `vendor/beos/`.
-Palette is R5: desktop `#336698`, tab `#FFC000`, chrome `#D8D8D8`. Hide
-is UI state (like NeXT miniaturize); closing OQ!/DECON still goes
-through the router. Kernel debugger is an undocumented egg.
+in the upper right. Close is a square with a hollow circle on the left
+of the tab; zoom is the square-in-a-square on the right; double-click
+the tab to hide (no minimize gadget). Shift-drag slides the tab along
+its window. Font is TeX Gyre Heros from `vendor/next/fonts/`, not Swiss
+721. No Be logo, no Haiku leaf. Tab slant adapted from NovusGFX (MIT)
+— see `vendor/beos/`. Palette is R5: desktop `#336698`, tab `#FFC000`,
+chrome `#D8D8D8`. Hide is UI state (like NeXT miniaturize); closing
+OQ!/DECON still goes through the router. Four workspaces (Alt+1..4);
+Twitcher is Control-Tab; Team Monitor is Control-Alt-Delete. Kernel
+debugger is an undocumented egg.
 
 **`win31/`** — Redmond WM, 3.1 chrome: Program Manager is the shell
 (closing it is Exit Windows → `../`). No Start, no taskbar — minimize
