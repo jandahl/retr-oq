@@ -16,3 +16,8 @@ maximize.
   `now.getHours() % 12`, which is correct as-is (an analog face has no
   12/24-hour text mode to respect).
 - Undocumented teddy-bear About credits live here.
+
+- **Boot** is passive auto-boot (no `#power-btn`). The smiling-Mac sequence
+  shows immediately; an optional startup chime plays on the first
+  pointer/key gesture so AudioContext can unlock under autoplay policy.
+

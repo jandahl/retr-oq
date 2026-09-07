@@ -15,6 +15,15 @@
   src: url("../vendor/next/fonts/texgyreheros-bold.otf") format("opentype");
 }
 
+/* Desktop chrome scale — prefer 1.5 (mac1984) over mac8's 2: Aqua's
+   jelly traffic lights + Dock glass already read large; 2 felt oversized
+   next to the menubar. Same CLAUDE.md zoom gotcha as other zoom themes. */
+@media (min-width: 700px) {
+  html {
+    zoom: 1.5;
+  }
+}
+
 :root {
   --aqua-stripe-a: #eceff3;
   --aqua-stripe-b: #e2e6ec;
@@ -89,28 +98,6 @@ select {
   pointer-events: none;
 }
 
-#power-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  background: transparent;
-  border: 0;
-  color: #c8c8c8;
-  font: inherit;
-  padding: 1.5rem;
-}
-
-#power-btn:focus-visible {
-  outline: 2px solid #6af;
-  outline-offset: 4px;
-}
-
-.power-icon {
-  font-size: 2rem;
-  color: #6cf;
-}
-
 #boot-sequence {
   text-align: center;
 }
@@ -133,12 +120,14 @@ select {
   inset: 0;
   display: flex;
   flex-direction: column;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      var(--aqua-stripe-a) 0 1px,
-      var(--aqua-stripe-b) 1px 2px
-    );
+  /* Original early-OS-X-style wash: soft aqua blues / swirls (not Apple art). */
+  background-color: #3a7eb8;
+  background-image:
+    radial-gradient(ellipse 90% 70% at 15% 20%, rgba(180, 230, 255, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 85% 15%, rgba(120, 190, 240, 0.45) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 50% at 70% 80%, rgba(40, 100, 170, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 45% at 25% 75%, rgba(90, 170, 220, 0.4) 0%, transparent 50%),
+    linear-gradient(165deg, #6eb0de 0%, #3a7eb8 42%, #1e5a96 78%, #164a7a 100%);
 }
 
 /* ---------- Menu bar ---------- */
@@ -290,8 +279,8 @@ select {
   font-size: 11px;
   text-align: center;
   line-height: 1.2;
-  color: #111;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -726,6 +715,129 @@ select {
   }
 }
 
+
+/* ---------- Finder / Trash chrome ---------- */
+.finder-body {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: #fff;
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.finder-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: linear-gradient(180deg, #f4f6fa 0%, #d8dde6 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.22);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+}
+
+.finder-toolbar-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #333;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.finder-icon-view {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 12px 8px;
+  padding: 14px 12px;
+  overflow: auto;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #f7f8fa 0 1px,
+      #eef0f4 1px 2px
+    );
+}
+
+.finder-item {
+  width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  color: var(--aqua-text);
+  border-radius: 4px;
+}
+
+.finder-item svg {
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.28));
+  pointer-events: none;
+}
+
+.finder-item span {
+  max-width: 68px;
+  padding: 1px 3px;
+  border-radius: 3px;
+  text-align: center;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.finder-item:focus-visible,
+.finder-item:hover {
+  outline: none;
+}
+
+.finder-item:focus-visible span,
+.finder-item:hover span {
+  background: var(--aqua-accent);
+  color: #fff;
+}
+
+.finder-empty {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 1.5rem;
+  color: #555;
+  text-align: center;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #f7f8fa 0 1px,
+      #eef0f4 1px 2px
+    );
+}
+
+.finder-empty p {
+  margin: 0;
+  font-size: 12px;
+}
+
+.finder-empty-glyph {
+  width: 48px;
+  height: 48px;
+  opacity: 0.55;
+}
+
+/* Lamp minimize (KDE Compiz cssLamp-style) */
+.osx-window.aqua-lamping {
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
 /* ---------- Dialogs / Aqua sheet ---------- */
 .osx-overlay {
   position: fixed;
@@ -805,6 +917,9 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .osx-dialog.osx-sheet {
     animation: none;
+  }
+  .osx-window.aqua-lamping {
+    transition: none !important;
   }
 }
 

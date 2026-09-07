@@ -791,11 +791,9 @@ button,
 }
 
 /* ---------- Boot screen ----------
-   Mirrors mac1984's power-button-gesture + synthesized-chime + timed-reveal
-   mechanic (see mac1984/style.css's own #boot-screen rules), reworked with
-   Mac OS 8 Platinum grey chrome and an original "smiling computer" icon
-   instead of the real Happy Mac -- not shared code, per CLAUDE.md's
-   mac1984/mac8 own-WM-each rule (this is presentation only, no WM logic). */
+   Passive auto-boot like mac1984 (no power button). Platinum grey chrome and
+   an original "smiling computer" icon — not the real Happy Mac. Not shared
+   code, per CLAUDE.md's mac1984/mac8 own-WM-each rule. */
 #boot-screen {
   position: fixed;
   inset: 0;
@@ -811,32 +809,6 @@ button,
 }
 #boot-screen.hidden {
   display: none;
-}
-#power-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  background: #ffffff;
-  border: 1px solid #000000;
-  box-shadow: 1px 1px 0 #000000;
-  padding: 1.5rem 2rem;
-  color: #000000;
-  font: inherit;
-  font-size: 1rem;
-  cursor: var(--cursor-arrow);
-}
-#power-btn[hidden] {
-  display: none; /* beats #power-btn's own display:flex, which is equal specificity but comes first */
-}
-#power-btn .power-icon {
-  font-size: 2rem;
-  line-height: 1;
-}
-#power-btn:hover,
-#power-btn:focus-visible {
-  background: #000000;
-  color: #ffffff;
 }
 #boot-sequence {
   display: none;
