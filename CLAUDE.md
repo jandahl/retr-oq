@@ -54,7 +54,7 @@ Don't mix window managers across families.
 | --- | --- | --- |
 | Redmond | `win31/` `win98/` `xp/` `win7/` | `shared/redmond/window-manager.js` |
 | Mac-lineage | `mac1984/` `mac8/` `amiga/` | each theme's own `app.js` — do not share |
-| Own WM | `next/` `kde/` | each theme's own `app.js` — not Redmond |
+| Own WM | `next/` `kde/` `beos/` | each theme's own `app.js` — not Redmond |
 | Text mode | `dos/` `c64/` | no overlapping windows; full-screen takeovers |
 | Console | `nes/` `gb/` `snes/` `gg/` | one screen, one `handleInput()` |
 | OS/2 host | `os2/` | Workplace Shell host; Win-OS/2 and DOS guests reuse their source themes |
@@ -116,6 +116,18 @@ Icons stay anti-aliased (`image-rendering: pixelated` is a bug).
 Vertical menu + right dock; miniaturize leaves a miniwindow, not a
 taskbar pill. Own WM. TeX Gyre Heros, not Helvetica. Menu items are
 `<a href="#">` — set `a:link { cursor: default }`.
+
+**`beos/`** — Own WM. Yellow title *tab* (not a full-width bar), Deskbar
+in the upper right. Close is a square with a hollow circle on the left
+of the tab; zoom is the square-in-a-square on the right; double-click
+the tab to hide (no minimize gadget). Shift-drag slides the tab along
+its window. Font is TeX Gyre Heros from `vendor/next/fonts/`, not Swiss
+721. No Be logo, no Haiku leaf. Tab slant adapted from NovusGFX (MIT)
+— see `vendor/beos/`. Palette is R5: desktop `#336698`, tab `#FFC000`,
+chrome `#D8D8D8`. Hide is UI state (like NeXT miniaturize); closing
+OQ!/DECON still goes through the router. Four workspaces (Alt+1..4);
+Twitcher is Control-Tab; Team Monitor is Control-Alt-Delete. Kernel
+debugger is an undocumented egg.
 
 **`win31/`** — Redmond WM, 3.1 chrome: Program Manager is the shell
 (closing it is Exit Windows → `../`). No Start, no taskbar — minimize

@@ -48,6 +48,7 @@ window.OqGames = {
     next: ["panic", "ss-backspace"],
     mac8: ["ss-afterdark"],
     win98: ["hotdog", "ss-maze", "ss-pipes", "ss-backrooms"],
+    beos: ["panic"],
     xp: ["ss-pipes", "ss-backrooms-ii"],
     kde: ["kde-rain", "kde-cube", "ss-kde-gl"],
     win7: ["ss-pipes"],
