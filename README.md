@@ -28,7 +28,7 @@ stays the cross-theme source of truth.
 | 1990 | [`gg/`](gg/) | Game Gear. Pocket Master System: 160×144, 32/4096. Landscape; 1/2, no Select |
 | 1991 | [`snes/`](snes/) | Super Nintendo (PAL). Gray dogbone, rainbow YXBA, Super OQ! wordmark |
 | 1992 | [`win31/`](win31/) | Program Manager. Redmond WM; no Start, no X |
-| 1994 | [`os2/`](os2/) | OS/2 Warp Workplace Shell with Win-OS/2 and DOS guests |
+| 1994 | [`os2/`](os2/) | OS/2 Warp Workplace Shell with Win-OQ!2 and DOS guests |
 | 1995 | [`next/`](next/) | NeXTSTEP 3.3 Workspace. Four grays, dock, TeX Gyre Heros |
 | 1998 | [`mac8/`](mac8/) | Mac OS 8.1 Platinum. [`classic.css`](https://github.com/npjg/classic.css) |
 | 1998 | [`win98/`](win98/) | 98 desktop. [`98.css`](https://github.com/jdan/98.css) dist |
@@ -67,6 +67,18 @@ audio demo, or an easter egg. Source of truth: `shared/games.js`.
 `decon-app.js`, `redmond/window-manager.js` (win31/98/XP/7),
 `art/fox/` (MORPH! mascot source: first-gen illustrations + 128px
 hires frames — not GB-locked; theme sprites stay in the theme dir).
+
+## Local pre-push checks
+
+Install the tracked hook once in each worktree:
+
+```sh
+cp tools/pre-push-check.sh "$(git rev-parse --git-path hooks)/pre-push"
+chmod +x "$(git rev-parse --git-path hooks)/pre-push"
+```
+
+It checks whitespace, JavaScript, CSS, the CI HTML page set, and the OS/2
+smoke tests before allowing a push.
 
 **`vendor/<theme>/`** — upstream dist + LICENSE, not SCSS sources.
 **`tests/`** — Playwright/pytest for `win98/`, `nes/`, `gb/`, `snes/`, `gg/`, Redmond Run, and the screensaver host. `tests/shared/*.mjs` is Node-only and runs on every PR.

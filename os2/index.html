@@ -7,6 +7,17 @@
 <link rel="stylesheet" href="style.css?v=1" />
 </head>
 <body>
+  <section class="boot-manager" id="boot-manager" aria-label="OS/2 boot manager">
+    <div class="boot-panel">
+      <div class="boot-heading">OS/2 Boot Manager</div>
+      <div class="boot-copy">Select an operating system to start:</div>
+      <label class="boot-options">Operating system choices
+        <select id="boot-choice"><option value="warp">OS/2 Warp 4</option><option value="win">Win-OQ!2 Windows 3.1</option></select>
+      </label>
+      <div class="boot-footer">Use ↑ ↓ to select, ENTER to boot</div>
+      <div class="boot-countdown">Starting selected system in <strong id="boot-count">5</strong> seconds...</div>
+    </div>
+  </section>
   <main id="desktop" aria-label="OS/2 Warp Workplace Shell desktop">
     <div class="warp-wordmark" aria-hidden="true"><span class="oq-word"><i>O</i><i>Q</i><i>!</i><i>2</i></span><span class="warp-word"><i>W</i><i>A</i><i>R</i><i>P</i></span></div>
     <div class="desktop-icons">
@@ -15,28 +26,28 @@
       <button type="button" class="object-icon" data-open="dos-window"><span class="icon-art icon-dos"></span><span>Command Prompts</span></button>
     </div>
     <section class="os2-window system-window" id="system-window" aria-labelledby="system-title" hidden>
-      <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu">◆</button><span id="system-title">OS/2 System - Icon View</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
+      <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu"><span class="pm-icon pm-folder"></span></button><span id="system-title">OS/2 System - Icon View</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
       <div class="os2-menu"><button type="button" data-menu="system-object-menu">Object</button><button type="button" data-menu="system-view-menu">View</button><button type="button" data-menu="system-help-menu">Help</button><ul class="os2-dropdown" id="system-object-menu" hidden><li><button type="button" data-open="native-window">Open</button></li><li><button type="button" data-close-window>Close</button></li></ul><ul class="os2-dropdown" id="system-view-menu" hidden><li><button type="button">Icon View</button></li><li><button type="button">Details View</button></li></ul><ul class="os2-dropdown" id="system-help-menu" hidden><li><button type="button">OS/2 Help</button></li></ul></div>
       <div class="folder-view">
         <button type="button" class="program-icon" data-open="native-window"><span class="icon-art icon-oq"></span><small>OQ!2</small></button>
-        <button type="button" class="program-icon" data-open="win-os2-window"><span class="icon-art icon-programs"></span><small>Win-OS/2</small></button>
+        <button type="button" class="program-icon" data-open="win-os2-window"><span class="icon-art icon-programs"></span><small>Win-OQ!2</small></button>
         <button type="button" class="program-icon" data-open="dos-window"><span class="icon-art icon-dos"></span><small>DOS Window</small></button>
       </div>
     </section>
     <section class="os2-window app-window" id="native-window" hidden>
-      <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu">◆</button><span>OQ!2 Dictionary — Presentation Manager</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
+      <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu"><span class="pm-icon pm-oq"></span></button><span>OQ!2 Dictionary — Presentation Manager</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
       <div class="os2-menu">File&nbsp;&nbsp;Edit&nbsp;&nbsp;View&nbsp;&nbsp;Help</div>
       <iframe src="../win31/index.html?screen=oq" title="Native OQ dictionary application"></iframe>
     </section>
     <section class="os2-window guest-window" id="win-os2-window" hidden>
-      <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu">◆</button><span>Win-OS/2 — Windows 3.1 application</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
-      <iframe src="../win31/index.html?standalone=1&screen=oq" title="Win-OS/2 Windows 3.1 application"></iframe>
+      <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu"><span class="pm-icon pm-win"></span></button><span>Win-OQ!2 — Windows 3.1 application</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
+      <iframe src="../win31/index.html?standalone=1&screen=oq" title="Win-OQ!2 Windows 3.1 application"></iframe>
     </section>
     <section class="os2-window guest-window dos-host" id="dos-window" hidden>
-      <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu">◆</button><span>DOS Window — OS/2 session</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
+      <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu"><span class="pm-icon pm-dos"></span></button><span>DOS Window — OS/2 session</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
       <iframe src="../dos/index.html" title="DOS window session"></iframe>
     </section>
-    <div class="launchpad" role="group" aria-label="LaunchPad"><span class="warp-bar-label">OQ!2</span><button type="button" data-open="native-window">OQ!2</button><button type="button" data-open="win-os2-window">Win-OS/2</button><button type="button" data-open="dos-window">DOS</button></div>
+    <div class="warpcenter" role="group" aria-label="WarpCenter"><button type="button" class="warpcenter-menu" aria-label="Open OS/2 System" data-open="system-window"><span class="pm-icon pm-folder"></span></button><button type="button" data-open="native-window">OQ!2</button><button type="button" data-open="win-os2-window">Win-OQ!2</button><button type="button" data-open="dos-window">DOS</button><span class="window-list" id="window-list" role="group" aria-label="Window list"></span><span class="warpcenter-grip" aria-hidden="true">▥</span></div>
   </main>
 <script src="app.js?v=1"></script>
 </body>

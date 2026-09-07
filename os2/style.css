@@ -3,6 +3,16 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; font-family: os2-ui, Arial, sans-serif; font-size: 12px; }
 button { font: inherit; cursor: default; }
+.boot-manager { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; color: #fff; background: #000; font-family: "Courier New", monospace; }
+.boot-manager[hidden] { display: none; }
+.boot-panel { width: min(650px, 90vw); padding: 28px 32px; border: 2px solid #aaa; background: #111; box-shadow: 0 0 0 2px #555, 10px 10px #000; }
+.boot-heading { margin-bottom: 24px; color: #ffcc00; font-size: 22px; font-weight: bold; letter-spacing: 2px; }
+.boot-copy { margin-bottom: 13px; }
+.boot-options { display: grid; gap: 5px; margin-bottom: 24px; }
+.boot-option { width: 100%; padding: 8px 12px; border: 0; color: #fff; background: transparent; text-align: left; }
+.boot-option.selected, .boot-option:focus { color: #000; background: #aaa; outline: 0; }
+.boot-footer { color: #aaa; font-size: 12px; }
+.boot-countdown { margin-top: 26px; color: #ffcc00; }
 #desktop { position: relative; height: 100%; min-height: 430px; overflow: hidden; color: white; background: linear-gradient(145deg, #111bd0 0%, #080b75 52%, #02033b 100%); }
 .warp-wordmark { position: absolute; z-index: 1; top: 27%; left: 16%; display: flex; align-items: center; transform: rotate(-3deg) skewX(-8deg); filter: drop-shadow(9px 11px 0 rgba(0, 0, 0, .45)); pointer-events: none; user-select: none; }
 .warp-wordmark i { display: inline-block; font-style: normal; }
@@ -34,6 +44,11 @@ button { font: inherit; cursor: default; }
 .os2-window.active .os2-titlebar { color: #fff; background: #4b008f; }
 .os2-titlebar span { flex: 1; overflow: hidden; white-space: nowrap; cursor: text; user-select: text; }
 .sysmenu, .minimize, .close-window { position: relative; width: 19px; height: 18px; padding: 0; color: #111; background: #c0c0c0; border: 2px outset #fff; line-height: 12px; }
+.pm-icon { position: relative; display: block; width: 12px; height: 12px; background: #c0c0c0; }
+.pm-icon::before, .pm-icon::after { content: ""; position: absolute; display: block; }
+.pm-folder::before { left: 1px; top: 3px; width: 10px; height: 7px; background: #ffd92f; border: 1px solid #111; }.pm-folder::after { left: 2px; top: 1px; width: 5px; height: 3px; background: #ffd92f; border: 1px solid #111; }
+.pm-oq::before { content: "OQ"; left: 0; top: 1px; color: #0055aa; font: bold 8px Georgia, serif; }.pm-win::before { left: 1px; top: 1px; width: 10px; height: 9px; background: #0055aa; border: 1px solid #111; }.pm-win::after { left: 4px; top: 4px; width: 4px; height: 4px; background: #ffeb00; }
+.pm-dos::before { left: 1px; top: 1px; width: 10px; height: 9px; background: #111; border: 1px solid #777; }.pm-dos::after { content: ">"; left: 3px; top: 0; color: #c0c0c0; font: bold 8px monospace; }
 .sysmenu { font-size: 9px; }.close-window { font-size: 16px; line-height: 11px; }.minimize { font-size: 13px; line-height: 9px; }
 .active .sysmenu, .active .minimize, .active .close-window { color: #111; }
 .os2-menu { position: relative; display: flex; gap: 2px; height: 25px; padding: 2px 5px; border-bottom: 1px solid #808080; background: #d7d7d7; }
@@ -46,8 +61,8 @@ button { font: inherit; cursor: default; }
 .program-icon { color: #111; text-shadow: none; }
 iframe { display: block; width: 100%; height: calc(100% - 24px); border: 0; background: #000; }
 .app-window iframe { height: calc(100% - 49px); }
-.launchpad { position: absolute; z-index: 10; right: 4px; bottom: 3px; display: flex; gap: 3px; align-items: center; min-height: 27px; padding: 2px 4px; color: #111; background: #c0c0c0; border: 2px outset #fff; }
-.warp-mark { padding-right: 8px; color: #000080; font-weight: bold; }
-.launchpad button { padding: 3px 8px; background: #c0c0c0; border: 2px outset #fff; }
-.warp-bar-label { padding: 3px 8px 3px 3px; color: #000080; font-weight: bold; }
+.warpcenter { position: absolute; z-index: 10; top: 3px; left: 3px; right: 3px; display: flex; gap: 3px; align-items: center; min-height: 29px; padding: 2px 4px; color: #111; background: #c0c0c0; border: 2px outset #fff; box-shadow: 0 2px #000; }
+.warpcenter button { padding: 3px 8px; background: #c0c0c0; border: 2px outset #fff; }
+.warpcenter-menu { display: grid; place-items: center; width: 27px; height: 22px; padding: 2px !important; }
+.warpcenter-grip { margin-left: auto; padding: 1px 5px; color: #555; border: 2px inset #fff; }
 @media (max-width: 700px) { .warp-wordmark { left: 20%; top: 32%; } .oq-word { font-size: 72px; letter-spacing: -8px; } .warp-word { margin-left: 12px; font-size: 60px; letter-spacing: -5px; } .system-window, .app-window, .guest-window, .dos-host { left: 13%; top: 16%; width: 74%; height: 68%; } .desktop-icons { flex-direction: row; flex-wrap: wrap; width: 290px; gap: 8px; } }

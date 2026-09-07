@@ -1,7 +1,7 @@
 # os2/ — internal notes
 
 The OS/2 theme is a host desktop, not a recolored Windows 3.1 page. The outer
-shell is Workplace Shell/Presentation Manager-inspired; the Win-OS/2 guest
+shell is Workplace Shell/Presentation Manager-inspired; the Win-OQ!2 guest
 deliberately reuses `win31/index.html`, and the DOS guest deliberately reuses
 `dos/index.html` so guest updates are reflected here automatically.
 
