@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Original beige volume. -->
+  <rect x="8" y="18" width="48" height="32" rx="3" fill="#c8c0a8" stroke="#404040" stroke-width="1.5"/>
+  <rect x="8" y="18" width="48" height="8" fill="#a89870" stroke="#404040" stroke-width="1.5"/>
+  <circle cx="44" cy="38" r="8" fill="#d8d8d8" stroke="#404040" stroke-width="1.5"/>
+  <circle cx="44" cy="38" r="3" fill="#404040"/>
+  <rect x="14" y="22" width="10" height="3" fill="#ffc000"/>
+</svg>

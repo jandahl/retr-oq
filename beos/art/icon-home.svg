@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Original beige Tracker folder. Not a Be/Haiku asset. -->
+  <rect x="6" y="22" width="52" height="34" rx="2" fill="#e8d090" stroke="#404040" stroke-width="1.5"/>
+  <path d="M8 22 V16 h16 l4 6 H56" fill="#f4e4a8" stroke="#404040" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="10" y="28" width="44" height="3" fill="#c8a050"/>
+  <rect x="10" y="34" width="28" height="2" fill="#c8a050"/>
+</svg>

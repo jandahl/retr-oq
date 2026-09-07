@@ -304,6 +304,29 @@ window.OqHubMachines = [
     `,
   },
   {
+    href: "beos/",
+    name: "BeOS",
+    year: "2000",
+    category: "workstation",
+    hasGames: false,
+    meta: "Tracker / Deskbar",
+    iconNote: "BeOS Blue, yellow title tab, Deskbar on the right",
+    icon: `
+      <rect width="32" height="32" fill="#336698"/>
+      <rect x="2" y="7" width="18" height="16" fill="#d8d8d8"/>
+      <rect x="2" y="7" width="12" height="4" fill="#ffc000"/>
+      <rect x="3" y="8" width="2" height="2" fill="#cc3030"/>
+      <rect x="13" y="8" width="2" height="2" fill="#f4f4f4"/>
+      <rect x="4" y="13" width="14" height="8" fill="#ffffff"/>
+      <rect x="21" y="0" width="11" height="32" fill="#d8d8d8"/>
+      <rect x="21" y="0" width="11" height="6" fill="#ffc000"/>
+      <rect x="23" y="2" width="3" height="3" fill="#cc3030"/>
+      <rect x="23" y="9" width="7" height="2" fill="#336698"/>
+      <rect x="23" y="13" width="7" height="2" fill="#8c8c8c"/>
+      <rect x="23" y="17" width="7" height="2" fill="#8c8c8c"/>
+    `,
+  },
+  {
     href: "xp/",
     name: "Windows XP",
     year: "2001",
