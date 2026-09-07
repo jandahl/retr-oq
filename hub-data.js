@@ -9,7 +9,7 @@
 // `category` is a best-fit tag, not an exhaustive taxonomy: "console",
 // "handheld", "workstation" (NeXT, KDE) for the unambiguous cases, split by
 // lineage for the rest -- "redmond" (win31/win98/xp/win7), "cupertino"
-// (mac1984/mac8), and "home-computer" for independent 8/16-bit machines
+// (mac1984/mac8/aqua), and "home-computer" for independent 8/16-bit machines
 // that are neither (dos, c64, amiga -- keyboard/BASIC machines, not
 // cartridge consoles, however tempting that grouping is once the vendor
 // buckets exist). Re-tag freely if a future filter/UI wants a different
@@ -324,6 +324,45 @@ window.OqHubMachines = [
       <rect x="23" y="9" width="7" height="2" fill="#336698"/>
       <rect x="23" y="13" width="7" height="2" fill="#8c8c8c"/>
       <rect x="23" y="17" width="7" height="2" fill="#8c8c8c"/>
+    `,
+  },
+  {
+    href: "aqua/",
+    name: "OS X Aqua",
+    year: "2001",
+    category: "cupertino",
+    hasGames: false,
+    meta: "Aqua / Dock",
+    iconNote: "Pinstripe desktop, traffic-light window, glass Dock",
+    icon: `
+      <rect width="32" height="32" fill="#e2e6ec"/>
+      <rect x="0" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="2" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="4" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="6" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="8" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="10" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="12" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="14" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="16" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="18" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="20" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="22" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="24" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="26" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="28" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect x="30" y="0" width="1" height="32" fill="#eceff3"/>
+      <rect y="0" width="32" height="3" fill="#ffffff"/>
+      <rect x="3" y="6" width="26" height="16" rx="2" fill="#f0f0f0" stroke="#444"/>
+      <rect x="3" y="6" width="26" height="4" fill="#8ba4d1"/>
+      <circle cx="6.5" cy="8" r="1.2" fill="#e2462e"/>
+      <circle cx="10" cy="8" r="1.2" fill="#f5c033"/>
+      <circle cx="13.5" cy="8" r="1.2" fill="#62c23a"/>
+      <rect x="6" y="12" width="20" height="8" fill="#ffffff"/>
+      <rect x="8" y="26" width="16" height="4" rx="1" fill="#c8d4e8" stroke="#668"/>
+      <circle cx="11" cy="28" r="1.2" fill="#3f82c8"/>
+      <circle cx="16" cy="28" r="1.2" fill="#e87830"/>
+      <circle cx="21" cy="28" r="1.2" fill="#cfd6de"/>
     `,
   },
   {

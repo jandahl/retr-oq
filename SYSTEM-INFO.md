@@ -21,6 +21,7 @@ distance check) for `nes/` `gb/` `gg/` `snes/` `c64/`.
 | `snes/` | 256×224 (NTSC) | 15-bit RGB (5-5-5) | 32,768 (SNES PPU) | 256 on screen at once (CGRAM, 8-bit indexed) |
 | `win31/` `win98/` `xp/` `win7/` | Desktop-metaphor, resolution-independent (CSS) | n/a (vendor CSS theme, not emulated video hardware) | n/a | n/a — chrome fidelity governed by vendor dist (98.css / XP.css / 7.css), not a fixed hardware palette |
 | `next/` | Desktop-metaphor, resolution-independent | n/a | n/a | Chrome constrained to 4 MegaPixel grays (theme convention, not hardware gamut) |
+| `aqua/` | Desktop-metaphor, resolution-independent | n/a (hand-rolled Aqua chrome; not a fixed hardware depth) | n/a | n/a |
 | `mac8/` | Desktop-metaphor, resolution-independent | n/a (era supported 8-bit/24-bit; theme doesn't emulate a fixed depth) | n/a | n/a |
 | `kde/` | Desktop-metaphor, resolution-independent | n/a | n/a | n/a |
 
@@ -30,7 +31,7 @@ distance check) for `nes/` `gb/` `gg/` `snes/` `c64/`.
   `snes/`, `mac1984/`, `amiga/` emulate real fixed-resolution,
   fixed-palette video hardware — the numbers above are hardware facts,
   not stylistic choices. `win31/` `win98/` `xp/` `win7/` `next/`
-  `mac8/` `kde/` are desktop-metaphor themes skinned with vendor CSS
+  `mac8/` `aqua/` `kde/` are desktop-metaphor themes skinned with vendor CSS
   (or, for `next/`/`kde/`, a hand-held convention) over an ordinary
   resolution-independent browser viewport — there is no fixed hardware
   screen to report.

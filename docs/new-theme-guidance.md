@@ -33,6 +33,7 @@ Period-specific differences belong at the boundary and should be recorded in
 | --- | --- | --- |
 | Redmond desktop | `win31/`, `win98/`, `xp/`, `win7/` | Use `shared/redmond/window-manager.js` |
 | Mac-lineage desktop | `mac1984/`, `mac8/`, `amiga/` | Own window manager per theme |
+| OS X desktop | `aqua/` (+ future) | Use `shared/osx/` |
 | Own window manager | `next/`, `kde/` | Keep WM behavior local |
 | Text mode | `dos/`, `c64/` | Single-tasking/full-screen; no overlapping windows |
 | Console | `nes/`, `gb/`, `snes/`, `gg/` | One screen and one central `handleInput()` |
@@ -59,7 +60,7 @@ HTML, CSS, JS, compositor code, and shared assets.
 
 The primary reusable building blocks are `shared/dict-source.js`,
 `shared/hyphenation.js`, `shared/router.js`, `shared/decon-app.js`, the Redmond
-window manager, shared game engines, shared screen savers, and the test
+window manager, the OS X shell (`shared/osx/`), shared game engines, shared screen savers, and the test
 fixtures. Reuse them through their existing public contracts, keep the
 integration boundary narrow, and document any adapter.
 

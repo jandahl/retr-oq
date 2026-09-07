@@ -53,7 +53,8 @@ Don't mix window managers across families.
 | Family | Dirs | WM |
 | --- | --- | --- |
 | Redmond | `win31/` `win98/` `xp/` `win7/` | `shared/redmond/window-manager.js` |
-| Mac-lineage | `mac1984/` `mac8/` `amiga/` | each theme's own `app.js` — do not share |
+| Mac-lineage (classic) | `mac1984/` `mac8/` `amiga/` | each theme's own `app.js` — do not share |
+| OS X | `aqua/` (+ future Tiger/Leopard) | `shared/osx/` — not classic Mac, not Redmond |
 | Own WM | `next/` `kde/` `beos/` | each theme's own `app.js` — not Redmond |
 | Text mode | `dos/` `c64/` | no overlapping windows; full-screen takeovers |
 | Console | `nes/` `gb/` `snes/` `gg/` | one screen, one `handleInput()` |
@@ -69,6 +70,8 @@ Don't mix window managers across families.
   rewrites, so `?screen=oq&filter=` not `/oq/`.
 - `redmond/window-manager.js` — drag/resize/focus/min/max/close/taskbar
   for the Redmond family only.
+- `osx/` — OS X family shell (WM, menu bar, Dock helpers) for `aqua/`
+  and later OS X skins. Not for `mac1984/`/`mac8`.
 - `decon-app.js` — DECON UI, reused as-is.
 - `art/fox/` — MORPH! mascot source (first-gen illustrations, 128px
   hires frames). Theme-sized sprites stay in the theme dir (`gb/sprites/`
@@ -139,9 +142,14 @@ reused from `vendor/win98/fonts/`.
 builds under `vendor/`. Don't vendor the SCSS sources (they need a
 build). Greenlandic flag, not a Windows logo. 7.css ships no fonts.
 
-**`mac1984/` `mac8/`** — Own WM each; don't share with each other or
-Redmond. Growbox only, not edge-resize. mac8 zoom toggles the prior
-rect, it isn't maximize.
+**`mac1984/` `mac8/`** — Own WM each; don't share with each other,
+Redmond, or `shared/osx/`. Growbox only, not edge-resize. mac8 zoom
+toggles the prior rect, it isn't maximize.
+
+**`aqua/`** — Early OS X Aqua (~2001). Uses `shared/osx/` (menu bar,
+Dock, traffic lights, zoom-toggles-prior-rect). Hand-rolled chrome;
+no Apple marks. TeX Gyre Heros from `vendor/next/`. See `aqua/NOTES.md`
+for the vendor CSS search (aqua-ui rejected: Apple-derived font/sprites).
 
 **`kde/`** — Own WM (Plastik + Kicker). Compiz is `compositor.js`:
 spring-mesh on `#compositor` for a fine pointer, CSS transforms on the
