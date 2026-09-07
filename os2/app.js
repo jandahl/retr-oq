@@ -2,9 +2,21 @@
   "use strict";
   let z = 10;
   const desktop = document.getElementById("desktop");
+  const windowList = document.getElementById("window-list");
   function focus(win) { if (!win) return; z += 1; win.style.zIndex = z; for (const other of desktop.querySelectorAll(".os2-window")) other.classList.toggle("active", other === win); }
   function open(id) { const win = document.getElementById(id); if (!win) return; win.hidden = false; focus(win); }
   function close(win) { if (win) win.hidden = true; }
+  function renderWindowList() {
+    windowList.textContent = "";
+    for (const win of desktop.querySelectorAll(".os2-window")) {
+      if (win.hidden) continue;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = win.querySelector(".os2-titlebar span")?.textContent || "Window";
+      button.addEventListener("click", () => { win.hidden = false; focus(win); });
+      windowList.append(button);
+    }
+  }
   desktop.addEventListener("click", (event) => {
     const opener = event.target.closest("[data-open]");
     if (opener) open(opener.dataset.open);
@@ -19,6 +31,7 @@
       if (menu) menu.hidden = !wasHidden;
     }
     if (event.target.closest("[data-close-window]")) close(event.target.closest(".os2-window"));
+    renderWindowList();
   });
   for (const win of desktop.querySelectorAll(".os2-window")) {
     const bar = win.querySelector(".os2-titlebar");
@@ -31,4 +44,5 @@
     bar.addEventListener("pointermove", (event) => { if (drag) { win.style.left = `${Math.max(0, event.clientX - drag.x)}px`; win.style.top = `${Math.max(0, event.clientY - drag.y)}px`; } });
     bar.addEventListener("pointerup", () => { drag = null; });
   }
+  renderWindowList();
 })();
