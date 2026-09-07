@@ -4,8 +4,7 @@
 def open_theme(page, base_url):
     errors = []
     page.on("pageerror", lambda error: errors.append(str(error)))
-    page.goto(f"{base_url}/os2/index.html")
-    page.keyboard.press("Enter")
+    page.goto(f"{base_url}/os2/index.html?noboot=1")
     page.wait_for_timeout(150)
     return errors
 

@@ -24,6 +24,7 @@
     bootCount.textContent = String(countdown);
     if (countdown <= 0) finishBoot();
   }, 1000);
+  if (new URLSearchParams(location.search).has("noboot")) finishBoot();
   bootChoiceSelect.addEventListener("change", () => selectBoot(bootChoiceSelect.value));
   bootManager.addEventListener("keydown", (event) => {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); selectBoot(bootChoice === "warp" ? "win" : "warp"); }
