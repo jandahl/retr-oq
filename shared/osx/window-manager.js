@@ -38,6 +38,7 @@
    * @param {(win: HTMLElement) => boolean} [opts.routeOpen]
    * @param {(win: HTMLElement) => void} [opts.routeClose]
    * @param {(win: HTMLElement) => void} [opts.onOpen]
+   * @param {(win: HTMLElement) => void} [opts.onClose]
    * @param {(win: HTMLElement) => void} [opts.onMinimize]
    * @param {(win: HTMLElement) => void} [opts.onRestore]
    * @param {object} [opts.animation]
@@ -56,6 +57,7 @@
     routeOpen,
     routeClose,
     onOpen,
+    onClose,
     onMinimize,
     onRestore,
     animation,
@@ -154,6 +156,7 @@
         if (next) focus(next);
         else win.classList.add(inactiveClass);
       }
+      if (onClose) onClose(win);
     }
 
     function minimizeWindow(win) {
