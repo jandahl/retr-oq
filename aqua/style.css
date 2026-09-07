@@ -1,0 +1,709 @@
+/* Early OS X Aqua skin (hand-rolled — see NOTES.md vendor search).
+   Behavior: shared/osx/*. Font: TeX Gyre Heros from vendor/next/. */
+
+@font-face {
+  font-family: "TeX Gyre Heros";
+  font-weight: 400;
+  font-style: normal;
+  src: url("../vendor/next/fonts/texgyreheros-regular.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "TeX Gyre Heros";
+  font-weight: 700;
+  font-style: normal;
+  src: url("../vendor/next/fonts/texgyreheros-bold.otf") format("opentype");
+}
+
+:root {
+  --aqua-stripe-a: #eceff3;
+  --aqua-stripe-b: #e2e6ec;
+  --aqua-menubar: rgba(255, 255, 255, 0.78);
+  --aqua-menubar-border: rgba(0, 0, 0, 0.22);
+  --aqua-text: #1a1a1a;
+  --aqua-accent: #4d76c5;
+  --aqua-window: #f0f0f0;
+  --aqua-title-active-top: #d6e1f4;
+  --aqua-title-active-bot: #8ba4d1;
+  --aqua-title-inactive-top: #e8e8e8;
+  --aqua-title-inactive-bot: #c0c0c0;
+  --aqua-dock: rgba(255, 255, 255, 0.35);
+  --aqua-font: "TeX Gyre Heros", "Lucida Grande", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  overflow: hidden;
+  font-family: var(--aqua-font);
+  font-size: 13px;
+  color: var(--aqua-text);
+  background: #000;
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button,
+a,
+a:link,
+a:visited {
+  cursor: default;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: 16px; /* iOS zoom floor */
+  cursor: text;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* ---------- Boot ---------- */
+#boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  color: #fff;
+  transition: opacity 400ms ease;
+}
+
+#boot-screen.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#power-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  background: transparent;
+  border: 0;
+  color: #c8c8c8;
+  font: inherit;
+  padding: 1.5rem;
+}
+
+#power-btn:focus-visible {
+  outline: 2px solid #6af;
+  outline-offset: 4px;
+}
+
+.power-icon {
+  font-size: 2rem;
+  color: #6cf;
+}
+
+#boot-sequence {
+  text-align: center;
+}
+
+#boot-sequence .happy-face {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+}
+
+#boot-sequence p {
+  margin: 0;
+  letter-spacing: 0.04em;
+  color: #ddd;
+}
+
+/* ---------- Shell layout ---------- */
+#shell {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--aqua-stripe-a) 0 1px,
+      var(--aqua-stripe-b) 1px 2px
+    );
+}
+
+/* ---------- Menu bar ---------- */
+.osx-menubar {
+  flex: 0 0 22px;
+  display: flex;
+  align-items: stretch;
+  list-style: none;
+  margin: 0;
+  padding: 0 6px;
+  background: linear-gradient(180deg, #ffffff 0%, var(--aqua-menubar) 55%, #d8dce3 100%);
+  border-bottom: 1px solid var(--aqua-menubar-border);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
+  z-index: 5000;
+  font-size: 13px;
+}
+
+.osx-menubar > [role="menu-item"],
+.osx-menubar > [role="menuitem"] {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  height: 22px;
+  border-radius: 3px;
+}
+
+.osx-menubar > [role="menu-item"].menu-open,
+.osx-menubar > [role="menuitem"].menu-open,
+.osx-menubar > [role="menu-item"]:hover,
+.osx-menubar > [role="menuitem"]:hover {
+  background: var(--aqua-accent);
+  color: #fff;
+}
+
+.osx-menubar > [role="menu-item"].menu-open:hover,
+.osx-menubar > [role="menuitem"].menu-open:hover {
+  background: var(--aqua-accent);
+  color: #fff;
+}
+
+.osx-apple-item {
+  padding: 0 8px;
+}
+
+.osx-system-mark {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.osx-menubar [role="menu"] {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 11rem;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--aqua-text);
+  border: 1px solid rgba(0, 0, 0, 0.28);
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+  z-index: 6000;
+}
+
+.osx-menubar > .menu-open > [role="menu"] {
+  display: block;
+}
+
+.osx-menubar [role="menu"] [role="menu-item"],
+.osx-menubar [role="menu"] [role="menuitem"] {
+  display: block;
+}
+
+.osx-menubar [role="menu"] a {
+  display: block;
+  padding: 3px 18px 3px 22px;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.osx-menubar [role="menu"] a:hover {
+  background: var(--aqua-accent);
+  color: #fff;
+}
+
+.osx-menubar [role="menu"] .divider {
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  margin-top: 3px;
+  padding-top: 3px;
+}
+
+.osx-menu-clock {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-variant-numeric: tabular-nums;
+  color: #222;
+  pointer-events: none;
+}
+
+/* ---------- Desktop ---------- */
+.osx-desktop {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.desktop-icons {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  z-index: 1;
+}
+
+.desktop-icon {
+  width: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 0;
+  padding: 4px;
+  font: inherit;
+  color: inherit;
+}
+
+.desktop-icon-glyph {
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.desktop-icon-label {
+  max-width: 72px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.2;
+  color: #111;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.desktop-icon.selected .desktop-icon-label,
+.desktop-icon:focus-visible .desktop-icon-label {
+  background: var(--aqua-accent);
+  color: #fff;
+  text-shadow: none;
+}
+
+.desktop-icon:focus-visible {
+  outline: none;
+}
+
+/* ---------- Windows ---------- */
+.osx-window {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  min-height: 140px;
+  background: var(--aqua-window);
+  border: 1px solid rgba(0, 0, 0, 0.45);
+  border-radius: 8px 8px 6px 6px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 10px 28px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.osx-window.closed,
+.osx-window.minimized {
+  display: none !important;
+}
+
+.osx-titlebar {
+  flex: 0 0 22px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  background: linear-gradient(
+    180deg,
+    var(--aqua-title-active-top) 0%,
+    #b7c8e6 48%,
+    var(--aqua-title-active-bot) 52%,
+    #7f98c8 100%
+  );
+  border-bottom: 1px solid rgba(0, 0, 0, 0.28);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+}
+
+.osx-window.inactive .osx-titlebar {
+  background: linear-gradient(
+    180deg,
+    var(--aqua-title-inactive-top) 0%,
+    #d4d4d4 48%,
+    var(--aqua-title-inactive-bot) 52%,
+    #b0b0b0 100%
+  );
+}
+
+.osx-traffic {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  padding: 0;
+  flex: 0 0 auto;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+  position: relative;
+}
+
+.osx-btn-close {
+  background: radial-gradient(circle at 35% 30%, #ffb4a8, #e2462e 55%, #a31d0d);
+}
+
+.osx-btn-minimize {
+  background: radial-gradient(circle at 35% 30%, #ffe9a0, #f5c033 55%, #b8860b);
+}
+
+.osx-btn-zoom {
+  background: radial-gradient(circle at 35% 30%, #b8f0a8, #62c23a 55%, #2f7a18);
+}
+
+.osx-window.inactive .osx-traffic {
+  background: radial-gradient(circle at 35% 30%, #f2f2f2, #c8c8c8 60%, #9a9a9a);
+  border-color: rgba(0, 0, 0, 0.22);
+}
+
+.osx-title {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+}
+
+.osx-window.inactive .osx-title {
+  color: #555;
+  text-shadow: none;
+}
+
+.osx-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px;
+  background: #fff;
+  border-top: 1px solid rgba(255, 255, 255, 0.7);
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+
+.osx-growbox {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  background:
+    linear-gradient(135deg, transparent 45%, rgba(0, 0, 0, 0.25) 46% 48%, transparent 49%),
+    linear-gradient(135deg, transparent 60%, rgba(0, 0, 0, 0.25) 61% 63%, transparent 64%),
+    linear-gradient(135deg, transparent 75%, rgba(0, 0, 0, 0.25) 76% 78%, transparent 79%);
+}
+
+/* ---------- Forms / OQ / DECON ---------- */
+.aqua-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.aqua-field-row input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 28px;
+  padding: 2px 8px;
+  border: 1px solid #7a7a7a;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #f7f7f7, #fff);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) inset;
+}
+
+.aqua-status {
+  margin: 0 0 8px;
+  color: #444;
+  font-size: 12px;
+}
+
+.aqua-panel {
+  border: 1px solid #8a8a8a;
+  border-radius: 4px;
+  background: #fff;
+  max-height: 100%;
+  overflow: auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) inset;
+}
+
+.oq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.oq-table th,
+.oq-table td {
+  padding: 4px 8px;
+  text-align: left;
+  border-bottom: 1px solid #e4e4e4;
+}
+
+.oq-table th {
+  background: linear-gradient(180deg, #f6f6f6, #e8e8e8);
+  position: sticky;
+  top: 0;
+}
+
+.oq-table tr.highlighted td {
+  background: #3b6ec6;
+  color: #fff;
+}
+
+.aqua-attribution {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #666;
+}
+
+.aqua-checkbox-row {
+  font-size: 12px;
+}
+
+.aqua-checkbox-row input {
+  width: 16px;
+  height: 16px;
+}
+
+.decon-card {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.decon-tag {
+  font-size: 10px;
+  font-weight: 700;
+  color: #2a6a2a;
+  text-transform: uppercase;
+}
+
+.decon-tag--approximate {
+  color: #8a5a00;
+}
+
+.decon-word {
+  font-weight: 700;
+}
+
+.decon-meaning {
+  margin-top: 2px;
+  color: #333;
+}
+
+.decon-breakdown {
+  margin-top: 6px;
+  font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.decon-changed {
+  background: #fff3a0;
+  border-radius: 2px;
+}
+
+.decon-dict-match {
+  margin: 8px 10px;
+  font-size: 12px;
+  color: #245;
+}
+
+.aqua-btn {
+  min-height: 28px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid #2f5ea8;
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  background: linear-gradient(180deg, #9ec0f0 0%, #4d76c5 48%, #2f5ea8 52%, #3d6ab8 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) inset;
+}
+
+.aqua-btn:active {
+  background: linear-gradient(180deg, #3d6ab8 0%, #2f5ea8 100%);
+}
+
+/* ---------- Dock ---------- */
+.osx-dock {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 6px 10px 4px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(200, 210, 230, 0.35) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 12px 12px 14px 14px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 8px 24px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 4000;
+}
+
+.osx-dock-item {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 120ms ease;
+}
+
+.osx-dock-item img,
+.osx-dock-item .dock-glyph {
+  width: 44px;
+  height: 44px;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+  pointer-events: none;
+}
+
+.osx-dock-item:hover,
+.osx-dock-item:focus-visible {
+  transform: translateY(-6px) scale(1.12);
+  outline: none;
+}
+
+.osx-dock-item.is-running::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: #222;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.osx-dock-item.is-bouncing {
+  animation: aqua-dock-bounce 700ms ease;
+}
+
+@keyframes aqua-dock-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(-18px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  70% {
+    transform: translateY(-12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .osx-dock-item.is-bouncing {
+    animation: none;
+  }
+  #boot-screen {
+    transition: none;
+  }
+}
+
+/* ---------- Dialogs ---------- */
+.osx-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.osx-overlay[hidden] {
+  display: none !important;
+}
+
+.osx-dialog {
+  position: relative;
+  width: min(22rem, calc(100vw - 2rem));
+  height: auto;
+  min-height: 0;
+}
+
+.osx-dialog .osx-body {
+  cursor: default;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.osx-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .desktop-icons {
+    top: 8px;
+    right: 4px;
+    gap: 6px;
+  }
+  .desktop-icon {
+    width: 64px;
+  }
+  .osx-dock-item {
+    width: 40px;
+    height: 40px;
+  }
+  .osx-dock-item img,
+  .osx-dock-item .dock-glyph {
+    width: 36px;
+    height: 36px;
+  }
+}

@@ -1,0 +1,391 @@
+(() => {
+  "use strict";
+
+  // Thin Aqua adapter over shared/osx/. Theme-specific: boot chime,
+  // OQ!/DECON rendering, shutdown dialog, icon selection. Window
+  // chrome / menu bar / Dock behavior come from OqOsx.*.
+
+  const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
+  const { syllabify } = window.OqHyphenation;
+
+  // ---------- Boot ----------
+  const bootScreen = document.getElementById("boot-screen");
+  const powerBtn = document.getElementById("power-btn");
+  const bootSequence = document.getElementById("boot-sequence");
+
+  function playStartup() {
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      const ctx = new Ctx();
+      // Soft two-tone nod to early Aqua startup — original, not a sample.
+      const notes = [
+        { freq: 392.0, start: 0, dur: 0.35 },
+        { freq: 523.25, start: 0.22, dur: 0.55 },
+        { freq: 659.25, start: 0.4, dur: 0.7 },
+      ];
+      for (const { freq, start, dur } of notes) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + start + 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + dur);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur);
+      }
+    } catch {
+      /* Web Audio blocked — boot silently */
+    }
+  }
+
+  if (bootScreen && powerBtn && bootSequence) {
+    powerBtn.addEventListener(
+      "click",
+      () => {
+        playStartup();
+        powerBtn.hidden = true;
+        bootSequence.hidden = false;
+        setTimeout(() => bootScreen.classList.add("is-done"), 1200);
+      },
+      { once: true },
+    );
+  }
+
+  // ---------- Shell ----------
+  const desktop = document.getElementById("desktop");
+  const windows = Array.from(document.querySelectorAll(".osx-window:not(.osx-dialog)"));
+  const winOq = document.getElementById("win-oq");
+  const winDecon = document.getElementById("win-decon");
+
+  let dockApi;
+
+  function syncDockRunning() {
+    // Running = not closed (minimized windows still show a Dock indicator).
+    for (const win of windows) {
+      dockApi.setRunning(win.id, !win.classList.contains("closed"));
+    }
+  }
+
+  const wm = window.OqOsx.initWindowManager({
+    desktop,
+    windows,
+    minWidth: 240,
+    minHeight: 140,
+    resizeMode: "growbox",
+    routeOpen(win) {
+      if (win === winOq) {
+        window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null });
+        return true;
+      }
+      if (win === winDecon) {
+        window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+        return true;
+      }
+      return false;
+    },
+    routeClose(win) {
+      if (win === winOq || win === winDecon) {
+        window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
+        return true;
+      }
+      return false;
+    },
+    onOpen() {
+      syncDockRunning();
+    },
+    onMinimize() {
+      syncDockRunning();
+    },
+    onRestore() {
+      syncDockRunning();
+    },
+  });
+
+  // Patch close to refresh dock — WM closeWindow doesn't call onOpen.
+  const _close = wm.closeWindow;
+  wm.closeWindow = (win) => {
+    _close(win);
+    syncDockRunning();
+  };
+
+  window.OqOsx.initMenuBar({ menuBar: document.getElementById("menu-bar") });
+  window.OqOsx.initMenuClock({ el: document.getElementById("menu-clock") });
+
+  dockApi = window.OqOsx.initDock({
+    dock: document.getElementById("dock"),
+    onLaunch(id) {
+      const target = document.getElementById(id);
+      if (!target) return;
+      if (target.classList.contains("minimized")) {
+        wm.restoreWindow(target);
+        syncDockRunning();
+        return;
+      }
+      if (!target.classList.contains("closed")) {
+        wm.focus(target);
+        return;
+      }
+      wm.openWindow(target);
+      syncDockRunning();
+    },
+  });
+
+  // Desktop icons (single-click open — touch-friendly; Dock matches).
+  let selectedIcon = null;
+  for (const icon of document.querySelectorAll(".desktop-icon[data-open]")) {
+    icon.addEventListener("click", () => {
+      if (selectedIcon) selectedIcon.classList.remove("selected");
+      icon.classList.add("selected");
+      selectedIcon = icon;
+      const target = document.getElementById(icon.dataset.open);
+      if (target) {
+        if (target.classList.contains("minimized")) wm.restoreWindow(target);
+        else wm.openWindow(target);
+        syncDockRunning();
+      }
+    });
+  }
+  desktop.addEventListener("pointerdown", (event) => {
+    if (event.target === desktop && selectedIcon) {
+      selectedIcon.classList.remove("selected");
+      selectedIcon = null;
+    }
+  });
+
+  // Menu items with data-open
+  for (const item of document.querySelectorAll('#menu-bar [data-open]')) {
+    const link = item.querySelector("a");
+    if (!link) continue;
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      const target = document.getElementById(item.dataset.open);
+      if (target) {
+        if (target.classList.contains("minimized")) wm.restoreWindow(target);
+        else wm.openWindow(target);
+        syncDockRunning();
+      }
+    });
+  }
+
+  // Placeholder menu links
+  for (const link of document.querySelectorAll('#menu-bar [role="menu"] a')) {
+    if (link.closest("[data-open], #menu-shutdown")) continue;
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+    });
+  }
+
+  // Shut Down
+  const shutdownOverlay = document.getElementById("shutdown-overlay");
+  document.querySelector("#menu-shutdown a").addEventListener("click", (event) => {
+    event.preventDefault();
+    shutdownOverlay.hidden = false;
+  });
+  document.getElementById("shutdown-cancel").addEventListener("click", () => {
+    shutdownOverlay.hidden = true;
+  });
+  document.getElementById("shutdown-ok").addEventListener("click", () => {
+    window.location.href = "../";
+  });
+
+  // ---------- OQ! ----------
+  const OQ_DEFAULT_ROWS = 50;
+  const OQ_MAX_FILTERED_ROWS = 200;
+  const oqFilter = document.getElementById("oq-filter");
+  const oqStatus = document.getElementById("oq-status");
+  const oqTbody = document.getElementById("oq-tbody");
+  document.getElementById("oq-attribution").textContent = DICT_ATTRIBUTION;
+
+  let oqEntries = null;
+  let oqLoadStarted = false;
+  let oqSelectedRow = null;
+
+  oqTbody.addEventListener("click", (event) => {
+    const row = event.target.closest("tr");
+    if (!row) return;
+    if (oqSelectedRow) oqSelectedRow.classList.remove("highlighted");
+    row.classList.add("highlighted");
+    oqSelectedRow = row;
+  });
+
+  function renderOqRows(rows) {
+    oqTbody.textContent = "";
+    oqSelectedRow = null;
+    for (const entry of rows) {
+      const row = document.createElement("tr");
+      const lexemeCell = document.createElement("td");
+      lexemeCell.textContent = syllabify(entry.lexeme);
+      const glossCell = document.createElement("td");
+      glossCell.textContent = entry.gloss_en;
+      row.append(lexemeCell, glossCell);
+      oqTbody.appendChild(row);
+    }
+  }
+
+  function renderOqResults() {
+    if (oqEntries === null) return;
+    const query = oqFilter.value.trim();
+    if (query === "") {
+      renderOqRows(oqEntries.slice(0, OQ_DEFAULT_ROWS));
+      oqStatus.textContent = `${oqEntries.length.toLocaleString()} entries loaded — showing first ${OQ_DEFAULT_ROWS}, type to filter.`;
+      return;
+    }
+    const matches = filterDictEntries(oqEntries, query);
+    renderOqRows(matches.slice(0, OQ_MAX_FILTERED_ROWS));
+    oqStatus.textContent =
+      matches.length === 0
+        ? "No matches."
+        : matches.length > OQ_MAX_FILTERED_ROWS
+          ? `Showing first ${OQ_MAX_FILTERED_ROWS} of ${matches.length.toLocaleString()} matches.`
+          : `${matches.length.toLocaleString()} match${matches.length === 1 ? "" : "es"}.`;
+  }
+
+  async function startOqLoad() {
+    if (oqLoadStarted) return;
+    oqLoadStarted = true;
+    oqStatus.textContent = "Loading dictionary…";
+    try {
+      oqEntries = await loadDictEntries();
+    } catch (err) {
+      oqStatus.textContent = `Could not load dictionary (${err.message}). Close and reopen OQ! to retry.`;
+      oqLoadStarted = false;
+      return;
+    }
+    renderOqResults();
+  }
+
+  oqFilter.addEventListener("input", () => {
+    renderOqResults();
+    window.OqRouter.navigate({ filter: oqFilter.value || null }, { replace: true });
+  });
+
+  // ---------- DECON ----------
+  const deconWord = document.getElementById("decon-word");
+  const deconRootFirst = document.getElementById("decon-root-first");
+  const deconStatus = document.getElementById("decon-status");
+  const deconResults = document.getElementById("decon-results");
+
+  function renderDeconResults({ matches, dictMatch }) {
+    deconResults.textContent = "";
+    for (const match of matches) {
+      const card = document.createElement("div");
+      card.className = "decon-card";
+      const header = document.createElement("div");
+      const tag = document.createElement("span");
+      tag.className = match.approximate ? "decon-tag decon-tag--approximate" : "decon-tag";
+      tag.textContent = match.approximate ? "~ approximate" : "exact rebuild";
+      const word = document.createElement("span");
+      word.className = "decon-word";
+      word.textContent = ` ${match.word}`;
+      header.append(tag, word);
+      card.appendChild(header);
+      if (match.meaning) {
+        const meaning = document.createElement("div");
+        meaning.className = "decon-meaning";
+        meaning.textContent = match.meaning;
+        card.appendChild(meaning);
+      }
+      const breakdown = document.createElement("div");
+      breakdown.className = "decon-breakdown";
+      const rows = deconRootFirst.checked ? match.breakdown : [...match.breakdown].reverse();
+      for (const { marker, text, changedRanges, gloss } of rows) {
+        const row = document.createElement("div");
+        let cursor = 0;
+        row.appendChild(document.createTextNode(marker));
+        for (const { start, end } of changedRanges) {
+          if (start > cursor) row.appendChild(document.createTextNode(text.slice(cursor, start)));
+          const changed = document.createElement("span");
+          changed.className = "decon-changed";
+          changed.textContent = text.slice(start, end);
+          row.appendChild(changed);
+          cursor = end;
+        }
+        if (cursor < text.length) row.appendChild(document.createTextNode(text.slice(cursor)));
+        row.appendChild(document.createTextNode(` — ${gloss}`));
+        breakdown.appendChild(row);
+      }
+      card.appendChild(breakdown);
+      deconResults.appendChild(card);
+    }
+    if (dictMatch) {
+      const dictNote = document.createElement("p");
+      dictNote.className = "decon-dict-match";
+      dictNote.textContent = `Found in the dictionary: ${dictMatch.expected} — ${dictMatch.gloss_en}`;
+      deconResults.appendChild(dictNote);
+    }
+  }
+
+  const { getStoredRootFirst, setStoredRootFirst, createController } = window.OqDecon;
+  deconRootFirst.checked = getStoredRootFirst();
+  const deconController = createController({
+    isRootFirst: () => deconRootFirst.checked,
+    onStatus: (text) => {
+      deconStatus.textContent = text;
+    },
+    onRender: (analysis) => renderDeconResults(analysis),
+    onClear: () => {
+      deconResults.textContent = "";
+    },
+  });
+
+  deconRootFirst.addEventListener("change", () => {
+    setStoredRootFirst(deconRootFirst.checked);
+    deconController.reRenderLast();
+    window.OqRouter.navigate({ order: deconRootFirst.checked ? null : "final" }, { replace: true });
+  });
+
+  deconWord.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+    deconController.search(deconWord.value);
+  });
+
+  // ---------- Router ----------
+  window.OqRouter.onChange((params) => {
+    const screen = params.get("screen");
+    if (screen === "oq") {
+      if (winOq.classList.contains("closed") || winOq.classList.contains("minimized")) {
+        wm.forceOpenWindow(winOq);
+      } else {
+        wm.focus(winOq);
+      }
+      const filter = params.get("filter") || "";
+      if (oqFilter.value !== filter) {
+        oqFilter.value = filter;
+        renderOqResults();
+      }
+      startOqLoad();
+      syncDockRunning();
+    } else if (screen === "decon") {
+      if (winDecon.classList.contains("closed") || winDecon.classList.contains("minimized")) {
+        wm.forceOpenWindow(winDecon);
+      } else {
+        wm.focus(winDecon);
+      }
+      const orderParam = params.get("order");
+      const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
+      if (deconRootFirst.checked !== rootFirst) {
+        deconRootFirst.checked = rootFirst;
+        deconController.reRenderLast();
+      }
+      const word = params.get("word") || "";
+      if (deconWord.value !== word) {
+        deconWord.value = word;
+        deconController.search(word);
+      }
+      syncDockRunning();
+    } else {
+      if (!winOq.classList.contains("closed")) {
+        wm.closeWindow(winOq);
+      }
+      if (!winDecon.classList.contains("closed")) {
+        wm.closeWindow(winDecon);
+      }
+      syncDockRunning();
+    }
+  });
+
+  syncDockRunning();
+})();

@@ -33,11 +33,12 @@ stays the cross-theme source of truth.
 | 1998 | [`mac8/`](mac8/) | Mac OS 8.1 Platinum. [`classic.css`](https://github.com/npjg/classic.css) |
 | 1998 | [`win98/`](win98/) | 98 desktop. [`98.css`](https://github.com/jdan/98.css) dist |
 | 2000 | [`beos/`](beos/) | BeOS R5 Personal Edition. Yellow tab, Deskbar. Own WM; tab slant from [NovusGFX](https://github.com/NovusGFX/retro-design-system) (MIT) |
+| 2001 | [`aqua/`](aqua/) | Early OS X Aqua. Hand-rolled chrome; shell in `shared/osx/` (TeX Gyre Heros) |
 | 2001 | [`xp/`](xp/) | XP desktop. [`XP.css`](https://github.com/botoxparty/XP.css) dist |
 | 2006 | [`kde/`](kde/) | KDE 3.5 + Compiz. Hand-drawn Plastik; canvas compositor |
 | 2009 | [`win7/`](win7/) | Aero. [`7.css`](https://github.com/khang-nd/7.css) + glass |
 
-Not yet: modern macOS, Norton Commander.
+Not yet: Norton Commander.
 
 ## Games
 
@@ -64,7 +65,7 @@ audio demo, or an easter egg. Source of truth: `shared/games.js`.
 | `win7/` | — |
 
 **`shared/`** — `dict-source.js`, `hyphenation.js`, `router.js`,
-`decon-app.js`, `redmond/window-manager.js` (win31/98/XP/7),
+`decon-app.js`, `redmond/window-manager.js` (win31/98/XP/7), `osx/` (aqua/ + future OS X skins),
 `art/fox/` (MORPH! mascot source: first-gen illustrations + 128px
 hires frames — not GB-locked; theme sprites stay in the theme dir).
 
