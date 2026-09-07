@@ -2,7 +2,7 @@
   "use strict";
   let z = 10;
   const desktop = document.getElementById("desktop");
-  function focus(win) { z += 1; win.style.zIndex = z; }
+  function focus(win) { if (!win) return; z += 1; win.style.zIndex = z; for (const other of desktop.querySelectorAll(".os2-window")) other.classList.toggle("active", other === win); }
   function open(id) { const win = document.getElementById(id); if (!win) return; win.hidden = false; focus(win); }
   function close(win) { if (win) win.hidden = true; }
   desktop.addEventListener("click", (event) => {
