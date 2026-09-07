@@ -46,8 +46,8 @@ button { font: inherit; cursor: default; }
 .program-icon { color: #111; text-shadow: none; }
 iframe { display: block; width: 100%; height: calc(100% - 24px); border: 0; background: #000; }
 .app-window iframe { height: calc(100% - 49px); }
-.launchpad { position: absolute; z-index: 10; right: 4px; bottom: 3px; display: flex; gap: 3px; align-items: center; min-height: 27px; padding: 2px 4px; color: #111; background: #c0c0c0; border: 2px outset #fff; }
-.warp-mark { padding-right: 8px; color: #000080; font-weight: bold; }
-.launchpad button { padding: 3px 8px; background: #c0c0c0; border: 2px outset #fff; }
-.warp-bar-label { padding: 3px 8px 3px 3px; color: #000080; font-weight: bold; }
+.warpcenter { position: absolute; z-index: 10; top: 3px; left: 3px; right: 3px; display: flex; gap: 3px; align-items: center; min-height: 29px; padding: 2px 4px; color: #111; background: #c0c0c0; border: 2px outset #fff; box-shadow: 0 2px #000; }
+.warpcenter button { padding: 3px 8px; background: #c0c0c0; border: 2px outset #fff; }
+.warpcenter-menu { display: grid; place-items: center; width: 27px; height: 22px; padding: 2px !important; }
+.warpcenter-grip { margin-left: auto; padding: 1px 5px; color: #555; border: 2px inset #fff; }
 @media (max-width: 700px) { .warp-wordmark { left: 20%; top: 32%; } .oq-word { font-size: 72px; letter-spacing: -8px; } .warp-word { margin-left: 12px; font-size: 60px; letter-spacing: -5px; } .system-window, .app-window, .guest-window, .dos-host { left: 13%; top: 16%; width: 74%; height: 68%; } .desktop-icons { flex-direction: row; flex-wrap: wrap; width: 290px; gap: 8px; } }
