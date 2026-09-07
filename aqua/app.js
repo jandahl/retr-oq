@@ -95,6 +95,9 @@
     onOpen() {
       syncDockRunning();
     },
+    onClose() {
+      syncDockRunning();
+    },
     onMinimize() {
       syncDockRunning();
     },
@@ -102,13 +105,6 @@
       syncDockRunning();
     },
   });
-
-  // Patch close to refresh dock — WM closeWindow doesn't call onOpen.
-  const _close = wm.closeWindow;
-  wm.closeWindow = (win) => {
-    _close(win);
-    syncDockRunning();
-  };
 
   window.OqOsx.initMenuBar({ menuBar: document.getElementById("menu-bar") });
   window.OqOsx.initMenuClock({ el: document.getElementById("menu-clock") });
