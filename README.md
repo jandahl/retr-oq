@@ -68,6 +68,18 @@ audio demo, or an easter egg. Source of truth: `shared/games.js`.
 `art/fox/` (MORPH! mascot source: first-gen illustrations + 128px
 hires frames — not GB-locked; theme sprites stay in the theme dir).
 
+## Local pre-push checks
+
+Install the tracked hook once in each worktree:
+
+```sh
+cp tools/pre-push-check.sh "$(git rev-parse --git-path hooks)/pre-push"
+chmod +x "$(git rev-parse --git-path hooks)/pre-push"
+```
+
+It checks whitespace, JavaScript, CSS, the CI HTML page set, and the OS/2
+smoke tests before allowing a push.
+
 **`vendor/<theme>/`** — upstream dist + LICENSE, not SCSS sources.
 **`tests/`** — Playwright/pytest for `win98/`, `nes/`, `gb/`, `snes/`, `gg/`, Redmond Run, and the screensaver host. `tests/shared/*.mjs` is Node-only and runs on every PR.
 

@@ -4,6 +4,7 @@
 html, body { margin: 0; height: 100%; overflow: hidden; font-family: os2-ui, Arial, sans-serif; font-size: 12px; }
 button { font: inherit; cursor: default; }
 .boot-manager { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; color: #fff; background: #000; font-family: "Courier New", monospace; }
+.boot-manager[hidden] { display: none; }
 .boot-panel { width: min(650px, 90vw); padding: 28px 32px; border: 2px solid #aaa; background: #111; box-shadow: 0 0 0 2px #555, 10px 10px #000; }
 .boot-heading { margin-bottom: 24px; color: #ffcc00; font-size: 22px; font-weight: bold; letter-spacing: 2px; }
 .boot-copy { margin-bottom: 13px; }

@@ -30,8 +30,10 @@
     if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); selectBoot(bootChoice === "warp" ? "win" : "warp"); }
     if (event.key === "Enter" || event.key === " ") { event.preventDefault(); finishBoot(); }
   });
-  bootManager.tabIndex = 0;
-  bootManager.focus();
+  if (!bootManager.hidden) {
+    bootManager.tabIndex = 0;
+    bootManager.focus();
+  }
   function focus(win) { if (!win) return; z += 1; win.style.zIndex = z; for (const other of desktop.querySelectorAll(".os2-window")) other.classList.toggle("active", other === win); }
   function open(id) { const win = document.getElementById(id); if (!win) return; win.hidden = false; focus(win); }
   function close(win) { if (win) win.hidden = true; }
