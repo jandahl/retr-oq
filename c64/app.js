@@ -824,8 +824,12 @@
     // RUN/STOP is the real C64 key for "abort whatever's running" -- Esc is
     // the closest a modern keyboard has, same substitution dos/app.js makes
     // for its own Esc=Exit footer.
-    if (event.key === "Escape" && (!dictApp.hidden || !morphApp.hidden || !kalqApp.hidden)) {
-      window.OqRouter.navigate({ screen: null, filter: null });
+    if (event.key === "Escape") {
+      if (!dictApp.hidden || !morphApp.hidden || !kalqApp.hidden) {
+        window.OqRouter.navigate({ screen: null, filter: null });
+      } else {
+        window.location.href = "../";
+      }
       return;
     }
     if (!kalqApp.hidden) {
@@ -890,7 +894,7 @@
   // below, same as the initial listing markup in index.html.
   function printDirListing() {
     printLine('0 "OQ DISK       " 09 2A');
-    for (const [name, label, padding] of [["DICT", '1   "DICT"', "            PRG"], ["MORPH", '1   "MORPH"', "           PRG"], ["KALQ", '1   "KALQ"', "            PRG"]]) {
+    for (const [name, label, padding] of [["DICT", '1   "DICT"', "            PRG"], ["MORPH", '1   "MORPH"', "           PRG"], ["KALQ", '1   "KALQ"', "            PRG"], ["QUIT", '2   "QUIT"', "            PRG"]]) {
       // Inline, not a block-level <div> -- a <div> here forces its own line
       // box regardless of the "\n" text node already inserted before it,
       // which with two such lines back to back produced a spurious blank
@@ -898,17 +902,22 @@
       // gets this right (a plain inline <button> in the same text flow);
       // matched here instead of reinventing it.
       c64Output.appendChild(document.createTextNode("\n"));
+      const row = document.createElement("span");
+      row.className = "c64-program-row";
       const link = document.createElement("button");
       link.type = "button";
       link.className = "c64-link";
-      link.dataset.load = name;
+      if (name === "QUIT") link.dataset.action = "quit";
+      else link.dataset.load = name;
       link.textContent = label;
-      c64Output.appendChild(link);
-      c64Output.appendChild(document.createTextNode(padding));
+      const suffix = document.createElement("span");
+      suffix.textContent = padding;
+      row.append(link, suffix);
+      c64Output.appendChild(row);
     }
     printLine('1   "DICT DAT"             SEQ');
     printLine('1   "BUILD"                PRG');
-    printLine('2   "RUN"                  PRG');
+    printLine('2   "QUIT"                 PRG');
     printLine("661 BLOCKS FREE.");
   }
 
@@ -931,6 +940,11 @@
   // (rather than bound to a single fixed id) so it keeps working no matter
   // how many times the listing has been reprinted.
   c64Output.addEventListener("click", (event) => {
+    const quit = event.target.closest(".c64-link[data-action=quit]");
+    if (quit) {
+      window.location.href = "../";
+      return;
+    }
     const link = event.target.closest(".c64-link[data-load]");
     if (!link) return;
     const name = link.dataset.load;
@@ -1006,6 +1020,11 @@
       return;
     }
 
+    if (upper === "QUIT") {
+      window.location.href = "../";
+      return;
+    }
+
     // SYS 64738 is the real, well-known C64 machine-code jump to the KERNAL
     // reset vector -- the authentic "reboot the machine" command, reused
     // here as the way back to the hub.
@@ -1030,6 +1049,14 @@
     });
   }
   forceUppercase(c64Cmd);
+  const c64BlockCaret = document.querySelector(".c64-block-caret");
+  function resizeCommandInput() {
+    c64Cmd.style.width = `${Math.max(1, c64Cmd.value.length + 1)}ch`;
+    c64BlockCaret.hidden = document.activeElement !== c64Cmd;
+  }
+  c64Cmd.addEventListener("input", resizeCommandInput);
+  c64Cmd.addEventListener("focus", resizeCommandInput);
+  c64Cmd.addEventListener("blur", resizeCommandInput);
   // dict-filter's own uppercase look comes from style.css's
   // text-transform:uppercase instead of this same JS trick -- it doesn't
   // need an uppercased *value* the way the command echo below does
@@ -1046,6 +1073,7 @@
 
   document.getElementById("c64-dir").addEventListener("click", () => c64Cmd.focus());
   c64Cmd.focus();
+  resizeCommandInput();
 
   // Same stepped, non-momentum wheel scroll as dos/app.js's
   // stepScrollOnWheel -- text mode scrolled a whole row at a time, never a

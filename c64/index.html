@@ -6,7 +6,7 @@
 <title>retr-oq — C64 desktop prototype</title>
 <!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
-<link rel="stylesheet" href="style.css?v=19" />
+<link rel="stylesheet" href="style.css?v=20" />
 </head>
 <body>
   <!-- No separate boot screen: the real C64 has no startup delay or splash
@@ -33,19 +33,20 @@ READY.
 LIST
 
 0 "OQ DISK       " 09 2A
-<button type="button" class="c64-link" data-load="DICT">1   "DICT"</button>            PRG
-<button type="button" class="c64-link" data-load="MORPH">1   "MORPH"</button>           PRG
-<button type="button" class="c64-link" data-load="KALQ">1   "KALQ"</button>            PRG
-<span class="c64-dim">1   "DICT DAT"</span>        SEQ
-<span class="c64-dim">1   "BUILD"</span>            PRG
-2   "RUN"                  PRG
+<span class="c64-program-row"><button type="button" class="c64-link" data-load="DICT">1   "DICT"</button><span>            PRG</span></span>
+<span class="c64-program-row"><button type="button" class="c64-link" data-load="MORPH">1   "MORPH"</button><span>           PRG</span></span>
+<span class="c64-program-row"><button type="button" class="c64-link" data-load="KALQ">1   "KALQ"</button><span>            PRG</span></span>
+<span class="c64-program-row c64-dim"><span>1   "DICT DAT"</span><span>             SEQ</span></span>
+<span class="c64-program-row c64-dim"><span>1   "BUILD"</span><span>                PRG</span></span>
+<span class="c64-program-row"><button type="button" class="c64-link" data-action="quit">2   "QUIT"</button><span>            PRG</span></span>
 661 BLOCKS FREE.
 </div>
     <!-- A real command line, same role as dos/'s #dos-cmd -- LOAD"NAME",8,1
          then RUN is the actual two-step C64 idiom (see app.js's runCommand),
          not a single launch command the way DOS's DICT was. -->
     <div class="c64-prompt-line">READY.
-<input type="text" id="c64-cmd" class="c64-cmd-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" /></div>
+      <div class="c64-cmd-entry"><input type="text" id="c64-cmd" class="c64-cmd-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" /><span class="c64-block-caret" aria-hidden="true"></span></div>
+    </div>
   </div>
 
   <!-- DICT.PRG: a full-screen takeover, not a floating window -- same
@@ -135,6 +136,6 @@ LIST
 <script src="../shared/morph-puzzles.js?v=4"></script>
 <script src="../shared/morph-game.js?v=2"></script>
 <script src="../shared/klax-game.js?v=10"></script>
-<script src="app.js?v=18"></script>
+<script src="app.js?v=19"></script>
 </body>
 </html>

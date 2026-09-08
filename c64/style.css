@@ -50,7 +50,7 @@ html, body {
   overscroll-behavior: none;
   position: fixed;
   width: 100%;
-  background: #40318d;
+  background: #7c70da;
 }
 
 :root {
@@ -209,9 +209,26 @@ html, body {
   outline: none;
 }
 
+.c64-program-row {
+  display: flex;
+  width: 40ch;
+  white-space: pre;
+}
+.c64-program-row > :first-child {
+  flex: 0 0 21ch;
+}
+.c64-program-row > :last-child {
+  flex: 0 0 10ch;
+}
+
 .c64-prompt-line {
   display: flex;
   flex-direction: column;
+}
+.c64-cmd-entry {
+  display: inline-flex;
+  align-items: baseline;
+  min-height: 1.25em;
 }
 .c64-cmd-input {
   background: none;
@@ -221,12 +238,25 @@ html, body {
   margin: 0;
   color: inherit;
   font: inherit;
-  caret-color: var(--c64-lightblue);
+  caret-color: transparent;
   /* Visual backup for the real uppercasing app.js's forceUppercase() does
      to the input's actual value (needed there so the echoed history line
      reads uppercase too) -- a real C64 keyboard had no lowercase typing
      mode by default. */
   text-transform: uppercase;
+}
+.c64-block-caret {
+  display: inline-block;
+  width: 1ch;
+  height: 1.05em;
+  flex: 0 0 1ch;
+  background: var(--c64-lightblue);
+  vertical-align: -0.12em;
+  animation: c64-caret-blink 1s steps(1, end) infinite;
+}
+@keyframes c64-caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
 }
 
 .c64-app {
@@ -537,4 +567,10 @@ html, body {
 }
 .c64-loading[hidden] {
   display: none;
+}
+
+@media (min-width: 900px) {
+  :root {
+    --c64-font-size: clamp(18px, 2vw, 27px);
+  }
 }
