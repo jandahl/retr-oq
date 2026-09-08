@@ -145,3 +145,36 @@ Authenticity choices for early Aqua (~10.0–10.3 / 2001–2003), theme-local:
   `OqOsx.initDock`)
 - Graphite appearance (swap CSS variables)
 - Keep `shared/osx/` APIs stable — do not fork the WM for chrome alone.
+
+## Remaining gaps pass (`polish/aqua-remaining-gaps`)
+
+Fixes vs Jan’s critique, on top of #168–#171:
+
+1. **Menubar idle hover.** Top-level items no longer paint accent on bare
+   `:hover`. Accent only for `.menu-open`. `shared/osx/menubar.js` adds
+   `.is-tracking` on the menubar while a menu is open (hover-switch).
+2. **Desktop pinstripes.** Unmistakable vertical early-Aqua stripes on
+   `#shell`, combined with the soft blue wash (original CSS only).
+3. **App-aware menubar.** App menu title tracks focus: **OQ!** /
+   **Word Deconstructor** / **Finder** (Finder windows + bare desktop).
+   About item text matches. Empty Trash enabled only for Finder.
+   Wired via WM `onFocus` + open/close/minimize/restore + desktop click.
+4. **Dock hover labels.** Normal Dock icons show a `.dock-caption` name
+   tag on hover (same language as minimized `.dock-min-caption`), driven
+   by `aria-label` / `data-dock-label`.
+5. **Context menus.** Browser `contextmenu` suppressed on desktop,
+   windows, Dock, menubar. Bare desktop shows a small Aqua menu (New
+   Finder Window → HD, Get Info → About, Change Desktop Background /
+   Show View Options stubs). Pattern borrowed from mac8/app.js.
+6. **CI.** `tests/test_aqua.py` regressions added. The
+   `.github/workflows/theme-tests.yml` `aqua:` path filter is prepared
+   in the PR description (OAuth token lacks `workflow` scope to push
+   workflow files from this agent — paste/apply once with a
+   workflow-scoped token).
+7. **About This Computer.** KDE-quality copy: period Aqua description,
+   `shared/osx`, original-art disclaimer, Leave → hub + Shut Down.
+8. **Trash.** Dropped “The Trash is empty.” smug line. Friendlier empty
+   copy + crumpled-note easter egg; Empty Trash confirm from Finder menu.
+9. **Boot splash.** Removed the ~1.2s overlay entirely — desktop appears
+   immediately (optional startup chime still unlocks on first input).
+

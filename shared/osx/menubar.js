@@ -4,6 +4,8 @@
   // Global menu-bar open/close for the OS X family. Themes supply the
   // markup; this owns the interaction model (click to open, hover to
   // switch, outside click / Escape to close). Classic script → window.OqOsx.
+  // While any menu is open, menuBar gets .is-tracking so themes can style
+  // hover-switch highlights without painting accent on idle :hover.
 
   window.OqOsx = window.OqOsx || {};
 
@@ -27,6 +29,7 @@
       openMenuItem.setAttribute("aria-expanded", "false");
       openMenuItem.blur();
       openMenuItem = null;
+      menuBar.classList.remove("is-tracking");
     }
 
     function open(item) {
@@ -35,6 +38,7 @@
       item.classList.add(openClass);
       item.setAttribute("aria-expanded", "true");
       openMenuItem = item;
+      menuBar.classList.add("is-tracking");
     }
 
     for (const item of menuItems) {

@@ -10,11 +10,8 @@
   const { syllabify } = window.OqHyphenation;
 
   // ---------- Boot ----------
-  // Passive auto-boot like mac1984 (no power button). Optional chime on
-  // first pointer/key unlocks AudioContext under autoplay policy.
-  const bootScreen = document.getElementById("boot-screen");
-  const bootSequence = document.getElementById("boot-sequence");
-
+  // No boot overlay / power button — desktop is immediate. Optional chime
+  // on first pointer/key unlocks AudioContext under autoplay policy.
   function playStartup() {
     try {
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -42,8 +39,7 @@
     }
   }
 
-  if (bootScreen && bootSequence) {
-    setTimeout(() => bootScreen.classList.add("is-done"), 1200);
+  {
     const unlockChime = () => {
       playStartup();
       window.removeEventListener("pointerdown", unlockChime, true);
@@ -55,9 +51,16 @@
 
   // ---------- Shell ----------
   const desktop = document.getElementById("desktop");
+  const menuBar = document.getElementById("menu-bar");
   const windows = Array.from(document.querySelectorAll(".osx-window:not(.osx-dialog)"));
   const winOq = document.getElementById("win-oq");
   const winDecon = document.getElementById("win-decon");
+  /** @type {HTMLElement | null} */
+  let focusedWin = null;
+
+  function isLive(win) {
+    return win && !win.classList.contains("closed") && !win.classList.contains("minimized");
+  }
 
   let dockApi;
   const dockEl = document.getElementById("dock");
@@ -311,16 +314,25 @@
       }
       return false;
     },
-    onOpen() {
+    onOpen(win) {
       syncDockRunning();
+      syncAppMenu(win);
     },
     onClose(win) {
       removeMinimizedDockTile(win.id);
       syncDockRunning();
+      if (focusedWin === win) {
+        const next = windows.find((w) => w !== win && isLive(w));
+        syncAppMenu(next || null);
+      }
     },
     onMinimize(win) {
       ensureMinimizedDockTile(win);
       syncDockRunning();
+      if (focusedWin === win) {
+        const next = windows.find((w) => w !== win && isLive(w));
+        syncAppMenu(next || null);
+      }
     },
     onMinimizeAnimating(win, finish) {
       animateGenieMinimize(win, finish);
@@ -328,10 +340,14 @@
     onRestore(win) {
       removeMinimizedDockTile(win.id);
       syncDockRunning();
+      syncAppMenu(win);
+    },
+    onFocus(win) {
+      syncAppMenu(win);
     },
   });
 
-  window.OqOsx.initMenuBar({ menuBar: document.getElementById("menu-bar") });
+  window.OqOsx.initMenuBar({ menuBar });
 
   // Early OS X menu clock often showed weekday + time (e.g. "Tue 7:14 PM").
   // Override shared initMenuClock (HH:MM only) in this theme only.
@@ -379,7 +395,33 @@
     },
   });
 
-  // Classic Aqua continuous Dock magnification (theme-side; shared/osx
+  // ---------- App-aware menubar (Finder / OQ! / Word Deconstructor) ----------
+  const appMenuTitle = document.getElementById("app-menu-title");
+  const appMenuAboutLink = document.getElementById("app-menu-about-link");
+  const menuEmptyTrash = document.getElementById("menu-empty-trash");
+
+  function syncAppMenu(win) {
+    focusedWin = win && isLive(win) ? win : null;
+    let name = "Finder";
+    let about = "About Finder";
+    if (focusedWin === winOq) {
+      name = "OQ!";
+      about = "About OQ!";
+    } else if (focusedWin === winDecon) {
+      name = "Word Deconstructor";
+      about = "About Word Deconstructor";
+    } else {
+      // Finder windows (HD, Trash, About) + bare desktop → Finder
+      name = "Finder";
+      about = "About Finder";
+    }
+    if (appMenuTitle) appMenuTitle.textContent = name;
+    if (appMenuAboutLink) appMenuAboutLink.textContent = about;
+    // Empty Trash only enabled when Finder is frontmost.
+    if (menuEmptyTrash) menuEmptyTrash.classList.toggle("is-disabled", name !== "Finder");
+  }
+
+    // Classic Aqua continuous Dock magnification (theme-side; shared/osx
   // only handles launch + running/bounce). Cosine falloff by pointer
   // distance; reduced-motion falls back to a mild single-icon lift.
   // Under CSS zoom, lift is divided by OqOsx.getZoomFactor (CLAUDE.md).
@@ -471,9 +513,10 @@
     }
   }
   desktop.addEventListener("pointerdown", (event) => {
-    if (event.target.closest(".desktop-icon")) return;
+    if (event.target.closest(".desktop-icon, .osx-window, .desktop-context-menu, #dock")) return;
     if (event.target === desktop || event.target.classList.contains("desktop-icons")) {
       clearDesktopSelection();
+      syncAppMenu(null);
     }
   });
 
@@ -505,8 +548,8 @@
     }
   }
 
-  // Menu items with data-open
-  for (const item of document.querySelectorAll('#menu-bar [data-open]')) {
+  // Menu + desktop-context items with data-open
+  for (const item of document.querySelectorAll('#menu-bar [data-open], #desktop-context-menu [data-open]')) {
     const link = item.querySelector("a");
     if (!link) continue;
     link.addEventListener("click", (event) => {
@@ -515,26 +558,163 @@
     });
   }
 
-  // Placeholder menu links
-  for (const link of document.querySelectorAll('#menu-bar [role="menu"] a')) {
-    if (link.closest("[data-open], #menu-shutdown")) continue;
+  // Placeholder menu links (stubs)
+  for (const link of document.querySelectorAll('#menu-bar [role="menu"] a, #desktop-context-menu a')) {
+    if (link.closest("[data-open], #menu-shutdown, #menu-empty-trash")) continue;
     link.addEventListener("click", (event) => {
       event.preventDefault();
     });
   }
 
+  // ---------- Context menu (suppress browser; Aqua menu on bare desktop) ----------
+  const desktopContextMenu = document.getElementById("desktop-context-menu");
+
+  function closeDesktopContextMenu() {
+    if (desktopContextMenu) desktopContextMenu.hidden = true;
+  }
+
+  function suppressBrowserMenu(event) {
+    event.preventDefault();
+  }
+
+  for (const win of windows) {
+    win.addEventListener("contextmenu", suppressBrowserMenu);
+  }
+  if (dockEl) dockEl.addEventListener("contextmenu", suppressBrowserMenu);
+  if (menuBar) menuBar.addEventListener("contextmenu", suppressBrowserMenu);
+
+  desktop.addEventListener("contextmenu", (event) => {
+    // Bare desktop only — icons still suppress the browser menu.
+    const onIcon = event.target.closest(".desktop-icon");
+    const onWindow = event.target.closest(".osx-window");
+    const onDock = event.target.closest("#dock");
+    if (onWindow || onDock) {
+      event.preventDefault();
+      return;
+    }
+    if (onIcon || (event.target !== desktop && !event.target.classList.contains("desktop-icons"))) {
+      event.preventDefault();
+      return;
+    }
+    event.preventDefault();
+    if (!desktopContextMenu) return;
+    const zoomFactor = window.OqOsx.getZoomFactor ? window.OqOsx.getZoomFactor() : 1;
+    const deskRect = desktop.getBoundingClientRect();
+    const menuWidth = 200;
+    const menuHeight = 120;
+    const left =
+      Math.min(event.clientX, deskRect.right - menuWidth) / zoomFactor - deskRect.left / zoomFactor;
+    const top =
+      Math.min(event.clientY, deskRect.bottom - menuHeight) / zoomFactor - deskRect.top / zoomFactor;
+    desktopContextMenu.style.left = `${Math.max(0, left)}px`;
+    desktopContextMenu.style.top = `${Math.max(0, top)}px`;
+    desktopContextMenu.hidden = false;
+  });
+
+  document.addEventListener("pointerdown", (event) => {
+    if (
+      desktopContextMenu &&
+      !desktopContextMenu.hidden &&
+      !desktopContextMenu.contains(event.target)
+    ) {
+      closeDesktopContextMenu();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && desktopContextMenu && !desktopContextMenu.hidden) {
+      closeDesktopContextMenu();
+    }
+  });
+  if (desktopContextMenu) {
+    for (const link of desktopContextMenu.querySelectorAll("a")) {
+      link.addEventListener("click", () => closeDesktopContextMenu());
+    }
+  }
+
   // Shut Down
   const shutdownOverlay = document.getElementById("shutdown-overlay");
+  function showShutdown() {
+    shutdownOverlay.hidden = false;
+  }
   document.querySelector("#menu-shutdown a").addEventListener("click", (event) => {
     event.preventDefault();
-    shutdownOverlay.hidden = false;
+    showShutdown();
   });
+  const aboutShutdown = document.getElementById("about-shutdown");
+  if (aboutShutdown) {
+    aboutShutdown.addEventListener("click", () => showShutdown());
+  }
   document.getElementById("shutdown-cancel").addEventListener("click", () => {
     shutdownOverlay.hidden = true;
   });
   document.getElementById("shutdown-ok").addEventListener("click", () => {
     window.location.href = "../";
   });
+
+  // ---------- Empty Trash + crumpled-note easter egg ----------
+  const emptyTrashOverlay = document.getElementById("empty-trash-overlay");
+  const trashNoteItem = document.getElementById("trash-note-item");
+  const trashEmptyCopy = document.getElementById("trash-empty-copy");
+  const noteOverlay = document.getElementById("note-overlay");
+  let trashHasNote = true;
+
+  function refreshTrashCopy() {
+    if (!trashEmptyCopy) return;
+    if (trashHasNote) {
+      trashEmptyCopy.textContent =
+        "Almost empty — one crumpled note remains. Empty Trash clears it for good.";
+    } else {
+      trashEmptyCopy.textContent =
+        "Nothing here yet. Drag something in someday — until then the wire basket waits patiently.";
+    }
+    if (trashNoteItem) trashNoteItem.hidden = !trashHasNote;
+  }
+  refreshTrashCopy();
+
+  function showEmptyTrash() {
+    if (!emptyTrashOverlay) return;
+    const msg = document.getElementById("empty-trash-message");
+    if (msg) {
+      msg.textContent = trashHasNote
+        ? "Are you sure you want to permanently remove the items in the Trash?"
+        : "The Trash is already empty.";
+    }
+    emptyTrashOverlay.hidden = false;
+  }
+
+  const emptyTrashLink = document.querySelector("#menu-empty-trash a");
+  if (emptyTrashLink) {
+    emptyTrashLink.addEventListener("click", (event) => {
+      event.preventDefault();
+      if (menuEmptyTrash && menuEmptyTrash.classList.contains("is-disabled")) return;
+      showEmptyTrash();
+    });
+  }
+  const emptyTrashCancel = document.getElementById("empty-trash-cancel");
+  const emptyTrashOk = document.getElementById("empty-trash-ok");
+  if (emptyTrashCancel) {
+    emptyTrashCancel.addEventListener("click", () => {
+      emptyTrashOverlay.hidden = true;
+    });
+  }
+  if (emptyTrashOk) {
+    emptyTrashOk.addEventListener("click", () => {
+      trashHasNote = false;
+      refreshTrashCopy();
+      emptyTrashOverlay.hidden = true;
+    });
+  }
+  if (trashNoteItem) {
+    trashNoteItem.addEventListener("click", () => {
+      if (noteOverlay) noteOverlay.hidden = false;
+    });
+  }
+  const noteOk = document.getElementById("note-ok");
+  if (noteOk) {
+    noteOk.addEventListener("click", () => {
+      if (noteOverlay) noteOverlay.hidden = true;
+    });
+  }
 
   // ---------- OQ! ----------
   const OQ_DEFAULT_ROWS = 50;
@@ -704,6 +884,7 @@
       }
       startOqLoad();
       syncDockRunning();
+      syncAppMenu(winOq);
     } else if (screen === "decon") {
       if (winDecon.classList.contains("closed") || winDecon.classList.contains("minimized")) {
         wm.forceOpenWindow(winDecon);
@@ -722,6 +903,7 @@
         deconController.search(word);
       }
       syncDockRunning();
+      syncAppMenu(winDecon);
     } else {
       // screen: null — do not close OQ! / Word Deconstructor (independent).
       // Explicit close already updated the query via routeClose + WM close.
@@ -730,4 +912,5 @@
   });
 
   syncDockRunning();
+  syncAppMenu(null);
 })();

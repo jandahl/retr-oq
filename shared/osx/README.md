@@ -20,7 +20,7 @@ abstraction. See root `CLAUDE.md`.
 | File | Global | Role |
 | --- | --- | --- |
 | `window-manager.js` | `window.OqOsx.initWindowManager` | drag, resize, focus, open/close/minimize/zoom, clamp |
-| `menubar.js` | `window.OqOsx.initMenuBar` | menu-bar open/close + hover-switch |
+| `menubar.js` | `window.OqOsx.initMenuBar` | menu-bar open/close + hover-switch; `.is-tracking` while open |
 | `dock.js` | `window.OqOsx.initDock` | Dock launch + running-dot helpers |
 | (inline helpers) | `window.OqOsx.getZoomFactor`, `initMenuClock` | shared utilities |
 
@@ -64,6 +64,7 @@ Put in the theme directory (not here):
 - Menu labels and which items are real vs placeholders
 - Dock magnification feel, Stacks, Spaces (Leopard+)
 - Minimize "genie" animation via optional `onMinimizeAnimating(win, finish)` on the WM (backward compatible; omit = instant hide)
+- Optional `onFocus(win)` so themes can sync an app-aware menu title
 - `initDock` live-queries `[data-open]` items (getter) and uses click delegation so themes can add dynamic Dock tiles
 - Fonts (Lucida-like sans; this family reuses TeX Gyre Heros from
   `vendor/next/` unless a theme vendors its own)

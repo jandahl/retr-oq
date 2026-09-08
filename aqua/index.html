@@ -6,23 +6,9 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta name="description" content="retr-oq — early OS X Aqua desktop (2001)" />
 <title>retr-oq — OS X Aqua</title>
-<link rel="stylesheet" href="style.css?v=5" />
+<link rel="stylesheet" href="style.css?v=6" />
 </head>
 <body>
-  <div id="boot-screen">
-    <div id="boot-sequence">
-      <svg class="happy-face" viewBox="0 0 64 64" role="img" aria-label="Smiling computer">
-        <rect x="8" y="6" width="48" height="40" rx="4" fill="#dfe6f0" stroke="#333" stroke-width="2"/>
-        <rect x="14" y="12" width="36" height="24" rx="2" fill="#1a2433"/>
-        <circle cx="24" cy="22" r="3" fill="#9ad"/>
-        <circle cx="40" cy="22" r="3" fill="#9ad"/>
-        <path d="M24 30 Q32 36 40 30" fill="none" stroke="#9ad" stroke-width="2" stroke-linecap="round"/>
-        <rect x="22" y="48" width="20" height="6" rx="1" fill="#b8c0cc" stroke="#333" stroke-width="1.5"/>
-      </svg>
-      <p>Mac OS X</p>
-    </div>
-  </div>
-
   <div id="shell">
     <!-- Original system mark (concentric arcs) — not an Apple logo. -->
     <ul role="menubar" class="osx-menubar" id="menu-bar">
@@ -38,18 +24,18 @@
           <li role="menu-item" id="menu-shutdown"><a href="#">Shut Down…<span class="menu-shortcut">⌘Q</span></a></li>
         </ul>
       </li>
-      <li role="menu-item" tabindex="0" aria-haspopup="true">
-        Finder
-        <ul role="menu">
-          <li role="menu-item"><a href="#">About Finder</a></li>
+      <li role="menu-item" tabindex="0" aria-haspopup="true" id="app-menu-item">
+        <span id="app-menu-title">Finder</span>
+        <ul role="menu" id="app-menu">
+          <li role="menu-item" id="app-menu-about" data-open="win-about"><a href="#" id="app-menu-about-link">About Finder</a></li>
           <li role="menu-item" class="divider"><a href="#">Preferences…</a></li>
-          <li role="menu-item"><a href="#">Empty Trash…</a></li>
+          <li role="menu-item" id="menu-empty-trash"><a href="#">Empty Trash…</a></li>
         </ul>
       </li>
       <li role="menu-item" tabindex="0" aria-haspopup="true">
         File
         <ul role="menu">
-          <li role="menu-item"><a href="#">New Finder Window<span class="menu-shortcut">⌘N</span></a></li>
+          <li role="menu-item" id="menu-new-finder" data-open="win-home"><a href="#">New Finder Window<span class="menu-shortcut">⌘N</span></a></li>
           <li role="menu-item"><a href="#">Open</a></li>
           <li role="menu-item" class="divider"><a href="#">Close Window<span class="menu-shortcut">⌘W</span></a></li>
           <li role="menu-item"><a href="#">Get Info</a></li>
@@ -184,6 +170,14 @@
           <span class="desktop-icon-label">Trash</span>
         </button>
       </div>
+
+
+      <ul role="menu" class="desktop-context-menu" id="desktop-context-menu" hidden>
+        <li role="menu-item" id="desktop-ctx-new" data-open="win-home"><a href="#">New Finder Window</a></li>
+        <li role="menu-item" id="desktop-ctx-info" data-open="win-about"><a href="#">Get Info</a></li>
+        <li role="menu-item" class="divider" id="desktop-ctx-bg"><a href="#">Change Desktop Background…</a></li>
+        <li role="menu-item" id="desktop-ctx-view"><a href="#">Show View Options</a></li>
+      </ul>
 
       <section class="osx-window closed" id="win-oq" style="top: 2.5rem; left: 4rem; width: 28rem; height: 22rem;">
         <header class="osx-titlebar" id="win-oq-titlebar">
@@ -347,22 +341,37 @@
         <div class="osx-growbox" id="win-home-growbox"></div>
       </section>
 
-      <section class="osx-window closed" id="win-about" style="top: 5rem; left: 7rem; width: 24rem; height: 16rem;">
+      <section class="osx-window closed" id="win-about" style="top: 4rem; left: 6rem; width: 26rem; height: 20rem;">
         <header class="osx-titlebar" id="win-about-titlebar">
           <button type="button" class="osx-traffic osx-btn-close" id="win-about-close" aria-label="Close"></button>
           <button type="button" class="osx-traffic osx-btn-minimize" id="win-about-minimize" aria-label="Minimize"></button>
           <button type="button" class="osx-traffic osx-btn-zoom" id="win-about-zoom" aria-label="Zoom"></button>
           <h1 class="osx-title">About This Computer</h1>
         </header>
-        <div class="osx-body">
+        <div class="osx-body about-body">
+          <p class="about-kicker">retr-oq · Aqua · ~2001 (Cheetah / Puma)</p>
           <p>
-            Early OS X <strong>Aqua</strong> prototype (~10.0–10.4 / 2001):
-            global menu bar, traffic-light window controls, Dock, period
-            desktop wash. Shell behavior is shared via <code>shared/osx/</code>
-            so later Tiger / Leopard skins can reuse it.
+            An early <strong>OS X Aqua</strong> desktop for retr-oq: global
+            menu bar, jelly traffic lights, genie minimize into the Dock,
+            and a vertical pinstripe wash. The look is period Cupertino —
+            translucent menubar, soft blue desktop, glass-ish Dock shelf —
+            rebuilt as original art, not a screenshot of anyone's OS.
           </p>
-          <p>Hand-rolled chrome (see <code>NOTES.md</code> for the vendor CSS search).
-          Font: TeX Gyre Heros from <code>vendor/next/</code>.</p>
+          <p>
+            Window / menu / Dock behavior lives in <code>shared/osx/</code>
+            so a later Tiger or Leopard skin can reuse the same chrome APIs.
+            This theme directory is mostly skin: CSS, icons, and thin wiring.
+          </p>
+          <p>
+            Art and sounds here are <strong>original</strong> (no Apple marks
+            or sampled system assets). Font: TeX Gyre Heros from
+            <code>vendor/next/</code>. See <code>NOTES.md</code> for the
+            vendor-CSS search that led to hand-rolled chrome.
+          </p>
+          <div class="about-actions">
+            <a href="../" id="about-hub-link">Leave → theme hub</a>
+            <button type="button" class="aqua-btn aqua-btn--secondary" id="about-shutdown">Shut Down…</button>
+          </div>
         </div>
         <div class="osx-growbox" id="win-about-growbox"></div>
       </section>
@@ -381,19 +390,32 @@
             </button>
             <span class="finder-toolbar-label">Trash</span>
           </div>
-          <div class="finder-empty">
+          <div class="finder-empty" id="trash-empty-state">
             <svg class="finder-empty-glyph" viewBox="0 0 48 48" aria-hidden="true">
               <path d="M16 14h16l-2 24H18z" fill="#d8dee6" stroke="#556" stroke-width="1.3"/>
               <rect x="13" y="10" width="22" height="5" rx="1.5" fill="#e8eef4" stroke="#556" stroke-width="1.1"/>
             </svg>
-            <p>The Trash is empty.</p>
+            <p class="finder-empty-title">No items</p>
+            <p class="finder-empty-copy" id="trash-empty-copy">
+              Nothing here yet. Drag something in someday — until then the
+              wire basket waits patiently.
+            </p>
+            <button type="button" class="trash-note-item" id="trash-note-item" title="Open crumpled note">
+              <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">
+                <path d="M6 8l4-3h12l4 4v16H6z" fill="#f4e8c0" stroke="#665" stroke-width="1.2"/>
+                <path d="M8 12h14M8 16h11M8 20h13" stroke="#998" stroke-width="1" stroke-linecap="round"/>
+                <path d="M18 5l4 4h-4z" fill="#e0d0a0" stroke="#665" stroke-width="1"/>
+              </svg>
+              <span>crumpled note.txt</span>
+            </button>
           </div>
         </div>
         <div class="osx-growbox" id="win-trash-growbox"></div>
       </section>
 
       <nav class="osx-dock" id="dock" aria-label="Dock">
-        <button type="button" class="osx-dock-item" data-open="win-home" aria-label="Macintosh HD">
+        <button type="button" class="osx-dock-item" data-open="win-home" data-dock-label="Macintosh HD" aria-label="Macintosh HD">
+          <span class="dock-caption">Macintosh HD</span>
           <svg class="dock-glyph" viewBox="0 0 48 48" aria-hidden="true">
             <defs>
               <linearGradient id="dkHd" x1="0" y1="0" x2="0" y2="1">
@@ -408,7 +430,8 @@
             <circle cx="15" cy="31" r="2.2" fill="#5d5"/>
           </svg>
         </button>
-        <button type="button" class="osx-dock-item" data-open="win-oq" aria-label="OQ!">
+        <button type="button" class="osx-dock-item" data-open="win-oq" data-dock-label="OQ!" aria-label="OQ!">
+          <span class="dock-caption">OQ!</span>
           <svg class="dock-glyph" viewBox="0 0 48 48" aria-hidden="true">
             <defs>
               <linearGradient id="dkOq" x1="0" y1="0" x2="0" y2="1">
@@ -419,14 +442,16 @@
             <text x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Georgia, serif">OQ!</text>
           </svg>
         </button>
-        <button type="button" class="osx-dock-item" data-open="win-decon" aria-label="Word Deconstructor">
+        <button type="button" class="osx-dock-item" data-open="win-decon" data-dock-label="Word Deconstructor" aria-label="Word Deconstructor">
+          <span class="dock-caption">Word Deconstructor</span>
           <svg class="dock-glyph" viewBox="0 0 48 48" aria-hidden="true">
             <rect x="8" y="10" width="14" height="14" rx="3.5" fill="#f0c040" stroke="#654" stroke-width="1"/>
             <rect x="26" y="10" width="14" height="14" rx="3.5" fill="#e87830" stroke="#543" stroke-width="1"/>
             <rect x="17" y="26" width="14" height="14" rx="3.5" fill="#a04020" stroke="#421" stroke-width="1"/>
           </svg>
         </button>
-        <button type="button" class="osx-dock-item" data-open="win-about" aria-label="About">
+        <button type="button" class="osx-dock-item" data-open="win-about" data-dock-label="About" aria-label="About">
+          <span class="dock-caption">About</span>
           <svg class="dock-glyph" viewBox="0 0 48 48" aria-hidden="true">
             <defs>
               <linearGradient id="dkAbout" x1="0" y1="0" x2="0" y2="1">
@@ -441,7 +466,8 @@
         <!-- Minimized windows appear as extra tiles before Trash (period Dock). -->
         <span class="osx-dock-separator" id="dock-min-sep" hidden aria-hidden="true"></span>
         <div class="osx-dock-minimized" id="dock-minimized" aria-label="Minimized windows"></div>
-        <button type="button" class="osx-dock-item" data-open="win-trash" aria-label="Trash">
+        <button type="button" class="osx-dock-item" data-open="win-trash" data-dock-label="Trash" aria-label="Trash">
+          <span class="dock-caption">Trash</span>
           <svg class="dock-glyph" viewBox="0 0 48 48" aria-hidden="true">
             <defs>
               <linearGradient id="dkTr" x1="0" y1="0" x2="0" y2="1">
@@ -472,15 +498,46 @@
     </section>
   </div>
 
+
+  <div class="osx-overlay" id="empty-trash-overlay" hidden>
+    <section class="osx-window osx-dialog osx-sheet" role="dialog" aria-labelledby="empty-trash-title">
+      <header class="osx-titlebar">
+        <h1 class="osx-title" id="empty-trash-title">Empty Trash</h1>
+      </header>
+      <div class="osx-body">
+        <p id="empty-trash-message">Are you sure you want to permanently remove the items in the Trash?</p>
+        <div class="osx-dialog-actions">
+          <button type="button" class="aqua-btn aqua-btn--secondary" id="empty-trash-cancel">Cancel</button>
+          <button type="button" class="aqua-btn" id="empty-trash-ok">Empty Trash</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="osx-overlay" id="note-overlay" hidden>
+    <section class="osx-window osx-dialog" role="dialog" aria-labelledby="note-title">
+      <header class="osx-titlebar">
+        <h1 class="osx-title" id="note-title">crumpled note.txt</h1>
+      </header>
+      <div class="osx-body">
+        <p class="note-text">"bought the wrong USB cable again —
+returns desk is across town. maybe next week."</p>
+        <div class="osx-dialog-actions">
+          <button type="button" class="aqua-btn" id="note-ok">OK</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <!-- Load order: shared data/router → shared/osx shell → theme app.js -->
   <script src="../shared/dict-source.js"></script>
   <script src="../shared/hyphenation.js"></script>
   <script src="../shared/router.js?v=16"></script>
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="../shared/osx/window-manager.js?v=3"></script>
-  <script src="../shared/osx/menubar.js?v=1"></script>
+  <script src="../shared/osx/window-manager.js?v=4"></script>
+  <script src="../shared/osx/menubar.js?v=2"></script>
   <script src="../shared/osx/dock.js?v=2"></script>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
