@@ -19,3 +19,6 @@ hand-drawn chrome, C64 Pro Mono).
   emulator.
 
 - **DECON** is a real `LOAD"DECON",8` / `RUN` program (DIR listing + full-screen app), same single-tasking takeover as `DICT`. Period 16-char disk naming keeps the label **DECON**. Wired through `shared/decon-app.js` + `OqRouter` (`?screen=decon`). RUN/STOP aborts DECON like the other apps.
+
+- DIR listing rows are single inline `<button class="c64-link">` / `<span class="c64-dim">` elements holding the full padded line (`blocks + "NAME" + type`). Avoid `display:grid` (or any block layout) on those rows: `#c64-output` is `white-space: pre`, so a block box plus the newline between entries doubles line spacing. Leading block counts share one column across linked and dim rows.
+
