@@ -59,8 +59,10 @@ relative paths, and cache-bust every changed local file (`?v=N`), including
 HTML, CSS, JS, compositor code, and shared assets.
 
 The primary reusable building blocks are `shared/dict-source.js`,
-`shared/hyphenation.js`, `shared/router.js`, `shared/decon-app.js`, the Redmond
-window manager, the OS X shell (`shared/osx/`), shared game engines, shared screen savers, and the test
+`shared/katersat-source.js`, `shared/dict-merge.js` (Option C Chicago +
+katersat; see `shared/SOURCES.md`), `shared/hyphenation.js`,
+`shared/router.js`, `shared/decon-app.js`, the Redmond window manager, the OS X
+shell (`shared/osx/`), shared game engines, shared screen savers, and the test
 fixtures. Reuse them through their existing public contracts, keep the
 integration boundary narrow, and document any adapter.
 

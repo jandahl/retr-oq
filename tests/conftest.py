@@ -66,3 +66,25 @@ def touch_page(browser):
     pg = context.new_page()
     yield pg
     context.close()
+
+
+def _block_katersat(page):
+    """404 real katersat URLs so CI never downloads ~4MB GPL JSON."""
+    page.route(
+        "**/Oqaasileriffik-katersat/**",
+        lambda route: route.fulfill(status=404, body="blocked in tests"),
+    )
+
+
+@pytest.fixture(autouse=True)
+def block_real_katersat_fetch(request):
+    """Default: katersat merge falls back to Chicago-only in Playwright.
+
+    Themes load katersat via OqDictSource.loadDictEntries(). Tests that need
+    enrichment should route-fulfill lexicon.json themselves (LIFO overrides
+    this 404). Applies to both `page` and `touch_page` fixtures.
+    """
+    for name in ("page", "touch_page"):
+        if name in request.fixturenames:
+            _block_katersat(request.getfixturevalue(name))
+    yield

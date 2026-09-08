@@ -425,10 +425,13 @@
   }
 
 
-  // OQ! chrome preview: fill sample rows from the real Oqaasileriffik dict
-  // (window.OqDictSource), not hardcoded placeholders. Load once on first open.
+  // OQ! chrome preview: fill sample rows from the merged dict when available
+  // (Chicago + katersat via OqDictMerge), else Chicago-only. Load once on first open.
   let oqPreviewLoaded = false;
   let oqPreviewLoading = false;
+
+  // Jan's preferred demo set (may include katersat-only / empty-english rows).
+  const TM_PREFERRED_LEXEMES = ["kujannippoq", "qulluk", "usuk", "aalajavoq"];
 
   function tmPreviewTbody() {
     return document.querySelector("#tm-oq-preview .oq-table tbody");
@@ -438,18 +441,49 @@
     return document.querySelector("#tm-oq-preview .tm-oq-preview-status");
   }
 
-  /** Prefer short lexemes (3–14 chars) with non-empty gloss; take first 4. */
-  function pickPreviewEntries(entries) {
+  /** Short Chicago-style samples (3–14 chars, non-empty gloss); take up to `limit`. */
+  function pickShortSamples(entries, limit, skipKeys) {
     const out = [];
+    const skip = skipKeys || new Set();
     for (const e of entries) {
       const lex = (e && e.lexeme ? String(e.lexeme) : "").trim();
       const gloss = (e && e.gloss_en ? String(e.gloss_en) : "").trim();
       if (!lex || !gloss) continue;
       if (lex.length < 3 || lex.length > 14) continue;
+      const key = lex.toLowerCase();
+      if (skip.has(key)) continue;
       out.push({ lexeme: lex, gloss_en: gloss });
-      if (out.length >= 4) break;
+      if (out.length >= limit) break;
     }
     return out;
+  }
+
+  /**
+   * Prefer Jan's four when present in the merged set (empty gloss_en ok —
+   * e.g. aalajavoq). Otherwise fall back to short Chicago samples.
+   */
+  function pickPreviewEntries(entries) {
+    const byKey = new Map();
+    for (const e of entries || []) {
+      const lex = (e && e.lexeme ? String(e.lexeme) : "").trim();
+      if (!lex) continue;
+      const key = lex.toLowerCase();
+      if (!byKey.has(key)) byKey.set(key, e);
+    }
+    const preferred = [];
+    const used = new Set();
+    for (const want of TM_PREFERRED_LEXEMES) {
+      const e = byKey.get(want);
+      if (!e) continue;
+      const lex = String(e.lexeme).trim();
+      const gloss = e.gloss_en != null ? String(e.gloss_en).trim() : "";
+      preferred.push({ lexeme: lex, gloss_en: gloss });
+      used.add(want);
+    }
+    if (preferred.length >= 4) return preferred.slice(0, 4);
+    const need = 4 - preferred.length;
+    const fillers = pickShortSamples(entries, need, used);
+    return preferred.concat(fillers).slice(0, 4);
   }
 
   function renderPreviewRows(rows) {
@@ -478,6 +512,7 @@
     }
     oqPreviewLoading = true;
     if (status) status.textContent = "Loading dictionary…";
+
     src
       .loadDictEntries()
       .then((entries) => {
@@ -488,10 +523,15 @@
         if (status) {
           const n = sample.length;
           const total = list.length;
-          status.textContent =
+          const kat =
+            typeof src.wasKatersatLoaded === "function" && src.wasKatersatLoaded();
+          const tag = kat ? "merged sample" : "dictionary sample";
+          let line =
             n === 0
               ? "No sample lexemes."
-              : `${n} of ${total.toLocaleString()} · dictionary sample`;
+              : `${n} of ${total.toLocaleString()} · ${tag}`;
+          line += kat ? " · Chicago + katersat" : " · Chicago";
+          status.textContent = line;
         }
       })
       .catch((err) => {

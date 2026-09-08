@@ -25,26 +25,72 @@ def goto_aqua(page, base_url):
     return errors, console_errors, unexpected_404s
 
 
-# Small dict fixture for TM OQ! preview (same shape as shared/dict-source.js /
-# win98 OQ tests). Avoids the real ~5.75MB fetch in CI.
+# Small dict fixtures for TM OQ! preview / merge. Avoids real multi-MB fetches in CI.
 TM_OQ_FIXTURE_ENTRIES = [
     {"lexeme": "illu", "gloss_en": "house"},
     {"lexeme": "nuna", "gloss_en": "land"},
     {"lexeme": "qajaq", "gloss_en": "kayak"},
     {"lexeme": "imiq", "gloss_en": "fresh water"},
-    {"lexeme": "a", "gloss_en": "too short"},  # skipped by 3–14 char rule
-    {"lexeme": "verylonglexemehere", "gloss_en": "too long"},  # skipped
-    {"lexeme": "sila", "gloss_en": ""},  # empty gloss skipped by dict-source filter too
+    {"lexeme": "a", "gloss_en": "too short"},  # skipped by 3–14 char rule when falling back
+    {"lexeme": "verylonglexemehere", "gloss_en": "too long"},
+    {"lexeme": "aalajavoq", "gloss_en": ""},  # empty Chicago gloss → katersat backfill
 ]
 
+# Minimal katersat shape ({meta, lexemes}). Includes Jan's preferred TM set.
+TM_KATERSAT_FIXTURE = {
+    "meta": {"test": True},
+    "lexemes": [
+        {
+            "id": "lex_aalajavoq",
+            "kalaallisut": "aalajavoq",
+            "english": ["is determined"],
+            "danish": ["er beslutsom"],
+        },
+        {
+            "id": "lex_kujannippoq",
+            "kalaallisut": "kujannippoq",
+            "english": ["is horny"],
+            "danish": [],
+        },
+        {
+            "id": "lex_qulluk",
+            "kalaallisut": "qulluk",
+            "english": ["lamp"],
+            "danish": ["lampe"],
+        },
+        {
+            "id": "lex_usuk",
+            "kalaallisut": "usuk",
+            "english": ["penis"],
+            "danish": [],
+        },
+    ],
+}
 
-def mock_tm_dict_source(page):
+
+def mock_tm_dict_source(page, *, with_katersat=True):
+    """Mock Chicago + optional katersat (never hit real GH Pages in CI)."""
     page.route(
         "**/Oqaasileriffik-dicts/all_entries.json",
         lambda route: route.fulfill(
             json={"dictionary_entries": TM_OQ_FIXTURE_ENTRIES}
         ),
     )
+    if with_katersat:
+        # Prefer gzip URL failing so the loader uses uncompressed lexicon.json.
+        page.route(
+            "**/Oqaasileriffik-katersat/lexicon.json.gz",
+            lambda route: route.fulfill(status=404, body="missing"),
+        )
+        page.route(
+            "**/Oqaasileriffik-katersat/lexicon.json",
+            lambda route: route.fulfill(json=TM_KATERSAT_FIXTURE),
+        )
+    else:
+        page.route(
+            "**/Oqaasileriffik-katersat/**",
+            lambda route: route.fulfill(status=404, body="missing"),
+        )
 
 
 def test_loads_clean_without_power_button_boot(page, base_url):
@@ -551,17 +597,19 @@ def test_time_machine_galaxy_and_oq_preview(page, base_url):
     assert preview.locator(".osx-traffic").count() == 3
     assert preview.locator(".osx-title").inner_text() == "OQ!"
     assert preview.locator(".oq-table").count() == 1
-    # Wait for dict-backed sample rows (mocked JSON; no fake oqaatsit placeholders).
+    # Wait for merged preferred sample rows (mocked Chicago + katersat).
     page.wait_for_function(
         """() => {
           const cells = document.querySelectorAll('#tm-oq-preview .oq-table tbody td');
-          return [...cells].some(td => td.textContent === 'illu');
+          return [...cells].some(td => td.textContent === 'kujannippoq');
         }""",
         timeout=5000,
     )
     row_text = preview.locator(".oq-table tbody").inner_text()
-    assert "illu" in row_text and "house" in row_text
-    assert "nuna" in row_text and "qajaq" in row_text and "imiq" in row_text
+    assert "kujannippoq" in row_text
+    assert "qulluk" in row_text
+    assert "usuk" in row_text
+    assert "aalajavoq" in row_text
     assert "oqaatsit" not in row_text
     assert preview.locator(".oq-table tbody tr").count() == 4
     assert preview.locator(".oq-table td").count() >= 8
@@ -570,7 +618,7 @@ def test_time_machine_galaxy_and_oq_preview(page, base_url):
     assert search.get_attribute("placeholder") in ("Type to search…", "Type to search...")
     status = preview.locator(".tm-oq-preview-status").inner_text().strip()
     assert status != ""
-    assert "4 of" in status or "dictionary" in status.lower()
+    assert "4 of" in status or "merged" in status.lower() or "dictionary" in status.lower()
     assert "Could not load" not in status
     assert preview.evaluate("el => el.classList.contains('osx-window')") is True
     # Preview must stay focused-looking: is-focused, never inactive; no disabled UA grey.
@@ -654,4 +702,42 @@ def test_time_machine_galaxy_and_oq_preview(page, base_url):
     page.click("#tm-cancel")
     page.wait_for_timeout(40)
     assert page.locator("#tm-overlay").is_hidden()
+
+def test_time_machine_oq_preview_falls_back_without_katersat(page, base_url):
+    """When katersat fails, TM still shows short Chicago samples."""
+    mock_tm_dict_source(page, with_katersat=False)
+    goto_aqua(page, base_url)
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(80)
+    page.wait_for_function(
+        """() => {
+          const cells = document.querySelectorAll('#tm-oq-preview .oq-table tbody td');
+          return [...cells].some(td => td.textContent === 'illu');
+        }""",
+        timeout=5000,
+    )
+    row_text = page.locator("#tm-oq-preview .oq-table tbody").inner_text()
+    assert "illu" in row_text and "house" in row_text
+    assert "kujannippoq" not in row_text
+    status = page.locator("#tm-oq-preview .tm-oq-preview-status").inner_text()
+    assert "Could not load" not in status
+
+
+def test_oq_window_shows_both_attributions_when_merged(page, base_url):
+    """OQ! attribution line includes Chicago + katersat after merged load."""
+    mock_tm_dict_source(page, with_katersat=True)
+    goto_aqua(page, base_url)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_function(
+        """() => {
+          const t = document.getElementById('oq-attribution');
+          return t && t.textContent.includes('GPL');
+        }""",
+        timeout=5000,
+    )
+    attr = page.locator("#oq-attribution").inner_text()
+    assert "CC-BY-SA" in attr
+    assert "GPL" in attr
+    status = page.locator("#oq-status").inner_text()
+    assert "katersat" in status.lower() or "entries loaded" in status.lower()
 

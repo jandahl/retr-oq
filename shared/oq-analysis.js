@@ -70,13 +70,11 @@
     return text.replace(/[–—]/g, "-").replace(/…/g, "...");
   }
 
-  // Grammarian only, not katersat too -- oq's own Deconstruct view merges
-  // both (docs/deconstruct.js's MORPHEME_SOURCES), but grammarian alone is
-  // oq's authoritative "buildable" source; katersat is supplementary
-  // lexicon coverage. Matches shared/dict-source.js's own precedent of
-  // intentionally not porting every source oq has (see that file's own
-  // comment on why it skips oq's local-vendored-snapshot fast-path) -- a
-  // possible future addition, not built here.
+  // Grammarian only for MORPHEMES, not katersat affixes -- oq's own
+  // Deconstruct view merges both morpheme sources, but grammarian alone is
+  // the authoritative "buildable" set here. Lexeme/gloss lists (OQ!) are a
+  // separate path: shared/dict-source.js loadDictEntries() merges Chicago +
+  // katersat at runtime (Option C; see shared/SOURCES.md).
   const GRAMMAR_SOURCE_CONFIG = {
     source: "grammarian",
     buildable: true,
