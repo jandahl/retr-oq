@@ -24,6 +24,21 @@
   }
 }
 
+
+/* Graphite appearance — greys Aqua chrome (period System Preferences). */
+html[data-appearance="graphite"] {
+  --aqua-stripe-a: #e6e6e6;
+  --aqua-stripe-b: #d8d8d8;
+  --aqua-menubar: rgba(236, 236, 236, 0.82);
+  --aqua-menubar-border: rgba(0, 0, 0, 0.28);
+  --aqua-accent: #6e6e6e;
+  --aqua-window: #ececec;
+  --aqua-title-active-top: #d8d8d8;
+  --aqua-title-active-bot: #9a9a9a;
+  --aqua-title-inactive-top: #e8e8e8;
+  --aqua-title-inactive-bot: #b8b8b8;
+  --aqua-dock: rgba(220, 220, 220, 0.4);
+}
 :root {
   --aqua-stripe-a: #eceff3;
   --aqua-stripe-b: #e2e6ec;
@@ -294,6 +309,11 @@ select {
   z-index: 1;
 }
 
+.desktop-icons.icons-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .desktop-icon {
   width: 92px;
   display: flex;
@@ -339,6 +359,28 @@ select {
 .desktop-icon:focus-visible {
   outline: none;
 }
+
+/* Free-position desktop icons (drag-reposition); Clean Up clears these. */
+.desktop-icons.is-free {
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.desktop-icons.is-free .desktop-icon {
+  position: absolute;
+  pointer-events: auto;
+}
+.desktop-icon.is-dragging {
+  z-index: 50;
+  opacity: 0.92;
+  /* keep receiving moves via setPointerCapture; click swallow handles open */
+}
+
 
 /* ---------- Windows ---------- */
 .osx-window {
@@ -504,6 +546,36 @@ select {
   -webkit-user-select: text;
   user-select: text;
   cursor: text;
+}
+
+
+/* Edge resize handles — paired with resizeMode: "both" + growbox. */
+.osx-resize {
+  position: absolute;
+  z-index: 5;
+  touch-action: none;
+}
+.osx-resize-n, .osx-resize-s { left: 8px; right: 8px; height: 5px; cursor: ns-resize; }
+.osx-resize-n { top: 0; }
+.osx-resize-s { bottom: 0; }
+.osx-resize-e, .osx-resize-w { top: 8px; bottom: 8px; width: 5px; cursor: ew-resize; }
+.osx-resize-e { right: 0; }
+.osx-resize-w { left: 0; }
+.osx-resize-ne, .osx-resize-nw, .osx-resize-se, .osx-resize-sw {
+  width: 10px; height: 10px; z-index: 6;
+}
+.osx-resize-ne { top: 0; right: 0; cursor: nesw-resize; }
+.osx-resize-nw { top: 0; left: 0; cursor: nwse-resize; }
+.osx-resize-se { bottom: 0; right: 0; cursor: nwse-resize; }
+.osx-resize-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+.osx-window.zoomed .osx-resize { display: none; }
+@media (pointer: coarse) {
+  .osx-resize-n, .osx-resize-ne, .osx-resize-nw { display: none; }
+  .osx-resize-s { height: 18px; left: 24px; right: 24px; }
+  .osx-resize-e { width: 18px; top: 28px; bottom: 18px; }
+  .osx-resize-w { width: 18px; top: 28px; bottom: 18px; }
+  .osx-resize-se { width: 28px; height: 28px; }
+  .osx-resize-sw { width: 28px; height: 28px; }
 }
 
 .osx-growbox {
@@ -927,6 +999,98 @@ select {
 .desktop-context-menu .is-disabled a {
   color: #999;
   pointer-events: none;
+}
+
+.desktop-context-check {
+  display: inline-block;
+  width: 1em;
+  margin-left: -1.1em;
+  margin-right: 0.2em;
+  visibility: hidden;
+  text-align: center;
+}
+
+#desktop-ctx-toggle-icons.checked .desktop-context-check {
+  visibility: visible;
+}
+
+/* ---------- Cmd-Tab application switcher ---------- */
+.app-switcher {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.app-switcher[hidden] {
+  display: none !important;
+}
+
+.app-switcher-panel {
+  pointer-events: none;
+  min-width: 16rem;
+  max-width: min(92vw, 36rem);
+  padding: 14px 18px 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(210, 220, 235, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.app-switcher-track {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 2px 8px;
+}
+
+.app-switcher-item {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: transparent;
+}
+
+.app-switcher-item.is-focused {
+  border-color: rgba(77, 118, 197, 0.95);
+  background: rgba(77, 118, 197, 0.22);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55) inset;
+}
+
+.app-switcher-item .dock-glyph,
+.app-switcher-item svg {
+  width: 48px;
+  height: 48px;
+  display: block;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.28));
+}
+
+.app-switcher-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a2433;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  min-height: 1.2em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-switcher-panel {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 /* ---------- Finder / Trash chrome ---------- */
@@ -1570,3 +1734,96 @@ select {
     height: 36px;
   }
 }
+
+/* Force Quit list */
+.forcequit-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  max-height: 10rem;
+  overflow: auto;
+  border: 1px solid #8a8a8a;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) inset;
+}
+.forcequit-list li {
+  margin: 0;
+  padding: 6px 10px;
+  cursor: default;
+  border-bottom: 1px solid #ececec;
+}
+.forcequit-list li:last-child { border-bottom: 0; }
+.forcequit-list li.is-selected,
+.forcequit-list li[aria-selected="true"] {
+  background: var(--aqua-accent);
+  color: #fff;
+}
+
+/* Get Info sheet */
+.getinfo-body { font-size: 12px; }
+.getinfo-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.getinfo-glyph {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+}
+.getinfo-glyph svg { width: 48px; height: 48px; }
+.getinfo-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+.getinfo-kind {
+  margin: 2px 0 0;
+  color: #555;
+}
+.getinfo-dl {
+  margin: 0 0 10px;
+  display: grid;
+  gap: 4px;
+}
+.getinfo-dl > div {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 6px;
+}
+.getinfo-dl dt {
+  margin: 0;
+  color: #555;
+  font-weight: 700;
+}
+.getinfo-dl dd { margin: 0; }
+.getinfo-blurb {
+  margin: 0 0 4px;
+  color: #333;
+  line-height: 1.35;
+}
+
+/* System Preferences appearance */
+.sysprefs-section-label {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+.sysprefs-appearance {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.sysprefs-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.sysprefs-hint {
+  margin: 0;
+  color: #555;
+  font-size: 11px;
+}
+

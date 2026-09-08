@@ -184,6 +184,7 @@
     if (p.includes("/xp/")) return "xp";
     if (p.includes("/mac1984/")) return "mac1984";
     if (p.includes("/mac8/")) return "mac8";
+    if (p.includes("/aqua/")) return "aqua";
     if (p.includes("/kde/")) return "kde";
     if (p.includes("/amiga/")) return "amiga";
     if (p.includes("/next/")) return "next";
@@ -374,6 +375,24 @@
     }
     if (theme === "mac8") {
       attach({ src: vendor("afterdark-night"), idleMs: 45000 });
+      return;
+    }
+    if (theme === "aqua") {
+      // Early OS X Screen Effects: abstract GL savers (flux / field lines /
+      // solar winds) — period-plausible, no trademarked Apple Flurry clones.
+      var aquaGl = ["flux", "fieldlines", "solarwinds"];
+      var aquaReduced = false;
+      try {
+        aquaReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      } catch (e) {}
+      var aquaHost = attach({
+        src: function () {
+          return vendor(aquaGl[Math.floor(Math.random() * aquaGl.length)]);
+        },
+        // Peers use 45s; Aqua idles a bit longer (~75s). Reduced motion → no idle.
+        idleMs: aquaReduced ? 0 : 75000
+      });
+      global.OqScreensaver.aqua = aquaHost;
       return;
     }
     if (theme === "mac1984") {

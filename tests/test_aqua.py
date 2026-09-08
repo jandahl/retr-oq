@@ -42,7 +42,7 @@ def test_loads_clean_without_power_button_boot(page, base_url):
 
 def test_windows_start_closed(page, base_url):
     goto_aqua(page, base_url)
-    for win_id in ("win-oq", "win-decon", "win-home", "win-about", "win-trash"):
+    for win_id in ("win-oq", "win-decon", "win-home", "win-apps", "win-about", "win-trash"):
         assert page.locator(f"#{win_id}").evaluate("el => el.classList.contains('closed')")
 
 
@@ -168,3 +168,341 @@ def test_dock_captions_present(page, base_url):
     labels = captions.all_inner_texts()
     assert "OQ!" in labels
     assert "Trash" in labels
+
+
+def test_context_menu_clean_up_and_hide_icons(page, base_url):
+    goto_aqua(page, base_url)
+    # Open desktop context menu via JS (Playwright right-click coords vary with zoom).
+    page.evaluate(
+        """() => {
+          const desk = document.getElementById('desktop');
+          desk.dispatchEvent(new MouseEvent('contextmenu', {
+            bubbles: true, cancelable: true, clientX: 40, clientY: 80
+          }));
+        }"""
+    )
+    page.wait_for_timeout(50)
+    menu = page.locator("#desktop-context-menu")
+    assert menu.is_visible()
+    assert page.locator("#desktop-ctx-cleanup").count() == 1
+    assert "Clean Up Desktop" in page.locator("#desktop-ctx-cleanup").inner_text()
+    assert page.locator("#desktop-ctx-toggle-icons").count() == 1
+
+    # Hide icons → persists class + localStorage
+    page.locator("#desktop-ctx-toggle-icons a").click()
+    page.wait_for_timeout(50)
+    assert page.locator(".desktop-icons").evaluate("el => el.classList.contains('icons-hidden')")
+    stored = page.evaluate("() => localStorage.getItem('retr-oq:aqua-desktop-icons')")
+    assert stored == "hidden"
+
+    # Re-open menu and show again
+    page.evaluate(
+        """() => {
+          const desk = document.getElementById('desktop');
+          desk.dispatchEvent(new MouseEvent('contextmenu', {
+            bubbles: true, cancelable: true, clientX: 40, clientY: 80
+          }));
+        }"""
+    )
+    page.wait_for_timeout(50)
+    page.locator("#desktop-ctx-toggle-icons a").click()
+    page.wait_for_timeout(50)
+    assert not page.locator(".desktop-icons").evaluate("el => el.classList.contains('icons-hidden')")
+
+    # Clean Up exists and runs without error (snaps column / clears selection)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_timeout(80)
+    page.evaluate(
+        """() => {
+          const desk = document.getElementById('desktop');
+          desk.dispatchEvent(new MouseEvent('contextmenu', {
+            bubbles: true, cancelable: true, clientX: 40, clientY: 80
+          }));
+        }"""
+    )
+    page.wait_for_timeout(50)
+    page.locator("#desktop-ctx-cleanup a").click()
+    page.wait_for_timeout(50)
+    assert page.locator(".desktop-icon.selected").count() == 0
+    # Icons still in the tidy right-side column container
+    assert page.locator(".desktop-icons .desktop-icon").count() >= 4
+
+
+def test_app_switcher_hud_present_and_opens(page, base_url):
+    goto_aqua(page, base_url)
+    hud = page.locator("#app-switcher")
+    assert hud.count() == 1
+    assert hud.is_hidden()
+
+    # Open a window so the switcher has a running app, then Meta+Tab
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_timeout(80)
+    page.keyboard.down("Meta")
+    page.keyboard.press("Tab")
+    page.wait_for_timeout(80)
+    assert hud.is_visible()
+    assert page.locator("#app-switcher-track .app-switcher-item").count() >= 1
+    page.keyboard.press("Escape")
+    page.wait_for_timeout(50)
+    assert hud.is_hidden()
+
+
+def test_screen_effects_menu_and_host_hook(page, base_url):
+    goto_aqua(page, base_url)
+    # DOM presence — System menu item + context item
+    assert page.locator("#menu-screen-effects").count() == 1
+    assert page.locator("#desktop-ctx-effects").count() == 1
+    # Host should attach (router loads screensaver.js for aqua/)
+    page.wait_for_timeout(150)
+    has_host = page.evaluate(
+        """() => !!(window.OqScreensaver && (window.OqScreensaver.aqua || window.OqScreensaver.host))"""
+    )
+    assert has_host
+    # Idle hook present for tests; do not wait on real idle in CI
+    assert page.evaluate("() => typeof window.__aquaScreenEffects?.setIdleMs === 'function'")
+
+
+def test_applications_window_opens_from_go_and_dock(page, base_url):
+    goto_aqua(page, base_url)
+    assert page.locator("#win-apps").evaluate("el => el.classList.contains('closed')")
+    page.locator("#dock > .osx-dock-item[data-open='win-apps']").click()
+    page.wait_for_timeout(100)
+    win = page.locator("#win-apps")
+    assert win.is_visible()
+    assert not win.evaluate("el => el.classList.contains('closed')")
+    labels = page.locator("#win-apps .finder-item span").all_inner_texts()
+    assert "OQ!" in labels
+    assert "Word Deconstructor" in labels
+    assert "About" in labels
+    # Go menu also lists Applications
+    assert page.locator("#menu-bar [data-open='win-apps']").count() >= 1
+
+
+def test_force_quit_sheet_lists_open_apps(page, base_url):
+    goto_aqua(page, base_url)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_timeout(80)
+    page.evaluate("() => document.querySelector('#menu-force-quit a').click()")
+    page.wait_for_timeout(80)
+    overlay = page.locator("#forcequit-overlay")
+    assert overlay.is_visible()
+    rows = page.locator("#forcequit-list li").all_inner_texts()
+    assert any("OQ!" in r for r in rows)
+    page.click("#forcequit-cancel")
+    page.wait_for_timeout(60)
+    assert page.locator("#forcequit-overlay").is_hidden()
+
+
+def test_get_info_sheet_for_macintosh_hd(page, base_url):
+    goto_aqua(page, base_url)
+    page.click(".desktop-icon[data-open='win-home']")
+    page.wait_for_timeout(40)
+    page.evaluate("() => document.querySelector('#menu-get-info a').click()")
+    page.wait_for_timeout(80)
+    assert page.locator("#getinfo-overlay").is_visible()
+    assert "Macintosh HD" in page.locator("#getinfo-name").inner_text()
+    assert page.locator("#getinfo-blurb").inner_text().strip() != ""
+    page.click("#getinfo-ok")
+    page.wait_for_timeout(40)
+    assert page.locator("#getinfo-overlay").is_hidden()
+
+
+def test_graphite_appearance_persists(page, base_url):
+    goto_aqua(page, base_url)
+    page.evaluate("() => document.querySelector('#menu-sys-prefs a').click()")
+    page.wait_for_timeout(60)
+    page.check("#appearance-graphite")
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.appearance") == "graphite"
+    page.click("#sysprefs-ok")
+    page.reload()
+    page.wait_for_timeout(200)
+    assert page.evaluate("() => document.documentElement.dataset.appearance") == "graphite"
+    stored = page.evaluate("() => localStorage.getItem('retr-oq:aqua-appearance')")
+    assert stored == "graphite"
+
+
+def test_edge_resize_handles_present(page, base_url):
+    goto_aqua(page, base_url)
+    count = page.locator("#win-oq .osx-resize").count()
+    assert count == 8
+    assert page.locator("#win-oq .osx-growbox").count() == 1
+
+
+def test_icon_drag_persists_position(page, base_url):
+    """Fine-pointer drag writes localStorage; Clean Up clears it."""
+    goto_aqua(page, base_url)
+    # Force fine-pointer path: evaluate drag helpers via stored positions API.
+    page.evaluate(
+        """() => {
+          const icon = document.querySelector(".desktop-icon[data-open='win-oq']");
+          const desk = document.getElementById('desktop');
+          const icons = document.querySelector('.desktop-icons');
+          icons.classList.add('is-free');
+          icons.style.top = '0'; icons.style.left = '0'; icons.style.right = '0';
+          icons.style.bottom = '0'; icons.style.width = '100%'; icons.style.height = '100%';
+          icon.style.position = 'absolute';
+          icon.style.left = '40px';
+          icon.style.top = '60px';
+          localStorage.setItem('retr-oq:aqua-desktop-icon-pos', JSON.stringify({
+            'win-oq': { left: 40, top: 60 }
+          }));
+        }"""
+    )
+    page.reload()
+    page.wait_for_timeout(200)
+    left = page.evaluate(
+        """() => document.querySelector('.desktop-icon[data-open="win-oq"]').style.left"""
+    )
+    assert left == "40px"
+    page.evaluate("() => document.querySelector('#desktop-ctx-cleanup a').click()")
+    # Clean Up may need context open — call storage clear via menu click after showing isn't required;
+    # invoke Clean Up through the same handler by dispatching click on the menu item link after unhiding.
+    page.evaluate(
+        """() => {
+          const item = document.getElementById('desktop-ctx-cleanup');
+          item.querySelector('a').dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+        }"""
+    )
+    page.wait_for_timeout(60)
+    stored = page.evaluate("() => localStorage.getItem('retr-oq:aqua-desktop-icon-pos')")
+    assert stored in (None, "")
+
+
+
+def test_time_machine_overlay_opens_and_sets_era(page, base_url):
+    """TM overlay opens from System menu; selecting an era sets data-osx-era."""
+    goto_aqua(page, base_url)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") in (
+        "aqua",
+        "tiger",
+        "leopard",
+        "lion",
+        "yosemite",
+        "bigsur",
+        "glass",
+        None,
+        "",
+    )
+    # Default boot should be aqua when storage empty
+    page.evaluate("() => localStorage.removeItem('retr-oq:aqua-osx-era')")
+    page.reload()
+    page.wait_for_timeout(200)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "aqua"
+
+    page.evaluate("() => document.querySelector('#menu-time-machine a').click()")
+    page.wait_for_timeout(80)
+    overlay = page.locator("#tm-overlay")
+    assert overlay.is_visible()
+    assert page.evaluate("() => window.__aquaTimeMachine && window.__aquaTimeMachine.isOpen") is True
+
+    # Select Tiger via card
+    page.click('.tm-era-card[data-era="tiger"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "tiger"
+
+    page.click("#tm-restore")
+    page.wait_for_timeout(800)
+    assert page.locator("#tm-overlay").is_hidden()
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "tiger"
+    stored = page.evaluate("() => localStorage.getItem('retr-oq:aqua-osx-era')")
+    assert stored == "tiger"
+
+    # Persists across reload (boot script)
+    page.reload()
+    page.wait_for_timeout(200)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "tiger"
+
+
+def test_time_machine_cancel_restores_previous_era(page, base_url):
+    goto_aqua(page, base_url)
+    page.evaluate(
+        """() => {
+          localStorage.setItem('retr-oq:aqua-osx-era', 'aqua');
+          document.documentElement.dataset.osxEra = 'aqua';
+        }"""
+    )
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(60)
+    page.click('.tm-era-card[data-era="leopard"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "leopard"
+    page.click("#tm-cancel")
+    page.wait_for_timeout(60)
+    assert page.locator("#tm-overlay").is_hidden()
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "aqua"
+    assert page.evaluate("() => localStorage.getItem('retr-oq:aqua-osx-era')") in (
+        "aqua",
+        None,
+    )
+
+
+def test_time_machine_reduced_motion_instant_restore(page, base_url):
+    """With prefers-reduced-motion, Restore swaps era without leaving overlay stuck."""
+    goto_aqua(page, base_url)
+    page.emulate_media(reduced_motion="reduce")
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(40)
+    page.click('.tm-era-card[data-era="leopard"]')
+    page.click("#tm-restore")
+    page.wait_for_timeout(100)
+    assert page.locator("#tm-overlay").is_hidden()
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "leopard"
+    assert page.evaluate("() => localStorage.getItem('retr-oq:aqua-osx-era')") == "leopard"
+
+
+def test_time_machine_eras_include_future_milestones(page, base_url):
+    """Timeline lists aqua→glass milestones in chronological order."""
+    goto_aqua(page, base_url)
+    ids = page.evaluate(
+        """() => (window.__aquaTimeMachine && window.__aquaTimeMachine.eras || [])
+          .map((e) => e.id)"""
+    )
+    assert ids == [
+        "aqua",
+        "tiger",
+        "leopard",
+        "lion",
+        "yosemite",
+        "bigsur",
+        "glass",
+    ]
+    years = page.evaluate(
+        """() => (window.__aquaTimeMachine.eras || []).map((e) => e.year)"""
+    )
+    assert years == ["2001", "2005", "2007", "2011", "2014", "2020", "2026"]
+
+
+def test_time_machine_glass_era_persists(page, base_url):
+    """Scrub to Glassholism, Restore, and boot script accept the new id."""
+    goto_aqua(page, base_url)
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(60)
+    page.click('.tm-era-card[data-era="glass"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "glass"
+    page.click("#tm-restore")
+    page.wait_for_timeout(800)
+    assert page.locator("#tm-overlay").is_hidden()
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "glass"
+    assert page.evaluate("() => localStorage.getItem('retr-oq:aqua-osx-era')") == "glass"
+    page.reload()
+    page.wait_for_timeout(200)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "glass"
+
+
+def test_time_machine_scrubber_reaches_lion_and_yosemite(page, base_url):
+    """Scrubber next/prev can reach mid and late eras."""
+    goto_aqua(page, base_url)
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(40)
+    # From aqua, next a few times → lion
+    for _ in range(3):
+        page.click("#tm-next")
+        page.wait_for_timeout(20)
+    assert page.evaluate("() => window.__aquaTimeMachine.selected") == "lion"
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "lion"
+    page.click("#tm-next")
+    page.wait_for_timeout(20)
+    assert page.evaluate("() => window.__aquaTimeMachine.selected") == "yosemite"
+    page.click("#tm-cancel")

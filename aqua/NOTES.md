@@ -178,3 +178,95 @@ Fixes vs Jan’s critique, on top of #168–#171:
 9. **Boot splash.** Removed the ~1.2s overlay entirely — desktop appears
    immediately (optional startup chime still unlocks on first input).
 
+
+## Aqua parity shell (`polish/aqua-parity-shell`)
+
+Parity shell features (Screen Effects / ⌘-Tab / Clean Up, then chrome batch):
+
+1. **CI** — `tests/test_aqua.py` is covered by a `theme-tests.yml` `aqua:` path
+   filter (`aqua/**`, `shared/osx/**`, test harness files). If the agent OAuth
+   token lacks `workflow` scope, the YAML may need to be pasted manually (see PR).
+2. **Screen Effects** — idle host via `shared/redmond/screensaver.js` (loaded by
+   `shared/router.js` for `/aqua/`). Abstract GL savers from `vendor/screensavers/`:
+   **Flux**, **Field Lines**, **Solar Winds** (no Apple Flurry clones). Idle ~75s;
+   `prefers-reduced-motion: reduce` disables idle (menu preview still works).
+   System menu + desktop context **Screen Effects…**; thin Preview items for each
+   saver. Dismiss on pointer/key via the shared overlay host. Test hook:
+   `window.__aquaScreenEffects.setIdleMs(ms)`.
+3. **⌘-Tab app switcher** — hold Meta+Tab (Ctrl+Tab on non-Mac) to cycle
+   open/non-closed windows (else Dock-worthy apps). Center HUD strip of icons;
+   release modifier to activate; Esc cancels. `preventDefault` while handling /
+   switcher active so the theme owns the chord.
+4. **Desktop Clean Up / Hide Icons** — context menu **Clean Up Desktop** snaps
+   icons back into the tidy right-side column (canonical order); **Show Desktop
+   Icons** toggles visibility and persists with `localStorage` key
+   `retr-oq:aqua-desktop-icons` (mac8 parity).
+
+Cache-bust: `style.css?v=9`, `eras.css?v=2`, `app.js?v=10`, `timemachine.js?v=2`, `router.js?v=17` (loads screensaver `?v=30`).
+
+## Aqua parity chrome (same branch)
+
+Continues on `polish/aqua-parity-shell` (PR #176) — no Exposé / Spotlight / Stacks / Spaces.
+
+1. **Desktop icon drag-reposition** — fine pointer: drag icons; positions persist in
+   `localStorage` `retr-oq:aqua-desktop-icon-pos`. **Clean Up Desktop** clears free
+   layout + storage and snaps the tidy right-side column (existing hide-icons toggle
+   unchanged). Coarse pointer keeps tap-to-open (no drag).
+2. **Force Quit** — System menu **Force Quit…** + ⌥⌘⎋ (Alt+Meta+Escape; Alt+Ctrl+Escape
+   too). Sheet lists open windows; Force Quit closes the selection; Cancel dismisses.
+3. **Get Info** — File menu, desktop/icon context menus open a real sheet (name / kind /
+   version blurb) for Macintosh HD, OQ!, Word Deconstructor, Trash, Applications, About,
+   or Desktop — not the About stub.
+4. **Applications** — first-class `win-apps` Finder window (OQ! + Word Deconstructor +
+   About), openable from Macintosh HD, Dock, and Go menu.
+5. **Graphite appearance** — System Preferences sheet toggles Blue / Graphite CSS
+   variables on `html[data-appearance]`; persists `retr-oq:aqua-appearance`.
+6. **Edge resize** — `resizeMode: "both"`; `.osx-resize` edge handles on aqua windows
+   alongside the growbox.
+7. **CI** — do not push workflow files from this agent. Paste the `aqua:` path filter
+   into `.github/workflows/theme-tests.yml` (see PR #176 description / former #177).
+
+## Time Machine era switcher (same branch)
+
+Browse **OS X eras** (visual skins), not file versions. Same DOM + `shared/osx/`
+shell; eras override CSS variables + chrome via `html[data-osx-era]`.
+
+Arc runs skeuomorphism → flat translucency → **Glassholism** (original liquid-glass
+homage). Prefer strong milestones over every point release (no Snow Leopard bridge).
+
+| Era id | Year | Look |
+| --- | --- | --- |
+| `aqua` (default) | 2001 | Cheetah–Puma jelly / 3D shelf Dock |
+| `tiger` | 2005 | Greener/blue wash, metal-ish titlebars, flatter mid-2000s Dock |
+| `leopard` | 2007 | Darker menubar, reflective Dock shelf, stack-ish Dock hint (CSS only) |
+| `lion` | 2011 | Peak **skeuomorphism**: linen weave desktop, padded/stitched title cues, leather-ish Dock, chunkier glossy scrollers — original patterns, not Apple art |
+| `yosemite` | 2014 | Post-skeuomorph **translucent flat**: vibrancy-ish blur menubar, flatter windows, thinner titlebars, frosted strip Dock (no perspective shelf) |
+| `bigsur` | 2020 | Modern macOS: larger radius, denser blur, traffic spacing tweaks, fuller frosted Dock, soft abstract sky wash (not Big Sur wallpaper assets) |
+| `glass` | 2026 | **Glassholism**: maximal glassmorphism — heavy backdrop-filter, specular panel sheen, ultra-frost menubar/Dock/windows, luminous cyan accents, dreamy bloom desktop |
+
+**Entry:** System menu **Time Machine…**, Dock orb, shortcut **⌥⌘T** (Alt+Meta/Ctrl+T).
+
+**UX:** Full-screen abstract starfield + shelf (original art — no Apple logos /
+trademarked TM galaxy). Seven era cards (per-era TM accent colors) + scrubber /
+arrows; live skin preview while browsing; **Restore** / Enter applies; Esc
+cancels. Apply transition: starfield dissolve + shell scale/blur (~700ms).
+`prefers-reduced-motion: reduce` → instant class swap (no animation).
+
+**Persist:** `localStorage` `retr-oq:aqua-osx-era`. Inline boot script in
+`index.html` accepts all seven ids and sets `data-osx-era` before paint.
+
+**Graphite:** Composes fully on **Aqua / Tiger / Leopard / Lion**
+(`html[data-osx-era][data-appearance="graphite"]` in `eras.css` / `style.css`).
+On **Yosemite / Big Sur / Glassholism**, Graphite is effectively a **no-op**
+(or tiny accent nudge only) — those skins are already muted greys / light glass,
+and a full graphite wash fights the flat/glass language. Toggle still persists;
+it just does not visually dominate. Documented here so Sys Prefs is not “broken.”
+
+**Performance:** `@media (pointer: coarse), (max-width: 700px)` dials back
+`backdrop-filter` blur on Yosemite / Big Sur / Glassholism.
+
+**Files:** `aqua/eras.css`, `aqua/timemachine.js`, overlay markup in
+`aqua/index.html`. Hook: `window.__aquaTimeMachine`.
+
+**Out of scope (still):** real Exposé / Spotlight / Spaces / Stacks apps;
+Apple logos / trademarked TM galaxy / copied Big Sur wallpapers.
