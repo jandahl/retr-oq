@@ -285,7 +285,7 @@ select {
 }
 
 .desktop-icon {
-  width: 76px;
+  width: 92px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -304,7 +304,7 @@ select {
 }
 
 .desktop-icon-label {
-  max-width: 72px;
+  max-width: 88px;
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 11px;
@@ -313,7 +313,10 @@ select {
   color: #fff;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .desktop-icon.selected .desktop-icon-label,
@@ -987,13 +990,16 @@ select {
 }
 
 .finder-item span {
-  max-width: 68px;
+  max-width: 72px;
   padding: 1px 3px;
   border-radius: 3px;
   text-align: center;
   line-height: 1.2;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 .finder-item:focus-visible,
@@ -1167,10 +1173,104 @@ select {
   background: #d8dce4;
 }
 
-/* Lamp minimize (KDE Compiz cssLamp-style) */
-.osx-window.aqua-lamping {
+/* Aqua genie minimize — funnel clip-path + scale toward Dock tile */
+.osx-window.aqua-genie {
   pointer-events: none;
-  will-change: transform, opacity;
+  will-change: transform, opacity, clip-path;
+}
+
+/* Minimized-window tiles + separator (Dock grows; before Trash) */
+.osx-dock-separator {
+  position: relative;
+  z-index: 1;
+  align-self: flex-end;
+  width: 1px;
+  height: 36px;
+  margin: 0 2px 14px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(40, 50, 70, 0.45) 20%,
+    rgba(40, 50, 70, 0.45) 80%,
+    transparent 100%
+  );
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.35);
+  flex: 0 0 auto;
+}
+
+.osx-dock-separator[hidden] {
+  display: none !important;
+}
+
+.osx-dock-minimized {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.osx-dock-minimized:empty {
+  display: none;
+}
+
+.osx-dock-item.aqua-dock-minimized {
+  flex-direction: column;
+  gap: 0;
+}
+
+.osx-dock-item.aqua-dock-minimized .dock-min-glyph {
+  display: flex;
+  width: 44px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 4px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, transparent 40%),
+    linear-gradient(180deg, #c5d0e0 0%, #8a9bb0 100%);
+  box-shadow:
+    0 0 0 1px rgba(40, 50, 70, 0.35),
+    0 1px 0 rgba(255, 255, 255, 0.5) inset;
+}
+
+.osx-dock-item.aqua-dock-minimized .dock-min-glyph svg,
+.osx-dock-item.aqua-dock-minimized .dock-min-glyph .dock-glyph {
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+}
+
+.osx-dock-item.aqua-dock-minimized .dock-min-caption {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  transform: translateX(-50%);
+  max-width: 7rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fff;
+  background: rgba(30, 40, 60, 0.72);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 80ms linear;
+}
+
+.osx-dock-item.aqua-dock-minimized:hover .dock-min-caption,
+.osx-dock-item.aqua-dock-minimized:focus-visible .dock-min-caption {
+  opacity: 1;
+}
+
+/* Minimized tiles are windows, not apps — no running dot. */
+.osx-dock-item.aqua-dock-minimized::after {
+  display: none !important;
 }
 
 /* ---------- Dialogs / Aqua sheet ---------- */
@@ -1262,7 +1362,7 @@ select {
   .osx-dialog.osx-sheet {
     animation: none;
   }
-  .osx-window.aqua-lamping {
+  .osx-window.aqua-genie {
     transition: none !important;
   }
 }

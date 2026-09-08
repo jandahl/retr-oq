@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta name="description" content="retr-oq — early OS X Aqua desktop (2001)" />
 <title>retr-oq — OS X Aqua</title>
-<link rel="stylesheet" href="style.css?v=4" />
+<link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <div id="boot-screen">
@@ -70,7 +70,7 @@
         <ul role="menu">
           <li role="menu-item" data-open="win-home"><a href="#">Home</a></li>
           <li role="menu-item" data-open="win-oq"><a href="#">OQ!</a></li>
-          <li role="menu-item" data-open="win-decon"><a href="#">DECON</a></li>
+          <li role="menu-item" data-open="win-decon"><a href="#">Word Deconstructor</a></li>
         </ul>
       </li>
       <li class="osx-menu-clock" id="menu-clock" aria-hidden="true">12:00</li>
@@ -156,7 +156,7 @@
             <rect x="26" y="8" width="15" height="15" rx="3.5" fill="url(#dcGloss)"/>
             <rect x="16.5" y="25" width="15" height="15" rx="3.5" fill="url(#dcGloss)"/>
           </svg>
-          <span class="desktop-icon-label">DECON</span>
+          <span class="desktop-icon-label">Word Deconstructor</span>
         </button>
         <button type="button" class="desktop-icon" data-open="win-trash">
           <svg class="desktop-icon-glyph" viewBox="0 0 48 48" aria-hidden="true">
@@ -215,7 +215,7 @@
           <button type="button" class="osx-traffic osx-btn-close" id="win-decon-close" aria-label="Close"></button>
           <button type="button" class="osx-traffic osx-btn-minimize" id="win-decon-minimize" aria-label="Minimize"></button>
           <button type="button" class="osx-traffic osx-btn-zoom" id="win-decon-zoom" aria-label="Zoom"></button>
-          <h1 class="osx-title">DECON</h1>
+          <h1 class="osx-title">Word Deconstructor</h1>
         </header>
         <div class="osx-body decon-body">
           <div class="aqua-field-row">
@@ -282,7 +282,7 @@
                 <rect x="26" y="10" width="14" height="14" rx="3" fill="#e87830" stroke="#543" stroke-width="1"/>
                 <rect x="17" y="26" width="14" height="14" rx="3" fill="#a04020" stroke="#421" stroke-width="1"/>
               </svg>
-              <span>DECON</span>
+              <span>Word Deconstructor</span>
             </button>
             <button type="button" class="finder-item" data-open="win-about" role="listitem">
               <svg viewBox="0 0 48 48" aria-hidden="true">
@@ -325,7 +325,7 @@
                   <rect x="5.5" y="9" width="5" height="5" rx="1" fill="#a04020"/>
                 </svg>
               </span>
-              <span class="finder-list-col-name">DECON</span>
+              <span class="finder-list-col-name">Word Deconstructor</span>
               <span class="finder-list-col-kind">Application</span>
             </button>
             <button type="button" class="finder-list-row" data-open="win-about" role="listitem">
@@ -419,7 +419,7 @@
             <text x="24" y="28" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Georgia, serif">OQ!</text>
           </svg>
         </button>
-        <button type="button" class="osx-dock-item" data-open="win-decon" aria-label="DECON">
+        <button type="button" class="osx-dock-item" data-open="win-decon" aria-label="Word Deconstructor">
           <svg class="dock-glyph" viewBox="0 0 48 48" aria-hidden="true">
             <rect x="8" y="10" width="14" height="14" rx="3.5" fill="#f0c040" stroke="#654" stroke-width="1"/>
             <rect x="26" y="10" width="14" height="14" rx="3.5" fill="#e87830" stroke="#543" stroke-width="1"/>
@@ -438,6 +438,9 @@
             <text x="24" y="31.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">i</text>
           </svg>
         </button>
+        <!-- Minimized windows appear as extra tiles before Trash (period Dock). -->
+        <span class="osx-dock-separator" id="dock-min-sep" hidden aria-hidden="true"></span>
+        <div class="osx-dock-minimized" id="dock-minimized" aria-label="Minimized windows"></div>
         <button type="button" class="osx-dock-item" data-open="win-trash" aria-label="Trash">
           <svg class="dock-glyph" viewBox="0 0 48 48" aria-hidden="true">
             <defs>
@@ -477,7 +480,7 @@
   <script src="../shared/decon-app.js"></script>
   <script src="../shared/osx/window-manager.js?v=3"></script>
   <script src="../shared/osx/menubar.js?v=1"></script>
-  <script src="../shared/osx/dock.js?v=1"></script>
-  <script src="app.js?v=5"></script>
+  <script src="../shared/osx/dock.js?v=2"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

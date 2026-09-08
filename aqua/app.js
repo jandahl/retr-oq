@@ -2,8 +2,9 @@
   "use strict";
 
   // Thin Aqua adapter over shared/osx/. Theme-specific: boot chime,
-  // OQ!/DECON rendering, shutdown dialog, icon selection, lamp minimize.
-  // Window chrome / menu bar / Dock behavior come from OqOsx.*.
+  // OQ!/Word Deconstructor rendering, shutdown dialog, icon selection,
+  // Aqua genie minimize + minimized Dock tiles. Window chrome / menu bar /
+  // Dock launch helpers come from OqOsx.*.
 
   const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
   const { syllabify } = window.OqHyphenation;
@@ -59,7 +60,11 @@
   const winDecon = document.getElementById("win-decon");
 
   let dockApi;
-  let closingDictPair = false;
+  const dockEl = document.getElementById("dock");
+  const dockMinimized = document.getElementById("dock-minimized");
+  const dockMinSep = document.getElementById("dock-min-sep");
+  /** @type {Map<string, HTMLElement>} */
+  const minimizedTiles = new Map();
 
   function syncDockRunning() {
     // Running = not closed (minimized windows still show a Dock indicator).
@@ -72,72 +77,184 @@
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
-  function clearDictRouter() {
-    window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
+  function windowTitle(win) {
+    const title = win.querySelector(".osx-title");
+    return (title && title.textContent.trim()) || win.id;
   }
 
-  function closeDictPairWindows() {
-    if (closingDictPair) return;
-    closingDictPair = true;
-    try {
-      if (!winOq.classList.contains("closed")) wm.closeWindow(winOq);
-      if (!winDecon.classList.contains("closed")) wm.closeWindow(winDecon);
-    } finally {
-      closingDictPair = false;
+  function syncMinimizedSeparator() {
+    if (!dockMinSep) return;
+    const has = minimizedTiles.size > 0;
+    dockMinSep.hidden = !has;
+    dockMinSep.setAttribute("aria-hidden", has ? "false" : "true");
+  }
+
+  function removeMinimizedDockTile(winId) {
+    const tile = minimizedTiles.get(winId);
+    if (!tile) return;
+    tile.remove();
+    minimizedTiles.delete(winId);
+    syncMinimizedSeparator();
+  }
+
+  function ensureMinimizedDockTile(win) {
+    if (!dockMinimized) return null;
+    const existing = minimizedTiles.get(win.id);
+    if (existing) return existing;
+
+    const title = windowTitle(win);
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "osx-dock-item aqua-dock-minimized";
+    tile.dataset.restore = win.id;
+    tile.setAttribute("aria-label", `${title} (minimized)`);
+
+    // Mini window glyph: titled document stand-in (no live screenshot).
+    const glyph = document.createElement("span");
+    glyph.className = "dock-min-glyph";
+    glyph.setAttribute("aria-hidden", "true");
+    const appIcon = dockApi && dockApi.itemFor(win.id);
+    const srcSvg = appIcon && appIcon.querySelector("svg, img, .dock-glyph");
+    if (srcSvg && srcSvg.tagName === "svg") {
+      glyph.appendChild(srcSvg.cloneNode(true));
+    } else {
+      glyph.innerHTML =
+        '<svg class="dock-glyph" viewBox="0 0 48 48">' +
+        '<rect x="8" y="10" width="32" height="28" rx="4" fill="#dfe6f0" stroke="#334" stroke-width="1.4"/>' +
+        '<rect x="8" y="10" width="32" height="8" rx="4" fill="#8eb0e0"/>' +
+        "</svg>";
     }
+    const caption = document.createElement("span");
+    caption.className = "dock-min-caption";
+    caption.textContent = title;
+    tile.append(glyph, caption);
+
+    tile.addEventListener("click", () => {
+      const target = document.getElementById(win.id);
+      if (!target) return;
+      wm.restoreWindow(target);
+      removeMinimizedDockTile(win.id);
+      syncDockRunning();
+    });
+
+    dockMinimized.appendChild(tile);
+    minimizedTiles.set(win.id, tile);
+    syncMinimizedSeparator();
+    return tile;
   }
 
-  // KDE Compiz-style lamp suck (cssLamp): transform-origin toward Dock
-  // target, scale(0.04) + opacity 0. Zoom-safe — origin is %-based.
-  const LAMP_MS = 480;
+  // Authentic Aqua genie: funnel clip-path + multi-step scale toward the
+  // minimized Dock tile (created first so the Dock grows as the suck starts).
+  // %-based transform-origin stays zoom-safe with OqOsx / CSS zoom.
+  const GENIE_MS = 560;
 
-  function animateLampMinimize(win, finish) {
-    if (prefersReducedMotion() || !dockApi) {
+  function genieFunnelClip(ox, oy, t) {
+    // t: 0 = full rect, 1 = collapsed to dock point. Trapezoid narrows toward (ox, oy).
+    const topSpread = (1 - t) * 50;
+    const botSpread = (1 - t) * (1 - t) * 50;
+    const midY = 20 + t * (oy - 20);
+    const x = Math.min(100, Math.max(0, ox));
+    const y = Math.min(100, Math.max(0, oy));
+    if (t >= 0.98) {
+      return `polygon(${x}% ${y}%, ${x}% ${y}%, ${x}% ${y}%, ${x}% ${y}%)`;
+    }
+    const tl = Math.max(0, x - topSpread);
+    const tr = Math.min(100, x + topSpread);
+    const bl = Math.max(0, x - botSpread);
+    const br = Math.min(100, x + botSpread);
+    // Quad that pinches toward the dock target along the bottom edge.
+    return `polygon(${tl}% 0%, ${tr}% 0%, ${br}% ${midY}%, ${x}% ${y}%, ${bl}% ${midY}%)`;
+  }
+
+  function animateGenieMinimize(win, finish) {
+    if (prefersReducedMotion()) {
+      ensureMinimizedDockTile(win);
       finish();
       return;
     }
-    const dockItem = dockApi.itemFor(win.id);
+    const dockItem = ensureMinimizedDockTile(win) || (dockApi && dockApi.itemFor(win.id));
     if (!dockItem) {
       finish();
       return;
     }
 
+    // Layout flush so the new tile has a real rect for the suck target.
+    void dockItem.offsetWidth;
+
     const winRect = win.getBoundingClientRect();
     const dockRect = dockItem.getBoundingClientRect();
     const tx = dockRect.left + dockRect.width / 2;
-    const ty = dockRect.top + dockRect.height / 2;
+    const ty = dockRect.top + dockRect.height * 0.35;
     const ox = winRect.width ? ((tx - winRect.left) / winRect.width) * 100 : 50;
     const oy = winRect.height ? ((ty - winRect.top) / winRect.height) * 100 : 100;
 
     win.style.zIndex = String(9000);
     win.style.pointerEvents = "none";
     win.style.transition = "none";
-    win.style.transform = "";
+    win.style.transform = "none";
     win.style.opacity = "1";
     win.style.transformOrigin = `${ox}% ${oy}%`;
-    win.classList.add("aqua-lamping");
+    win.style.clipPath = genieFunnelClip(ox, oy, 0);
+    win.classList.add("aqua-genie");
     void win.offsetWidth;
-    win.style.transition =
-      `transform ${LAMP_MS}ms cubic-bezier(0.5, 0, 1, 0.3), ` +
-      `opacity ${Math.round(LAMP_MS * 0.9)}ms ease-in`;
-    win.style.transform = "scale(0.04)";
-    win.style.opacity = "0";
+
+    const frames = [
+      { offset: 0, transform: "scale(1, 1)", opacity: 1, clipPath: genieFunnelClip(ox, oy, 0) },
+      {
+        offset: 0.35,
+        transform: "scale(0.72, 0.85)",
+        opacity: 1,
+        clipPath: genieFunnelClip(ox, oy, 0.35),
+      },
+      {
+        offset: 0.7,
+        transform: "scale(0.28, 0.4)",
+        opacity: 0.85,
+        clipPath: genieFunnelClip(ox, oy, 0.72),
+      },
+      {
+        offset: 1,
+        transform: "scale(0.06, 0.04)",
+        opacity: 0,
+        clipPath: genieFunnelClip(ox, oy, 1),
+      },
+    ];
 
     let done = false;
     function complete() {
       if (done) return;
       done = true;
-      win.removeEventListener("transitionend", onEnd);
-      win.classList.remove("aqua-lamping");
+      win.classList.remove("aqua-genie");
+      win.style.clipPath = "";
       finish();
     }
-    function onEnd(event) {
-      if (event.target === win && (event.propertyName === "transform" || event.propertyName === "opacity")) {
+
+    if (typeof win.animate === "function") {
+      const anim = win.animate(frames, {
+        duration: GENIE_MS,
+        easing: "cubic-bezier(0.45, 0.05, 0.55, 0.95)",
+        fill: "forwards",
+      });
+      const finishAnim = () => {
+        try {
+          anim.cancel();
+        } catch {
+          /* already finished/canceled */
+        }
         complete();
-      }
+      };
+      anim.finished.then(finishAnim).catch(finishAnim);
+      setTimeout(finishAnim, GENIE_MS + 100);
+    } else {
+      // Fallback: multi-step CSS transition (still funnel + scale, not lamp).
+      win.style.transition =
+        `transform ${GENIE_MS}ms cubic-bezier(0.45, 0.05, 0.55, 0.95), ` +
+        `opacity ${GENIE_MS}ms ease-in, clip-path ${GENIE_MS}ms ease-in`;
+      win.style.transform = "scale(0.06, 0.04)";
+      win.style.opacity = "0";
+      win.style.clipPath = genieFunnelClip(ox, oy, 1);
+      setTimeout(complete, GENIE_MS + 80);
     }
-    win.addEventListener("transitionend", onEnd);
-    setTimeout(complete, LAMP_MS + 80);
   }
 
   const wm = window.OqOsx.initWindowManager({
@@ -158,10 +275,39 @@
       return false;
     },
     routeClose(win) {
-      // Closing either dictionary app clears the router; onChange closes both.
-      if (win === winOq || win === winDecon) {
-        clearDictRouter();
-        return true;
+      // Independent close: update query for the closed screen only; WM closes
+      // this window (return false). Never force-close the other dict app.
+      if (win === winOq) {
+        const screen = window.OqRouter.getParams().get("screen");
+        if (screen === "oq") {
+          if (!winDecon.classList.contains("closed")) {
+            window.OqRouter.navigate({
+              screen: "decon",
+              filter: null,
+              word: deconWord.value || null,
+              order: deconRootFirst.checked ? null : "final",
+            });
+          } else {
+            window.OqRouter.navigate({ screen: null, filter: null });
+          }
+        }
+        return false;
+      }
+      if (win === winDecon) {
+        const screen = window.OqRouter.getParams().get("screen");
+        if (screen === "decon") {
+          if (!winOq.classList.contains("closed")) {
+            window.OqRouter.navigate({
+              screen: "oq",
+              word: null,
+              order: null,
+              filter: oqFilter.value || null,
+            });
+          } else {
+            window.OqRouter.navigate({ screen: null, word: null, order: null });
+          }
+        }
+        return false;
       }
       return false;
     },
@@ -169,26 +315,18 @@
       syncDockRunning();
     },
     onClose(win) {
+      removeMinimizedDockTile(win.id);
       syncDockRunning();
-      // Linked pair: if one dict window closed outside the router path,
-      // clear router / close the other so both stay in sync.
-      if (closingDictPair) return;
-      if (win === winOq || win === winDecon) {
-        const other = win === winOq ? winDecon : winOq;
-        if (!other.classList.contains("closed")) {
-          const screen = window.OqRouter.getParams().get("screen");
-          if (screen === "oq" || screen === "decon") clearDictRouter();
-          else closeDictPairWindows();
-        }
-      }
     },
-    onMinimize() {
+    onMinimize(win) {
+      ensureMinimizedDockTile(win);
       syncDockRunning();
     },
     onMinimizeAnimating(win, finish) {
-      animateLampMinimize(win, finish);
+      animateGenieMinimize(win, finish);
     },
-    onRestore() {
+    onRestore(win) {
+      removeMinimizedDockTile(win.id);
       syncDockRunning();
     },
   });
@@ -246,15 +384,19 @@
   // distance; reduced-motion falls back to a mild single-icon lift.
   // Under CSS zoom, lift is divided by OqOsx.getZoomFactor (CLAUDE.md).
   (function initDockMagnification() {
-    const dock = document.getElementById("dock");
+    const dock = dockEl;
     if (!dock || !dockApi) return;
-    const items = dockApi.items;
     const MAX_SCALE = 1.55;
     const RANGE = 80; // post-zoom px (clientX / getBoundingClientRect agree)
     const LIFT = 14;
 
+    function liveItems() {
+      // Include dynamic minimized tiles, not only static [data-open] apps.
+      return Array.from(dock.querySelectorAll(".osx-dock-item"));
+    }
+
     function resetMagnify() {
-      for (const el of items) {
+      for (const el of liveItems()) {
         if (el.classList.contains("is-bouncing")) continue;
         el.style.transform = "";
         el.style.zIndex = "";
@@ -268,7 +410,7 @@
       dock.classList.add("is-magnifying");
       let best = null;
       let bestScale = 1;
-      for (const el of items) {
+      for (const el of liveItems()) {
         if (el.classList.contains("is-bouncing")) continue;
         const rect = el.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
@@ -465,7 +607,7 @@
     window.OqRouter.navigate({ filter: oqFilter.value || null }, { replace: true });
   });
 
-  // ---------- DECON ----------
+  // ---------- Word Deconstructor (router screen=decon) ----------
   const deconWord = document.getElementById("decon-word");
   const deconRootFirst = document.getElementById("decon-root-first");
   const deconStatus = document.getElementById("decon-status");
@@ -581,8 +723,8 @@
       }
       syncDockRunning();
     } else {
-      // screen: null — close both dictionary apps (linked pair).
-      closeDictPairWindows();
+      // screen: null — do not close OQ! / Word Deconstructor (independent).
+      // Explicit close already updated the query via routeClose + WM close.
       syncDockRunning();
     }
   });

@@ -44,22 +44,33 @@ still shared via `shared/osx/`. Font: TeX Gyre Heros from
 - **Desktop zoom `1.5`** at `min-width: 700px` (same gate as mac1984 /
   mac8). Chose **1.5 over 2**: Aqua jelly + Dock glass already read
   large; 2 felt oversized next to the menubar. WM already divides by
-  `OqOsx.getZoomFactor`; Dock magnify lift does too. Lamp minimize uses
-  %-based `transform-origin` (zoom-safe, like KDE `cssLamp`).
+  `OqOsx.getZoomFactor`; Dock magnify lift does too. Genie minimize uses
+  %-based `transform-origin` (zoom-safe).
 - **Wallpaper:** original soft aqua blue / swirl wash on `#shell` (CSS
   gradients only — not Apple trademark art). Desktop icon labels are
   white + dark shadow for contrast.
-- **Linked close:** closing OQ! **or** DECON clears the router
-  (`screen: null`, …) and closes **both** windows (`routeClose` +
-  `onClose` + router `onChange`). Opening either still goes through
-  `OqRouter.navigate` normally.
-- **Minimize:** KDE Compiz-style **lamp** suck toward the matching Dock
-  icon (`scale(0.04)` + opacity, ~480ms), not the prior genie
-  approximation. `prefers-reduced-motion` → instant hide. Still uses
-  WM `onMinimizeAnimating(win, finish)`.
+- **Independent close:** closing OQ! closes only OQ!; closing Word
+  Deconstructor closes only that window. `routeClose` updates the query
+  for the closed screen (switch to the other if still open, else clear
+  relevant params) and returns false so the WM closes just that window.
+  Router `onChange` with `screen: null` no longer force-closes either.
+  Opening either still uses `OqRouter.navigate`.
+- **Minimize:** authentic **Aqua genie** suck into a **minimized Dock
+  tile** (funnel `clip-path` + multi-step scale via WAAPI, ~560ms), not
+  KDE lamp / plain scale-to-point. Tile is inserted first (Dock grows)
+  so the suck target is real. `prefers-reduced-motion` → instant hide +
+  tile. Still uses WM `onMinimizeAnimating(win, finish)`.
+- **Minimized Dock tiles:** period OS X places minimized windows as
+  extra Dock icons (right side before Trash, with a separator). Click
+  the tile to restore and remove it; the app’s normal Dock icon still
+  focuses/restores. Closed (not minimized) → no tile. Magnify includes
+  dynamic tiles.
+- **Rename (Aqua UI only):** user-visible “DECON” → **Word Deconstructor**
+  (window title, desktop/Finder/Dock labels, Go menu). Element ids /
+  `screen=decon` / `win-decon` unchanged for shared router + other themes.
 - **Finder / Trash:** Macintosh HD is an icon-view Finder chrome with
-  openable items (OQ!, DECON, About, Trash); Trash shows an empty-state
-  message (KDE-style substance, Aqua skin).
+  openable items (OQ!, Word Deconstructor, About, Trash); Trash shows an
+  empty-state message (KDE-style substance, Aqua skin).
 - **Icons:** redesigned desktop + Dock SVGs — gloss, rounded forms,
   depth — still original (no Apple logo / Happy Mac face clones).
 
@@ -108,16 +119,18 @@ Authenticity choices for early Aqua (~10.0–10.3 / 2001–2003), theme-local:
 - **Shut Down sheet** (`#shutdown-overlay .osx-sheet`) hangs under the
   menu bar (top-aligned overlay + flat-top dialog), not a centered
   modal.
-- **Minimize** hides the window (`.minimized`) and leaves a running dot
-  on the Dock item; click the Dock icon to restore. Not a Redmond
+- **Minimize** hides the window (`.minimized`), leaves a running dot on
+  the app Dock item, **and** inserts a minimized-window tile before
+  Trash. Click the tile (or the app icon) to restore. Not a Redmond
   taskbar button.
 - **Zoom** toggles the prior rect (Finder-style), not a permanent
   maximize — same idea as mac8’s zoom box, implemented in
   `OqOsx.initWindowManager`.
 - **Resize** is growbox-only in this skin (`resizeMode: "growbox"`).
   Later OS X skins can pass `"edges"` or `"both"`.
-- **OQ!/DECON** only open/close through `window.OqRouter.navigate` —
-  `routeOpen` / `routeClose` in `app.js`. They are a linked close pair.
+- **OQ! / Word Deconstructor** open through `window.OqRouter.navigate`
+  (`routeOpen`). Close is independent: `routeClose` only adjusts the
+  query for the closed screen; each window closes on its own.
 - **Cache-bust** `?v=N` on every local file you change.
 - Touch: inputs ≥ 16px; `html, body { position: fixed }` to stop iOS
   document scroll on focus.
