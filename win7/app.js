@@ -43,7 +43,8 @@
   // "OQ! router wiring"/"DECON" sections, mirroring win98/app.js's
   // identical wiring.
   const winOq = document.getElementById("win-oq");
-  const winDecon = document.getElementById("win-decon");
+  // Word Deconstructor is a tab inside #win-oq; data-open=win-decon aliases via resolveOpen.
+  let pendingOqScreen = null;
 
   const { openWindow, forceOpenWindow, closeWindow } = window.OqRedmond.initWindowManager({
     desktop,
@@ -74,18 +75,20 @@
     },
     routeOpen(win) {
       if (win.id === "win-oq") {
-        window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null });
-        return true;
-      }
-      if (win.id === "win-decon") {
-        window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+        const screen = pendingOqScreen === "decon" ? "decon" : "oq";
+        pendingOqScreen = null;
+        if (screen === "decon") {
+          window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null, filter: null });
+        } else {
+          window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null, word: null });
+        }
         return true;
       }
       return false;
     },
     routeClose(win) {
-      if (win.id === "win-oq" || win.id === "win-decon") {
-        window.OqRouter.navigate({ screen: null, filter: null, word: null });
+      if (win.id === "win-oq") {
+        window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
       }
     },
   });
@@ -95,7 +98,13 @@
   // pointer type.
   for (const el of document.querySelectorAll(".start-menu-item[data-open]")) {
     el.addEventListener("click", () => {
-      const target = document.getElementById(el.dataset.open);
+      const openId = el.dataset.open;
+      if (openId === "win-oq" || openId === "win-decon") {
+        pendingOqScreen = openId === "win-decon" ? "decon" : "oq";
+        openWindow(winOq);
+        return;
+      }
+      const target = document.getElementById(openId);
       if (target) openWindow(target);
     });
   }
@@ -104,6 +113,15 @@
     desktop,
     iconSelector: ".desktop-icon[data-open]",
     openWindow,
+    resolveOpen(icon) {
+      if (icon.dataset.open === "win-oq" || icon.dataset.open === "win-decon") {
+        pendingOqScreen = icon.dataset.open === "win-decon" || icon.dataset.screen === "decon"
+          ? "decon"
+          : "oq";
+        return winOq;
+      }
+      return null;
+    },
   });
 
   // ---------- Desktop right-click menu ----------
@@ -421,31 +439,63 @@
   // ---------- Router wiring: OQ! and DECON's shared open/close/state ----------
   // Mirrors win98/app.js's identical onChange callback -- see its own
   // comment for the full reasoning.
+
+  // ---------- OQ! tab shell (Dictionary ↔ Word Deconstructor) ----------
+  const oqShell = window.OqRedmond.initOqShell({
+    shellWin: winOq,
+    tabs: [
+      {
+        view: "oq",
+        button: document.getElementById("oq-tab-dict"),
+        panel: document.getElementById("oq-view-dict"),
+      },
+      {
+        view: "decon",
+        button: document.getElementById("oq-tab-decon"),
+        panel: document.getElementById("oq-view-decon"),
+      },
+    ],
+    onTabSelect(view) {
+      if (view === "decon") {
+        window.OqRouter.navigate(
+          { screen: "decon", word: deconWord.value || null, filter: null },
+          { replace: true },
+        );
+      } else {
+        window.OqRouter.navigate(
+          { screen: "oq", filter: oqFilter.value || null, word: null },
+          { replace: true },
+        );
+      }
+    },
+  });
+
   window.OqRouter.onChange((params) => {
     const screen = params.get("screen");
-    if (screen === "oq") {
+    if (screen === "oq" || screen === "decon") {
       if (winOq.classList.contains("minimized")) forceOpenWindow(winOq);
-      const filter = params.get("filter") || "";
-      if (oqFilter.value !== filter) {
-        oqFilter.value = filter;
-        renderOqResults();
-      }
-    } else if (screen === "decon") {
-      if (winDecon.classList.contains("minimized")) forceOpenWindow(winDecon);
-      const orderParam = params.get("order");
-      const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
-      if (deconRootFirst.checked !== rootFirst) {
-        deconRootFirst.checked = rootFirst;
-        deconController.reRenderLast();
-      }
-      const word = params.get("word") || "";
-      if (deconWord.value !== word) {
-        deconWord.value = word;
-        deconController.search(word);
+      oqShell.applyView(screen);
+      if (screen === "oq") {
+        const filter = params.get("filter") || "";
+        if (oqFilter.value !== filter) {
+          oqFilter.value = filter;
+          renderOqResults();
+        }
+      } else {
+        const orderParam = params.get("order");
+        const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
+        if (deconRootFirst.checked !== rootFirst) {
+          deconRootFirst.checked = rootFirst;
+          deconController.reRenderLast();
+        }
+        const word = params.get("word") || "";
+        if (deconWord.value !== word) {
+          deconWord.value = word;
+          deconController.search(word);
+        }
       }
     } else {
       if (!winOq.classList.contains("minimized")) closeWindow(winOq);
-      if (!winDecon.classList.contains("minimized")) closeWindow(winDecon);
     }
   });
 })();

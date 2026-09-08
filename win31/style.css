@@ -214,8 +214,11 @@ a:active {
 }
 
 .win-sysmenu,
+.mdi-sysmenu,
 .win-minimize,
-.win-maximize {
+.mdi-minimize,
+.win-maximize,
+.mdi-maximize {
   width: 16px;
   height: 14px;
   padding: 0;
@@ -230,19 +233,24 @@ a:active {
 }
 
 .win-sysmenu:active,
+.mdi-sysmenu:active,
 .win-minimize:active,
-.win-maximize:active {
+.mdi-minimize:active,
+.win-maximize:active,
+.mdi-maximize:active {
   box-shadow: var(--bevel-in);
 }
 
 /* The Control-menu button is a pressed indicator, not a push button: the
    original 3.1 box stays flat and only darkens while it is held. */
-.win-sysmenu:active {
+.win-sysmenu:active,
+.mdi-sysmenu:active {
   background: var(--sh);
   box-shadow: none;
 }
 
-.win-sysmenu::before {
+.win-sysmenu::before,
+.mdi-sysmenu::before {
   content: "";
   position: absolute;
   left: 3px;
@@ -252,7 +260,8 @@ a:active {
   background: var(--dk);
 }
 
-.win-minimize::before {
+.win-minimize::before,
+.mdi-minimize::before {
   content: "";
   position: absolute;
   left: 4px;
@@ -262,7 +271,8 @@ a:active {
   border-top: 5px solid var(--dk);
 }
 
-.win-maximize::before {
+.win-maximize::before,
+.mdi-maximize::before {
   content: "";
   position: absolute;
   left: 4px;
@@ -513,6 +523,69 @@ a:active {
 }
 
 /* ---------- OQ / DECON bodies ---------- */
+
+
+/* OQ! MDI frame: one Program Manager EXE with Dictionary + Word
+   Deconstructor as document (child) windows inside the client area. */
+.oq-mdi-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 2px 4px;
+  gap: 0;
+}
+
+.oq-mdi-body > .menubar {
+  flex-shrink: 0;
+}
+
+.mdi-client {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: #808080;
+  border-top: 1px solid #000000;
+  border-left: 1px solid #000000;
+  border-right: 1px solid #ffffff;
+  border-bottom: 1px solid #ffffff;
+  overflow: hidden;
+}
+
+.mdi-child {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: #c0c0c0;
+  border-top: 1px solid #ffffff;
+  border-left: 1px solid #ffffff;
+  border-right: 1px solid #000000;
+  border-bottom: 1px solid #000000;
+  box-shadow: 1px 1px 0 #000000;
+  min-width: 10rem;
+  min-height: 8rem;
+}
+
+.mdi-child.mdi-inactive .title-bar {
+  background: #808080;
+}
+
+.mdi-child.mdi-minimized {
+  display: none;
+}
+
+.mdi-child.mdi-maximized {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-shadow: none;
+}
+
+.mdi-child .window-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
 
 .oq-body,
 .decon-body {
@@ -796,15 +869,18 @@ a:active {
 
 @media (pointer: coarse) {
   .win-sysmenu,
+  .mdi-sysmenu,
   .win-minimize,
-  .win-maximize {
+  .mdi-minimize,
+  .win-maximize,
+  .mdi-maximize {
     width: 28px;
     height: 24px;
   }
   .title-bar { height: 28px; }
-  .win-sysmenu::before { top: 11px; height: 3px; }
-  .win-minimize::before { left: 8px; top: 10px; }
-  .win-maximize::before { left: 8px; top: 7px; }
+  .win-sysmenu::before, .mdi-sysmenu::before { top: 11px; height: 3px; }
+  .win-minimize::before, .mdi-minimize::before { left: 8px; top: 10px; }
+  .win-maximize::before, .mdi-maximize::before { left: 8px; top: 7px; }
   .menu-root > button,
   .menu-drop button,
   .sysmenu button {

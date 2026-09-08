@@ -952,11 +952,29 @@ def test_hot_dog_stand_recolors_scheme_select_field_and_options(page, base_url):
 
 
 def test_decon_visible_name_is_word_deconstructor(page, base_url):
-    """Desktop icon + titlebar use the long DECON label."""
+    """Desktop icon + in-shell tab use the long DECON label (tabbed OQ! shell)."""
     goto_win98(page, base_url)
     labels = page.locator(".desktop-icon-label").all_inner_texts()
     assert "Word Deconstructor" in labels
     page.locator(".desktop-icon[data-open='win-decon']").dblclick()
     page.wait_for_timeout(100)
-    assert page.locator("#win-decon .title-bar-text").inner_text() == "Word Deconstructor"
+    assert page.locator("#win-oq").is_visible()
+    assert page.locator("#oq-tab-decon").inner_text() == "Word Deconstructor"
+    assert page.locator("#oq-tab-decon").get_attribute("aria-selected") == "true"
+    assert page.locator("#oq-view-decon").is_visible()
+
+
+def test_oq_decon_share_one_taskbar_button(page, base_url):
+    """Dictionary and Word Deconstructor are one window / one taskbar button."""
+    goto_win98(page, base_url)
+    page.locator(".desktop-icon[data-open='win-oq']").dblclick()
+    page.wait_for_timeout(100)
+    assert len(page.query_selector_all(".taskbar-window-button")) == 1
+    page.locator("#oq-tab-decon").click()
+    page.wait_for_timeout(50)
+    assert len(page.query_selector_all(".taskbar-window-button")) == 1
+    assert "screen=decon" in page.url
+    page.locator("#oq-tab-dict").click()
+    page.wait_for_timeout(50)
+    assert "screen=oq" in page.url
 

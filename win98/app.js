@@ -25,14 +25,15 @@
   // funnels through the shared module's one openWindow()), the Hot Dog
   // Stand/Display Properties scheme, the Shut Down dialog, and the
   // taskbar clock.
-  // OQ! and DECON are the two windows whose open/closed state is real,
-  // shareable URL state (?screen=oq&filter=... / ?screen=decon&word=...),
-  // the same way dos/'s DICT.EXE/DECON.EXE own theirs via
-  // shared/router.js -- see routeOpen/routeClose below and this file's own
-  // "OQ! router wiring"/"DECON" sections. My Computer/About/Recycle Bin/
-  // Settings stay plain chrome with no router state, same as before.
+  // OQ! is one window whose open/closed + tab state is real shareable URL
+  // state (?screen=oq&filter=... / ?screen=decon&word=...). Dictionary and
+  // Word Deconstructor are tabs inside #win-oq (one taskbar button), not
+  // two top-level windows. My Computer/About/Recycle Bin/Settings stay
+  // plain chrome with no router state.
   const winOq = document.getElementById("win-oq");
-  const winDecon = document.getElementById("win-decon");
+  // Word Deconstructor lives inside #win-oq (tabbed shell); data-open=win-decon
+  // icons still work via resolveOpen → winOq + pendingOqScreen.
+  let pendingOqScreen = null;
 
   const { openWindow, forceOpenWindow, closeWindow } = window.OqRedmond.initWindowManager({
     desktop,
@@ -64,18 +65,20 @@
     // sync no matter which of those three triggered it.
     routeOpen(win) {
       if (win.id === "win-oq") {
-        window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null });
-        return true;
-      }
-      if (win.id === "win-decon") {
-        window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+        const screen = pendingOqScreen === "decon" ? "decon" : "oq";
+        pendingOqScreen = null;
+        if (screen === "decon") {
+          window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null, filter: null });
+        } else {
+          window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null, word: null });
+        }
         return true;
       }
       return false;
     },
     routeClose(win) {
-      if (win.id === "win-oq" || win.id === "win-decon") {
-        window.OqRouter.navigate({ screen: null, filter: null, word: null });
+      if (win.id === "win-oq") {
+        window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
       }
     },
   });
@@ -85,7 +88,13 @@
   // pointer type.
   for (const el of document.querySelectorAll(".start-menu-item[data-open]")) {
     el.addEventListener("click", () => {
-      const target = document.getElementById(el.dataset.open);
+      const openId = el.dataset.open;
+      if (openId === "win-oq" || openId === "win-decon") {
+        pendingOqScreen = openId === "win-decon" ? "decon" : "oq";
+        openWindow(winOq);
+        return;
+      }
+      const target = document.getElementById(openId);
       if (target) openWindow(target);
     });
   }
@@ -94,6 +103,15 @@
     desktop,
     iconSelector: ".desktop-icon[data-open]",
     openWindow,
+    resolveOpen(icon) {
+      if (icon.dataset.open === "win-oq" || icon.dataset.open === "win-decon") {
+        pendingOqScreen = icon.dataset.open === "win-decon" || icon.dataset.screen === "decon"
+          ? "decon"
+          : "oq";
+        return winOq;
+      }
+      return null;
+    },
   });
 
   // ---------- Start menu ----------
@@ -430,44 +448,68 @@
 
   // ---------- Router wiring: OQ! and DECON's shared open/close/state ----------
   // window.OqRouter (shared/router.js) is the single source of truth for
-  // which of OQ!/DECON is reflected in the URL -- every user-facing
-  // trigger above (desktop icon, Start menu item, taskbar restore via
-  // routeOpen; each window's own close button via routeClose; oqFilter's
-  // input handler; decon-word's Enter handler; the root-first checkbox)
-  // already goes through navigate() instead of opening/closing a window or
-  // running a search directly. This one onChange callback is what actually
-  // calls forceOpenWindow()/closeWindow()/renderOqResults()/
-  // deconController.search() -- exactly dos/app.js's own "plain UI
-  // functions with no URL knowledge, one onChange owns the rest" pattern
-  // (see its own comment on window.OqRouter.onChange).
+  // which OQ! tab is reflected in the URL -- desktop icon / Start menu /
+  // taskbar restore via routeOpen; the shell close button via routeClose;
+  // tab clicks; oqFilter; decon-word Enter; root-first checkbox all go
+  // through navigate(). This onChange is what forceOpenWindow()/closeWindow()
+  // /applyView()/renderOqResults()/deconController.search() run from.
+
+  // ---------- OQ! tab shell (Dictionary ↔ Word Deconstructor) ----------
+  const oqShell = window.OqRedmond.initOqShell({
+    shellWin: winOq,
+    tabs: [
+      {
+        view: "oq",
+        button: document.getElementById("oq-tab-dict"),
+        panel: document.getElementById("oq-view-dict"),
+      },
+      {
+        view: "decon",
+        button: document.getElementById("oq-tab-decon"),
+        panel: document.getElementById("oq-view-decon"),
+      },
+    ],
+    onTabSelect(view) {
+      if (view === "decon") {
+        window.OqRouter.navigate(
+          { screen: "decon", word: deconWord.value || null, filter: null },
+          { replace: true },
+        );
+      } else {
+        window.OqRouter.navigate(
+          { screen: "oq", filter: oqFilter.value || null, word: null },
+          { replace: true },
+        );
+      }
+    },
+  });
+
   window.OqRouter.onChange((params) => {
     const screen = params.get("screen");
-    if (screen === "oq") {
+    if (screen === "oq" || screen === "decon") {
       if (winOq.classList.contains("minimized")) forceOpenWindow(winOq);
-      const filter = params.get("filter") || "";
-      if (oqFilter.value !== filter) {
-        // Only reached via back/forward or a pasted link -- oqFilter's own
-        // input handler already updated both the router and the display
-        // itself, so it can never disagree with what it just set.
-        oqFilter.value = filter;
-        renderOqResults();
-      }
-    } else if (screen === "decon") {
-      if (winDecon.classList.contains("minimized")) forceOpenWindow(winDecon);
-      const orderParam = params.get("order");
-      const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
-      if (deconRootFirst.checked !== rootFirst) {
-        deconRootFirst.checked = rootFirst;
-        deconController.reRenderLast();
-      }
-      const word = params.get("word") || "";
-      if (deconWord.value !== word) {
-        deconWord.value = word;
-        deconController.search(word);
+      oqShell.applyView(screen);
+      if (screen === "oq") {
+        const filter = params.get("filter") || "";
+        if (oqFilter.value !== filter) {
+          oqFilter.value = filter;
+          renderOqResults();
+        }
+      } else {
+        const orderParam = params.get("order");
+        const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
+        if (deconRootFirst.checked !== rootFirst) {
+          deconRootFirst.checked = rootFirst;
+          deconController.reRenderLast();
+        }
+        const word = params.get("word") || "";
+        if (deconWord.value !== word) {
+          deconWord.value = word;
+          deconController.search(word);
+        }
       }
     } else {
       if (!winOq.classList.contains("minimized")) closeWindow(winOq);
-      if (!winDecon.classList.contains("minimized")) closeWindow(winDecon);
     }
   });
 

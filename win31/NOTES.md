@@ -17,4 +17,6 @@ teal desktop, close lives only in the Control-menu (double-click the box).
   deliberate period-accurate omission, not a bug.
 - Idle screen saver stays Flying Windows (`vendor/screensavers/flying-windows/`, MIT; Greenland flag, not a Windows logo), 45s. Accessories also has Mystify, Starfield, Marquee (`oq!` in Times New Roman fuchsia), Beziers (Win 3.1-style canvas remakes) and Flying Toasters (gag geometry, not After Dark art).
 
+- **OQ!/DECON chrome:** one **MDI** frame (`#win-oq`, title OQ!). Dictionary and Word Deconstructor are MDI children (`#mdi-oq` / `#mdi-decon`) inside the client area — not two unrelated Program Manager apps. Window menu Cascade/Tile arranges children. Program Manager icons: OQ! and Word Deconstructor both launch the same frame (resolveOpen); `screen=oq` / `screen=decon` deep links still focus the matching child. Ids `screen=decon` unchanged for OS/2 guest iframes.
+
 - **DECON label:** user-visible name is **Word Deconstructor** (Program Manager icon label + window title; minimized strip clones the title). Ids stay `win-decon` / `screen=decon`. Also the guest iframe target for OQ!2’s Word Deconstructor.

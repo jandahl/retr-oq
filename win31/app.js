@@ -19,7 +19,13 @@
   const MIN_WIN_HEIGHT = 120;
 
   const winOq = document.getElementById("win-oq");
-  const winDecon = document.getElementById("win-decon");
+  const mdiOq = document.getElementById("mdi-oq");
+  const mdiDecon = document.getElementById("mdi-decon");
+  const mdiClient = document.getElementById("oq-mdi-client");
+  const mdiChildren = [mdiOq, mdiDecon].filter(Boolean);
+  // Program Manager still has a Word Deconstructor icon (data-open=win-decon);
+  // resolveOpen maps it onto the single OQ! MDI frame + pending child.
+  let pendingOqScreen = null;
   const winProgman = document.getElementById("win-progman");
   const winClock = document.getElementById("win-clock");
   const bootScreen = document.getElementById("boot-screen");
@@ -28,7 +34,7 @@
     winProgman.hidden = true;
     bootScreen.hidden = true;
     for (const win of windows) {
-      if (win !== winOq && win !== winDecon) win.classList.add("minimized");
+      if (win !== winOq) win.classList.add("minimized");
     }
   }
 
@@ -56,18 +62,20 @@
     },
     routeOpen(win) {
       if (win.id === "win-oq") {
-        window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null });
-        return true;
-      }
-      if (win.id === "win-decon") {
-        window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+        const screen = pendingOqScreen === "decon" ? "decon" : "oq";
+        pendingOqScreen = null;
+        if (screen === "decon") {
+          window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null, filter: null });
+        } else {
+          window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null, word: null });
+        }
         return true;
       }
       return false;
     },
     routeClose(win) {
-      if (win.id === "win-oq" || win.id === "win-decon") {
-        window.OqRouter.navigate({ screen: null, filter: null, word: null });
+      if (win.id === "win-oq") {
+        window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
       }
     },
   });
@@ -149,8 +157,8 @@
         openExitDialog();
       } else {
         closeWindow(win);
-        if (win.id === "win-oq" || win.id === "win-decon") {
-          window.OqRouter.navigate({ screen: null, filter: null, word: null });
+        if (win.id === "win-oq") {
+          window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
         }
       }
     });
@@ -338,6 +346,13 @@
     desktop,
     iconSelector: ".prog-icon[data-open]",
     openWindow,
+    resolveOpen(icon) {
+      if (icon.dataset.open === "win-oq" || icon.dataset.open === "win-decon") {
+        pendingOqScreen = icon.dataset.open === "win-decon" ? "decon" : "oq";
+        return winOq;
+      }
+      return null;
+    },
   });
 
   // ---------- Analog Clock ----------
@@ -559,6 +574,159 @@
 
   const OQ_DEFAULT_ROWS = 50;
   const OQ_MAX_FILTERED_ROWS = 200;
+
+  // ---------- OQ! MDI children (Dictionary + Word Deconstructor) ----------
+  // Painful-but-correct Win 3.x: one EXE frame, document windows inside the
+  // client area. Children are NOT .win31-window (so the shared Redmond WM
+  // does not treat them as top-level / icon-strip apps).
+  let mdiZ = 1;
+  function focusMdiChild(child) {
+    if (!child || child.classList.contains("mdi-minimized")) {
+      if (child) {
+        child.classList.remove("mdi-minimized");
+      }
+    }
+    if (!child) return;
+    mdiZ += 1;
+    child.style.zIndex = String(mdiZ);
+    for (const c of mdiChildren) c.classList.toggle("mdi-inactive", c !== child);
+  }
+
+  function showMdiForScreen(screen) {
+    const child = screen === "decon" ? mdiDecon : mdiOq;
+    // Ensure both children exist in the client (restore if minimized).
+    for (const c of mdiChildren) {
+      if (c.classList.contains("mdi-minimized") && c === child) {
+        c.classList.remove("mdi-minimized");
+      }
+    }
+    focusMdiChild(child);
+  }
+
+  function cascadeMdiChildren() {
+    let i = 0;
+    for (const c of mdiChildren) {
+      if (c.classList.contains("mdi-minimized")) continue;
+      c.classList.remove("mdi-maximized");
+      c.style.top = `${8 + i * 22}px`;
+      c.style.left = `${8 + i * 22}px`;
+      c.style.width = "18rem";
+      c.style.height = "14rem";
+      focusMdiChild(c);
+      i += 1;
+    }
+  }
+
+  function tileMdiChildren() {
+    const open = mdiChildren.filter((c) => !c.classList.contains("mdi-minimized"));
+    if (!open.length || !mdiClient) return;
+    const rect = mdiClient.getBoundingClientRect();
+    const cols = Math.ceil(Math.sqrt(open.length));
+    const rows = Math.ceil(open.length / cols);
+    const w = Math.floor(rect.width / cols);
+    const h = Math.floor(rect.height / rows);
+    open.forEach((child, i) => {
+      child.classList.remove("mdi-maximized");
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      child.style.left = `${col * w}px`;
+      child.style.top = `${row * h}px`;
+      child.style.width = `${Math.max(160, w - 4)}px`;
+      child.style.height = `${Math.max(120, h - 4)}px`;
+    });
+  }
+
+  function makeMdiDraggable(child) {
+    const handle = child.querySelector(".mdi-title-bar");
+    if (!handle) return;
+    let activePointerId = null;
+    let startX = 0, startY = 0, origX = 0, origY = 0;
+    handle.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) return;
+      if (child.classList.contains("mdi-maximized")) return;
+      if (event.target.closest("button")) return;
+      focusMdiChild(child);
+      activePointerId = event.pointerId;
+      origX = child.offsetLeft;
+      origY = child.offsetTop;
+      startX = event.clientX;
+      startY = event.clientY;
+      handle.setPointerCapture(event.pointerId);
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    handle.addEventListener("pointermove", (event) => {
+      if (event.pointerId !== activePointerId) return;
+      const dx = (event.clientX - startX) / 2; // win31 pointerScale
+      const dy = (event.clientY - startY) / 2;
+      child.style.left = `${Math.max(0, origX + dx)}px`;
+      child.style.top = `${Math.max(0, origY + dy)}px`;
+    });
+    function end(event) {
+      if (event.pointerId !== activePointerId) return;
+      activePointerId = null;
+    }
+    handle.addEventListener("pointerup", end);
+    handle.addEventListener("pointercancel", end);
+    child.addEventListener("pointerdown", () => focusMdiChild(child));
+    const minBtn = child.querySelector(".mdi-minimize");
+    const maxBtn = child.querySelector(".mdi-maximize");
+    if (minBtn) {
+      minBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        child.classList.add("mdi-minimized");
+        child.classList.remove("mdi-maximized");
+      });
+    }
+    if (maxBtn) {
+      maxBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        child.classList.toggle("mdi-maximized");
+        focusMdiChild(child);
+      });
+    }
+    const sys = child.querySelector(".mdi-sysmenu");
+    if (sys) {
+      sys.addEventListener("dblclick", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        child.classList.add("mdi-minimized");
+      });
+    }
+  }
+
+  for (const child of mdiChildren) makeMdiDraggable(child);
+  focusMdiChild(mdiOq);
+
+  const oqMenuCascade = document.getElementById("oq-menu-cascade");
+  const oqMenuTile = document.getElementById("oq-menu-tile");
+  const oqMenuClose = document.getElementById("oq-menu-close");
+  if (oqMenuCascade) oqMenuCascade.addEventListener("click", () => { cascadeMdiChildren(); closeAllMenus(); });
+  if (oqMenuTile) oqMenuTile.addEventListener("click", () => { tileMdiChildren(); closeAllMenus(); });
+  if (oqMenuClose) {
+    oqMenuClose.addEventListener("click", () => {
+      closeAllMenus();
+      closeWindow(winOq);
+      window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
+    });
+  }
+  for (const btn of document.querySelectorAll("#oq-menubar [data-mdi]")) {
+    btn.addEventListener("click", () => {
+      const child = document.getElementById(btn.dataset.mdi);
+      if (!child) return;
+      const view = child.dataset.oqView === "decon" ? "decon" : "oq";
+      pendingOqScreen = view;
+      // Navigate so URL matches the focused child.
+      if (view === "decon") {
+        window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null, filter: null }, { replace: true });
+      } else {
+        window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null, word: null }, { replace: true });
+      }
+      closeAllMenus();
+    });
+  }
+
+
   const oqFilter = document.getElementById("oq-filter");
   const oqStatus = document.getElementById("oq-status");
   const oqTbody = document.getElementById("oq-tbody");
@@ -704,29 +872,31 @@
 
   window.OqRouter.onChange((params) => {
     const screen = params.get("screen");
-    if (screen === "oq") {
+    if (screen === "oq" || screen === "decon") {
       if (winOq.classList.contains("minimized")) forceOpenWindow(winOq);
-      const filter = params.get("filter") || "";
-      if (oqFilter.value !== filter) {
-        oqFilter.value = filter;
-        renderOqResults();
-      }
-    } else if (screen === "decon") {
-      if (winDecon.classList.contains("minimized")) forceOpenWindow(winDecon);
-      const orderParam = params.get("order");
-      const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
-      if (deconRootFirst.checked !== rootFirst) {
-        deconRootFirst.checked = rootFirst;
-        deconController.reRenderLast();
-      }
-      const word = params.get("word") || "";
-      if (deconWord.value !== word) {
-        deconWord.value = word;
-        deconController.search(word);
+      showMdiForScreen(screen);
+      if (screen === "oq") {
+        startOqLoad();
+        const filter = params.get("filter") || "";
+        if (oqFilter.value !== filter) {
+          oqFilter.value = filter;
+          renderOqResults();
+        }
+      } else {
+        const orderParam = params.get("order");
+        const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
+        if (deconRootFirst.checked !== rootFirst) {
+          deconRootFirst.checked = rootFirst;
+          deconController.reRenderLast();
+        }
+        const word = params.get("word") || "";
+        if (deconWord.value !== word) {
+          deconWord.value = word;
+          deconController.search(word);
+        }
       }
     } else {
       if (!winOq.classList.contains("minimized")) closeWindow(winOq);
-      if (!winDecon.classList.contains("minimized")) closeWindow(winDecon);
     }
   });
 
