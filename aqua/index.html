@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta name="description" content="retr-oq — early OS X Aqua desktop (2001)" />
 <title>retr-oq — OS X Aqua</title>
-<link rel="stylesheet" href="style.css?v=3" />
+<link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <div id="boot-screen">
@@ -35,7 +35,7 @@
         <ul role="menu">
           <li role="menu-item" data-open="win-about"><a href="#">About This Computer…</a></li>
           <li role="menu-item" class="divider"><a href="#">System Preferences…</a></li>
-          <li role="menu-item" id="menu-shutdown"><a href="#">Shut Down…</a></li>
+          <li role="menu-item" id="menu-shutdown"><a href="#">Shut Down…<span class="menu-shortcut">⌘Q</span></a></li>
         </ul>
       </li>
       <li role="menu-item" tabindex="0" aria-haspopup="true">
@@ -49,9 +49,9 @@
       <li role="menu-item" tabindex="0" aria-haspopup="true">
         File
         <ul role="menu">
-          <li role="menu-item"><a href="#">New Finder Window</a></li>
+          <li role="menu-item"><a href="#">New Finder Window<span class="menu-shortcut">⌘N</span></a></li>
           <li role="menu-item"><a href="#">Open</a></li>
-          <li role="menu-item" class="divider"><a href="#">Close Window</a></li>
+          <li role="menu-item" class="divider"><a href="#">Close Window<span class="menu-shortcut">⌘W</span></a></li>
           <li role="menu-item"><a href="#">Get Info</a></li>
         </ul>
       </li>
@@ -62,7 +62,7 @@
           <li role="menu-item" class="divider"><a href="#">Cut</a></li>
           <li role="menu-item"><a href="#">Copy</a></li>
           <li role="menu-item"><a href="#">Paste</a></li>
-          <li role="menu-item"><a href="#">Select All</a></li>
+          <li role="menu-item"><a href="#">Select All<span class="menu-shortcut">⌘A</span></a></li>
         </ul>
       </li>
       <li role="menu-item" tabindex="0" aria-haspopup="true">
@@ -239,7 +239,28 @@
           <h1 class="osx-title">Macintosh HD</h1>
         </header>
         <div class="osx-body finder-body">
-          <div class="finder-toolbar" aria-hidden="true">
+          <div class="finder-toolbar">
+            <button type="button" class="finder-tb-btn finder-tb-back" disabled aria-label="Back" title="Back">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 L5 8 L10 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="finder-tb-views" role="group" aria-label="View">
+              <button type="button" class="finder-tb-btn finder-view-icons is-active" data-finder-view="icons" aria-pressed="true" title="Icon view">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <rect x="2" y="2" width="5" height="5" rx="1" fill="currentColor"/>
+                  <rect x="9" y="2" width="5" height="5" rx="1" fill="currentColor"/>
+                  <rect x="2" y="9" width="5" height="5" rx="1" fill="currentColor"/>
+                  <rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor"/>
+                </svg>
+              </button>
+              <button type="button" class="finder-tb-btn finder-view-list" data-finder-view="list" aria-pressed="false" title="List view">
+                <svg viewBox="0 0 16 16" aria-hidden="true">
+                  <rect x="2" y="3" width="3" height="3" rx="0.5" fill="currentColor"/>
+                  <rect x="7" y="3.5" width="7" height="2" rx="0.5" fill="currentColor"/>
+                  <rect x="2" y="9" width="3" height="3" rx="0.5" fill="currentColor"/>
+                  <rect x="7" y="9.5" width="7" height="2" rx="0.5" fill="currentColor"/>
+                </svg>
+              </button>
+            </div>
             <span class="finder-toolbar-label">Macintosh HD</span>
           </div>
           <div class="finder-icon-view" role="list">
@@ -284,6 +305,44 @@
               <span>Trash</span>
             </button>
           </div>
+          <div class="finder-list-view" hidden role="list">
+            <div class="finder-list-header" aria-hidden="true">
+              <span class="finder-list-col-name">Name</span>
+              <span class="finder-list-col-kind">Kind</span>
+            </div>
+            <button type="button" class="finder-list-row" data-open="win-oq" role="listitem">
+              <span class="finder-list-icon" aria-hidden="true">
+                <svg viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12" rx="1.5" fill="#2f78d0"/></svg>
+              </span>
+              <span class="finder-list-col-name">OQ!</span>
+              <span class="finder-list-col-kind">Application</span>
+            </button>
+            <button type="button" class="finder-list-row" data-open="win-decon" role="listitem">
+              <span class="finder-list-icon" aria-hidden="true">
+                <svg viewBox="0 0 16 16">
+                  <rect x="2" y="2" width="5" height="5" rx="1" fill="#f0c040"/>
+                  <rect x="9" y="2" width="5" height="5" rx="1" fill="#e87830"/>
+                  <rect x="5.5" y="9" width="5" height="5" rx="1" fill="#a04020"/>
+                </svg>
+              </span>
+              <span class="finder-list-col-name">DECON</span>
+              <span class="finder-list-col-kind">Application</span>
+            </button>
+            <button type="button" class="finder-list-row" data-open="win-about" role="listitem">
+              <span class="finder-list-icon" aria-hidden="true">
+                <svg viewBox="0 0 16 16"><rect x="4" y="1" width="8" height="14" rx="1" fill="#c8d2e0"/><circle cx="8" cy="10" r="2.2" fill="#3f82c8"/></svg>
+              </span>
+              <span class="finder-list-col-name">About</span>
+              <span class="finder-list-col-kind">Document</span>
+            </button>
+            <button type="button" class="finder-list-row" data-open="win-trash" role="listitem">
+              <span class="finder-list-icon" aria-hidden="true">
+                <svg viewBox="0 0 16 16"><path d="M5 4h6l-.7 9H5.7z" fill="#cfd6de"/><rect x="4" y="2.5" width="8" height="2" rx="0.5" fill="#dde3ea"/></svg>
+              </span>
+              <span class="finder-list-col-name">Trash</span>
+              <span class="finder-list-col-kind">Folder</span>
+            </button>
+          </div>
         </div>
         <div class="osx-growbox" id="win-home-growbox"></div>
       </section>
@@ -316,7 +375,10 @@
           <h1 class="osx-title">Trash</h1>
         </header>
         <div class="osx-body finder-body">
-          <div class="finder-toolbar" aria-hidden="true">
+          <div class="finder-toolbar">
+            <button type="button" class="finder-tb-btn finder-tb-back" disabled aria-label="Back" title="Back">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 L5 8 L10 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
             <span class="finder-toolbar-label">Trash</span>
           </div>
           <div class="finder-empty">
@@ -416,6 +478,6 @@
   <script src="../shared/osx/window-manager.js?v=3"></script>
   <script src="../shared/osx/menubar.js?v=1"></script>
   <script src="../shared/osx/dock.js?v=1"></script>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

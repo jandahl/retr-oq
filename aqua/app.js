@@ -194,7 +194,33 @@
   });
 
   window.OqOsx.initMenuBar({ menuBar: document.getElementById("menu-bar") });
-  window.OqOsx.initMenuClock({ el: document.getElementById("menu-clock") });
+
+  // Early OS X menu clock often showed weekday + time (e.g. "Tue 7:14 PM").
+  // Override shared initMenuClock (HH:MM only) in this theme only.
+  (function initAquaMenuClock() {
+    const el = document.getElementById("menu-clock");
+    if (!el) return;
+    function update() {
+      const now = new Date();
+      try {
+        el.textContent = now.toLocaleString(undefined, {
+          weekday: "short",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+      } catch {
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        let h = now.getHours();
+        const m = String(now.getMinutes()).padStart(2, "0");
+        const suffix = h >= 12 ? "PM" : "AM";
+        h = h % 12;
+        if (h === 0) h = 12;
+        el.textContent = `${days[now.getDay()]} ${h}:${m} ${suffix}`;
+      }
+    }
+    update();
+    setInterval(update, 1000);
+  })();
 
   dockApi = window.OqOsx.initDock({
     dock: document.getElementById("dock"),
@@ -276,28 +302,65 @@
     syncDockRunning();
   }
 
-  // Desktop icons (single-click open — touch-friendly; Dock matches).
+  // Desktop icons: classic Mac/Aqua — single-click selects (blue label),
+  // double-click opens. Coarse pointer / touch keeps single-click open.
+  const opensOnSingleClick = window.matchMedia("(pointer: coarse)").matches;
   let selectedIcon = null;
+  function selectDesktopIcon(icon) {
+    if (selectedIcon) selectedIcon.classList.remove("selected");
+    icon.classList.add("selected");
+    selectedIcon = icon;
+  }
+  function clearDesktopSelection() {
+    if (!selectedIcon) return;
+    selectedIcon.classList.remove("selected");
+    selectedIcon = null;
+  }
   for (const icon of document.querySelectorAll(".desktop-icon[data-open]")) {
     icon.addEventListener("click", () => {
-      if (selectedIcon) selectedIcon.classList.remove("selected");
-      icon.classList.add("selected");
-      selectedIcon = icon;
-      openFromChrome(icon.dataset.open);
+      selectDesktopIcon(icon);
+      if (opensOnSingleClick) openFromChrome(icon.dataset.open);
     });
+    if (!opensOnSingleClick) {
+      icon.addEventListener("dblclick", () => {
+        selectDesktopIcon(icon);
+        openFromChrome(icon.dataset.open);
+      });
+    }
   }
   desktop.addEventListener("pointerdown", (event) => {
-    if (event.target === desktop && selectedIcon) {
-      selectedIcon.classList.remove("selected");
-      selectedIcon = null;
+    if (event.target.closest(".desktop-icon")) return;
+    if (event.target === desktop || event.target.classList.contains("desktop-icons")) {
+      clearDesktopSelection();
     }
   });
 
-  // Finder icon-view items (Macintosh HD window)
-  for (const item of document.querySelectorAll(".finder-item[data-open]")) {
+  // Finder icon-view / list-view items (Macintosh HD)
+  for (const item of document.querySelectorAll(".finder-item[data-open], .finder-list-row[data-open]")) {
     item.addEventListener("click", () => {
       openFromChrome(item.dataset.open);
     });
+  }
+
+  // Finder toolbar view toggles (icon vs simple list)
+  const winHome = document.getElementById("win-home");
+  if (winHome) {
+    const iconView = winHome.querySelector(".finder-icon-view");
+    const listView = winHome.querySelector(".finder-list-view");
+    const viewBtns = winHome.querySelectorAll("[data-finder-view]");
+    for (const btn of viewBtns) {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.finderView;
+        const icons = mode === "icons";
+        if (iconView) iconView.hidden = !icons;
+        if (listView) listView.hidden = icons;
+        for (const b of viewBtns) {
+          const on = b.dataset.finderView === mode;
+          b.classList.toggle("is-active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        }
+      });
+    }
   }
 
   // Menu items with data-open
