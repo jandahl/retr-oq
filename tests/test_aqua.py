@@ -528,7 +528,26 @@ def test_time_machine_galaxy_and_oq_preview(page, base_url):
     assert preview.locator(".osx-traffic").count() == 3
     assert preview.locator(".osx-title").inner_text() == "OQ!"
     assert preview.locator(".oq-table").count() == 1
+    assert preview.locator(".oq-table td").count() >= 6
+    search = preview.locator('.aqua-field-row input[type="text"]')
+    assert search.count() == 1
+    assert search.get_attribute("placeholder") in ("Type to search…", "Type to search...")
+    assert preview.locator(".tm-oq-preview-status").inner_text().strip() != ""
     assert preview.evaluate("el => el.classList.contains('osx-window')") is True
+
+    # Fixed geometry must not jump when scrubbing eras (critique: non-canonical size).
+    def preview_box():
+        return preview.evaluate(
+            "el => ({ w: Math.round(el.getBoundingClientRect().width),"
+            " h: Math.round(el.getBoundingClientRect().height),"
+            " th: Math.round(el.querySelector('.osx-titlebar').getBoundingClientRect().height),"
+            " tw: Math.round(el.querySelector('.osx-traffic').getBoundingClientRect().width) })"
+        )
+
+    box0 = preview_box()
+    assert box0["w"] >= 280 and box0["h"] >= 170
+    assert box0["th"] == 22
+    assert box0["tw"] == 10
 
     page.click('.tm-era-card[data-era="tiger"]')
     page.wait_for_timeout(40)
@@ -536,10 +555,20 @@ def test_time_machine_galaxy_and_oq_preview(page, base_url):
     # Preview stays in the overlay and still exposes era-skinned chrome classes.
     assert page.locator("#tm-overlay #tm-oq-preview.osx-window").count() == 1
     assert page.locator("#tm-overlay #tm-oq-preview .osx-btn-close").count() == 1
+    assert preview_box() == box0
 
     page.click('.tm-era-card[data-era="yosemite"]')
     page.wait_for_timeout(40)
     assert page.evaluate("() => document.documentElement.dataset.osxEra") == "yosemite"
+    assert preview_box() == box0
+
+    page.click('.tm-era-card[data-era="glass"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "glass"
+    assert preview_box() == box0
+    # Readable title color stays dark in the mini preview.
+    title_color = preview.locator(".osx-title").evaluate("el => getComputedStyle(el).color")
+    assert "26, 26, 26" in title_color or title_color.startswith("rgb(26")
 
     page.click("#tm-cancel")
     page.wait_for_timeout(40)

@@ -992,11 +992,14 @@ html[data-osx-era="glass"][data-appearance="graphite"] {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  /* Colorful nebula fallback (canvas paints over this when JS runs). */
   background:
-    radial-gradient(ellipse 120% 80% at 50% 110%, #1a2848 0%, transparent 55%),
-    radial-gradient(circle at 20% 30%, rgba(80, 120, 200, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 80% 20%, rgba(120, 80, 180, 0.12) 0%, transparent 35%),
-    linear-gradient(180deg, #050814 0%, #0a1228 45%, #121e38 100%);
+    radial-gradient(ellipse 110% 70% at 50% 115%, rgba(255, 120, 180, 0.28) 0%, transparent 55%),
+    radial-gradient(circle at 18% 28%, rgba(255, 90, 160, 0.28) 0%, transparent 42%),
+    radial-gradient(circle at 82% 18%, rgba(160, 90, 255, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(40, 200, 190, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 30% 75%, rgba(255, 190, 80, 0.16) 0%, transparent 40%),
+    linear-gradient(180deg, #12061c 0%, #1a0a2e 40%, #061828 100%);
 }
 
 /* Canvas star-tunnel / nebula — painted by timemachine.js; CSS fallback shows if JS off. */
@@ -1018,73 +1021,145 @@ html[data-osx-era="glass"][data-appearance="graphite"] {
   gap: 0.85rem;
 }
 
-/* Compact live OQ! window chrome — inherits era tokens via html[data-osx-era]. */
-.tm-oq-preview.osx-window {
+/*
+ * Live OQ! chrome preview — inherits era *materials* (colors / textures /
+ * radius / titlebar wash) via html[data-osx-era], but layout metrics are
+ * locked so scrubbing eras does not resize the mini window, traffic lights,
+ * or blow out fonts. Specificity beats html[data-osx-era="…"] .osx-* rules.
+ */
+#tm-oq-preview.tm-oq-preview.osx-window,
+html[data-osx-era] #tm-oq-preview.tm-oq-preview.osx-window {
   position: relative;
   left: auto;
   top: auto;
-  width: 236px;
-  height: 152px;
-  min-width: 0;
-  min-height: 0;
+  width: 300px !important;
+  height: 196px !important;
+  min-width: 300px !important;
+  min-height: 196px !important;
+  max-width: 300px !important;
+  max-height: 196px !important;
   z-index: 2;
   flex: 0 0 auto;
   pointer-events: none;
   transform: none;
+  /* Opaque enough to stay readable over the galaxy (glass eras stay translucent on real windows). */
+  background: var(--aqua-window, #ececec);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.65) inset,
     0 12px 32px rgba(0, 0, 0, 0.55),
     0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.tm-oq-preview .osx-titlebar {
-  flex: 0 0 20px;
-  gap: 5px;
-  padding: 0 6px;
+/* Suppress glass specular strip inside the fixed mini preview. */
+html[data-osx-era="glass"] #tm-oq-preview.tm-oq-preview.osx-window::before {
+  display: none;
 }
 
-.tm-oq-preview .osx-traffic {
-  width: 10px;
-  height: 10px;
+#tm-oq-preview .osx-titlebar,
+html[data-osx-era] #tm-oq-preview .osx-titlebar {
+  flex: 0 0 22px !important;
+  flex-basis: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  gap: 5px !important;
+  padding: 0 8px !important;
 }
 
-.tm-oq-preview .osx-title {
-  font-size: 11px;
+#tm-oq-preview .osx-traffic,
+html[data-osx-era] #tm-oq-preview .osx-traffic {
+  width: 10px !important;
+  height: 10px !important;
+  margin: 0 !important;
+  margin-right: 0 !important;
+  flex: 0 0 10px !important;
 }
 
-.tm-oq-preview-body.osx-body {
-  padding: 6px 8px;
-  overflow: hidden;
-  background: #fff;
+#tm-oq-preview .osx-btn-close,
+html[data-osx-era] #tm-oq-preview .osx-btn-close {
+  margin-right: 0 !important;
+}
+
+#tm-oq-preview .osx-title,
+html[data-osx-era] #tm-oq-preview .osx-title {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  color: #1a1a1a !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+}
+
+#tm-oq-preview .tm-oq-preview-body.osx-body,
+html[data-osx-era] #tm-oq-preview .tm-oq-preview-body.osx-body {
+  padding: 8px 10px 6px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  color: #1a1a1a !important;
   border-top: 1px solid rgba(255, 255, 255, 0.7);
   -webkit-user-select: none;
   user-select: none;
   cursor: default;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
-.tm-oq-preview .aqua-field-row {
-  margin-bottom: 5px;
+#tm-oq-preview .aqua-field-row,
+html[data-osx-era] #tm-oq-preview .aqua-field-row {
+  margin-bottom: 6px !important;
 }
 
-.tm-oq-preview .aqua-field-row input[type="text"] {
-  height: 20px;
-  font-size: 11px;
-  padding: 1px 6px;
+#tm-oq-preview .aqua-field-row input[type="text"],
+html[data-osx-era] #tm-oq-preview .aqua-field-row input[type="text"] {
+  height: 24px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  padding: 2px 8px !important;
+  color: #1a1a1a !important;
   pointer-events: none;
 }
 
-.tm-oq-preview .aqua-panel {
-  max-height: 78px;
-  overflow: hidden;
+#tm-oq-preview .aqua-field-row input[type="text"]::placeholder {
+  color: #555 !important;
+  opacity: 1;
 }
 
-.tm-oq-preview .oq-table {
-  font-size: 10px;
+#tm-oq-preview .aqua-panel,
+html[data-osx-era] #tm-oq-preview .aqua-panel {
+  max-height: 108px !important;
+  overflow: hidden !important;
+  background: #fff !important;
 }
 
-.tm-oq-preview .oq-table th,
-.tm-oq-preview .oq-table td {
-  padding: 2px 5px;
+#tm-oq-preview .oq-table,
+html[data-osx-era] #tm-oq-preview .oq-table {
+  font-size: 12px !important;
+  color: #1a1a1a !important;
+}
+
+#tm-oq-preview .oq-table th,
+#tm-oq-preview .oq-table td,
+html[data-osx-era] #tm-oq-preview .oq-table th,
+html[data-osx-era] #tm-oq-preview .oq-table td {
+  padding: 3px 6px !important;
+  color: #1a1a1a !important;
+  font-size: 12px !important;
+}
+
+#tm-oq-preview .oq-table th,
+html[data-osx-era] #tm-oq-preview .oq-table th {
+  color: #222 !important;
+  background: linear-gradient(180deg, #f6f6f6, #e8e8e8) !important;
+}
+
+#tm-oq-preview .tm-oq-preview-status,
+html[data-osx-era] #tm-oq-preview .tm-oq-preview-status {
+  margin: 6px 0 0 !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  color: #333 !important;
+  font-weight: 600;
 }
 
 .tm-title {

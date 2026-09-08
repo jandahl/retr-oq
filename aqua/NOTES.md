@@ -246,13 +246,14 @@ homage). Prefer strong milestones over every point release (no Snow Leopard brid
 
 **Entry:** System menu **Time Machine…**, Dock orb, shortcut **⌥⌘T** (Alt+Meta/Ctrl+T).
 
-**UX:** Full-screen original **galaxy** canvas (layered nebula dust + depth
-starfield tunnel that slowly comes closer / subtle rotation — not Apple’s TM
-galaxy rip or trademarks) + shelf. Seven era cards (per-era TM accent colors) +
-scrubber / arrows; live skin preview while browsing. Compact **OQ! window
-chrome preview** (`#tm-oq-preview`, `.osx-window` + traffic lights + fake
-toolbar/list) reskins with the selected era via `html[data-osx-era]` /
-era CSS variables so theme changes are obvious before Restore. **Restore** /
+**UX:** Full-screen original **galaxy** canvas (colorful nebula pinks /
+purples / teals / gold + soft bloom; lazy depth drift over many seconds /
+subtle rotation — not Apple’s TM galaxy rip or trademarks) + shelf. Seven era
+cards (per-era TM accent colors) + scrubber / arrows; live skin preview while
+browsing. Compact **OQ! window chrome preview** (`#tm-oq-preview`, fixed size,
+readable labels + traffic lights + fake toolbar/list) reskins *materials* with
+the selected era via `html[data-osx-era]` / era CSS variables so theme changes
+are obvious before Restore without resizing the mini window. **Restore** /
 Enter applies; Esc cancels. Apply transition: galaxy dissolve + shell
 scale/blur (~700ms). `prefers-reduced-motion: reduce` → instant Restore class
 swap; galaxy loop pauses when overlay is hidden and runs nearly static under
@@ -283,10 +284,19 @@ Apple logos / trademarked TM galaxy / copied Big Sur wallpapers.
 Branch `polish/aqua-tm-galaxy-preview` (post-#176).
 
 1. **Galaxy** — `#tm-galaxy` canvas inside `.tm-starfield`: original abstract
-   star-tunnel + nebula dust with radial zoom toward the viewer and optional
-   slow rotation. Animation starts when TM opens and stops when the overlay
-   hides. Reduced motion keeps a near-static / tiny-drift paint.
+   colorful nebula (pinks / purples / teals / gold dust + soft bloom) with a
+   **lazy** star-tunnel drift (many seconds across depth — not warp-speed) and
+   tiny rotation. Animation starts when TM opens and stops when the overlay
+   hides. `prefers-reduced-motion` keeps a near-static / tiny-drift paint.
 2. **OQ! preview** — `#tm-oq-preview` miniature `.osx-window` with traffic
-   lights, title, search field, and fake list rows. Scrubbing eras calls
-   `applyEra` → `html[data-osx-era]`, so the preview inherits the same era
-   chrome tokens as the real desktop before Restore.
+   lights, readable title **OQ!**, search placeholder “Type to search…”,
+   sample Kalaallisut lexeme/gloss rows, and a status line. Scrubbing eras
+   calls `applyEra` → `html[data-osx-era]`, so the preview inherits era
+   *materials* (colors / textures / radius / titlebar wash) as the desktop
+   before Restore.
+3. **Fixed preview metrics (critique fix)** — `#tm-oq-preview` locks
+   width/height, titlebar height, traffic-light size, and body font sizes with
+   selectors that beat `html[data-osx-era="…"] .osx-*` layout tweaks. Eras must
+   not change overall mini-window dimensions or font-size blowouts in TM;
+   glass specular `::before` is suppressed on the preview. Cache-bust
+   `eras.css?v=4`, `timemachine.js?v=4`.

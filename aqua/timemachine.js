@@ -129,8 +129,8 @@
     /** @type {{x:number,y:number,z:number,hue:number,sat:number,size:number}[]} */
     let dust = [];
     const DEPTH = 1;
-    const STAR_COUNT = 420;
-    const DUST_COUNT = 28;
+    const STAR_COUNT = 380;
+    const DUST_COUNT = 48;
 
     function rand(a, b) {
       return a + Math.random() * (b - a);
@@ -142,22 +142,30 @@
       s.x = Math.cos(angle) * radius;
       s.y = Math.sin(angle) * radius * 0.72;
       s.z = far ? rand(0.55, DEPTH) : DEPTH;
-      // Cool whites / soft blues / faint magenta — original palette.
+      // Colorful dust: whites, gold, pink, teal, soft violet — original palette.
       const tint = Math.random();
-      if (tint < 0.55) {
-        s.r = 230;
-        s.g = 240;
+      if (tint < 0.34) {
+        s.r = 245;
+        s.g = 248;
         s.b = 255;
-      } else if (tint < 0.82) {
-        s.r = 160;
-        s.g = 190;
-        s.b = 255;
+      } else if (tint < 0.52) {
+        s.r = 255;
+        s.g = 210;
+        s.b = 140; // gold
+      } else if (tint < 0.7) {
+        s.r = 255;
+        s.g = 150;
+        s.b = 210; // pink
+      } else if (tint < 0.86) {
+        s.r = 120;
+        s.g = 235;
+        s.b = 230; // teal
       } else {
-        s.r = 210;
-        s.g = 170;
-        s.b = 255;
+        s.r = 200;
+        s.g = 160;
+        s.b = 255; // violet
       }
-      s.s = rand(0.6, 1.8);
+      s.s = rand(0.55, 1.7);
     }
 
     function resetDust(d, far) {
@@ -166,9 +174,14 @@
       d.x = Math.cos(angle) * radius;
       d.y = Math.sin(angle) * radius * 0.55;
       d.z = far ? rand(0.35, DEPTH) : DEPTH;
-      d.hue = rand(210, 290);
-      d.sat = rand(35, 70);
-      d.size = rand(80, 220);
+      // Nebula bands: pink / purple / teal / gold.
+      const band = Math.random();
+      if (band < 0.28) d.hue = rand(320, 350); // pink–magenta
+      else if (band < 0.55) d.hue = rand(265, 300); // purple
+      else if (band < 0.8) d.hue = rand(165, 195); // teal
+      else d.hue = rand(38, 52); // gold
+      d.sat = rand(55, 90);
+      d.size = rand(100, 280);
     }
 
     function seed() {
@@ -204,19 +217,22 @@
       const cy = h * 0.48;
       const focal = Math.min(w, h) * 0.55;
 
-      // Deep space wash + soft nebula glows (static layer).
-      const bg = ctx.createRadialGradient(cx, cy + h * 0.15, 0, cx, cy, Math.max(w, h) * 0.85);
-      bg.addColorStop(0, "#152038");
-      bg.addColorStop(0.45, "#0a1228");
-      bg.addColorStop(1, "#03050c");
+      // Deep space wash — purple core into teal rim (colorful, not cool-grey).
+      const bg = ctx.createRadialGradient(cx, cy + h * 0.12, 0, cx, cy, Math.max(w, h) * 0.9);
+      bg.addColorStop(0, "#2a1040");
+      bg.addColorStop(0.35, "#160a2a");
+      bg.addColorStop(0.7, "#081428");
+      bg.addColorStop(1, "#03040c");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
-      // Fixed nebula blotches behind the tunnel (parallax-ish via slow rot).
+      // Fixed nebula blotches (pink / purple / teal / gold) — soft bloom.
       const blotches = [
-        { x: -0.28, y: -0.18, r: 0.42, c0: "rgba(70, 90, 180, 0.22)", c1: "rgba(70, 90, 180, 0)" },
-        { x: 0.32, y: -0.12, r: 0.38, c0: "rgba(140, 70, 170, 0.18)", c1: "rgba(140, 70, 170, 0)" },
-        { x: 0.05, y: 0.28, r: 0.5, c0: "rgba(40, 120, 160, 0.16)", c1: "rgba(40, 120, 160, 0)" },
+        { x: -0.3, y: -0.2, r: 0.48, c0: "rgba(255, 90, 170, 0.34)", c1: "rgba(255, 90, 170, 0)" },
+        { x: 0.34, y: -0.14, r: 0.44, c0: "rgba(150, 70, 255, 0.3)", c1: "rgba(150, 70, 255, 0)" },
+        { x: 0.08, y: 0.3, r: 0.55, c0: "rgba(40, 210, 200, 0.26)", c1: "rgba(40, 210, 200, 0)" },
+        { x: -0.12, y: 0.18, r: 0.36, c0: "rgba(255, 190, 70, 0.2)", c1: "rgba(255, 190, 70, 0)" },
+        { x: 0.22, y: 0.05, r: 0.3, c0: "rgba(255, 120, 200, 0.18)", c1: "rgba(255, 120, 200, 0)" },
       ];
       const cosR = Math.cos(rot);
       const sinR = Math.sin(rot);
@@ -233,14 +249,15 @@
         ctx.fillRect(px - rad, py - rad, rad * 2, rad * 2);
       }
 
-      const speed = animate ? (prefersReducedMotion() ? 0.012 : 0.085) : 0;
-      const rotSpeed = animate ? (prefersReducedMotion() ? 0.0004 : 0.0045) : 0;
+      // Lazy drift over many seconds (not warp-speed). Reduced motion ≈ static.
+      const speed = animate ? (prefersReducedMotion() ? 0.0012 : 0.0085) : 0;
+      const rotSpeed = animate ? (prefersReducedMotion() ? 0.00005 : 0.00045) : 0;
       if (animate) rot += rotSpeed * dt;
 
-      // Nebula dust slabs (depth-sorted via z approach).
+      // Nebula dust slabs (depth-sorted via z approach) — richer bloom.
       for (const d of dust) {
         if (animate) {
-          d.z -= speed * 0.45 * dt * 0.016;
+          d.z -= speed * 0.4 * dt * 0.016;
           if (d.z <= 0.04) resetDust(d, false);
         }
         const z = Math.max(0.04, d.z);
@@ -249,19 +266,19 @@
         const k = focal / z;
         const px = cx + rx * k;
         const py = cy + ry * k * 0.9;
-        const size = (d.size * focal) / (z * 180);
-        const alpha = Math.min(0.35, 0.08 + (1 - z) * 0.32);
+        const size = (d.size * focal) / (z * 160);
+        const alpha = Math.min(0.48, 0.12 + (1 - z) * 0.4);
         const g = ctx.createRadialGradient(px, py, 0, px, py, size);
-        g.addColorStop(0, `hsla(${d.hue}, ${d.sat}%, 62%, ${alpha})`);
-        g.addColorStop(0.55, `hsla(${d.hue + 20}, ${d.sat - 10}%, 45%, ${alpha * 0.35})`);
-        g.addColorStop(1, `hsla(${d.hue}, 40%, 30%, 0)`);
+        g.addColorStop(0, `hsla(${d.hue}, ${d.sat}%, 68%, ${alpha})`);
+        g.addColorStop(0.4, `hsla(${d.hue + 12}, ${d.sat - 5}%, 55%, ${alpha * 0.45})`);
+        g.addColorStop(1, `hsla(${d.hue}, 45%, 35%, 0)`);
         ctx.fillStyle = g;
         ctx.beginPath();
-        ctx.ellipse(px, py, size, size * 0.55, rot * 0.6, 0, Math.PI * 2);
+        ctx.ellipse(px, py, size, size * 0.58, rot * 0.5, 0, Math.PI * 2);
         ctx.fill();
       }
 
-      // Stars — radial zoom toward the viewer.
+      // Stars — gentle radial drift toward the viewer (no long warp streaks).
       for (const s of stars) {
         if (animate) {
           s.z -= speed * dt * 0.016;
@@ -274,19 +291,32 @@
         const px = cx + rx * k;
         const py = cy + ry * k * 0.9;
         if (px < -20 || py < -20 || px > w + 20 || py > h + 20) continue;
-        const size = Math.max(0.4, (s.s * focal) / (z * 420));
-        const alpha = Math.min(1, 0.25 + (1 - z) * 0.95);
-        // Streak when approaching fast (tunnel cue); tiny when reduced motion.
-        const streak = animate && !prefersReducedMotion() ? Math.min(14, size * (0.5 + speed * 18)) : size;
+        const size = Math.max(0.45, (s.s * focal) / (z * 400));
+        const alpha = Math.min(1, 0.3 + (1 - z) * 0.9);
+        // Soft bloom halo (colorful dust feel).
+        if (size > 1.1 && !prefersReducedMotion()) {
+          const bloom = ctx.createRadialGradient(px, py, 0, px, py, size * 3.2);
+          bloom.addColorStop(0, `rgba(${s.r},${s.g},${s.b},${alpha * 0.35})`);
+          bloom.addColorStop(1, `rgba(${s.r},${s.g},${s.b},0)`);
+          ctx.fillStyle = bloom;
+          ctx.beginPath();
+          ctx.arc(px, py, size * 3.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        // Tiny soft streak only when very close — keep calm, not screensaver-warp.
+        const streak =
+          animate && !prefersReducedMotion() && z < 0.22
+            ? Math.min(4.5, size * (0.8 + speed * 12))
+            : size;
         ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha})`;
-        if (streak > size * 1.4) {
-          const dx = (px - cx) * 0.04;
-          const dy = (py - cy) * 0.04;
+        if (streak > size * 1.35) {
+          const dx = (px - cx) * 0.025;
+          const dy = (py - cy) * 0.025;
           ctx.beginPath();
           ctx.moveTo(px - dx, py - dy);
-          ctx.lineTo(px + dx * streak * 0.4, py + dy * streak * 0.4);
-          ctx.lineWidth = Math.max(0.6, size * 0.7);
-          ctx.strokeStyle = `rgba(${s.r},${s.g},${s.b},${alpha * 0.7})`;
+          ctx.lineTo(px + dx * streak * 0.35, py + dy * streak * 0.35);
+          ctx.lineWidth = Math.max(0.5, size * 0.55);
+          ctx.strokeStyle = `rgba(${s.r},${s.g},${s.b},${alpha * 0.55})`;
           ctx.stroke();
         }
         ctx.beginPath();
@@ -294,10 +324,10 @@
         ctx.fill();
       }
 
-      // Soft vignette.
-      const vig = ctx.createRadialGradient(cx, cy, Math.min(w, h) * 0.25, cx, cy, Math.max(w, h) * 0.72);
+      // Soft vignette (keep nebula colors visible in the mid-field).
+      const vig = ctx.createRadialGradient(cx, cy, Math.min(w, h) * 0.3, cx, cy, Math.max(w, h) * 0.78);
       vig.addColorStop(0, "rgba(0,0,0,0)");
-      vig.addColorStop(1, "rgba(0,0,0,0.55)");
+      vig.addColorStop(1, "rgba(0,0,0,0.48)");
       ctx.fillStyle = vig;
       ctx.fillRect(0, 0, w, h);
     }
