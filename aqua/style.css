@@ -120,13 +120,20 @@ select {
   inset: 0;
   display: flex;
   flex-direction: column;
-  /* Original early-OS-X-style wash: soft aqua blues / swirls (not Apple art). */
+  /* Classic early-Aqua vertical pinstripes over a soft blue wash (original). */
   background-color: #3a7eb8;
   background-image:
-    radial-gradient(ellipse 90% 70% at 15% 20%, rgba(180, 230, 255, 0.55) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 60% at 85% 15%, rgba(120, 190, 240, 0.45) 0%, transparent 50%),
-    radial-gradient(ellipse 80% 50% at 70% 80%, rgba(40, 100, 170, 0.55) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 45% at 25% 75%, rgba(90, 170, 220, 0.4) 0%, transparent 50%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.22) 0 1px,
+      rgba(255, 255, 255, 0.04) 1px 2px,
+      rgba(20, 60, 110, 0.18) 2px 3px,
+      rgba(40, 100, 160, 0.08) 3px 5px
+    ),
+    radial-gradient(ellipse 90% 70% at 15% 20%, rgba(180, 230, 255, 0.45) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 85% 15%, rgba(120, 190, 240, 0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 50% at 70% 80%, rgba(40, 100, 170, 0.5) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 45% at 25% 75%, rgba(90, 170, 220, 0.35) 0%, transparent 50%),
     linear-gradient(165deg, #6eb0de 0%, #3a7eb8 42%, #1e5a96 78%, #164a7a 100%);
 }
 
@@ -162,18 +169,16 @@ select {
   border-radius: 3px;
 }
 
+/* Idle hover must NOT paint accent — only .menu-open (click + hover-switch
+   while .is-tracking). Classic Aqua: bare hover is a no-op until a menu opens. */
 .osx-menubar > [role="menu-item"].menu-open,
-.osx-menubar > [role="menuitem"].menu-open,
-.osx-menubar > [role="menu-item"]:hover,
-.osx-menubar > [role="menuitem"]:hover {
+.osx-menubar > [role="menuitem"].menu-open {
   background: var(--aqua-accent);
   color: #fff;
 }
 
-.osx-menubar > [role="menu-item"].menu-open:hover,
-.osx-menubar > [role="menuitem"].menu-open:hover {
-  background: var(--aqua-accent);
-  color: #fff;
+.osx-menubar > #app-menu-item {
+  font-weight: 700;
 }
 
 .osx-apple-item {
@@ -253,6 +258,11 @@ select {
   border-top: 1px solid rgba(0, 0, 0, 0.15);
   margin-top: 3px;
   padding-top: 3px;
+}
+
+.osx-menubar [role="menu"] .is-disabled a {
+  color: #999;
+  pointer-events: none;
 }
 
 .osx-menu-clock {
@@ -867,6 +877,58 @@ select {
 }
 
 
+
+/* ---------- Desktop context menu ---------- */
+.desktop-context-menu {
+  position: absolute;
+  z-index: 7000;
+  min-width: 12rem;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.55) 0 1px,
+      rgba(235, 240, 248, 0.35) 1px 2px
+    ),
+    rgba(255, 255, 255, 0.96);
+  color: var(--aqua-text);
+  border: 1px solid rgba(0, 0, 0, 0.32);
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28);
+  font-size: 13px;
+}
+
+.desktop-context-menu[hidden] {
+  display: none !important;
+}
+
+.desktop-context-menu a {
+  display: block;
+  padding: 4px 18px 4px 22px;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.desktop-context-menu a:hover,
+.desktop-context-menu a:focus-visible {
+  background: var(--aqua-accent);
+  color: #fff;
+}
+
+.desktop-context-menu .divider {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  margin-top: 3px;
+  padding-top: 3px;
+}
+
+.desktop-context-menu .is-disabled a {
+  color: #999;
+  pointer-events: none;
+}
+
 /* ---------- Finder / Trash chrome ---------- */
 .finder-body {
   display: flex;
@@ -1243,6 +1305,44 @@ select {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
 }
 
+
+
+/* Classic Aqua Dock name tag on hover (normal icons; minimized tiles use
+   .dock-min-caption). Uses a real span so ::before/::after stay free for
+   reflection + running-dot chrome. */
+.osx-dock-item .dock-caption {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  transform: translateX(-50%);
+  max-width: 8rem;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #fff;
+  background: rgba(30, 40, 60, 0.78);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 80ms linear;
+  z-index: 5;
+}
+
+.osx-dock-item:hover .dock-caption,
+.osx-dock-item:focus-visible .dock-caption {
+  opacity: 1;
+}
+
+/* Minimized tiles keep their own caption class; hide the generic one if present. */
+.osx-dock-item.aqua-dock-minimized .dock-caption {
+  display: none;
+}
+
 .osx-dock-item.aqua-dock-minimized .dock-min-caption {
   position: absolute;
   left: 50%;
@@ -1271,6 +1371,90 @@ select {
 /* Minimized tiles are windows, not apps — no running dot. */
 .osx-dock-item.aqua-dock-minimized::after {
   display: none !important;
+}
+
+
+/* ---------- About / Trash copy ---------- */
+.about-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 12px 14px;
+  cursor: default;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.about-kicker {
+  margin: 0;
+  font-weight: 700;
+  font-size: 14px;
+  color: #2a5080;
+}
+
+.about-body p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.about-body a {
+  color: #1a4e98;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.about-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.finder-empty-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.finder-empty-copy {
+  margin: 0;
+  max-width: 16rem;
+  text-align: center;
+  color: #555;
+  line-height: 1.35;
+}
+
+.finder-empty .trash-note-item {
+  margin-top: 10px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: default;
+}
+
+.finder-empty .trash-note-item:hover span,
+.finder-empty .trash-note-item:focus-visible span {
+  background: var(--aqua-accent);
+  color: #fff;
+  border-radius: 3px;
+  padding: 0 4px;
+}
+
+.finder-empty .trash-note-item[hidden] {
+  display: none !important;
+}
+
+.note-text {
+  font-family: "TeX Gyre Heros", Georgia, serif;
+  font-style: italic;
+  line-height: 1.4;
+  white-space: pre-line;
 }
 
 /* ---------- Dialogs / Aqua sheet ---------- */

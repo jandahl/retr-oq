@@ -42,6 +42,7 @@
    * @param {(win: HTMLElement) => void} [opts.onMinimize]
    * @param {(win: HTMLElement, finish: () => void) => void} [opts.onMinimizeAnimating]
    * @param {(win: HTMLElement) => void} [opts.onRestore]
+   * @param {(win: HTMLElement) => void} [opts.onFocus]
    * @param {object} [opts.animation]
    */
   function initWindowManager({
@@ -62,6 +63,7 @@
     onMinimize,
     onMinimizeAnimating,
     onRestore,
+    onFocus,
     animation,
   }) {
     let zTop = 10;
@@ -128,6 +130,7 @@
       }
       zTop += 1;
       win.style.zIndex = String(zTop);
+      if (onFocus) onFocus(win);
     }
 
     function forceOpenWindow(win) {
