@@ -179,8 +179,10 @@ a:active {
   display: flex;
   align-items: center;
   gap: 3px;
+  /* SM_CYCAPTION ≈ 18px on VGA Win 3.1 */
   height: 18px;
-  padding: 1px 2px;
+  /* 2px vertical pad + 14px caption buttons = flush 1–2px inset band */
+  padding: 2px 2px;
   background: var(--navy);
   color: var(--white);
   cursor: var(--cursor-arrow);
@@ -219,6 +221,7 @@ a:active {
 .mdi-minimize,
 .win-maximize,
 .mdi-maximize {
+  /* SM_CXSIZE×SM_CYSIZE ≈ 16×14; sits in the 18px caption with 2px pad */
   width: 16px;
   height: 14px;
   padding: 0;
@@ -255,44 +258,46 @@ a:active {
   position: absolute;
   left: 3px;
   right: 3px;
-  top: 6px;
+  top: 5px;
   height: 2px;
   background: var(--dk);
 }
 
 .win-minimize::before,
 .mdi-minimize::before {
+  /* Win 3.1 minimize = small down-triangle, centred in the bevelled face */
   content: "";
   position: absolute;
-  left: 4px;
-  top: 6px;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 5px solid var(--dk);
+  left: 5px;
+  top: 5px;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 4px solid var(--dk);
 }
 
 .win-maximize::before,
 .mdi-maximize::before {
+  /* Win 3.1 maximize = small up-triangle */
   content: "";
   position: absolute;
-  left: 4px;
+  left: 5px;
   top: 3px;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-bottom: 5px solid var(--dk);
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-bottom: 4px solid var(--dk);
 }
 
 .win31-window.maximized .win-maximize::before {
   border: none;
-  width: 6px;
-  height: 6px;
-  left: 4px;
+  width: 5px;
+  height: 5px;
+  left: 5px;
   top: 3px;
   background:
-    linear-gradient(var(--dk), var(--dk)) 0 0 / 6px 2px no-repeat,
-    linear-gradient(var(--dk), var(--dk)) 0 0 / 2px 6px no-repeat,
-    linear-gradient(var(--dk), var(--dk)) 4px 0 / 2px 4px no-repeat,
-    linear-gradient(var(--dk), var(--dk)) 2px 4px / 4px 2px no-repeat;
+    linear-gradient(var(--dk), var(--dk)) 0 0 / 5px 2px no-repeat,
+    linear-gradient(var(--dk), var(--dk)) 0 0 / 2px 5px no-repeat,
+    linear-gradient(var(--dk), var(--dk)) 3px 0 / 2px 3px no-repeat,
+    linear-gradient(var(--dk), var(--dk)) 2px 3px / 3px 2px no-repeat;
 }
 
 .window-body {
@@ -307,12 +312,15 @@ a:active {
 
 .menubar {
   display: flex;
+  align-items: stretch;
   gap: 0;
-  margin: 0 0 6px;
+  /* Flush under caption — Win 3.1 has no gap between SM_CYCAPTION and SM_CYMENU */
+  margin: 0;
   padding: 0;
   list-style: none;
   background: var(--face);
   flex: 0 0 auto;
+  height: 18px;
 }
 
 .menu-root {
@@ -323,14 +331,18 @@ a:active {
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: 2px 8px;
+  /* Explicit border-box + fixed height: padding + line-box must not
+     push the strip past SM_CYMENU (18px). Global * { box-sizing } helps,
+     but height (not only min-height) caps growth from font metrics. */
+  box-sizing: border-box;
+  height: 18px;
+  min-height: 18px;
+  padding: 0 8px;
+  line-height: 18px;
   font-family: inherit;
   font-size: 11px;
   color: var(--text);
-  /* Same height as .title-bar (18px) -- the menu strip is not a
-     taller, separate control, it's the same chrome band as the
-     title bar directly below it. */
-  min-height: 18px;
+  white-space: nowrap;
 }
 
 .menu-root.open > button,
@@ -365,13 +377,15 @@ a:active {
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: 2px 18px;
+  box-sizing: border-box;
+  height: 18px;
+  min-height: 18px;
+  padding: 0 18px;
+  line-height: 18px;
   font-family: inherit;
   font-size: 11px;
   color: var(--text);
-  /* Same 18px band as .title-bar / .menu-root > button, not a taller
-     dropdown-specific row height. */
-  min-height: 18px;
+  white-space: nowrap;
 }
 
 .menu-drop button:hover:not(:disabled),
@@ -884,6 +898,14 @@ a:active {
   .menu-root > button,
   .menu-drop button,
   .sysmenu button {
+    height: auto;
+    min-height: 44px;
+    line-height: normal;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .menubar {
+    height: auto;
     min-height: 44px;
   }
   .win31-resize-n, .win31-resize-s {
