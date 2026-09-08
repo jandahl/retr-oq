@@ -3,6 +3,8 @@
 
   // Dock launch + running-indicator helpers for the OS X family.
   // Magnification / genie animation stay theme-side (period chrome).
+  // Item list is live-queried so themes can insert minimized-window
+  // tiles (or other dynamic icons) without forking this helper.
 
   window.OqOsx = window.OqOsx || {};
 
@@ -21,10 +23,12 @@
     runningClass = "is-running",
     bounceClass = "is-bouncing",
   }) {
-    const items = Array.from(dock.querySelectorAll(itemSelector));
+    function getItems() {
+      return Array.from(dock.querySelectorAll(itemSelector));
+    }
 
     function itemFor(id) {
-      return items.find((el) => el.dataset.open === id) || null;
+      return getItems().find((el) => el.dataset.open === id) || null;
     }
 
     function setRunning(id, running) {
@@ -48,16 +52,26 @@
       setTimeout(done, 900);
     }
 
-    for (const el of items) {
-      el.addEventListener("click", () => {
-        const id = el.dataset.open;
-        if (!id) return;
-        bounce(id);
-        if (onLaunch) onLaunch(id, el);
-      });
-    }
+    // Bind once via delegation so dynamically added [data-open] items work
+    // if a theme inserts them later (backward compatible with static markup).
+    dock.addEventListener("click", (event) => {
+      const el = event.target.closest(itemSelector);
+      if (!el || !dock.contains(el)) return;
+      // Minimized-window tiles use data-restore, not data-open — ignored here.
+      const id = el.dataset.open;
+      if (!id) return;
+      bounce(id);
+      if (onLaunch) onLaunch(id, el);
+    });
 
-    return { setRunning, bounce, itemFor, items };
+    return {
+      setRunning,
+      bounce,
+      itemFor,
+      get items() {
+        return getItems();
+      },
+    };
   }
 
   window.OqOsx.initDock = initDock;
