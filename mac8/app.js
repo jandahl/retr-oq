@@ -706,13 +706,10 @@
   setInterval(updateClock, 1000);
 
   // ---------- Boot screen ----------
-  // Same power-button-gesture + synthesized-chime + timed-reveal mechanic as
-  // mac1984/app.js's own boot screen (see that file's own comments), gated
-  // behind a real click so the AudioContext is created synchronously inside
-  // a user gesture, satisfying autoplay policies. Not shared code -- each
-  // Mac-lineage theme owns its own app.js per CLAUDE.md.
+  // Passive auto-boot like mac1984 (no power button). Optional chime on the
+  // first pointer/key gesture unlocks AudioContext under autoplay policy.
+  // Not shared code -- each Mac-lineage theme owns its own app.js per CLAUDE.md.
   const bootScreen = document.getElementById("boot-screen");
-  const powerBtn = document.getElementById("power-btn");
   const bootSequence = document.getElementById("boot-sequence");
 
   function playChime() {
@@ -743,19 +740,15 @@
     }
   }
 
-  if (bootScreen && powerBtn && bootSequence) {
-    powerBtn.addEventListener(
-      "click",
-      () => {
-        playChime();
-        powerBtn.hidden = true;
-        bootSequence.hidden = false;
-        bootSequence.classList.add("visible");
-        setTimeout(() => {
-          bootScreen.classList.add("hidden");
-        }, 1400);
-      },
-      { once: true },
-    );
+  if (bootScreen && bootSequence) {
+    bootSequence.classList.add("visible");
+    setTimeout(() => bootScreen.classList.add("hidden"), 1400);
+    const unlockChime = () => {
+      playChime();
+      window.removeEventListener("pointerdown", unlockChime, true);
+      window.removeEventListener("keydown", unlockChime, true);
+    };
+    window.addEventListener("pointerdown", unlockChime, { once: true, capture: true });
+    window.addEventListener("keydown", unlockChime, { once: true, capture: true });
   }
 })();

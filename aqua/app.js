@@ -2,15 +2,16 @@
   "use strict";
 
   // Thin Aqua adapter over shared/osx/. Theme-specific: boot chime,
-  // OQ!/DECON rendering, shutdown dialog, icon selection. Window
-  // chrome / menu bar / Dock behavior come from OqOsx.*.
+  // OQ!/DECON rendering, shutdown dialog, icon selection, lamp minimize.
+  // Window chrome / menu bar / Dock behavior come from OqOsx.*.
 
   const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
   const { syllabify } = window.OqHyphenation;
 
   // ---------- Boot ----------
+  // Passive auto-boot like mac1984 (no power button). Optional chime on
+  // first pointer/key unlocks AudioContext under autoplay policy.
   const bootScreen = document.getElementById("boot-screen");
-  const powerBtn = document.getElementById("power-btn");
   const bootSequence = document.getElementById("boot-sequence");
 
   function playStartup() {
@@ -40,17 +41,15 @@
     }
   }
 
-  if (bootScreen && powerBtn && bootSequence) {
-    powerBtn.addEventListener(
-      "click",
-      () => {
-        playStartup();
-        powerBtn.hidden = true;
-        bootSequence.hidden = false;
-        setTimeout(() => bootScreen.classList.add("is-done"), 1200);
-      },
-      { once: true },
-    );
+  if (bootScreen && bootSequence) {
+    setTimeout(() => bootScreen.classList.add("is-done"), 1200);
+    const unlockChime = () => {
+      playStartup();
+      window.removeEventListener("pointerdown", unlockChime, true);
+      window.removeEventListener("keydown", unlockChime, true);
+    };
+    window.addEventListener("pointerdown", unlockChime, { once: true, capture: true });
+    window.addEventListener("keydown", unlockChime, { once: true, capture: true });
   }
 
   // ---------- Shell ----------
@@ -60,6 +59,7 @@
   const winDecon = document.getElementById("win-decon");
 
   let dockApi;
+  let closingDictPair = false;
 
   function syncDockRunning() {
     // Running = not closed (minimized windows still show a Dock indicator).
@@ -72,9 +72,26 @@
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
-  const GENIE_MS = 420;
+  function clearDictRouter() {
+    window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
+  }
 
-  function animateGenieMinimize(win, finish) {
+  function closeDictPairWindows() {
+    if (closingDictPair) return;
+    closingDictPair = true;
+    try {
+      if (!winOq.classList.contains("closed")) wm.closeWindow(winOq);
+      if (!winDecon.classList.contains("closed")) wm.closeWindow(winDecon);
+    } finally {
+      closingDictPair = false;
+    }
+  }
+
+  // KDE Compiz-style lamp suck (cssLamp): transform-origin toward Dock
+  // target, scale(0.04) + opacity 0. Zoom-safe — origin is %-based.
+  const LAMP_MS = 480;
+
+  function animateLampMinimize(win, finish) {
     if (prefersReducedMotion() || !dockApi) {
       finish();
       return;
@@ -87,23 +104,23 @@
 
     const winRect = win.getBoundingClientRect();
     const dockRect = dockItem.getBoundingClientRect();
-    const winCx = winRect.left + winRect.width / 2;
-    const winCy = winRect.top + winRect.height / 2;
-    const dockCx = dockRect.left + dockRect.width / 2;
-    const dockCy = dockRect.top + dockRect.height / 2;
-    const dx = dockCx - winCx;
-    const dy = dockCy - winCy;
+    const tx = dockRect.left + dockRect.width / 2;
+    const ty = dockRect.top + dockRect.height / 2;
+    const ox = winRect.width ? ((tx - winRect.left) / winRect.width) * 100 : 50;
+    const oy = winRect.height ? ((ty - winRect.top) / winRect.height) * 100 : 100;
 
-    // Keep the animating window above peers; .minimized is applied in finish().
     win.style.zIndex = String(9000);
     win.style.pointerEvents = "none";
-    win.style.transformOrigin = "50% 100%";
     win.style.transition = "none";
+    win.style.transform = "";
+    win.style.opacity = "1";
+    win.style.transformOrigin = `${ox}% ${oy}%`;
+    win.classList.add("aqua-lamping");
     void win.offsetWidth;
     win.style.transition =
-      `transform ${GENIE_MS}ms cubic-bezier(0.45, 0.05, 0.55, 0.95), ` +
-      `opacity ${GENIE_MS}ms ease-in`;
-    win.style.transform = `translate(${dx}px, ${dy}px) scaleX(0.12) scaleY(0.06)`;
+      `transform ${LAMP_MS}ms cubic-bezier(0.5, 0, 1, 0.3), ` +
+      `opacity ${Math.round(LAMP_MS * 0.9)}ms ease-in`;
+    win.style.transform = "scale(0.04)";
     win.style.opacity = "0";
 
     let done = false;
@@ -111,6 +128,7 @@
       if (done) return;
       done = true;
       win.removeEventListener("transitionend", onEnd);
+      win.classList.remove("aqua-lamping");
       finish();
     }
     function onEnd(event) {
@@ -119,7 +137,7 @@
       }
     }
     win.addEventListener("transitionend", onEnd);
-    setTimeout(complete, GENIE_MS + 80);
+    setTimeout(complete, LAMP_MS + 80);
   }
 
   const wm = window.OqOsx.initWindowManager({
@@ -140,8 +158,9 @@
       return false;
     },
     routeClose(win) {
+      // Closing either dictionary app clears the router; onChange closes both.
       if (win === winOq || win === winDecon) {
-        window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
+        clearDictRouter();
         return true;
       }
       return false;
@@ -149,14 +168,25 @@
     onOpen() {
       syncDockRunning();
     },
-    onClose() {
+    onClose(win) {
       syncDockRunning();
+      // Linked pair: if one dict window closed outside the router path,
+      // clear router / close the other so both stay in sync.
+      if (closingDictPair) return;
+      if (win === winOq || win === winDecon) {
+        const other = win === winOq ? winDecon : winOq;
+        if (!other.classList.contains("closed")) {
+          const screen = window.OqRouter.getParams().get("screen");
+          if (screen === "oq" || screen === "decon") clearDictRouter();
+          else closeDictPairWindows();
+        }
+      }
     },
     onMinimize() {
       syncDockRunning();
     },
     onMinimizeAnimating(win, finish) {
-      animateGenieMinimize(win, finish);
+      animateLampMinimize(win, finish);
     },
     onRestore() {
       syncDockRunning();
@@ -188,12 +218,13 @@
   // Classic Aqua continuous Dock magnification (theme-side; shared/osx
   // only handles launch + running/bounce). Cosine falloff by pointer
   // distance; reduced-motion falls back to a mild single-icon lift.
+  // Under CSS zoom, lift is divided by OqOsx.getZoomFactor (CLAUDE.md).
   (function initDockMagnification() {
     const dock = document.getElementById("dock");
     if (!dock || !dockApi) return;
     const items = dockApi.items;
     const MAX_SCALE = 1.55;
-    const RANGE = 80; // px influence radius around each icon center
+    const RANGE = 80; // post-zoom px (clientX / getBoundingClientRect agree)
     const LIFT = 14;
 
     function resetMagnify() {
@@ -207,6 +238,7 @@
 
     function applyMagnify(clientX) {
       if (prefersReducedMotion()) return;
+      const zoom = window.OqOsx.getZoomFactor ? window.OqOsx.getZoomFactor() : 1;
       dock.classList.add("is-magnifying");
       let best = null;
       let bestScale = 1;
@@ -216,9 +248,8 @@
         const cx = rect.left + rect.width / 2;
         const dist = Math.abs(clientX - cx);
         const t = Math.max(0, 1 - dist / RANGE);
-        // Cosine hump — neighbors fan like early Dock.
         const scale = 1 + (MAX_SCALE - 1) * (0.5 - 0.5 * Math.cos(Math.PI * t));
-        const lift = LIFT * (scale - 1) / (MAX_SCALE - 1);
+        const lift = (LIFT * (scale - 1) / (MAX_SCALE - 1)) / zoom;
         el.style.transform = `translateY(${-lift}px) scale(${scale})`;
         el.style.zIndex = String(Math.round(scale * 100));
         if (scale > bestScale) {
@@ -237,6 +268,14 @@
     dock.addEventListener("pointercancel", resetMagnify);
   })();
 
+  function openFromChrome(id) {
+    const target = document.getElementById(id);
+    if (!target) return;
+    if (target.classList.contains("minimized")) wm.restoreWindow(target);
+    else wm.openWindow(target);
+    syncDockRunning();
+  }
+
   // Desktop icons (single-click open — touch-friendly; Dock matches).
   let selectedIcon = null;
   for (const icon of document.querySelectorAll(".desktop-icon[data-open]")) {
@@ -244,12 +283,7 @@
       if (selectedIcon) selectedIcon.classList.remove("selected");
       icon.classList.add("selected");
       selectedIcon = icon;
-      const target = document.getElementById(icon.dataset.open);
-      if (target) {
-        if (target.classList.contains("minimized")) wm.restoreWindow(target);
-        else wm.openWindow(target);
-        syncDockRunning();
-      }
+      openFromChrome(icon.dataset.open);
     });
   }
   desktop.addEventListener("pointerdown", (event) => {
@@ -259,18 +293,20 @@
     }
   });
 
+  // Finder icon-view items (Macintosh HD window)
+  for (const item of document.querySelectorAll(".finder-item[data-open]")) {
+    item.addEventListener("click", () => {
+      openFromChrome(item.dataset.open);
+    });
+  }
+
   // Menu items with data-open
   for (const item of document.querySelectorAll('#menu-bar [data-open]')) {
     const link = item.querySelector("a");
     if (!link) continue;
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      const target = document.getElementById(item.dataset.open);
-      if (target) {
-        if (target.classList.contains("minimized")) wm.restoreWindow(target);
-        else wm.openWindow(target);
-        syncDockRunning();
-      }
+      openFromChrome(item.dataset.open);
     });
   }
 
@@ -482,12 +518,8 @@
       }
       syncDockRunning();
     } else {
-      if (!winOq.classList.contains("closed")) {
-        wm.closeWindow(winOq);
-      }
-      if (!winDecon.classList.contains("closed")) {
-        wm.closeWindow(winDecon);
-      }
+      // screen: null — close both dictionary apps (linked pair).
+      closeDictPairWindows();
       syncDockRunning();
     }
   });

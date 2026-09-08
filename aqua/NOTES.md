@@ -36,6 +36,33 @@ still shared via `shared/osx/`. Font: TeX Gyre Heros from
 | Dock launch + running/bounce classes | Dock glass art, icons, magnification CSS |
 | Menu clock | Placement in menubar |
 
+## Follow-up polish (this branch)
+
+- **No power button.** Boot is passive auto-boot like `mac1984/` (and
+  now `mac8/`). Sequence shows immediately; optional startup chime on
+  first pointer/key so AudioContext can unlock under autoplay policy.
+- **Desktop zoom `1.5`** at `min-width: 700px` (same gate as mac1984 /
+  mac8). Chose **1.5 over 2**: Aqua jelly + Dock glass already read
+  large; 2 felt oversized next to the menubar. WM already divides by
+  `OqOsx.getZoomFactor`; Dock magnify lift does too. Lamp minimize uses
+  %-based `transform-origin` (zoom-safe, like KDE `cssLamp`).
+- **Wallpaper:** original soft aqua blue / swirl wash on `#shell` (CSS
+  gradients only — not Apple trademark art). Desktop icon labels are
+  white + dark shadow for contrast.
+- **Linked close:** closing OQ! **or** DECON clears the router
+  (`screen: null`, …) and closes **both** windows (`routeClose` +
+  `onClose` + router `onChange`). Opening either still goes through
+  `OqRouter.navigate` normally.
+- **Minimize:** KDE Compiz-style **lamp** suck toward the matching Dock
+  icon (`scale(0.04)` + opacity, ~480ms), not the prior genie
+  approximation. `prefers-reduced-motion` → instant hide. Still uses
+  WM `onMinimizeAnimating(win, finish)`.
+- **Finder / Trash:** Macintosh HD is an icon-view Finder chrome with
+  openable items (OQ!, DECON, About, Trash); Trash shows an empty-state
+  message (KDE-style substance, Aqua skin).
+- **Icons:** redesigned desktop + Dock SVGs — gloss, rounded forms,
+  depth — still original (no Apple logo / Happy Mac face clones).
+
 ## Gotchas
 
 - **No Apple mark.** Leftmost menu uses an original abstract “system”
@@ -48,10 +75,6 @@ still shared via `shared/osx/`. Font: TeX Gyre Heros from
   falloff on `#dock`). Shared `OqOsx.initDock` stays launch/running/
   bounce only. `prefers-reduced-motion` skips continuous magnify and
   keeps a mild CSS hover (or none).
-- **Genie minimize** uses optional WM `onMinimizeAnimating(win, finish)`
-  — aqua animates toward the matching Dock icon, then `finish()` applies
-  `.minimized`. Reduced motion = instant hide. Approximation only (no
-  Core Graphics mesh).
 - **Shut Down sheet** (`#shutdown-overlay .osx-sheet`) hangs under the
   menu bar (top-aligned overlay + flat-top dialog), not a centered
   modal.
@@ -64,10 +87,13 @@ still shared via `shared/osx/`. Font: TeX Gyre Heros from
 - **Resize** is growbox-only in this skin (`resizeMode: "growbox"`).
   Later OS X skins can pass `"edges"` or `"both"`.
 - **OQ!/DECON** only open/close through `window.OqRouter.navigate` —
-  `routeOpen` / `routeClose` in `app.js`.
+  `routeOpen` / `routeClose` in `app.js`. They are a linked close pair.
 - **Cache-bust** `?v=N` on every local file you change.
 - Touch: inputs ≥ 16px; `html, body { position: fixed }` to stop iOS
   document scroll on focus.
+- **CSS `zoom`:** `clientX` / `getBoundingClientRect` are post-zoom;
+  assigning `style.left/top` (or transform lifts meant as CSS lengths)
+  needs `/ getZoomFactor()` — see CLAUDE.md.
 
 ## What Tiger / Leopard should override
 

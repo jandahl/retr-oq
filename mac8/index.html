@@ -8,15 +8,11 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Mac OS 8.1 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/mac8/base.css" />
-<link rel="stylesheet" href="style.css?v=14" />
+<link rel="stylesheet" href="style.css?v=15" />
 </head>
 <body>
   <div id="boot-screen">
-    <button type="button" id="power-btn">
-      <span class="power-icon" aria-hidden="true">⏻</span>
-      <span>Click to start up</span>
-    </button>
-    <div id="boot-sequence" hidden>
+    <div id="boot-sequence" class="visible">
       <svg class="smiling-mac" viewBox="0 0 16 16" shape-rendering="crispEdges" role="img" aria-label="Smiling computer">
         <rect x="1" y="1" width="14" height="12" fill="#ffffff" stroke="#000000" stroke-width="1"/>
         <rect x="4" y="5" width="2" height="2" fill="#000000"/>
@@ -392,6 +388,6 @@
        own header comment for why this one file is the exception. -->
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
