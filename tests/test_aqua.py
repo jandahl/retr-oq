@@ -368,3 +368,80 @@ def test_icon_drag_persists_position(page, base_url):
     stored = page.evaluate("() => localStorage.getItem('retr-oq:aqua-desktop-icon-pos')")
     assert stored in (None, "")
 
+
+
+def test_time_machine_overlay_opens_and_sets_era(page, base_url):
+    """TM overlay opens from System menu; selecting an era sets data-osx-era."""
+    goto_aqua(page, base_url)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") in (
+        "aqua",
+        "tiger",
+        "leopard",
+        None,
+        "",
+    )
+    # Default boot should be aqua when storage empty
+    page.evaluate("() => localStorage.removeItem('retr-oq:aqua-osx-era')")
+    page.reload()
+    page.wait_for_timeout(200)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "aqua"
+
+    page.evaluate("() => document.querySelector('#menu-time-machine a').click()")
+    page.wait_for_timeout(80)
+    overlay = page.locator("#tm-overlay")
+    assert overlay.is_visible()
+    assert page.evaluate("() => window.__aquaTimeMachine && window.__aquaTimeMachine.isOpen") is True
+
+    # Select Tiger via card
+    page.click('.tm-era-card[data-era="tiger"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "tiger"
+
+    page.click("#tm-restore")
+    page.wait_for_timeout(800)
+    assert page.locator("#tm-overlay").is_hidden()
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "tiger"
+    stored = page.evaluate("() => localStorage.getItem('retr-oq:aqua-osx-era')")
+    assert stored == "tiger"
+
+    # Persists across reload (boot script)
+    page.reload()
+    page.wait_for_timeout(200)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "tiger"
+
+
+def test_time_machine_cancel_restores_previous_era(page, base_url):
+    goto_aqua(page, base_url)
+    page.evaluate(
+        """() => {
+          localStorage.setItem('retr-oq:aqua-osx-era', 'aqua');
+          document.documentElement.dataset.osxEra = 'aqua';
+        }"""
+    )
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(60)
+    page.click('.tm-era-card[data-era="leopard"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "leopard"
+    page.click("#tm-cancel")
+    page.wait_for_timeout(60)
+    assert page.locator("#tm-overlay").is_hidden()
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "aqua"
+    assert page.evaluate("() => localStorage.getItem('retr-oq:aqua-osx-era')") in (
+        "aqua",
+        None,
+    )
+
+
+def test_time_machine_reduced_motion_instant_restore(page, base_url):
+    """With prefers-reduced-motion, Restore swaps era without leaving overlay stuck."""
+    goto_aqua(page, base_url)
+    page.emulate_media(reduced_motion="reduce")
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(40)
+    page.click('.tm-era-card[data-era="leopard"]')
+    page.click("#tm-restore")
+    page.wait_for_timeout(100)
+    assert page.locator("#tm-overlay").is_hidden()
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "leopard"
+    assert page.evaluate("() => localStorage.getItem('retr-oq:aqua-osx-era')") == "leopard"

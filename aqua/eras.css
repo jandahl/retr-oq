@@ -1,0 +1,594 @@
+/* OS X era skins for aqua/ — original art only (no Apple logos / TM galaxy rip).
+   Applied via html[data-osx-era="aqua"|"tiger"|"leopard"]. Aqua = default :root. */
+
+/* ---------- Tiger (2005) — unified toolbar energy, metal-ish, greener/blue ---------- */
+html[data-osx-era="tiger"] {
+  --aqua-stripe-a: #e8eef2;
+  --aqua-stripe-b: #dce6ec;
+  --aqua-menubar: rgba(236, 242, 246, 0.88);
+  --aqua-menubar-border: rgba(20, 40, 60, 0.28);
+  --aqua-accent: #3d8f6a;
+  --aqua-window: #e8ecef;
+  --aqua-title-active-top: #c8d8e4;
+  --aqua-title-active-bot: #6a8aaa;
+  --aqua-title-inactive-top: #e4e4e4;
+  --aqua-title-inactive-bot: #b4b4b4;
+  --aqua-dock: rgba(210, 220, 230, 0.42);
+}
+
+html[data-osx-era="tiger"] #shell {
+  background-color: #2f7a68;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.14) 0 1px,
+      rgba(255, 255, 255, 0.03) 1px 2px,
+      rgba(20, 70, 55, 0.16) 2px 3px,
+      rgba(40, 110, 90, 0.06) 3px 5px
+    ),
+    radial-gradient(ellipse 85% 65% at 20% 18%, rgba(160, 230, 200, 0.4) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 88% 12%, rgba(100, 180, 220, 0.32) 0%, transparent 50%),
+    radial-gradient(ellipse 75% 50% at 65% 82%, rgba(30, 90, 110, 0.45) 0%, transparent 55%),
+    linear-gradient(168deg, #5aa890 0%, #3a8a78 38%, #2a6a88 72%, #1e5070 100%);
+}
+
+/* Metal-ish unified title strip — flatter ridges, brushed wash */
+html[data-osx-era="tiger"] .osx-titlebar {
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.18) 0 1px,
+      rgba(0, 0, 0, 0.06) 1px 2px
+    ),
+    linear-gradient(
+      180deg,
+      var(--aqua-title-active-top) 0%,
+      #9eb4c8 45%,
+      var(--aqua-title-active-bot) 55%,
+      #5a7898 100%
+    );
+  border-radius: 6px 6px 0 0;
+}
+
+html[data-osx-era="tiger"] .osx-window {
+  border-radius: 6px 6px 4px 4px;
+  border-color: rgba(30, 40, 55, 0.5);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 8px 22px rgba(0, 0, 0, 0.32);
+}
+
+/* Mid-2000s Dock: slightly flatter shelf, less extreme perspective */
+html[data-osx-era="tiger"] .osx-dock {
+  padding-bottom: 14px;
+}
+
+html[data-osx-era="tiger"] .osx-dock::before {
+  height: 14px;
+  bottom: 4px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.48) 0%,
+      rgba(170, 195, 210, 0.55) 40%,
+      rgba(70, 95, 120, 0.6) 100%
+    );
+  transform: perspective(160px) rotateX(36deg);
+  border-radius: 3px 3px 5px 5px;
+}
+
+html[data-osx-era="tiger"] .osx-dock::after {
+  height: 8px;
+  opacity: 0.85;
+}
+
+html[data-osx-era="tiger"] .osx-menubar {
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.45) 0 1px,
+      rgba(200, 215, 225, 0.3) 1px 2px
+    ),
+    linear-gradient(180deg, rgba(245, 250, 252, 0.94) 0%, rgba(210, 225, 235, 0.88) 100%);
+}
+
+html[data-osx-era="tiger"] .desktop-icon.selected .desktop-icon-label,
+html[data-osx-era="tiger"] .desktop-icon:focus-visible .desktop-icon-label {
+  background: var(--aqua-accent);
+}
+
+/* Tiger + Graphite */
+html[data-osx-era="tiger"][data-appearance="graphite"] {
+  --aqua-stripe-a: #e4e4e4;
+  --aqua-stripe-b: #d6d6d6;
+  --aqua-menubar: rgba(232, 232, 232, 0.88);
+  --aqua-accent: #6a6a6a;
+  --aqua-window: #eaeaea;
+  --aqua-title-active-top: #d0d0d0;
+  --aqua-title-active-bot: #8a8a8a;
+  --aqua-dock: rgba(210, 210, 210, 0.42);
+}
+
+html[data-osx-era="tiger"][data-appearance="graphite"] #shell {
+  background-color: #5a6568;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.1) 0 1px,
+      rgba(0, 0, 0, 0.06) 1px 3px,
+      transparent 3px 5px
+    ),
+    linear-gradient(168deg, #7a8488 0%, #5a6568 45%, #3a4448 100%);
+}
+
+/* ---------- Leopard (2007) — darker menubar, reflective Dock, stack-ish CSS ---------- */
+html[data-osx-era="leopard"] {
+  --aqua-stripe-a: #e4e8ec;
+  --aqua-stripe-b: #d6dce4;
+  --aqua-menubar: rgba(48, 52, 58, 0.92);
+  --aqua-menubar-border: rgba(0, 0, 0, 0.55);
+  --aqua-accent: #4a7ec8;
+  --aqua-window: #eceef2;
+  --aqua-title-active-top: #c8d4e8;
+  --aqua-title-active-bot: #6a82b0;
+  --aqua-title-inactive-top: #e0e0e0;
+  --aqua-title-inactive-bot: #b0b0b0;
+  --aqua-dock: rgba(30, 35, 45, 0.55);
+  --aqua-text: #1a1a1a;
+}
+
+html[data-osx-era="leopard"] #shell {
+  background-color: #1a2840;
+  background-image:
+    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(80, 120, 180, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 10% 90%, rgba(40, 80, 120, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 40% at 90% 70%, rgba(60, 40, 90, 0.3) 0%, transparent 45%),
+    linear-gradient(180deg, #2a4060 0%, #1a2840 40%, #0e1828 100%);
+}
+
+html[data-osx-era="leopard"] .osx-menubar {
+  color: #f0f2f5;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(70, 74, 82, 0.95) 0%,
+      rgba(42, 46, 52, 0.94) 55%,
+      rgba(28, 30, 36, 0.96) 100%
+    );
+  border-bottom-color: rgba(0, 0, 0, 0.65);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.12) inset;
+}
+
+html[data-osx-era="leopard"] .osx-menubar > [role="menu-item"],
+html[data-osx-era="leopard"] .osx-menubar > [role="menuitem"] {
+  color: #f0f2f5;
+}
+
+html[data-osx-era="leopard"] .osx-menubar > [role="menu-item"].menu-open,
+html[data-osx-era="leopard"] .osx-menubar > [role="menuitem"].menu-open {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+}
+
+html[data-osx-era="leopard"] .osx-menu-clock {
+  color: #e8eaee;
+}
+
+html[data-osx-era="leopard"] .osx-system-mark {
+  color: #e8eaee;
+}
+
+/* Dropdown menus stay light (period Leopard) */
+html[data-osx-era="leopard"] .osx-menubar [role="menu"] {
+  color: #1a1a1a;
+}
+
+/* Reflective 3D glass-ish Dock shelf (original, not Apple glass art) */
+html[data-osx-era="leopard"] .osx-dock {
+  padding: 6px 22px 20px;
+  background: transparent;
+}
+
+html[data-osx-era="leopard"] .osx-dock::before {
+  height: 22px;
+  bottom: 4px;
+  left: 2px;
+  right: 2px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(180, 195, 220, 0.35) 28%,
+      rgba(40, 50, 70, 0.65) 70%,
+      rgba(20, 25, 35, 0.75) 100%
+    );
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-bottom-color: rgba(0, 0, 0, 0.45);
+  border-radius: 10px 10px 6px 6px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 0 0 1px rgba(0, 0, 0, 0.25),
+    0 10px 24px rgba(0, 0, 0, 0.45);
+  transform: perspective(200px) rotateX(28deg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+html[data-osx-era="leopard"] .osx-dock::after {
+  height: 14px;
+  bottom: -2px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.35) 0%,
+    rgba(140, 170, 210, 0.12) 40%,
+    transparent 100%
+  );
+  filter: blur(2px);
+}
+
+/* Stack-ish Dock hint (CSS only — no real Stacks): fanned ghosts on Applications glyph.
+   Keep ::after free for the running-dot indicator. */
+html[data-osx-era="leopard"] .osx-dock-item[data-open="win-apps"] .dock-glyph {
+  box-shadow:
+    -7px -5px 0 -3px rgba(200, 210, 230, 0.55),
+    7px -4px 0 -4px rgba(150, 170, 200, 0.4),
+    0 2px 2px rgba(0, 0, 0, 0.35);
+}
+
+html[data-osx-era="leopard"] .osx-dock-item.is-running::after {
+  background: #e8ecf2;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+html[data-osx-era="leopard"] .osx-window {
+  border-radius: 7px 7px 5px 5px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+html[data-osx-era="leopard"] .osx-titlebar {
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.22) 0 1px,
+      rgba(0, 0, 0, 0.07) 1px 2px
+    ),
+    linear-gradient(
+      180deg,
+      var(--aqua-title-active-top) 0%,
+      #a8b8d4 48%,
+      var(--aqua-title-active-bot) 52%,
+      #5a7298 100%
+    );
+}
+
+/* Leopard + Graphite — greys accents; menubar stays dark (era base) */
+html[data-osx-era="leopard"][data-appearance="graphite"] {
+  --aqua-accent: #7a7a7a;
+  --aqua-window: #e8e8e8;
+  --aqua-title-active-top: #d0d0d0;
+  --aqua-title-active-bot: #888;
+  --aqua-dock: rgba(40, 40, 44, 0.6);
+}
+
+html[data-osx-era="leopard"][data-appearance="graphite"] #shell {
+  background-color: #2a2c30;
+  background-image:
+    radial-gradient(ellipse 100% 70% at 50% 0%, rgba(90, 92, 98, 0.4) 0%, transparent 55%),
+    linear-gradient(180deg, #3a3c42 0%, #2a2c30 45%, #1a1c20 100%);
+}
+
+/* Aqua era graphite already handled in style.css via html[data-appearance="graphite"] */
+
+/* ---------- Time Machine overlay (era browser — original abstract starfield) ---------- */
+.tm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 0 2.5rem;
+  background: #02040c;
+  color: #e8eef8;
+  font-family: var(--aqua-font);
+}
+
+.tm-overlay[hidden] {
+  display: none !important;
+}
+
+.tm-starfield {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 110%, #1a2848 0%, transparent 55%),
+    radial-gradient(circle at 20% 30%, rgba(80, 120, 200, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, rgba(120, 80, 180, 0.12) 0%, transparent 35%),
+    linear-gradient(180deg, #050814 0%, #0a1228 45%, #121e38 100%);
+}
+
+/* Abstract star dots — invented, not Apple's galaxy rip */
+.tm-starfield::before,
+.tm-starfield::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1.5px 1.5px at 8% 12%, #fff 40%, transparent 50%),
+    radial-gradient(1px 1px at 22% 48%, rgba(200, 220, 255, 0.9) 40%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 35% 18%, #fff 40%, transparent 50%),
+    radial-gradient(1px 1px at 48% 62%, rgba(180, 200, 255, 0.8) 40%, transparent 50%),
+    radial-gradient(2px 2px at 62% 28%, #fff 40%, transparent 50%),
+    radial-gradient(1px 1px at 75% 55%, rgba(220, 230, 255, 0.85) 40%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 88% 15%, #fff 40%, transparent 50%),
+    radial-gradient(1px 1px at 12% 78%, rgba(160, 190, 255, 0.7) 40%, transparent 50%),
+    radial-gradient(1px 1px at 55% 8%, #fff 40%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 92% 72%, rgba(200, 210, 255, 0.8) 40%, transparent 50%),
+    radial-gradient(1px 1px at 40% 88%, #fff 40%, transparent 50%),
+    radial-gradient(1px 1px at 68% 82%, rgba(180, 200, 255, 0.75) 40%, transparent 50%);
+  opacity: 0.85;
+  animation: tm-drift 48s linear infinite;
+}
+
+.tm-starfield::after {
+  background-image:
+    radial-gradient(1px 1px at 15% 35%, rgba(255, 255, 255, 0.7) 40%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 30% 70%, #cde 40%, transparent 50%),
+    radial-gradient(1px 1px at 58% 42%, #fff 40%, transparent 50%),
+    radial-gradient(1px 1px at 78% 88%, rgba(200, 220, 255, 0.8) 40%, transparent 50%),
+    radial-gradient(2px 2px at 95% 40%, #fff 40%, transparent 50%);
+  opacity: 0.55;
+  animation-duration: 72s;
+  animation-direction: reverse;
+}
+
+@keyframes tm-drift {
+  from { transform: translateY(0); }
+  to { transform: translateY(-40px); }
+}
+
+.tm-shelf {
+  position: relative;
+  z-index: 1;
+  width: min(920px, calc(100vw - 2rem));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.tm-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+.tm-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.tm-timeline {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.25rem;
+  width: 100%;
+  min-height: 200px;
+  padding: 1rem 0 0.5rem;
+  perspective: 900px;
+}
+
+.tm-era-card {
+  position: relative;
+  width: 168px;
+  height: 118px;
+  padding: 0;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  background: #1a3048;
+  color: #fff;
+  cursor: default;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.3);
+  transform-origin: 50% 100%;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  overflow: hidden;
+}
+
+.tm-era-card:focus-visible {
+  outline: 2px solid #7ab0ff;
+  outline-offset: 3px;
+}
+
+.tm-era-card.is-selected {
+  border-color: rgba(140, 190, 255, 0.95);
+  box-shadow:
+    0 0 0 3px rgba(100, 160, 255, 0.45),
+    0 14px 36px rgba(0, 0, 0, 0.55);
+  transform: translateY(-14px) scale(1.08);
+  z-index: 2;
+}
+
+.tm-era-card[data-era="aqua"] .tm-era-preview {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(180, 230, 255, 0.5), transparent 55%),
+    linear-gradient(165deg, #6eb0de 0%, #3a7eb8 50%, #164a7a 100%);
+}
+
+.tm-era-card[data-era="tiger"] .tm-era-preview {
+  background:
+    radial-gradient(ellipse 80% 60% at 25% 15%, rgba(160, 230, 200, 0.45), transparent 55%),
+    linear-gradient(168deg, #5aa890 0%, #3a8a78 40%, #1e5070 100%);
+}
+
+.tm-era-card[data-era="leopard"] .tm-era-preview {
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(80, 120, 180, 0.4), transparent 55%),
+    linear-gradient(180deg, #2a4060 0%, #1a2840 50%, #0e1828 100%);
+}
+
+.tm-era-preview {
+  position: absolute;
+  inset: 0;
+}
+
+.tm-era-preview::after {
+  content: "";
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 18%;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45), rgba(120, 140, 170, 0.4));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.tm-era-meta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.35rem 0.45rem 0.4rem;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.72));
+  text-align: center;
+}
+
+.tm-era-year {
+  display: block;
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.tm-era-name {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.tm-scrubber {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(420px, 100%);
+}
+
+.tm-scrubber-btn {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: default;
+}
+
+.tm-scrubber-btn:hover,
+.tm-scrubber-btn:focus-visible {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.tm-scrubber-track {
+  flex: 1 1 auto;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  position: relative;
+}
+
+.tm-scrubber-thumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  margin-left: -7px;
+  border-radius: 50%;
+  background: #9ec4ff;
+  box-shadow: 0 0 0 3px rgba(100, 160, 255, 0.35);
+  transition: left 180ms ease;
+}
+
+.tm-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.tm-btn {
+  min-width: 7rem;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: default;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.tm-btn--primary {
+  background: linear-gradient(180deg, #7ab0ff 0%, #3a6ec8 100%);
+  border-color: rgba(20, 50, 100, 0.55);
+  color: #fff;
+  font-weight: 700;
+}
+
+.tm-btn:hover,
+.tm-btn:focus-visible {
+  filter: brightness(1.08);
+}
+
+/* Restore transition: starfield dissolve → live desktop */
+html.tm-transitioning #shell {
+  animation: tm-shell-reveal 700ms ease-out both;
+}
+
+html.tm-transitioning .tm-overlay {
+  animation: tm-overlay-out 700ms ease-out both;
+  pointer-events: none;
+}
+
+@keyframes tm-overlay-out {
+  0% { opacity: 1; filter: blur(0); transform: scale(1); }
+  100% { opacity: 0; filter: blur(12px); transform: scale(1.06); }
+}
+
+@keyframes tm-shell-reveal {
+  0% { filter: blur(8px); transform: scale(0.96); }
+  100% { filter: blur(0); transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-starfield::before,
+  .tm-starfield::after {
+    animation: none;
+  }
+  .tm-era-card,
+  .tm-scrubber-thumb {
+    transition: none;
+  }
+  html.tm-transitioning #shell,
+  html.tm-transitioning .tm-overlay {
+    animation: none;
+  }
+}
+
+/* Dock Time Machine glyph sits with other items; no data-open so launch is ignored */
+.osx-dock-item#dock-timemachine .dock-glyph {
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+}

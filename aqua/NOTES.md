@@ -202,7 +202,7 @@ Parity shell features (Screen Effects / ⌘-Tab / Clean Up, then chrome batch):
    Icons** toggles visibility and persists with `localStorage` key
    `retr-oq:aqua-desktop-icons` (mac8 parity).
 
-Cache-bust: `style.css?v=8`, `app.js?v=9`, `router.js?v=17` (loads screensaver `?v=30`).
+Cache-bust: `style.css?v=9`, `eras.css?v=1`, `app.js?v=10`, `timemachine.js?v=1`, `router.js?v=17` (loads screensaver `?v=30`).
 
 ## Aqua parity chrome (same branch)
 
@@ -226,3 +226,33 @@ Continues on `polish/aqua-parity-shell` (PR #176) — no Exposé / Spotlight / S
 7. **CI** — do not push workflow files from this agent. Paste the `aqua:` path filter
    into `.github/workflows/theme-tests.yml` (see PR #176 description / former #177).
 
+## Time Machine era switcher (same branch)
+
+Browse **OS X eras** (visual skins), not file versions. Same DOM + `shared/osx/`
+shell; eras override CSS variables + chrome via `html[data-osx-era]`.
+
+| Era id | Year | Look |
+| --- | --- | --- |
+| `aqua` (default) | 2001 | Cheetah–Puma jelly / 3D shelf Dock (current) |
+| `tiger` | 2005 | Greener/blue wash, metal-ish titlebars, flatter mid-2000s Dock |
+| `leopard` | 2007 | Darker menubar, reflective Dock shelf, stack-ish Dock hint (CSS only) |
+
+**Entry:** System menu **Time Machine…**, Dock orb, shortcut **⌥⌘T** (Alt+Meta/Ctrl+T).
+
+**UX:** Full-screen abstract starfield + shelf (original art — no Apple logos /
+trademarked TM galaxy). Era cards + scrubber / arrows; live skin preview while
+browsing; **Restore** / Enter applies; Esc cancels. Apply transition:
+starfield dissolve + shell scale/blur (~700ms). `prefers-reduced-motion: reduce`
+→ instant class swap (no animation).
+
+**Persist:** `localStorage` `retr-oq:aqua-osx-era`. Inline boot script in
+`index.html` sets `data-osx-era` on `<html>` before paint (avoids flash).
+
+**Graphite:** Composes with eras (`html[data-osx-era][data-appearance="graphite"]`
+overrides in `eras.css`). Graphite stays available on all three eras — greys
+accents; Leopard keeps its dark menubar as the era base. Not hidden.
+
+**Files:** `aqua/eras.css`, `aqua/timemachine.js`, overlay markup in
+`aqua/index.html`. Hook: `window.__aquaTimeMachine`.
+
+**Out of scope (still):** real Exposé / Spotlight / Spaces / Stacks apps.

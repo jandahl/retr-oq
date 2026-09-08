@@ -562,7 +562,7 @@
   for (const link of document.querySelectorAll('#menu-bar [role="menu"] a, #desktop-context-menu a')) {
     if (
       link.closest(
-        "[data-open], #menu-shutdown, #menu-empty-trash, #menu-screen-effects, [data-saver], #desktop-ctx-cleanup, #desktop-ctx-toggle-icons, #desktop-ctx-effects, #desktop-ctx-info, #menu-force-quit, #menu-get-info, #menu-sys-prefs",
+        "[data-open], #menu-shutdown, #menu-empty-trash, #menu-screen-effects, [data-saver], #desktop-ctx-cleanup, #desktop-ctx-toggle-icons, #desktop-ctx-effects, #desktop-ctx-info, #menu-force-quit, #menu-get-info, #menu-sys-prefs, #menu-time-machine",
       )
     ) {
       continue;
@@ -1103,6 +1103,7 @@
   );
 
   // ---------- Graphite appearance (System Preferences stub) ----------
+  // Composes with eras: html[data-osx-era][data-appearance] (see eras.css / NOTES).
   const APPEARANCE_KEY = "retr-oq:aqua-appearance";
   const sysprefsOverlay = document.getElementById("sysprefs-overlay");
   const appearanceBlue = document.getElementById("appearance-blue");
@@ -1145,9 +1146,12 @@
     if (sysprefsOverlay) sysprefsOverlay.hidden = true;
   });
 
-  // Esc dismisses chrome sheets (Force Quit / Get Info / Sys Prefs)
+  // Esc dismisses chrome sheets (Force Quit / Get Info / Sys Prefs).
+  // Time Machine Esc is handled in timemachine.js (capture) when open.
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
+    const tm = document.getElementById("tm-overlay");
+    if (tm && !tm.hidden) return;
     if (forcequitOverlay && !forcequitOverlay.hidden) {
       hideForceQuit();
       return;

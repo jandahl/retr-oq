@@ -6,7 +6,20 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta name="description" content="retr-oq — early OS X Aqua desktop (2001)" />
 <title>retr-oq — OS X Aqua</title>
-<link rel="stylesheet" href="style.css?v=8" />
+<script>
+/* Apply persisted OS X era before paint to avoid skin flash. */
+(function () {
+  try {
+    var e = localStorage.getItem("retr-oq:aqua-osx-era");
+    if (e !== "tiger" && e !== "leopard" && e !== "aqua") e = "aqua";
+    document.documentElement.setAttribute("data-osx-era", e);
+  } catch (err) {
+    document.documentElement.setAttribute("data-osx-era", "aqua");
+  }
+})();
+</script>
+<link rel="stylesheet" href="style.css?v=9" />
+<link rel="stylesheet" href="eras.css?v=1" />
 </head>
 <body>
   <div id="shell">
@@ -26,6 +39,7 @@
           <li role="menu-item" id="menu-screen-effects-flux" data-saver="flux"><a href="#">Preview Flux</a></li>
           <li role="menu-item" id="menu-screen-effects-fieldlines" data-saver="fieldlines"><a href="#">Preview Field Lines</a></li>
           <li role="menu-item" id="menu-screen-effects-solarwinds" data-saver="solarwinds"><a href="#">Preview Solar Winds</a></li>
+          <li role="menu-item" class="divider" id="menu-time-machine"><a href="#">Time Machine…<span class="menu-shortcut">⌥⌘T</span></a></li>
           <li role="menu-item" class="divider" id="menu-shutdown"><a href="#">Shut Down…<span class="menu-shortcut">⌘Q</span></a></li>
         </ul>
       </li>
@@ -609,6 +623,22 @@
             <text x="24" y="31.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">i</text>
           </svg>
         </button>
+        <button type="button" class="osx-dock-item" id="dock-timemachine" data-dock-label="Time Machine" aria-label="Time Machine">
+          <span class="dock-caption">Time Machine</span>
+          <svg class="dock-glyph" viewBox="0 0 48 48" aria-hidden="true">
+            <defs>
+              <radialGradient id="tmOrb" cx="40%" cy="35%" r="60%">
+                <stop offset="0%" stop-color="#c8dcff"/>
+                <stop offset="55%" stop-color="#4a6eb8"/>
+                <stop offset="100%" stop-color="#1a2858"/>
+              </radialGradient>
+            </defs>
+            <circle cx="24" cy="24" r="16" fill="url(#tmOrb)" stroke="#0a1430" stroke-width="1.4"/>
+            <circle cx="24" cy="24" r="10" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.2" stroke-dasharray="2.5 2"/>
+            <circle cx="24" cy="24" r="4" fill="#e8f0ff" opacity="0.9"/>
+            <path d="M24 10v4M24 34v4M10 24h4M34 24h4" stroke="rgba(255,255,255,0.55)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </button>
         <!-- Minimized windows appear as extra tiles before Trash (period Dock). -->
         <span class="osx-dock-separator" id="dock-min-sep" hidden aria-hidden="true"></span>
         <div class="osx-dock-minimized" id="dock-minimized" aria-label="Minimized windows"></div>
@@ -713,7 +743,7 @@
             <span>Graphite</span>
           </label>
         </div>
-        <p class="sysprefs-hint">Graphite greys the Aqua chrome (period Appearance pref).</p>
+        <p class="sysprefs-hint">Graphite greys chrome accents and composes with OS X eras (Time Machine…).</p>
         <div class="osx-dialog-actions">
           <button type="button" class="aqua-btn" id="sysprefs-ok">OK</button>
         </div>
@@ -751,6 +781,26 @@ returns desk is across town. maybe next week."</p>
     </section>
   </div>
 
+  <!-- Time Machine–inspired era browser (original abstract starfield; not Apple TM art). -->
+  <div id="tm-overlay" class="tm-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="tm-title" aria-hidden="true">
+    <div class="tm-starfield" aria-hidden="true"></div>
+    <div class="tm-shelf">
+      <h2 class="tm-title" id="tm-title">Travel through OS X eras</h2>
+      <p class="tm-hint">Arrow keys scrub · Enter restores · Esc cancels</p>
+      <div class="tm-timeline" id="tm-timeline" role="listbox" aria-label="OS X eras"></div>
+      <p class="tm-hint" id="tm-era-label"></p>
+      <div class="tm-scrubber">
+        <button type="button" class="tm-scrubber-btn" id="tm-prev" aria-label="Previous era">‹</button>
+        <div class="tm-scrubber-track" aria-hidden="true"><span class="tm-scrubber-thumb" id="tm-scrubber-thumb"></span></div>
+        <button type="button" class="tm-scrubber-btn" id="tm-next" aria-label="Next era">›</button>
+      </div>
+      <div class="tm-actions">
+        <button type="button" class="tm-btn" id="tm-cancel">Cancel</button>
+        <button type="button" class="tm-btn tm-btn--primary" id="tm-restore">Restore</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Load order: shared data/router → shared/osx shell → theme app.js -->
   <script src="../shared/dict-source.js"></script>
   <script src="../shared/hyphenation.js"></script>
@@ -760,6 +810,7 @@ returns desk is across town. maybe next week."</p>
   <script src="../shared/osx/window-manager.js?v=4"></script>
   <script src="../shared/osx/menubar.js?v=2"></script>
   <script src="../shared/osx/dock.js?v=2"></script>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
+  <script src="timemachine.js?v=1"></script>
 </body>
 </html>
