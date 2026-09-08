@@ -24,8 +24,9 @@ abstraction. See root `CLAUDE.md`.
 | `dock.js` | `window.OqOsx.initDock` | Dock launch + running-dot helpers |
 | (inline helpers) | `window.OqOsx.getZoomFactor`, `initMenuClock` | shared utilities |
 
-Load order in a theme: `dict-source` → `hyphenation` → `router` →
-`oq-analysis` (module) → `decon-app` → **these three** → theme `app.js`.
+Load order in a theme: `dict-source` → optional `katersat-source` +
+`dict-merge` → `hyphenation` → `router` → `oq-analysis` (module) →
+`decon-app` → **these three** → theme `app.js`.
 
 ## DOM contract
 

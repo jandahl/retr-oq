@@ -6,7 +6,9 @@
   // Aqua genie minimize + minimized Dock tiles. Window chrome / menu bar /
   // Dock launch helpers come from OqOsx.*.
 
-  const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION } = window.OqDictSource;
+  // loadDictEntries is the project-wide choke point (Chicago + katersat merge).
+  const { loadDictEntries, filterDictEntries, DICT_ATTRIBUTION, wasKatersatLoaded } =
+    window.OqDictSource;
   const { syllabify } = window.OqHyphenation;
 
   // ---------- Boot ----------
@@ -903,7 +905,7 @@
       kindDetail: "Dictionary browser",
       version: "1.0 (retr-oq)",
       where: "Macintosh HD → Applications",
-      blurb: "Browse the Kalaallisut dictionary with live filter. Shared data via OqDictSource.",
+      blurb: "Browse the Kalaallisut dictionary with live filter. Shared merged data via OqDictSource.loadDictEntries().",
     },
     "win-decon": {
       name: "Word Deconstructor",
@@ -1450,7 +1452,9 @@
   const oqFilter = document.getElementById("oq-filter");
   const oqStatus = document.getElementById("oq-status");
   const oqTbody = document.getElementById("oq-tbody");
-  document.getElementById("oq-attribution").textContent = DICT_ATTRIBUTION;
+  // Initial Chicago line; loadDictEntries() refreshes via applyDictAttribution().
+  const oqAttributionEl = document.getElementById("oq-attribution");
+  if (oqAttributionEl) oqAttributionEl.textContent = DICT_ATTRIBUTION;
 
   let oqEntries = null;
   let oqLoadStarted = false;
@@ -1483,7 +1487,11 @@
     const query = oqFilter.value.trim();
     if (query === "") {
       renderOqRows(oqEntries.slice(0, OQ_DEFAULT_ROWS));
-      oqStatus.textContent = `${oqEntries.length.toLocaleString()} entries loaded — showing first ${OQ_DEFAULT_ROWS}, type to filter.`;
+      const enrich =
+        typeof wasKatersatLoaded === "function" && wasKatersatLoaded()
+          ? " (Chicago + katersat)"
+          : " (Chicago)";
+      oqStatus.textContent = `${oqEntries.length.toLocaleString()} entries loaded${enrich} — showing first ${OQ_DEFAULT_ROWS}, type to filter.`;
       return;
     }
     const matches = filterDictEntries(oqEntries, query);

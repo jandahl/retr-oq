@@ -315,8 +315,8 @@ Branch `polish/aqua-tm-galaxy-preview` (post-#176).
    `backdrop-filter`; glass window `::before` starts below the titlebar.
    Preview titlebar uses one opaque era-specific `background` only, kills
    `::before`/`::after`, and `#tm-oq-preview .osx-title { background: none }`.
-   Cache-bust `style.css?v=12`, `eras.css?v=7`, `app.js?v=11`,
-   `timemachine.js?v=8`.
+   Cache-bust `style.css?v=12`, `eras.css?v=7`, `app.js?v=12`,
+   `timemachine.js?v=9`, plus `dict-source.js?v=2` / `katersat-source.js?v=1` / `dict-merge.js?v=1`.
 8. **OQ! preview lexemes from real dict** — on first TM open, `timemachine.js`
    calls `window.OqDictSource.loadDictEntries()` and fills `#tm-oq-preview`
    tbody with 4 short (3–14 char) `{lexeme,gloss_en}` rows via `textContent`
@@ -338,19 +338,23 @@ Period-accurate chrome for Aqua / Tiger / Leopard (prefer historical UI material
 
 Later eras (Lion → Glass) left alone unless clearly wrong — Lion warm linen/pewter, Yosemite/Big Sur flat light greys, Glass frost.
 
-## TM preview sample lexemes (follow-up)
+## TM preview sample lexemes
 
-Preferred demo rows for the Time Machine mini OQ! window:
+Preferred demo rows for the Time Machine mini OQ! window (wired via
+`shared/dict-merge.js` Option C — Chicago primary + katersat enrichment):
 
 - `kujannippoq`
 - `qulluk`
 - `usuk`
 - `aalajavoq`
 
-Today the preview fills from `OqDictSource.loadDictEntries()` (Chicago /
-Oqaasileriffik JSON only). `kujannippoq` and `qulluk` are **not** in that
-source; the full preferred set needs the **katersat** lexicon wired in.
-Katersat is GPL-3.0-or-later with no CC-BY-SA grant — `shared/dict-source.js`
-deliberately does not fetch it yet. Do **not** hard-code katersat-only
-lexemes here until that source is an intentional, documented product
-decision (attribution + license). Until then, keep sampling from Chicago.
+`timemachine.js` prefers these four when present in the **merged** set
+(empty `gloss_en` is allowed — e.g. `aalajavoq`). If they are missing
+(Chicago-only fallback / mock), it falls back to short Chicago samples
+(3–14 chars, non-empty gloss).
+
+Merge is **project-wide**: every theme’s OQ! calls
+`OqDictSource.loadDictEntries()` which goes through
+`shared/katersat-source.js` + `shared/dict-merge.js`. Katersat JSON is
+**not** vendored (GPL); runtime HTTP + `applyDictAttribution()` — see
+`shared/SOURCES.md`.

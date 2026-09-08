@@ -62,8 +62,12 @@ Don't mix window managers across families.
 
 ## `shared/`
 
-- `dict-source.js` — fetch/cache/filter. No local sort; upstream
-  Kalaallisut collation is the order (`aa` after `a` is not a bug).
+- `dict-source.js` — Chicago fetch/cache/filter (CC-BY-SA 4.0). No local
+  sort; upstream Kalaallisut collation is the order (`aa` after `a` is
+  not a bug).
+- `katersat-source.js` / `dict-merge.js` — Option C merge (Chicago
+  primary + katersat enrichment). Runtime HTTP only; **do not vendor**
+  GPL katersat JSON. See `shared/SOURCES.md`.
 - `hyphenation.js` — MPL-2.0 *code* (the linguistic rules are not).
   Don't blur that in the file header.
 - `router.js` — query-string router. Static hosting has no path

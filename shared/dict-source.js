@@ -4,50 +4,40 @@
 // filter, so each theme's own app.js stays free to render results however
 // fits its chrome (a DOS table, a Mac window-pane, whatever's next).
 //
-// Fetches the real Oqaasileriffik 2018 Chicago Kalaallisut-English
-// dictionary (CC-BY-SA 4.0) from the same published JSON jandahl/oq itself
-// consumes, rather than importing oq's own docs/public-api.js -- that
-// surface is explicitly v0.x/unstable ("any commit may rename, reshape, or
-// drop any export" per its own docs), not worth coupling a gag prototype
-// to just for a filtered list. Sticks to this CC-BY-SA source over the
-// katersat lexicon on purpose too: katersat is GPL-3.0-or-later with no
-// CC-BY-SA grant, a copyleft obligation this repo doesn't take on anywhere
-// else. See docs/public-api.md / docs/SOURCES.md in jandahl/oq for both.
+// Public entry: loadDictEntries() — Chicago (CC-BY-SA 4.0) primary with
+// katersat (GPL-3.0-or-later) enrichment when shared/katersat-source.js +
+// shared/dict-merge.js are loaded (Option C, project-wide for every OQ!
+// theme). Katersat failure → Chicago-only. Runtime HTTP only; we refuse
+// to *vendor* GPL katersat JSON into this MIT repo. See shared/SOURCES.md
+// and jandahl/oq docs/SOURCES.md §3 (authoritative over the mermaid slip).
+//
+// loadChicagoOnly() is the raw Chicago fetch for tests / merge internals.
 //
 // The fetch/cache shape below is deliberately ported from jandahl/oq's own
 // docs/upstream-sources.js + docs/dict-data.js (fetchFirstAvailable() and
-// loadFullSource()'s in-flight-call dedup) rather than invented fresh --
-// no reason to reinvent a pattern the actual dictionary app already had to
-// get right. NOT ported: oq's same-origin vendored-snapshot ("local")
-// fast-path with background revalidation (jandahl/oq#611) -- that needs a
-// committed local mirror file and a periodic-refresh story neither of
-// which exist here yet. Noted as a possible future addition, not built.
+// loadFullSource()'s in-flight-call dedup) rather than invented fresh.
 //
-// A plain classic script attaching one namespaced global (window.OqDictSource),
-// not an ES module -- today's convention across this repo's theme files
-// (not a file:// requirement -- this repo targets http(s) hosting, see
-// CLAUDE.md). Load this script tag before the theme's own app.js and read
-// off window.OqDictSource.
+// Classic script → window.OqDictSource. Load order in themes:
+//   dict-source.js → katersat-source.js → dict-merge.js → … → app.js
 (() => {
   "use strict";
 
-  // Ordered, primary first -- mirrors oq's UpstreamSource.urls shape so a
-  // fallback mirror can be appended later without any call site changing,
-  // exactly the reason oq's own version of this list is structured this way.
   const DICT_SOURCE_URLS = ["https://jandahl.github.io/Oqaasileriffik-dicts/all_entries.json"];
 
-  // CC-BY-SA 4.0 requires this exact string wherever the data is shown --
-  // docs/SOURCES.md in jandahl/oq. Exposed here so every consumer shows the
-  // identical, correct attribution instead of each copying its own string.
+  // CC-BY-SA 4.0 Chicago attribution (stable string for destructuring at
+  // init). After a merged load, prefer formatDictAttribution() /
+  // applyDictAttribution() so the GPL katersat line appears too.
   const DICT_ATTRIBUTION =
     "Oqaasileriffik (Greenlandic Language Secretariat), 2018 Chicago Kalaallisut–English Dictionary, CC-BY-SA 4.0";
 
+  const KATERSAT_ATTRIBUTION_FALLBACK =
+    "Oqaasileriffik / Greenland Language Secretariat — katersat lexicon (GPL-3.0-or-later)";
+
+  /** @type {{ chicago: string, katersat?: string } | null} */
+  let lastAttributions = null;
+  let lastKatersatLoaded = false;
+
   /**
-   * Ported from jandahl/oq's docs/upstream-sources.js. Tries each of `urls`
-   * in order, returning the first one that succeeds; a URL counts as failed
-   * (and the next one gets tried) on network error, a non-ok HTTP response,
-   * or `validateShape` returning false for its parsed result. Rejects with
-   * the last attempted URL's error if every URL fails.
    * @param {string[]} urls
    * @param {{ validateShape?: (data: any) => boolean }} [opts]
    */
@@ -70,42 +60,167 @@
     throw lastErr;
   }
 
-  let loaded = null; // the settled entries array, once a load has succeeded
-  let loading = null; // the in-flight promise, while a load is in progress
+  let chicagoLoaded = null;
+  let chicagoLoading = null;
 
   /**
-   * Fetches and caches in memory on first call. Concurrent calls (from any
-   * consumer, any theme) share the same in-flight request instead of each
-   * firing its own 5.75MB fetch -- ported from oq's loadFullSource(), which
-   * dedupes the exact same way via its own _FULL_LOADING map. A failed load
-   * clears the in-flight state so the next call retries instead of being
-   * stuck rejecting forever.
-   * @returns {Promise<Array<{lexeme: string, gloss_en: string}>>}
+   * Raw Chicago-only fetch/cache. Used by the merge layer and tests.
+   * Keeps rows with a lexeme even when gloss_en is empty so katersat can
+   * backfill. @returns {Promise<Array<{lexeme: string, gloss_en: string}>>}
    */
-  function loadDictEntries() {
-    if (loaded) return Promise.resolve(loaded);
-    if (loading) return loading;
+  function loadChicagoOnly() {
+    if (chicagoLoaded) return Promise.resolve(chicagoLoaded);
+    if (chicagoLoading) return chicagoLoading;
     const validateShape = (data) => Array.isArray(data?.dictionary_entries);
-    loading = fetchFirstAvailable(DICT_SOURCE_URLS, { validateShape })
+    chicagoLoading = fetchFirstAvailable(DICT_SOURCE_URLS, { validateShape })
       .then((data) => {
-        loaded = data.dictionary_entries.filter((e) => e.lexeme && e.gloss_en);
-        return loaded;
+        chicagoLoaded = data.dictionary_entries
+          .filter((e) => e && e.lexeme)
+          .map((e) => ({
+            ...e,
+            lexeme: String(e.lexeme),
+            gloss_en: e.gloss_en != null ? String(e.gloss_en) : "",
+          }));
+        return chicagoLoaded;
       })
       .finally(() => {
-        loading = null;
+        chicagoLoading = null;
       });
-    return loading;
+    return chicagoLoading;
   }
 
-  // Pure -- doesn't touch the cache or any DOM. `query` empty matches
-  // everything (callers decide whether/how to cap an unfiltered list).
+  /**
+   * Combined attribution text for UI (Chicago always; katersat when loaded).
+   * @param {{ chicago?: string, katersat?: string } | null} [attrs]
+   */
+  function formatDictAttribution(attrs) {
+    const a = attrs || lastAttributions || { chicago: DICT_ATTRIBUTION };
+    const parts = [];
+    if (a.chicago) parts.push(a.chicago);
+    else parts.push(DICT_ATTRIBUTION);
+    if (a.katersat) parts.push(a.katersat);
+    return parts.join(" · ");
+  }
+
+  /**
+   * Update common attribution nodes every theme already uses, so callers
+   * that snapshot DICT_ATTRIBUTION at init still get the GPL line after
+   * load without per-theme edits.
+   * @param {{ chicago?: string, katersat?: string } | null} [attrs]
+   */
+  function applyDictAttribution(attrs) {
+    const text = formatDictAttribution(attrs);
+    for (const id of ["oq-attribution", "dict-attribution"]) {
+      const el = typeof document !== "undefined" ? document.getElementById(id) : null;
+      if (el) el.textContent = text;
+    }
+    return text;
+  }
+
+  let mergedLoaded = null;
+  let mergedLoading = null;
+
+  /**
+   * Project-wide public entry for every theme's OQ! list. Goes through
+   * OqDictMerge when katersat-source + dict-merge are on the page; otherwise
+   * Chicago-only. Always refreshes #oq-attribution / #dict-attribution.
+   * @returns {Promise<Array<{lexeme: string, gloss_en: string, source?: string, sources?: string[]}>>}
+   */
+  function loadDictEntries() {
+    if (mergedLoaded) {
+      applyDictAttribution(lastAttributions);
+      return Promise.resolve(mergedLoaded);
+    }
+    if (mergedLoading) return mergedLoading;
+
+    const merge = typeof window !== "undefined" ? window.OqDictMerge : null;
+    if (merge && typeof merge.loadMergedDictEntries === "function") {
+      mergedLoading = merge
+        .loadMergedDictEntries()
+        .then((result) => {
+          lastAttributions = result.attributions || { chicago: DICT_ATTRIBUTION };
+          lastKatersatLoaded = !!result.katersatLoaded;
+          if (lastKatersatLoaded && !lastAttributions.katersat) {
+            const kat = window.OqKatersatSource;
+            lastAttributions.katersat =
+              (kat && kat.KATERSAT_ATTRIBUTION) || KATERSAT_ATTRIBUTION_FALLBACK;
+          }
+          applyDictAttribution(lastAttributions);
+          mergedLoaded = result.entries;
+          return mergedLoaded;
+        })
+        .finally(() => {
+          mergedLoading = null;
+        });
+      return mergedLoading;
+    }
+
+    // Merge scripts not loaded — Chicago-only fallback.
+    mergedLoading = loadChicagoOnly()
+      .then((entries) => {
+        lastAttributions = { chicago: DICT_ATTRIBUTION };
+        lastKatersatLoaded = false;
+        applyDictAttribution(lastAttributions);
+        mergedLoaded = entries.map((e) => ({
+          ...e,
+          source: "chicago",
+          sources: ["chicago"],
+        }));
+        return mergedLoaded;
+      })
+      .finally(() => {
+        mergedLoading = null;
+      });
+    return mergedLoading;
+  }
+
   function filterDictEntries(entries, query) {
-    const q = query.trim().toLowerCase();
+    const q = String(query || "").trim().toLowerCase();
     if (q === "") return entries;
     return entries.filter(
-      (e) => e.lexeme.toLowerCase().includes(q) || e.gloss_en.toLowerCase().includes(q),
+      (e) =>
+        String(e.lexeme || "")
+          .toLowerCase()
+          .includes(q) ||
+        String(e.gloss_en || "")
+          .toLowerCase()
+          .includes(q),
     );
   }
 
-  window.OqDictSource = { DICT_ATTRIBUTION, loadDictEntries, filterDictEntries };
+  function getLastAttributions() {
+    return lastAttributions ? { ...lastAttributions } : { chicago: DICT_ATTRIBUTION };
+  }
+
+  function wasKatersatLoaded() {
+    return lastKatersatLoaded;
+  }
+
+  /** Test helper — clears Chicago + merged caches. */
+  function resetDictState() {
+    chicagoLoaded = null;
+    chicagoLoading = null;
+    mergedLoaded = null;
+    mergedLoading = null;
+    lastAttributions = null;
+    lastKatersatLoaded = false;
+    if (window.OqDictMerge && typeof window.OqDictMerge.resetMergeState === "function") {
+      window.OqDictMerge.resetMergeState();
+    }
+    if (window.OqKatersatSource && typeof window.OqKatersatSource.resetKatersatState === "function") {
+      window.OqKatersatSource.resetKatersatState();
+    }
+  }
+
+  window.OqDictSource = {
+    DICT_ATTRIBUTION,
+    loadDictEntries,
+    loadChicagoOnly,
+    filterDictEntries,
+    formatDictAttribution,
+    applyDictAttribution,
+    getLastAttributions,
+    wasKatersatLoaded,
+    resetDictState,
+  };
 })();
