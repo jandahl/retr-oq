@@ -10,3 +10,5 @@ with shared guest modules only if embedding requires tighter routing or focus
 integration; do not copy either guest's application logic into this theme.
 
 - **Word Deconstructor** is a Workplace Shell object / PM window that iframes `win31/index.html?screen=decon`, mirroring how OQ!2 Dictionary iframes `?screen=oq`. Desktop + System folder icons open `#decon-window`.
+
+- **OQ!/DECON hosting:** guest iframes still point at `win31/index.html?screen=oq` / `?screen=decon`. win31 now opens one MDI frame and focuses the matching child — OS/2 can keep separate PM windows per guest URL.

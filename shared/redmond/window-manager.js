@@ -699,22 +699,33 @@
   //
   // `iconSelector` should already scope to icons carrying data-open (the
   // id of the window to launch).
-  function initDesktopIcons({ desktop, iconSelector, openWindow }) {
+  // `resolveOpen(icon)`: optional. When a desktop / Program Manager icon's
+  // data-open id is an alias (e.g. win-decon launching the shared OQ! shell
+  // with the Word Deconstructor tab), return the real window element to
+  // open. Returning null/undefined falls back to getElementById(data-open).
+  function initDesktopIcons({ desktop, iconSelector, openWindow, resolveOpen }) {
     const opensOnSingleClick = window.matchMedia("(pointer: coarse)").matches;
     let selectedIcon = null;
+    function targetFor(icon) {
+      if (typeof resolveOpen === "function") {
+        const resolved = resolveOpen(icon);
+        if (resolved) return resolved;
+      }
+      return document.getElementById(icon.dataset.open);
+    }
     for (const icon of desktop.querySelectorAll(iconSelector)) {
       icon.addEventListener("click", () => {
         if (selectedIcon) selectedIcon.classList.remove("selected");
         icon.classList.add("selected");
         selectedIcon = icon;
         if (opensOnSingleClick) {
-          const target = document.getElementById(icon.dataset.open);
+          const target = targetFor(icon);
           if (target) openWindow(target);
         }
       });
       if (!opensOnSingleClick) {
         icon.addEventListener("dblclick", () => {
-          const target = document.getElementById(icon.dataset.open);
+          const target = targetFor(icon);
           if (target) openWindow(target);
         });
       }

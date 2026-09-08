@@ -452,6 +452,83 @@ html, body {
   color: #444444;
 }
 
+
+/* OQ! single-frame tabs: Dictionary ↔ Word Deconstructor (one taskbar
+   button). Period-plausible tab strip under the title bar; not a second
+   top-level window. */
+.oq-shell-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 0;
+  padding-top: 4px;
+}
+
+.oq-tabstrip {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 0 2px;
+  margin-bottom: 6px;
+}
+
+.oq-tab {
+  font: inherit;
+  font-size: 11px;
+  padding: 3px 10px 2px;
+  cursor: pointer;
+  border: 1px solid #808080;
+  border-bottom-color: transparent;
+  background: #c0c0c0;
+  color: #000;
+  position: relative;
+  top: 1px;
+}
+
+.oq-tab.is-active {
+  background: #c0c0c0;
+  border-bottom-color: #c0c0c0;
+  font-weight: bold;
+  z-index: 1;
+}
+
+.oq-tab:not(.is-active) {
+  background: #b5b5b5;
+  color: #222;
+}
+
+.oq-view {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.oq-view.is-active {
+  display: flex;
+}
+
+.oq-view .oq-body,
+.oq-view .decon-body {
+  flex: 1;
+  min-height: 0;
+}
+
+
+/* Aero-ish lighter tabs */
+.oq-tab {
+  border-radius: 3px 3px 0 0;
+  border-color: rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.oq-tab.is-active {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom-color: transparent;
+  font-weight: 600;
+}
+
 /* DECON's own body: same fixed-input/scrolling-results split as OQ!'s
    .oq-body above, plus a root-first/final-first order toggle row. */
 .decon-body {

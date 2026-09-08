@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 7 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/win7/7.css" />
-<link rel="stylesheet" href="style.css?v=11" />
+<link rel="stylesheet" href="style.css?v=12" />
 </head>
 <body class="win7">
   <section class="boot-screen" id="boot-screen" aria-label="Windows 7 startup" aria-live="polite">
@@ -57,7 +57,7 @@
       </button>
     </div>
 
-    <section class="window win7-window glass" id="win-oq" data-icon="oq" style="top: 2.5rem; left: 4rem; width: 28rem; height: 20rem;">
+    <section class="window win7-window glass" id="win-oq" data-icon="oq" style="top: 2.5rem; left: 4rem; width: 32rem; height: 22rem;">
       <div class="title-bar">
         <div class="title-bar-text">OQ!</div>
         <div class="title-bar-controls">
@@ -66,7 +66,14 @@
           <button aria-label="Close" class="win-close"></button>
         </div>
       </div>
-      <div class="window-body win7-window-body oq-body">
+      <div class="window-body win7-window-body oq-shell-body">
+        <div class="oq-tabstrip" role="tablist" aria-label="OQ! views">
+          <button type="button" class="oq-tab is-active" role="tab" id="oq-tab-dict" data-oq-view="oq" aria-selected="true" aria-controls="oq-view-dict">Dictionary</button>
+          <button type="button" class="oq-tab" role="tab" id="oq-tab-decon" data-oq-view="decon" aria-selected="false" aria-controls="oq-view-decon">Word Deconstructor</button>
+        </div>
+        <div class="oq-view is-active" id="oq-view-dict" role="tabpanel" data-oq-view="oq" aria-labelledby="oq-tab-dict">
+          <div class="oq-body">
+
         <div class="win7-field-row oq-filter-row">
           <input type="text" id="oq-filter" placeholder="Type to search..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
         </div>
@@ -80,27 +87,11 @@
           </table>
         </div>
         <p class="oq-attribution" id="oq-attribution"></p>
-      </div>
-      <div class="win7-resize-handle win7-resize-n" data-dir="n"></div>
-      <div class="win7-resize-handle win7-resize-s" data-dir="s"></div>
-      <div class="win7-resize-handle win7-resize-e" data-dir="e"></div>
-      <div class="win7-resize-handle win7-resize-w" data-dir="w"></div>
-      <div class="win7-resize-handle win7-resize-ne" data-dir="ne"></div>
-      <div class="win7-resize-handle win7-resize-nw" data-dir="nw"></div>
-      <div class="win7-resize-handle win7-resize-se" data-dir="se"></div>
-      <div class="win7-resize-handle win7-resize-sw" data-dir="sw"></div>
-    </section>
-
-    <section class="window win7-window glass" id="win-decon" data-icon="decon" style="top: 3rem; left: 8rem; width: 30rem; height: 22rem;">
-      <div class="title-bar">
-        <div class="title-bar-text">Word Deconstructor</div>
-        <div class="title-bar-controls">
-          <button aria-label="Minimize" class="win-minimize"></button>
-          <button aria-label="Maximize" class="win-maximize"></button>
-          <button aria-label="Close" class="win-close"></button>
+                </div>
         </div>
-      </div>
-      <div class="window-body win7-window-body decon-body">
+        <div class="oq-view" id="oq-view-decon" role="tabpanel" data-oq-view="decon" aria-labelledby="oq-tab-decon" hidden>
+          <div class="decon-body">
+
         <div class="win7-field-row decon-word-row">
           <input type="text" id="decon-word" placeholder="Type a Kalaallisut word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
         </div>
@@ -110,6 +101,8 @@
         </div>
         <p class="decon-status" id="decon-status">Type a word, press Enter.</p>
         <div class="decon-results-panel" id="decon-results"></div>
+                </div>
+        </div>
       </div>
       <div class="win7-resize-handle win7-resize-n" data-dir="n"></div>
       <div class="win7-resize-handle win7-resize-s" data-dir="s"></div>
@@ -120,8 +113,7 @@
       <div class="win7-resize-handle win7-resize-se" data-dir="se"></div>
       <div class="win7-resize-handle win7-resize-sw" data-dir="sw"></div>
     </section>
-
-    <section class="window win7-window glass" id="win-about" data-icon="about" style="top: 3rem; left: 3rem; width: 26rem; height: 16rem;">
+<section class="window win7-window glass" id="win-about" data-icon="about" style="top: 3rem; left: 3rem; width: 26rem; height: 16rem;">
       <div class="title-bar">
         <div class="title-bar-text">About retr-oq</div>
         <div class="title-bar-controls">
@@ -295,10 +287,11 @@
   <script src="../shared/hyphenation.js"></script>
   <script src="../shared/router.js?v=16"></script>
   <script src="../shared/redmond/window-manager.js"></script>
+  <script src="../shared/redmond/oq-shell.js"></script>
   <!-- Real ES module, not a classic script -- see shared/oq-analysis.js's
        own header comment for why this one file is the exception. -->
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

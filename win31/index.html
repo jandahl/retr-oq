@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 3.1 Program Manager</title>
-<link rel="stylesheet" href="style.css?v=13" />
+<link rel="stylesheet" href="style.css?v=14" />
 </head>
 <body>
   <section class="boot-screen" id="boot-screen" aria-label="Windows 3.1 startup" aria-live="polite">
@@ -235,7 +235,7 @@
       <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
     </section>
 
-    <section class="window win31-window" id="win-oq" data-icon="oq" style="top: 2.5rem; left: 4rem; width: 28rem; height: 20rem;">
+    <section class="window win31-window" id="win-oq" data-icon="oq" style="top: 2rem; left: 3rem; width: 36rem; height: 26rem;">
       <div class="title-bar">
         <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
         <div class="title-bar-text">OQ!</div>
@@ -244,20 +244,79 @@
           <button type="button" aria-label="Maximize" class="win-maximize"></button>
         </div>
       </div>
-      <div class="window-body oq-body">
-        <div class="field-row oq-filter-row">
-          <input type="text" id="oq-filter" placeholder="Type to search..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+      <div class="window-body oq-mdi-body">
+        <ul class="menubar" id="oq-menubar">
+          <li class="menu-root">
+            <button type="button">File</button>
+            <ul class="menu-drop" hidden>
+              <li><button type="button" id="oq-menu-close">Close</button></li>
+            </ul>
+          </li>
+          <li class="menu-root">
+            <button type="button">Window</button>
+            <ul class="menu-drop" hidden>
+              <li><button type="button" id="oq-menu-cascade">Cascade</button></li>
+              <li><button type="button" id="oq-menu-tile">Tile</button></li>
+              <li class="divider"></li>
+              <li><button type="button" id="oq-menu-focus-dict" data-mdi="mdi-oq">Dictionary</button></li>
+              <li><button type="button" id="oq-menu-focus-decon" data-mdi="mdi-decon">Word Deconstructor</button></li>
+            </ul>
+          </li>
+          <li class="menu-root">
+            <button type="button">Help</button>
+            <ul class="menu-drop" hidden>
+              <li><button type="button" disabled>About OQ!...</button></li>
+            </ul>
+          </li>
+        </ul>
+        <div class="mdi-client" id="oq-mdi-client">
+          <section class="mdi-child" id="mdi-oq" data-oq-view="oq" style="top: 0.5rem; left: 0.5rem; width: 18rem; height: 14rem;">
+            <div class="title-bar mdi-title-bar">
+              <button type="button" class="mdi-sysmenu" aria-label="Control-menu"></button>
+              <div class="title-bar-text">Dictionary</div>
+              <div class="title-bar-controls">
+                <button type="button" aria-label="Minimize" class="mdi-minimize"></button>
+                <button type="button" aria-label="Maximize" class="mdi-maximize"></button>
+              </div>
+            </div>
+            <div class="window-body oq-body">
+              <div class="field-row oq-filter-row">
+                <input type="text" id="oq-filter" placeholder="Type to search..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+              </div>
+              <p class="oq-status" id="oq-status">Loading dictionary...</p>
+              <div class="sunken-panel oq-results-panel">
+                <table class="interactive" id="oq-table">
+                  <thead>
+                    <tr><th>Lexeme</th><th>English</th></tr>
+                  </thead>
+                  <tbody id="oq-tbody"></tbody>
+                </table>
+              </div>
+              <p class="oq-attribution" id="oq-attribution"></p>
+            </div>
+          </section>
+          <section class="mdi-child" id="mdi-decon" data-oq-view="decon" style="top: 1.5rem; left: 6rem; width: 20rem; height: 15rem;">
+            <div class="title-bar mdi-title-bar">
+              <button type="button" class="mdi-sysmenu" aria-label="Control-menu"></button>
+              <div class="title-bar-text">Word Deconstructor</div>
+              <div class="title-bar-controls">
+                <button type="button" aria-label="Minimize" class="mdi-minimize"></button>
+                <button type="button" aria-label="Maximize" class="mdi-maximize"></button>
+              </div>
+            </div>
+            <div class="window-body decon-body">
+              <div class="field-row decon-word-row">
+                <input type="text" id="decon-word" placeholder="Type a Kalaallisut word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+              </div>
+              <div class="field-row decon-order-row">
+                <input type="checkbox" id="decon-root-first" checked />
+                <label for="decon-root-first">Root first</label>
+              </div>
+              <p class="decon-status" id="decon-status">Type a word, press Enter.</p>
+              <div class="sunken-panel decon-results-panel" id="decon-results"></div>
+            </div>
+          </section>
         </div>
-        <p class="oq-status" id="oq-status">Loading dictionary...</p>
-        <div class="sunken-panel oq-results-panel">
-          <table class="interactive" id="oq-table">
-            <thead>
-              <tr><th>Lexeme</th><th>English</th></tr>
-            </thead>
-            <tbody id="oq-tbody"></tbody>
-          </table>
-        </div>
-        <p class="oq-attribution" id="oq-attribution"></p>
       </div>
       <ul class="sysmenu" hidden>
         <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
@@ -278,46 +337,7 @@
       <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
     </section>
 
-    <section class="window win31-window" id="win-decon" data-icon="decon" style="top: 3rem; left: 8rem; width: 30rem; height: 22rem;">
-      <div class="title-bar">
-        <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
-        <div class="title-bar-text">Word Deconstructor</div>
-        <div class="title-bar-controls">
-          <button type="button" aria-label="Minimize" class="win-minimize"></button>
-          <button type="button" aria-label="Maximize" class="win-maximize"></button>
-        </div>
-      </div>
-      <div class="window-body decon-body">
-        <div class="field-row decon-word-row">
-          <input type="text" id="decon-word" placeholder="Type a Kalaallisut word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
-        </div>
-        <div class="field-row decon-order-row">
-          <input type="checkbox" id="decon-root-first" checked />
-          <label for="decon-root-first">Root first</label>
-        </div>
-        <p class="decon-status" id="decon-status">Type a word, press Enter.</p>
-        <div class="sunken-panel decon-results-panel" id="decon-results"></div>
-      </div>
-      <ul class="sysmenu" hidden>
-        <li><button type="button" class="sysmenu-restore" disabled>Restore</button></li>
-        <li><button type="button" disabled>Move</button></li>
-        <li><button type="button" disabled>Size</button></li>
-        <li><button type="button" class="sysmenu-min">Minimize</button></li>
-        <li><button type="button" class="sysmenu-max">Maximize</button></li>
-        <li class="sysmenu-divider"></li>
-        <li><button type="button" class="win-close">Close</button></li>
-      </ul>
-      <div class="win31-resize-handle win31-resize-n" data-dir="n"></div>
-      <div class="win31-resize-handle win31-resize-s" data-dir="s"></div>
-      <div class="win31-resize-handle win31-resize-e" data-dir="e"></div>
-      <div class="win31-resize-handle win31-resize-w" data-dir="w"></div>
-      <div class="win31-resize-handle win31-resize-ne" data-dir="ne"></div>
-      <div class="win31-resize-handle win31-resize-nw" data-dir="nw"></div>
-      <div class="win31-resize-handle win31-resize-se" data-dir="se"></div>
-      <div class="win31-resize-handle win31-resize-sw" data-dir="sw"></div>
-    </section>
-
-    <section class="window win31-window" id="win-clock" data-icon="clock" style="top: 4rem; left: 16rem; width: 16rem; height: 18rem;">
+<section class="window win31-window" id="win-clock" data-icon="clock" style="top: 4rem; left: 16rem; width: 16rem; height: 18rem;">
       <div class="title-bar">
         <button type="button" class="win-sysmenu" aria-label="Control-menu"></button>
         <div class="title-bar-text">Clock</div>
@@ -469,6 +489,6 @@
   <script src="../shared/redmond/window-manager.js?v=3"></script>
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
