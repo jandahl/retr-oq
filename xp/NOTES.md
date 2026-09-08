@@ -12,3 +12,5 @@ WM via `shared/redmond/window-manager.js`. XP.css dist build vendored.
 - Shut Down → `../`, same reference pattern as `win98/`.
 - 3D Pipes remake (`vendor/screensavers/pipes/`, MIT) on idle (45s) and Start → Screen Savers → 3D Pipes.
 - Backrooms II (`vendor/screensavers/backrooms-ii/`) on Start → Screen Savers. Original OpenGL showroom drift; not maze-backrooms.
+
+- **DECON label:** user-visible name is **Word Deconstructor** (desktop icon, titlebar, Start menu; taskbar clones the titlebar text). Ids stay `win-decon` / `screen=decon`.

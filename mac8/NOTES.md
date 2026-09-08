@@ -21,3 +21,5 @@ maximize.
   shows immediately; an optional startup chime plays on the first
   pointer/key gesture so AudioContext can unlock under autoplay policy.
 
+
+- **DECON label:** user-visible name is **Deconstructor** (desktop icon + titlebar) — not “Word Deconstructor”. Ids stay `win-decon` / `screen=decon`.

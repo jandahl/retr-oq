@@ -16,3 +16,5 @@ teal desktop, close lives only in the Control-menu (double-click the box).
 - Don't add a title-bar close "for touch" — see `CLAUDE.md`, this is a
   deliberate period-accurate omission, not a bug.
 - Idle screen saver stays Flying Windows (`vendor/screensavers/flying-windows/`, MIT; Greenland flag, not a Windows logo), 45s. Accessories also has Mystify, Starfield, Marquee (`oq!` in Times New Roman fuchsia), Beziers (Win 3.1-style canvas remakes) and Flying Toasters (gag geometry, not After Dark art).
+
+- **DECON label:** user-visible name is **Word Deconstructor** (Program Manager icon label + window title; minimized strip clones the title). Ids stay `win-decon` / `screen=decon`. Also the guest iframe target for OQ!2’s Word Deconstructor.

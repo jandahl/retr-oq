@@ -15,3 +15,5 @@ not system monospace.
 - No quit-to-hub UI currently wired here; Workbench 1.3 has no real
   concept of one on this hardware, so this is consistent with the source
   material rather than an oversight.
+
+- **DECON label:** user-visible name is **Word Deconstructor** (icon + titlebar). Ids stay `win-decon` / `screen=decon`.

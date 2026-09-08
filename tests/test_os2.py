@@ -33,3 +33,12 @@ def test_os2_window_can_close_and_menu_dropdown_works(page, base_url):
     assert page.locator("#system-object-menu").is_visible()
     page.locator("#system-window .close-window").click()
     assert not page.locator("#system-window").is_visible()
+
+
+def test_os2_opens_word_deconstructor_guest(page, base_url):
+    assert open_theme(page, base_url) == []
+    page.locator("[data-open='decon-window']").first.click()
+    assert page.locator("#decon-window").is_visible()
+    assert page.locator("#decon-window iframe").get_attribute("src") == "../win31/index.html?screen=decon"
+    assert "Word Deconstructor" in page.locator("#decon-window .os2-titlebar").inner_text()
+

@@ -16,3 +16,5 @@ See root `CLAUDE.md` → Theme invariants → `nes/`/`gb/`/`snes/`/`gg/`
 - `tests/test_nes.py` runs in CI for this theme — check it before
   reworking `handleInput()` or the screen IDs it drives.
 - In-LCD attract (45s idle, `#attract-canvas` over the TV picture only): any `handleInput` / pad / key dismisses and resets the timer. Pauses on `document.hidden`. `prefers-reduced-motion` slows the stars.
+
+- **DECON label:** menu / heading / about copy use **WORD DECONSTRUCTOR** (all-caps chrome). Ids stay `menu-decon` / `screen=decon`.

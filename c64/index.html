@@ -6,7 +6,7 @@
 <title>retr-oq — C64 desktop prototype</title>
 <!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
-<link rel="stylesheet" href="style.css?v=22" />
+<link rel="stylesheet" href="style.css?v=23" />
 </head>
 <body>
   <!-- No separate boot screen: the real C64 has no startup delay or splash
@@ -34,6 +34,7 @@ LIST
 
 0 "OQ DISK       " 09 2A
 <span class="c64-program-row"><button type="button" class="c64-link" data-load="DICT">1   "DICT"</button><span>PRG</span></span>
+<span class="c64-program-row"><button type="button" class="c64-link" data-load="DECON">1   "DECON"</button><span>PRG</span></span>
 <span class="c64-program-row"><button type="button" class="c64-link" data-load="MORPH">1   "MORPH"</button><span>PRG</span></span>
 <span class="c64-program-row"><button type="button" class="c64-link" data-load="KALQ">1   "KALQ"</button><span>PRG</span></span>
 <span class="c64-program-row c64-dim"><span>1   "DICT DAT"</span><span>SEQ</span></span>
@@ -80,6 +81,25 @@ LIST
       </p>
     </div>
     <button type="button" class="c64-app-footer" id="dict-exit">RUN/STOP=EXIT TO READY.</button>
+  </div>
+
+
+  <!-- DECON.PRG: full-screen takeover like #dict-app — inverse of DICT
+       (surface word → morpheme breakdown). Period 16-char disk naming keeps
+       the program label DECON (not "Word Deconstructor"). Wired through
+       shared/decon-app.js + OqRouter (?screen=decon). -->
+  <div class="c64-app" id="decon-app" hidden>
+    <div class="c64-app-header">DECON</div>
+    <div class="c64-app-toolbar">
+      <input type="text" id="decon-word" class="c64-input" placeholder="WORD..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+      <label class="decon-order-toggle">
+        <input type="checkbox" id="decon-root-first" checked />
+        <span class="decon-checkbox-glyph" aria-hidden="true"></span> ROOT FIRST
+      </label>
+      <p class="c64-app-status" id="decon-status"></p>
+    </div>
+    <div class="c64-app-results" id="decon-results"></div>
+    <button type="button" class="c64-app-footer" id="decon-exit">RUN/STOP=EXIT TO READY.</button>
   </div>
 
   <!-- MORPH.PRG: same full-screen-takeover idiom as #dict-app above -- text
@@ -135,9 +155,11 @@ LIST
 <script src="../shared/dict-merge.js?v=1"></script>
 <script src="../shared/hyphenation.js?v=1"></script>
 <script src="../shared/router.js?v=4"></script>
+<script type="module" src="../shared/oq-analysis.js?v=13"></script>
+<script src="../shared/decon-app.js?v=1"></script>
 <script src="../shared/morph-puzzles.js?v=4"></script>
 <script src="../shared/morph-game.js?v=2"></script>
 <script src="../shared/klax-game.js?v=10"></script>
-<script src="app.js?v=21"></script>
+<script src="app.js?v=22"></script>
 </body>
 </html>

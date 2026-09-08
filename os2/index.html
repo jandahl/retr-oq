@@ -4,13 +4,14 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>retr-oq — OQ!2 Warp 4</title>
-<link rel="stylesheet" href="style.css?v=2" />
+<link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <main id="desktop" aria-label="OQ!2 Warp 4 Workplace Shell desktop">
     <div class="warp-wordmark" aria-hidden="true"><span class="oq-word"><i>O</i><i>Q</i><i>!</i><i>2</i></span><span class="warp-word"><i>W</i><i>A</i><i>R</i><i>P</i></span></div>
     <div class="desktop-icons">
       <button type="button" class="object-icon" data-open="system-window"><span class="icon-art icon-system"></span><span>OQ!2 System</span></button>
+      <button type="button" class="object-icon" data-open="decon-window"><span class="icon-art icon-decon"></span><span>Word Deconstructor</span></button>
       <button type="button" class="object-icon" data-open="win-os2-window"><span class="icon-art icon-programs"></span><span>Programs</span></button>
       <button type="button" class="object-icon" data-open="dos-window"><span class="icon-art icon-dos"></span><span>Command Prompts</span></button>
     </div>
@@ -19,6 +20,7 @@
       <div class="os2-menu"><button type="button" data-menu="system-object-menu">Object</button><button type="button" data-menu="system-view-menu">View</button><button type="button" data-menu="system-help-menu">Help</button><ul class="os2-dropdown" id="system-object-menu" hidden><li><button type="button" data-open="native-window">Open</button></li><li><button type="button" data-close-window>Close</button></li></ul><ul class="os2-dropdown" id="system-view-menu" hidden><li><button type="button">Icon View</button></li><li><button type="button">Details View</button></li></ul><ul class="os2-dropdown" id="system-help-menu" hidden><li><button type="button">OQ!2 Help</button></li></ul></div>
       <div class="folder-view">
         <button type="button" class="program-icon" data-open="native-window"><span class="icon-art icon-oq"></span><small>OQ!2</small></button>
+        <button type="button" class="program-icon" data-open="decon-window"><span class="icon-art icon-decon"></span><small>Word Deconstructor</small></button>
         <button type="button" class="program-icon" data-open="win-os2-window"><span class="icon-art icon-programs"></span><small>Win-OQ!2</small></button>
         <button type="button" class="program-icon" data-open="dos-window"><span class="icon-art icon-dos"></span><small>DOS Window</small></button>
       </div>
@@ -27,6 +29,11 @@
       <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu"><span class="pm-icon pm-oq"></span></button><span>OQ!2 Dictionary — Presentation Manager</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
       <div class="os2-menu">File&nbsp;&nbsp;Edit&nbsp;&nbsp;View&nbsp;&nbsp;Help</div>
       <iframe src="../win31/index.html?screen=oq" title="Native OQ dictionary application"></iframe>
+    </section>
+    <section class="os2-window app-window" id="decon-window" hidden>
+      <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu"><span class="pm-icon pm-decon"></span></button><span>Word Deconstructor — Presentation Manager</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
+      <div class="os2-menu">File&nbsp;&nbsp;Edit&nbsp;&nbsp;View&nbsp;&nbsp;Help</div>
+      <iframe src="../win31/index.html?screen=decon" title="Word Deconstructor application"></iframe>
     </section>
     <section class="os2-window guest-window" id="win-os2-window" hidden>
       <header class="os2-titlebar"><button type="button" class="sysmenu" aria-label="System menu"><span class="pm-icon pm-win"></span></button><span>Win-OQ!2 — Windows 3.1 application</span><button type="button" class="minimize" aria-label="Minimize">_</button><button type="button" class="close-window" aria-label="Close">×</button></header>
@@ -37,6 +44,6 @@
       <iframe src="../dos/index.html" title="DOS window session"></iframe>
     </section>
   </main>
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>

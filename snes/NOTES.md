@@ -16,3 +16,5 @@ not NES-style pulse/triangle/noise, despite sharing a family row in
   check that runs.
 - `tests/test_snes.py` runs in CI when this theme changes.
 - In-LCD attract (45s idle, Mode 7 checkerboard on `#attract-canvas` inside `#snes-tv` only — PAL dogbone stays). Any `handleInput` / pad / key dismisses. Pauses on `document.hidden`. `prefers-reduced-motion` freezes the camera. Silent.
+
+- **DECON label:** menu / heading use **SUPER WORD DECONSTRUCTOR**; about copy says **Super Word Deconstructor**. Ids stay `menu-decon` / `screen=decon`.

@@ -1076,7 +1076,7 @@
       return;
     }
     if (cmd === "ls") {
-      appendConsole("OQ!  DECON  Terminal  about  Workspaces");
+      appendConsole("OQ!  Word Deconstructor  Terminal  about  Workspaces");
       return;
     }
     if (cmd === "workspaces") {

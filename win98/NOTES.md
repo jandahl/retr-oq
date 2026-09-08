@@ -25,3 +25,5 @@ not the SCSS source. Greenlandic flag, not a Windows logo.
 - Screen saver idle (45s) is Aquarium (`vendor/screensavers/aquarium/`, MIT,
   original Plus!-style remake). Start → Screen Savers flyout lists Aquarium,
   3D Pipes, 3D Maze, Backrooms (same host injects the flyout on xp/win7).
+
+- **DECON label:** user-visible name is **Word Deconstructor** (desktop icon, titlebar, Start menu; taskbar clones the titlebar text). Ids stay `win-decon` / `screen=decon`.

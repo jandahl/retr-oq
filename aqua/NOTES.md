@@ -65,9 +65,11 @@ still shared via `shared/osx/`. Font: TeX Gyre Heros from
   the tile to restore and remove it; the app’s normal Dock icon still
   focuses/restores. Closed (not minimized) → no tile. Magnify includes
   dynamic tiles.
-- **Rename (Aqua UI only):** user-visible “DECON” → **Word Deconstructor**
-  (window title, desktop/Finder/Dock labels, Go menu). Element ids /
-  `screen=decon` / `win-decon` unchanged for shared router + other themes.
+- **Rename:** user-visible “DECON” → **Word Deconstructor** (window title,
+  desktop/Finder/Dock labels, Go menu). Same long name is now the default on
+  most desktop/handheld themes; element ids / `screen=decon` / `win-decon`
+  stay shared. (mac8 uses “Deconstructor”; snes “Super Word Deconstructor”;
+  mac1984 “Word Parts”; dos/c64 keep DECON[.EXE].)
 - **Finder / Trash:** Macintosh HD is an icon-view Finder chrome with
   openable items (OQ!, Word Deconstructor, About, Trash); Trash shows an
   empty-state message (KDE-style substance, Aqua skin).

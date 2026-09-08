@@ -537,3 +537,66 @@ html, body {
 .c64-loading[hidden] {
   display: none;
 }
+
+/* DECON.PRG — PETSCII-safe result cards + Root-first toggle (same idiom as
+   dos/'s DECON.EXE chrome, recolored for VIC-II). */
+.decon-order-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5ch;
+  margin: 0.5em 0 0;
+  cursor: var(--cursor-arrow);
+}
+.decon-order-toggle input[type="checkbox"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  overflow: hidden;
+}
+.decon-checkbox-glyph::before {
+  content: "[ ]";
+}
+.decon-order-toggle input[type="checkbox"]:checked + .decon-checkbox-glyph::before {
+  content: "[X]";
+}
+.decon-order-toggle input[type="checkbox"]:focus-visible + .decon-checkbox-glyph {
+  outline: 1px solid var(--c64-lightblue);
+}
+.decon-card {
+  margin: 0 0 1.5em;
+  padding-bottom: 1em;
+  border-bottom: 1px dashed var(--c64-lightblue);
+}
+.decon-card:last-child {
+  border-bottom: none;
+}
+.decon-tag {
+  font-weight: bold;
+}
+.decon-tag--approximate {
+  color: var(--c64-yellow);
+}
+.decon-word {
+  font-weight: bold;
+}
+.decon-meaning {
+  margin: 0.5em 0;
+}
+.decon-breakdown {
+  margin: 0 0 1em;
+  padding-left: 2ch;
+}
+.decon-breakdown div {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.decon-changed {
+  color: var(--c64-red);
+}
+.decon-dict-match {
+  color: var(--c64-lightblue);
+}

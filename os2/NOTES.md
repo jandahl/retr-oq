@@ -8,3 +8,5 @@ deliberately reuses `win31/index.html`, and the DOS guest deliberately reuses
 The current scaffold uses iframe session boundaries. Replace those boundaries
 with shared guest modules only if embedding requires tighter routing or focus
 integration; do not copy either guest's application logic into this theme.
+
+- **Word Deconstructor** is a Workplace Shell object / PM window that iframes `win31/index.html?screen=decon`, mirroring how OQ!2 Dictionary iframes `?screen=oq`. Desktop + System folder icons open `#decon-window`.

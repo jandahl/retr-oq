@@ -19,3 +19,5 @@ is a filter, not the UI palette itself.
   pad) dismisses; the dismiss is consumed so it does not also fire the screen
   action. Pauses the plasma while `document.hidden`. `prefers-reduced-motion`
   freezes the plasma (still shows). Silent; no SEGA mark in the picture.
+
+- **DECON label:** menu / heading / about copy use **WORD DECONSTRUCTOR** (all-caps chrome). Ids stay `menu-decon` / `screen=decon`.

@@ -15,5 +15,7 @@ hand-drawn chrome, C64 Pro Mono).
 - `MORPH` is the built-in minigame, `KALQ` is Klax-alike — both loaded and
   run the same LOAD/RUN way as `DICT`.
 - RUN/STOP is the in-app "abort" key for whatever's currently running
-  (dict/morph/kalq), separate from `SYS 64738` which quits the whole
+  (dict/decon/morph/kalq), separate from `SYS 64738` which quits the whole
   emulator.
+
+- **DECON** is a real `LOAD"DECON",8` / `RUN` program (DIR listing + full-screen app), same single-tasking takeover as `DICT`. Period 16-char disk naming keeps the label **DECON**. Wired through `shared/decon-app.js` + `OqRouter` (`?screen=decon`). RUN/STOP aborts DECON like the other apps.
