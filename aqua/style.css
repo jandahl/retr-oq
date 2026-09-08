@@ -467,6 +467,13 @@ select {
   background: radial-gradient(circle at 35% 30%, #b8f0a8, #62c23a 55%, #2f7a18);
 }
 
+/* Disabled decorative traffic (TM preview) must keep jewel colors. */
+.osx-traffic:disabled {
+  opacity: 1;
+  filter: none;
+  -webkit-filter: none;
+}
+
 .osx-window.inactive .osx-traffic {
   background: radial-gradient(circle at 35% 30%, #f2f2f2, #c8c8c8 60%, #9a9a9a);
   border-color: rgba(0, 0, 0, 0.22);

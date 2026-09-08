@@ -52,7 +52,9 @@
   // ---------- Shell ----------
   const desktop = document.getElementById("desktop");
   const menuBar = document.getElementById("menu-bar");
-  const windows = Array.from(document.querySelectorAll(".osx-window:not(.osx-dialog)"));
+  const windows = Array.from(
+    document.querySelectorAll(".osx-window:not(.osx-dialog):not(.tm-oq-preview)"),
+  );
   const winOq = document.getElementById("win-oq");
   const winDecon = document.getElementById("win-decon");
   /** @type {HTMLElement | null} */

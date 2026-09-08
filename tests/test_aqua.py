@@ -534,18 +534,29 @@ def test_time_machine_galaxy_and_oq_preview(page, base_url):
     assert search.get_attribute("placeholder") in ("Type to search…", "Type to search...")
     assert preview.locator(".tm-oq-preview-status").inner_text().strip() != ""
     assert preview.evaluate("el => el.classList.contains('osx-window')") is True
+    # Preview must stay focused-looking: never inactive; traffic jewels always colored.
+    assert preview.evaluate("el => el.classList.contains('inactive')") is False
+    close_bg = preview.locator(".osx-btn-close").evaluate("el => getComputedStyle(el).backgroundImage")
+    assert "gradient" in close_bg
+    assert "rgb(194, 194, 194)" not in close_bg and "rgb(200, 200, 200)" not in close_bg
+    # Glyphs visible without hover (× on close).
+    close_glyph = preview.locator(".osx-btn-close").evaluate(
+        "el => getComputedStyle(el, '::before').content"
+    )
+    assert close_glyph not in ("none", '""', "''", "")
 
     # Fixed geometry must not jump when scrubbing eras (critique: non-canonical size).
     def preview_box():
+        # Use offset* (layout CSS px) — getBoundingClientRect scales with html zoom.
         return preview.evaluate(
-            "el => ({ w: Math.round(el.getBoundingClientRect().width),"
-            " h: Math.round(el.getBoundingClientRect().height),"
-            " th: Math.round(el.querySelector('.osx-titlebar').getBoundingClientRect().height),"
-            " tw: Math.round(el.querySelector('.osx-traffic').getBoundingClientRect().width) })"
+            "el => ({ w: el.offsetWidth,"
+            " h: el.offsetHeight,"
+            " th: el.querySelector('.osx-titlebar').offsetHeight,"
+            " tw: el.querySelector('.osx-traffic').offsetWidth })"
         )
 
     box0 = preview_box()
-    assert box0["w"] >= 280 and box0["h"] >= 170
+    assert box0["w"] == 300 and box0["h"] == 196
     assert box0["th"] == 22
     assert box0["tw"] == 10
 
@@ -555,6 +566,24 @@ def test_time_machine_galaxy_and_oq_preview(page, base_url):
     # Preview stays in the overlay and still exposes era-skinned chrome classes.
     assert page.locator("#tm-overlay #tm-oq-preview.osx-window").count() == 1
     assert page.locator("#tm-overlay #tm-oq-preview .osx-btn-close").count() == 1
+    assert preview.evaluate("el => el.classList.contains('inactive')") is False
+    assert preview_box() == box0
+
+    def titlebar_bg():
+        return preview.locator(".osx-titlebar").evaluate("el => getComputedStyle(el).backgroundImage")
+
+    tiger_bg = titlebar_bg()
+    page.click('.tm-era-card[data-era="aqua"]')
+    page.wait_for_timeout(40)
+    aqua_bg = titlebar_bg()
+    page.click('.tm-era-card[data-era="leopard"]')
+    page.wait_for_timeout(40)
+    leopard_bg = titlebar_bg()
+    # Early eras must not share identical titlebar materials.
+    assert aqua_bg != tiger_bg
+    assert tiger_bg != leopard_bg
+    assert aqua_bg != leopard_bg
+    assert preview.evaluate("el => el.classList.contains('inactive')") is False
     assert preview_box() == box0
 
     page.click('.tm-era-card[data-era="yosemite"]')

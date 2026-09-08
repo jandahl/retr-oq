@@ -2,6 +2,62 @@
    Applied via html[data-osx-era]. Aqua = default :root.
    Eras: aqua · tiger · leopard · lion · yosemite · bigsur · glass. */
 
+/* ---------- Aqua (2001) — classic jelly chrome (explicit era cues) ---------- */
+html[data-osx-era="aqua"] .osx-window {
+  border-radius: 9px 9px 6px 6px;
+  border-color: rgba(40, 55, 90, 0.55);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 10px 28px rgba(0, 0, 0, 0.3);
+}
+
+/* Soft pinstripe jelly titlebar — candy ridges over aqua wash */
+html[data-osx-era="aqua"] .osx-titlebar {
+  border-radius: 8px 8px 0 0;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.42) 0 1px,
+      rgba(255, 255, 255, 0.08) 1px 2px,
+      rgba(0, 0, 0, 0.1) 2px 3px
+    ),
+    linear-gradient(
+      180deg,
+      #e4eefc 0%,
+      #c0d4f0 42%,
+      #8ba4d1 52%,
+      #6a88c0 100%
+    );
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
+}
+
+html[data-osx-era="aqua"] .osx-body {
+  background: #fafbfd;
+  border-top: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+/* Candy / gel traffic lights — glossy highlight + deep jewel rim */
+html[data-osx-era="aqua"] .osx-traffic {
+  width: 12px;
+  height: 12px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 2px 3px rgba(0, 0, 0, 0.28);
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+html[data-osx-era="aqua"] .osx-btn-close {
+  background: radial-gradient(circle at 32% 28%, #ffd8d0 0%, #ff7a62 38%, #e2462e 68%, #8a1208 100%);
+}
+
+html[data-osx-era="aqua"] .osx-btn-minimize {
+  background: radial-gradient(circle at 32% 28%, #fff3c8 0%, #ffd24a 38%, #f0a820 68%, #9a6808 100%);
+}
+
+html[data-osx-era="aqua"] .osx-btn-zoom {
+  background: radial-gradient(circle at 32% 28%, #d8ffc8 0%, #7ee050 38%, #4aa828 68%, #1e6810 100%);
+}
+
 /* ---------- Tiger (2005) — unified toolbar energy, metal-ish, greener/blue ---------- */
 html[data-osx-era="tiger"] {
   --aqua-stripe-a: #e8eef2;
@@ -10,8 +66,8 @@ html[data-osx-era="tiger"] {
   --aqua-menubar-border: rgba(20, 40, 60, 0.28);
   --aqua-accent: #3d8f6a;
   --aqua-window: #e8ecef;
-  --aqua-title-active-top: #c8d8e4;
-  --aqua-title-active-bot: #6a8aaa;
+  --aqua-title-active-top: #d4e0ea;
+  --aqua-title-active-bot: #5a7888;
   --aqua-title-inactive-top: #e4e4e4;
   --aqua-title-inactive-bot: #b4b4b4;
   --aqua-dock: rgba(210, 220, 230, 0.42);
@@ -33,30 +89,64 @@ html[data-osx-era="tiger"] #shell {
     linear-gradient(168deg, #5aa890 0%, #3a8a78 38%, #2a6a88 72%, #1e5070 100%);
 }
 
-/* Metal-ish unified title strip — flatter ridges, brushed wash */
+/* Unified brushed-metal title — no candy jelly stripes */
 html[data-osx-era="tiger"] .osx-titlebar {
+  border-radius: 5px 5px 0 0;
   background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.22) 48%,
+      rgba(255, 255, 255, 0) 100%
+    ),
     repeating-linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.18) 0 1px,
-      rgba(0, 0, 0, 0.06) 1px 2px
+      90deg,
+      rgba(255, 255, 255, 0.1) 0 1px,
+      rgba(0, 0, 0, 0.05) 1px 2px,
+      transparent 2px 4px
     ),
     linear-gradient(
       180deg,
-      var(--aqua-title-active-top) 0%,
-      #9eb4c8 45%,
-      var(--aqua-title-active-bot) 55%,
-      #5a7898 100%
+      #d4e0ea 0%,
+      #b0c4d2 38%,
+      #7a9aaa 52%,
+      #5a7888 100%
     );
-  border-radius: 6px 6px 0 0;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+  border-bottom: 1px solid rgba(30, 50, 65, 0.35);
 }
 
 html[data-osx-era="tiger"] .osx-window {
-  border-radius: 6px 6px 4px 4px;
-  border-color: rgba(30, 40, 55, 0.5);
+  border-radius: 6px 6px 3px 3px;
+  border-color: rgba(30, 45, 60, 0.55);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.5) inset,
-    0 8px 22px rgba(0, 0, 0, 0.32);
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 8px 22px rgba(0, 0, 0, 0.34);
+}
+
+html[data-osx-era="tiger"] .osx-body {
+  background: #eef2f5;
+  border-top: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+/* Flatter mid-2000s traffic — less candy gel, cooler metal rim */
+html[data-osx-era="tiger"] .osx-traffic {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 1px 1px rgba(0, 0, 0, 0.22);
+  border-color: rgba(20, 40, 50, 0.45);
+}
+
+html[data-osx-era="tiger"] .osx-btn-close {
+  background: radial-gradient(circle at 35% 30%, #f0a098, #d04030 55%, #8a2018);
+}
+
+html[data-osx-era="tiger"] .osx-btn-minimize {
+  background: radial-gradient(circle at 35% 30%, #f0d878, #d0a020 55%, #8a6808);
+}
+
+html[data-osx-era="tiger"] .osx-btn-zoom {
+  background: radial-gradient(circle at 35% 30%, #a8d890, #48a038 55%, #286818);
 }
 
 /* Mid-2000s Dock: slightly flatter shelf, less extreme perspective */
@@ -130,10 +220,10 @@ html[data-osx-era="leopard"] {
   --aqua-menubar-border: rgba(0, 0, 0, 0.55);
   --aqua-accent: #4a7ec8;
   --aqua-window: #eceef2;
-  --aqua-title-active-top: #c8d4e8;
-  --aqua-title-active-bot: #6a82b0;
-  --aqua-title-inactive-top: #e0e0e0;
-  --aqua-title-inactive-bot: #b0b0b0;
+  --aqua-title-active-top: #8a9ab8;
+  --aqua-title-active-bot: #2a3a58;
+  --aqua-title-inactive-top: #c8c8cc;
+  --aqua-title-inactive-bot: #888890;
   --aqua-dock: rgba(30, 35, 45, 0.55);
   --aqua-text: #1a1a1a;
 }
@@ -242,26 +332,78 @@ html[data-osx-era="leopard"] .osx-dock-item.is-running::after {
 }
 
 html[data-osx-era="leopard"] .osx-window {
-  border-radius: 7px 7px 5px 5px;
+  border-radius: 5px 5px 3px 3px;
+  border-color: rgba(20, 25, 40, 0.55);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.55) inset,
-    0 12px 32px rgba(0, 0, 0, 0.4);
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 14px 36px rgba(0, 0, 0, 0.48);
 }
 
+/* Darker glossy Leopard title — reflective top highlight, no jelly stripes */
 html[data-osx-era="leopard"] .osx-titlebar {
+  border-radius: 4px 4px 0 0;
   background:
-    repeating-linear-gradient(
+    linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.22) 0 1px,
-      rgba(0, 0, 0, 0.07) 1px 2px
+      rgba(255, 255, 255, 0.55) 0%,
+      rgba(255, 255, 255, 0.12) 28%,
+      transparent 48%
     ),
     linear-gradient(
       180deg,
-      var(--aqua-title-active-top) 0%,
-      #a8b8d4 48%,
-      var(--aqua-title-active-bot) 52%,
-      #5a7298 100%
+      #8a9ab8 0%,
+      #5a6e90 42%,
+      #3a4e70 55%,
+      #2a3a58 100%
     );
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+html[data-osx-era="leopard"] .osx-title {
+  color: #f2f4f8;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(60, 75, 100, 0.35) 18%,
+    rgba(60, 75, 100, 0.35) 82%,
+    transparent 100%
+  );
+}
+
+html[data-osx-era="leopard"] .osx-body {
+  background: #eceef2;
+  border-top: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+/* Grey-glass traffic lights — glassy rim, muted colored cores (not Tiger candy) */
+html[data-osx-era="leopard"] .osx-traffic {
+  border-color: rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+html[data-osx-era="leopard"] .osx-btn-close {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 42%),
+    radial-gradient(circle at 35% 35%, #e8a098, #b03828 60%, #601808);
+}
+
+html[data-osx-era="leopard"] .osx-btn-minimize {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 42%),
+    radial-gradient(circle at 35% 35%, #e8d090, #b08818 60%, #685008);
+}
+
+html[data-osx-era="leopard"] .osx-btn-zoom {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 42%),
+    radial-gradient(circle at 35% 35%, #b0d0a0, #489028 60%, #204818);
 }
 
 /* Leopard + Graphite — greys accents; menubar stays dark (era base) */
@@ -523,6 +665,8 @@ html[data-osx-era="yosemite"] .osx-window {
 html[data-osx-era="yosemite"] .osx-titlebar {
   flex-basis: 20px;
   background: linear-gradient(180deg, #f4f5f7 0%, #e4e7ec 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: none;
 }
@@ -641,9 +785,10 @@ html[data-osx-era="bigsur"] .osx-titlebar {
   flex-basis: 28px;
   gap: 8px;
   padding: 0 12px;
-  background: rgba(248, 248, 250, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* Single flat material — window already carries translucency; no titlebar blur stack. */
+  background: #f4f4f6;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: none;
 }
@@ -816,11 +961,14 @@ html[data-osx-era="glass"] .osx-titlebar {
   flex-basis: 32px;
   gap: 10px;
   padding: 0 14px;
+  /* One titlebar wash — window-level blur/sheen owns glass depth. */
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(200, 220, 255, 0.2) 100%
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(200, 220, 255, 0.22) 100%
   );
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
@@ -943,8 +1091,7 @@ html[data-osx-era="glass"][data-appearance="graphite"] {
     -webkit-backdrop-filter: blur(8px);
   }
   html[data-osx-era="bigsur"] .osx-menubar,
-  html[data-osx-era="bigsur"] .osx-dock,
-  html[data-osx-era="bigsur"] .osx-titlebar {
+  html[data-osx-era="bigsur"] .osx-dock {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
@@ -1066,6 +1213,74 @@ html[data-osx-era] #tm-oq-preview .osx-titlebar {
   max-height: 22px !important;
   gap: 5px !important;
   padding: 0 8px !important;
+  /* Tiny preview: one titlebar fill only — no frost / stitch / specular stack. */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#tm-oq-preview .osx-titlebar::before,
+#tm-oq-preview .osx-titlebar::after,
+html[data-osx-era] #tm-oq-preview .osx-titlebar::before,
+html[data-osx-era] #tm-oq-preview .osx-titlebar::after {
+  content: none !important;
+  display: none !important;
+}
+
+/*
+ * Preview must read as focused: always-colored traffic + × − + glyphs
+ * without titlebar hover (and ignore :disabled greying).
+ */
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-traffic,
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-traffic:disabled {
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+}
+
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-close,
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-close:disabled {
+  background: radial-gradient(circle at 35% 30%, #ffb4a8, #e2462e 55%, #a31d0d) !important;
+}
+
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-minimize,
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-minimize:disabled {
+  background: radial-gradient(circle at 35% 30%, #ffe9a0, #f5c033 55%, #b8860b) !important;
+}
+
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-zoom,
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-zoom:disabled {
+  background: radial-gradient(circle at 35% 30%, #b8f0a8, #62c23a 55%, #2f7a18) !important;
+}
+
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-traffic::before {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-close::before {
+  content: "\00d7";
+}
+
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-minimize::before {
+  content: "\2212";
+  font-size: 9px;
+  margin-top: -1px;
+}
+
+#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-zoom::before {
+  content: "+";
+  font-size: 9px;
 }
 
 #tm-oq-preview .osx-traffic,

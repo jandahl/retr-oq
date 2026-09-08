@@ -430,6 +430,9 @@
     open = true;
     overlay.hidden = false;
     overlay.setAttribute("aria-hidden", "false");
+    // Preview is display-only chrome — never treat as an unfocused WM window.
+    const previewEl = document.getElementById("tm-oq-preview");
+    if (previewEl) previewEl.classList.remove("inactive");
     setSelected(indexOfEra(eraBeforeOpen), { preview: true });
     galaxy.start();
     // Focus selected card for keyboard.

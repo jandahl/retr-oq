@@ -202,7 +202,7 @@ Parity shell features (Screen Effects / ⌘-Tab / Clean Up, then chrome batch):
    Icons** toggles visibility and persists with `localStorage` key
    `retr-oq:aqua-desktop-icons` (mac8 parity).
 
-Cache-bust: `style.css?v=9`, `eras.css?v=3`, `app.js?v=10`, `timemachine.js?v=3`, `router.js?v=17` (loads screensaver `?v=30`).
+Cache-bust: `style.css?v=10`, `eras.css?v=5`, `app.js?v=11`, `timemachine.js?v=6`, `router.js?v=17` (loads screensaver `?v=30`).
 
 ## Aqua parity chrome (same branch)
 
@@ -236,9 +236,9 @@ homage). Prefer strong milestones over every point release (no Snow Leopard brid
 
 | Era id | Year | Look |
 | --- | --- | --- |
-| `aqua` (default) | 2001 | Cheetah–Puma jelly / 3D shelf Dock |
-| `tiger` | 2005 | Greener/blue wash, metal-ish titlebars, flatter mid-2000s Dock |
-| `leopard` | 2007 | Darker menubar, reflective Dock shelf, stack-ish Dock hint (CSS only) |
+| `aqua` (default) | 2001 | Classic jelly stripes, candy/gel traffic, soft pinstripe titlebar, roundish window, 3D shelf Dock |
+| `tiger` | 2005 | Greener/blue wash, **brushed-metal** titlebars (no jelly stripes), flatter traffic, mid-2000s Dock |
+| `leopard` | 2007 | Dark menubar, **dark glossy** titlebars + grey-glass traffic, tighter radius, reflective Dock / stack-ish hint |
 | `lion` | 2011 | Peak **skeuomorphism**: linen weave desktop, padded/stitched title cues, leather-ish Dock, chunkier glossy scrollers — original patterns, not Apple art |
 | `yosemite` | 2014 | Post-skeuomorph **translucent flat**: vibrancy-ish blur menubar, flatter windows, thinner titlebars, frosted strip Dock (no perspective shelf) |
 | `bigsur` | 2020 | Modern macOS: larger radius, denser blur, traffic spacing tweaks, fuller frosted Dock, soft abstract sky wash (not Big Sur wallpaper assets) |
@@ -298,6 +298,16 @@ Branch `polish/aqua-tm-galaxy-preview` (post-#176).
    width/height, titlebar height, traffic-light size, and body font sizes with
    selectors that beat `html[data-osx-era="…"] .osx-*` layout tweaks. Eras must
    not change overall mini-window dimensions or font-size blowouts in TM;
-   glass specular `::before` is suppressed on the preview. Cache-bust
-   `eras.css?v=4`, `timemachine.js?v=5`.
-4. **Calm crawl (dizzy fix)** — `rotSpeed=0`, star speed ≈0.0012 / reduced-motion 0, dust slower, streaks removed; `timemachine.js?v=5`.
+   glass specular `::before` is suppressed on the preview.
+4. **Calm crawl (dizzy fix)** — `rotSpeed=0`, star speed ≈0.0012 / reduced-motion 0, dust slower, streaks removed.
+5. **Early-era chrome delta (critique fix)** — Aqua / Tiger / Leopard titlebars,
+   borders, traffic, and light body chrome now diverge for real (jelly stripes +
+   candy gels vs brushed metal vs dark glossy + grey-glass). Preview geometry
+   stays locked.
+6. **Active preview traffic** — `#tm-oq-preview` is excluded from the window
+   manager (no `.inactive`), cleared on TM open, and CSS forces always-colored
+   red/yellow/green jewels + × − + glyphs without hover.
+7. **Titlebar material audit** — Big Sur / Yosemite / Glass titlebars use one
+   clear fill (no titlebar `backdrop-filter` stack); preview titlebar drops
+   frost and `::before`/`::after` sheens. Cache-bust `style.css?v=10`,
+   `eras.css?v=5`, `app.js?v=11`, `timemachine.js?v=6`.
