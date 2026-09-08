@@ -43,7 +43,8 @@
   // "OQ! router wiring"/"DECON" sections, mirroring win98/app.js's
   // identical wiring.
   const winOq = document.getElementById("win-oq");
-  // Word Deconstructor is a tab inside #win-oq; data-open=win-decon aliases via resolveOpen.
+  // Word Deconstructor is an Aero tab inside #win-oq. One OQ! launch icon;
+  // resolveOpen still maps a leftover win-decon id onto this shell.
   let pendingOqScreen = null;
 
   const { openWindow, forceOpenWindow, closeWindow } = window.OqRedmond.initWindowManager({

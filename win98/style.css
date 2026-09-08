@@ -320,48 +320,38 @@ body {
 }
 
 
-/* OQ! single-frame tabs: Dictionary ↔ Word Deconstructor (one taskbar
-   button). Period-plausible tab strip under the title bar; not a second
-   top-level window. */
+/* OQ! property-sheet chrome: one shell window, Dictionary ↔ Word
+   Deconstructor as a real 98.css Tab control (menu[role=tablist] with
+   overlapping raised tabs sitting on a .window[role=tabpanel] client),
+   not a flat web flex strip. One taskbar button. */
 .oq-shell-body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   gap: 0;
-  padding-top: 4px;
+  /* Tighter than default .window-body margin so the tab row can sit flush
+     against the sheet the way Display Properties does. */
+  margin: 6px;
+  padding: 0;
 }
 
-.oq-tabstrip {
-  display: flex;
+.oq-shell-body > menu.oq-tabs[role="tablist"] {
   flex-shrink: 0;
-  gap: 2px;
-  padding: 0 2px;
-  margin-bottom: 6px;
+  margin-bottom: -2px; /* 98.css already uses -2px; keep the overlap */
 }
 
-.oq-tab {
-  font: inherit;
-  font-size: 11px;
-  padding: 3px 10px 2px;
-  cursor: pointer;
-  border: 1px solid #808080;
-  border-bottom-color: transparent;
-  background: #c0c0c0;
-  color: #000;
-  position: relative;
-  top: 1px;
-}
-
-.oq-tab.is-active {
-  background: #c0c0c0;
-  border-bottom-color: #c0c0c0;
-  font-weight: bold;
-  z-index: 1;
-}
-
-.oq-tab:not(.is-active) {
-  background: #b5b5b5;
-  color: #222;
+/* Nested .window.oq-sheet is the raised property-sheet client under the
+   tabs (98.css .window[role=tabpanel]). Fill the remaining body height. */
+.oq-sheet {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 0 !important;
+  /* Override .window-body-ish padding so Dictionary/Decon layouts own it. */
+  padding: 6px !important;
+  box-sizing: border-box;
 }
 
 .oq-view {

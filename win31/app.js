@@ -23,8 +23,8 @@
   const mdiDecon = document.getElementById("mdi-decon");
   const mdiClient = document.getElementById("oq-mdi-client");
   const mdiChildren = [mdiOq, mdiDecon].filter(Boolean);
-  // Program Manager still has a Word Deconstructor icon (data-open=win-decon);
-  // resolveOpen maps it onto the single OQ! MDI frame + pending child.
+  // Program Manager has one OQ! icon. resolveOpen still maps a leftover
+  // win-decon id onto the single OQ! MDI frame + pending child if present.
   let pendingOqScreen = null;
   const winProgman = document.getElementById("win-progman");
   const winClock = document.getElementById("win-clock");
@@ -302,7 +302,6 @@
     // minimizes that group (and Program Manager stays put).
     const launchers = {
       "win-oq": document.getElementById("win-group-main"),
-      "win-decon": document.getElementById("win-group-main"),
       "win-clock": document.getElementById("win-group-acc"),
       "win-solitaire": document.getElementById("win-group-games"),
     };

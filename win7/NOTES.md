@@ -14,6 +14,11 @@ the lineage's default "outline" style.
 - Shut Down → `../`, same reference pattern as `win98/`.
 - 3D Pipes remake (`vendor/screensavers/pipes/`, MIT) on idle (45s) and Start → 3D Pipes.
 
-- **OQ!/DECON chrome:** same single-window + tab pattern as `win98/` (Dictionary ↔ Word Deconstructor). One taskbar button; `screen=oq` / `screen=decon` select the tab.
+- **OQ!/DECON chrome:** one main window + **7.css Aero Tab control**
+  (`menu[role=tablist] > button` + `[role=tabpanel]`). One desktop icon,
+  one Start menu entry (`OQ!`), one taskbar button. `?screen=decon` focuses
+  the Deconstructor tab. Title bar stays **OQ!**. No second desktop/Start
+  target; ids `win-decon` / `screen=decon` remain for the router.
 
-- **DECON label:** user-visible name is **Word Deconstructor** (desktop icon, titlebar, Start menu; taskbar clones the titlebar text). Ids stay `win-decon` / `screen=decon`.
+- **DECON label:** user-visible name is **Word Deconstructor** (tab label
+  inside the OQ! shell). Ids stay `win-decon` / `screen=decon`.
