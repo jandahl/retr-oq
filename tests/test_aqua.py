@@ -25,6 +25,28 @@ def goto_aqua(page, base_url):
     return errors, console_errors, unexpected_404s
 
 
+# Small dict fixture for TM OQ! preview (same shape as shared/dict-source.js /
+# win98 OQ tests). Avoids the real ~5.75MB fetch in CI.
+TM_OQ_FIXTURE_ENTRIES = [
+    {"lexeme": "illu", "gloss_en": "house"},
+    {"lexeme": "nuna", "gloss_en": "land"},
+    {"lexeme": "qajaq", "gloss_en": "kayak"},
+    {"lexeme": "imiq", "gloss_en": "fresh water"},
+    {"lexeme": "a", "gloss_en": "too short"},  # skipped by 3–14 char rule
+    {"lexeme": "verylonglexemehere", "gloss_en": "too long"},  # skipped
+    {"lexeme": "sila", "gloss_en": ""},  # empty gloss skipped by dict-source filter too
+]
+
+
+def mock_tm_dict_source(page):
+    page.route(
+        "**/Oqaasileriffik-dicts/all_entries.json",
+        lambda route: route.fulfill(
+            json={"dictionary_entries": TM_OQ_FIXTURE_ENTRIES}
+        ),
+    )
+
+
 def test_loads_clean_without_power_button_boot(page, base_url):
     errors, console_errors, unexpected_404s = goto_aqua(page, base_url)
     assert errors == []
@@ -509,6 +531,7 @@ def test_time_machine_scrubber_reaches_lion_and_yosemite(page, base_url):
 
 def test_time_machine_galaxy_and_oq_preview(page, base_url):
     """TM overlay includes galaxy canvas + live OQ! chrome preview that tracks era."""
+    mock_tm_dict_source(page)
     goto_aqua(page, base_url)
     page.evaluate("() => window.__aquaTimeMachine.open()")
     page.wait_for_timeout(80)
@@ -528,11 +551,27 @@ def test_time_machine_galaxy_and_oq_preview(page, base_url):
     assert preview.locator(".osx-traffic").count() == 3
     assert preview.locator(".osx-title").inner_text() == "OQ!"
     assert preview.locator(".oq-table").count() == 1
-    assert preview.locator(".oq-table td").count() >= 6
+    # Wait for dict-backed sample rows (mocked JSON; no fake oqaatsit placeholders).
+    page.wait_for_function(
+        """() => {
+          const cells = document.querySelectorAll('#tm-oq-preview .oq-table tbody td');
+          return [...cells].some(td => td.textContent === 'illu');
+        }""",
+        timeout=5000,
+    )
+    row_text = preview.locator(".oq-table tbody").inner_text()
+    assert "illu" in row_text and "house" in row_text
+    assert "nuna" in row_text and "qajaq" in row_text and "imiq" in row_text
+    assert "oqaatsit" not in row_text
+    assert preview.locator(".oq-table tbody tr").count() == 4
+    assert preview.locator(".oq-table td").count() >= 8
     search = preview.locator('.aqua-field-row input[type="text"]')
     assert search.count() == 1
     assert search.get_attribute("placeholder") in ("Type to search…", "Type to search...")
-    assert preview.locator(".tm-oq-preview-status").inner_text().strip() != ""
+    status = preview.locator(".tm-oq-preview-status").inner_text().strip()
+    assert status != ""
+    assert "4 of" in status or "dictionary" in status.lower()
+    assert "Could not load" not in status
     assert preview.evaluate("el => el.classList.contains('osx-window')") is True
     # Preview must stay focused-looking: is-focused, never inactive; no disabled UA grey.
     assert preview.evaluate("el => el.classList.contains('inactive')") is False

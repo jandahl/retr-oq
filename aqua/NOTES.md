@@ -290,7 +290,7 @@ Branch `polish/aqua-tm-galaxy-preview` (post-#176).
    hides. `prefers-reduced-motion` is fully static.
 2. **OQ! preview** — `#tm-oq-preview` miniature `.osx-window` with traffic
    lights, readable title **OQ!**, search placeholder “Type to search…”,
-   sample Kalaallisut lexeme/gloss rows, and a status line. Scrubbing eras
+   dictionary-backed Kalaallisut lexeme/gloss sample rows, and a status line. Scrubbing eras
    calls `applyEra` → `html[data-osx-era]`, so the preview inherits era
    *materials* (colors / textures / radius / titlebar wash) as the desktop
    before Restore.
@@ -316,7 +316,12 @@ Branch `polish/aqua-tm-galaxy-preview` (post-#176).
    Preview titlebar uses one opaque era-specific `background` only, kills
    `::before`/`::after`, and `#tm-oq-preview .osx-title { background: none }`.
    Cache-bust `style.css?v=12`, `eras.css?v=7`, `app.js?v=11`,
-   `timemachine.js?v=7`.
+   `timemachine.js?v=8`.
+8. **OQ! preview lexemes from real dict** — on first TM open, `timemachine.js`
+   calls `window.OqDictSource.loadDictEntries()` and fills `#tm-oq-preview`
+   tbody with 4 short (3–14 char) `{lexeme,gloss_en}` rows via `textContent`
+   (no fake oqaatsit/sila/nuna/imiq placeholders). Status shows `4 of {N} ·
+   dictionary sample`; load failure clears rows and shows a one-line error.
 
 ## Era palette sources
 

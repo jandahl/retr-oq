@@ -424,6 +424,88 @@
     });
   }
 
+
+  // OQ! chrome preview: fill sample rows from the real Oqaasileriffik dict
+  // (window.OqDictSource), not hardcoded placeholders. Load once on first open.
+  let oqPreviewLoaded = false;
+  let oqPreviewLoading = false;
+
+  function tmPreviewTbody() {
+    return document.querySelector("#tm-oq-preview .oq-table tbody");
+  }
+
+  function tmPreviewStatus() {
+    return document.querySelector("#tm-oq-preview .tm-oq-preview-status");
+  }
+
+  /** Prefer short lexemes (3–14 chars) with non-empty gloss; take first 4. */
+  function pickPreviewEntries(entries) {
+    const out = [];
+    for (const e of entries) {
+      const lex = (e && e.lexeme ? String(e.lexeme) : "").trim();
+      const gloss = (e && e.gloss_en ? String(e.gloss_en) : "").trim();
+      if (!lex || !gloss) continue;
+      if (lex.length < 3 || lex.length > 14) continue;
+      out.push({ lexeme: lex, gloss_en: gloss });
+      if (out.length >= 4) break;
+    }
+    return out;
+  }
+
+  function renderPreviewRows(rows) {
+    const tbody = tmPreviewTbody();
+    if (!tbody) return;
+    tbody.textContent = "";
+    for (const row of rows) {
+      const tr = document.createElement("tr");
+      const tdLex = document.createElement("td");
+      const tdGloss = document.createElement("td");
+      tdLex.textContent = row.lexeme;
+      tdGloss.textContent = row.gloss_en;
+      tr.append(tdLex, tdGloss);
+      tbody.appendChild(tr);
+    }
+  }
+
+  function fillOqPreviewFromDict() {
+    if (oqPreviewLoaded || oqPreviewLoading) return;
+    const status = tmPreviewStatus();
+    const src = window.OqDictSource;
+    if (!src || typeof src.loadDictEntries !== "function") {
+      if (status) status.textContent = "Dictionary unavailable.";
+      renderPreviewRows([]);
+      return;
+    }
+    oqPreviewLoading = true;
+    if (status) status.textContent = "Loading dictionary…";
+    src
+      .loadDictEntries()
+      .then((entries) => {
+        const list = Array.isArray(entries) ? entries : [];
+        const sample = pickPreviewEntries(list);
+        renderPreviewRows(sample);
+        oqPreviewLoaded = true;
+        if (status) {
+          const n = sample.length;
+          const total = list.length;
+          status.textContent =
+            n === 0
+              ? "No sample lexemes."
+              : `${n} of ${total.toLocaleString()} · dictionary sample`;
+        }
+      })
+      .catch((err) => {
+        renderPreviewRows([]);
+        if (status) {
+          const msg = err && err.message ? String(err.message) : "load failed";
+          status.textContent = `Could not load dictionary (${msg}).`;
+        }
+      })
+      .finally(() => {
+        oqPreviewLoading = false;
+      });
+  }
+
   function openTM() {
     if (open || transitioning) return;
     eraBeforeOpen = currentEra();
@@ -445,6 +527,7 @@
       }
     }
     galaxy.start();
+    fillOqPreviewFromDict();
     // Focus selected card for keyboard.
     const sel = timeline.querySelector(".tm-era-card.is-selected");
     if (sel) sel.focus();
