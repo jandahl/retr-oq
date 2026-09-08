@@ -166,8 +166,11 @@ Fixes vs Jan’s critique, on top of #168–#171:
    windows, Dock, menubar. Bare desktop shows a small Aqua menu (New
    Finder Window → HD, Get Info → About, Change Desktop Background /
    Show View Options stubs). Pattern borrowed from mac8/app.js.
-6. **CI.** `aqua` filter in `.github/workflows/theme-tests.yml` +
-   `tests/test_aqua.py` regressions.
+6. **CI.** `tests/test_aqua.py` regressions added. The
+   `.github/workflows/theme-tests.yml` `aqua:` path filter is prepared
+   in the PR description (OAuth token lacks `workflow` scope to push
+   workflow files from this agent — paste/apply once with a
+   workflow-scoped token).
 7. **About This Computer.** KDE-quality copy: period Aqua description,
    `shared/osx`, original-art disclaimer, Leave → hub + Shut Down.
 8. **Trash.** Dropped “The Trash is empty.” smug line. Friendlier empty
