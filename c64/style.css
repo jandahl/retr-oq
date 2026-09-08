@@ -82,34 +82,8 @@ html, body {
      barely-there line on a narrow phone screen instead of a fixed em value
      eating a chunk of already-scarce width there. */
   --c64-border: clamp(4px, 1.5vw, 14px);
-  /* One font-size system (see .c64-screen's own comment below) -- but a
-     single FIXED value that fits a 40-column line on desktop is far too
-     big for a phone: at 20px it starves DICT.EXE's results table down to
-     almost no visible width per cell, since that table wraps instead of
-     scrolling (no lexeme fits before wrapping into an unreadable stack of
-     single syllables). clamp() scales the one shared value down together
-     with the viewport instead, the same way a whole real CRT image would
-     shrink if you stepped back from it -- not different sizes for
-     different elements, just one size that adapts.
-
-     Not tuned to make #c64-dir's 40-column pre-formatted lines fit with
-     zero horizontal scroll at every width -- this font's characters are
-     roughly 1em wide (a real C64 pixel-cell aspect, not the ~0.6em typical
-     text fonts use), so a literal 40-char-fit floor would bottom out
-     around 7-8px, unreadably small. dos/'s own dir listing already
-     accepts the same horizontal-scroll-on-narrow-phones tradeoff (see
-     CLAUDE.md) for the same reason -- #c64-dir's `overflow: auto` handles
-     it the same way. What this range is tuned against is DICT.EXE's
-     results table instead, which reflows (wraps) rather than scrolling,
-     so it actually needs a legible size, not just a fitting one.
-
-     Lowered again (13-20px -> 11-18px, 3.4vw -> 3vw coefficient) after
-     real-device feedback that the first pass still read too large on an
-     actual phone, not just a simulated narrow viewport -- this font's
-     bold, full-block glyphs read bigger per-pixel than a typical text
-     font at the same font-size, so the fitting math alone undersold how
-     large it'd actually look. */
-  --c64-font-size: clamp(11px, 3vw, 18px);
+  /* Keep the BASIC display on one fixed 40-column character grid. */
+  --c64-font-size: 16px;
   /* GEOS-style blocky diagonal pointer: 1-bit black/white, C64 gamut only. */
   --cursor-arrow: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxMiIgdmlld0JveD0iMCAwIDEyIDEyIiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPjxwYXRoIGQ9Ik0xIDEgTDEgOSBMMyA3LjIgTDQuMyAxMC41IEw2IDkuOCBMNC43IDYuNSBMOCA2LjUgWiIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuMyIvPjwvc3ZnPgo=") 1 1, default;
 }
@@ -211,7 +185,7 @@ html, body {
 
 .c64-program-row {
   display: grid;
-  grid-template-columns: 27ch 13ch;
+  grid-template-columns: 24ch 16ch;
   width: 40ch;
   white-space: pre;
 }
@@ -562,10 +536,4 @@ html, body {
 }
 .c64-loading[hidden] {
   display: none;
-}
-
-@media (min-width: 900px) {
-  :root {
-    --c64-font-size: clamp(14px, 1.5vw, 22px);
-  }
 }
