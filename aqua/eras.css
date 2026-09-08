@@ -23,16 +23,16 @@ html[data-osx-era="aqua"] .osx-titlebar {
     ),
     linear-gradient(
       180deg,
-      #e4eefc 0%,
-      #c0d4f0 42%,
-      #8ba4d1 52%,
-      #6a88c0 100%
+      #e3eefa 0%,
+      #afc8e8 42%,
+      #7fa4d4 55%,
+      #5f8cc4 100%
     );
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
 }
 
 html[data-osx-era="aqua"] .osx-body {
-  background: #fafbfd;
+  background: #eef2f7;
   border-top: 1px solid rgba(255, 255, 255, 0.85);
 }
 
@@ -58,7 +58,7 @@ html[data-osx-era="aqua"] .osx-btn-zoom {
   background: radial-gradient(circle at 32% 28%, #d8ffc8 0%, #7ee050 38%, #4aa828 68%, #1e6810 100%);
 }
 
-/* ---------- Tiger (2005) — unified toolbar energy, metal-ish, greener/blue ---------- */
+/* ---------- Tiger (2005) — unified muted blue-grey metal; Aurora desktop nod ---------- */
 html[data-osx-era="tiger"] {
   --aqua-stripe-a: #e8eef2;
   --aqua-stripe-b: #dce6ec;
@@ -66,30 +66,31 @@ html[data-osx-era="tiger"] {
   --aqua-menubar-border: rgba(20, 40, 60, 0.28);
   --aqua-accent: #3d8f6a;
   --aqua-window: #e8ecef;
-  --aqua-title-active-top: #d4e0ea;
-  --aqua-title-active-bot: #5a7888;
+  --aqua-title-active-top: #e0e6ea;
+  --aqua-title-active-bot: #6a747e;
   --aqua-title-inactive-top: #e4e4e4;
   --aqua-title-inactive-bot: #b4b4b4;
   --aqua-dock: rgba(210, 220, 230, 0.42);
 }
 
 html[data-osx-era="tiger"] #shell {
-  background-color: #2f7a68;
+  /* Subtle Aurora nod: cool blue sky with soft teal wash — not green jungle chrome. */
+  background-color: #3a6a80;
   background-image:
     repeating-linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.14) 0 1px,
+      rgba(255, 255, 255, 0.12) 0 1px,
       rgba(255, 255, 255, 0.03) 1px 2px,
-      rgba(20, 70, 55, 0.16) 2px 3px,
-      rgba(40, 110, 90, 0.06) 3px 5px
+      rgba(20, 50, 70, 0.14) 2px 3px,
+      rgba(40, 90, 120, 0.06) 3px 5px
     ),
-    radial-gradient(ellipse 85% 65% at 20% 18%, rgba(160, 230, 200, 0.4) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 55% at 88% 12%, rgba(100, 180, 220, 0.32) 0%, transparent 50%),
-    radial-gradient(ellipse 75% 50% at 65% 82%, rgba(30, 90, 110, 0.45) 0%, transparent 55%),
-    linear-gradient(168deg, #5aa890 0%, #3a8a78 38%, #2a6a88 72%, #1e5070 100%);
+    radial-gradient(ellipse 85% 65% at 20% 18%, rgba(140, 210, 230, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 88% 12%, rgba(100, 180, 210, 0.28) 0%, transparent 50%),
+    radial-gradient(ellipse 75% 50% at 65% 82%, rgba(30, 80, 110, 0.4) 0%, transparent 55%),
+    linear-gradient(168deg, #5a98a8 0%, #3a7890 38%, #2a6088 72%, #1e4870 100%);
 }
 
-/* Unified brushed-metal title — no candy jelly stripes */
+/* Unified brushed-metal title — muted blue-grey, no candy jelly / no green wash */
 html[data-osx-era="tiger"] .osx-titlebar {
   border-radius: 5px 5px 0 0;
   background:
@@ -107,10 +108,10 @@ html[data-osx-era="tiger"] .osx-titlebar {
     ),
     linear-gradient(
       180deg,
-      #d4e0ea 0%,
-      #b0c4d2 38%,
-      #7a9aaa 52%,
-      #5a7888 100%
+      #e0e6ea 0%,
+      #c4ccd4 38%,
+      #8a949e 52%,
+      #6a747e 100%
     );
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
   border-bottom: 1px solid rgba(30, 50, 65, 0.35);
@@ -212,7 +213,7 @@ html[data-osx-era="tiger"][data-appearance="graphite"] #shell {
     linear-gradient(168deg, #7a8488 0%, #5a6568 45%, #3a4448 100%);
 }
 
-/* ---------- Leopard (2007) — darker menubar, reflective Dock, stack-ish CSS ---------- */
+/* ---------- Leopard (2007) — grey menubar, cool grey titlebars, reflective Dock ---------- */
 html[data-osx-era="leopard"] {
   --aqua-stripe-a: #e4e8ec;
   --aqua-stripe-b: #d6dce4;
@@ -220,8 +221,8 @@ html[data-osx-era="leopard"] {
   --aqua-menubar-border: rgba(0, 0, 0, 0.55);
   --aqua-accent: #4a7ec8;
   --aqua-window: #eceef2;
-  --aqua-title-active-top: #8a9ab8;
-  --aqua-title-active-bot: #2a3a58;
+  --aqua-title-active-top: #c4c8cc;
+  --aqua-title-active-bot: #3a4046;
   --aqua-title-inactive-top: #c8c8cc;
   --aqua-title-inactive-bot: #888890;
   --aqua-dock: rgba(30, 35, 45, 0.55);
@@ -229,11 +230,12 @@ html[data-osx-era="leopard"] {
 }
 
 html[data-osx-era="leopard"] #shell {
+  /* Cool night sky — blue greys only; no invented purple. */
   background-color: #1a2840;
   background-image:
     radial-gradient(ellipse 100% 80% at 50% 0%, rgba(80, 120, 180, 0.35) 0%, transparent 55%),
     radial-gradient(ellipse 60% 50% at 10% 90%, rgba(40, 80, 120, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 40% at 90% 70%, rgba(60, 40, 90, 0.3) 0%, transparent 45%),
+    radial-gradient(ellipse 50% 40% at 90% 70%, rgba(50, 70, 100, 0.28) 0%, transparent 45%),
     linear-gradient(180deg, #2a4060 0%, #1a2840 40%, #0e1828 100%);
 }
 
@@ -339,22 +341,22 @@ html[data-osx-era="leopard"] .osx-window {
     0 14px 36px rgba(0, 0, 0, 0.48);
 }
 
-/* Darker glossy Leopard title — reflective top highlight, no jelly stripes */
+/* Cool grey / graphite-adjacent Leopard title — soft top highlight, no aqua blue */
 html[data-osx-era="leopard"] .osx-titlebar {
   border-radius: 4px 4px 0 0;
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.55) 0%,
-      rgba(255, 255, 255, 0.12) 28%,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0.1) 28%,
       transparent 48%
     ),
     linear-gradient(
       180deg,
-      #8a9ab8 0%,
-      #5a6e90 42%,
-      #3a4e70 55%,
-      #2a3a58 100%
+      #c4c8cc 0%,
+      #90969c 40%,
+      #5a6066 55%,
+      #3a4046 100%
     );
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.35) inset,
@@ -366,7 +368,7 @@ html[data-osx-era="leopard"] .osx-title {
   color: #f2f4f8;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
   background: none;
-  }
+}
 
 html[data-osx-era="leopard"] .osx-body {
   background: #eceef2;
@@ -983,18 +985,18 @@ html[data-osx-era="glass"] .osx-title {
   color: #0a1628;
 }
 
-/* Specular highlight strip across glass panels */
+/* Specular strip starts below titlebar so chrome isn't double-frosted. */
 html[data-osx-era="glass"] .osx-window::before {
   content: "";
   position: absolute;
-  top: 0;
+  top: 32px;
   left: 8%;
   right: 25%;
-  height: 40%;
-  border-radius: 16px 16px 40% 40%;
+  height: calc(40% - 32px);
+  border-radius: 0 0 40% 40%;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0.28) 0%,
     transparent 100%
   );
   pointer-events: none;
@@ -1207,9 +1209,34 @@ html[data-osx-era] #tm-oq-preview .osx-titlebar {
   max-height: 22px !important;
   gap: 5px !important;
   padding: 0 8px !important;
-  /* Tiny preview: one titlebar fill only — no frost / stitch / specular stack. */
+  /* Tiny preview: one opaque titlebar fill only — no frost / stitch / specular stack. */
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  background: linear-gradient(180deg, #e3eefa 0%, #afc8e8 48%, #7fa4d4 100%) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset !important;
+}
+
+/* Era-specific opaque single-layer preview titlebars (materials only; metrics locked). */
+html[data-osx-era="aqua"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e3eefa 0%, #afc8e8 42%, #7fa4d4 55%, #5f8cc4 100%) !important;
+}
+html[data-osx-era="tiger"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e0e6ea 0%, #c4ccd4 38%, #8a949e 52%, #6a747e 100%) !important;
+}
+html[data-osx-era="leopard"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #c4c8cc 0%, #90969c 40%, #5a6066 55%, #3a4046 100%) !important;
+}
+html[data-osx-era="lion"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #ebe6dc 0%, #d0b898 42%, #c0b8a8 58%, #8a6848 100%) !important;
+}
+html[data-osx-era="yosemite"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #f4f5f7 0%, #e4e7ec 100%) !important;
+}
+html[data-osx-era="bigsur"] #tm-oq-preview .osx-titlebar {
+  background: #f4f4f6 !important;
+}
+html[data-osx-era="glass"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e8f0ff 0%, #c8d8f0 100%) !important;
 }
 
 #tm-oq-preview .osx-titlebar::before,
@@ -1221,34 +1248,66 @@ html[data-osx-era] #tm-oq-preview .osx-titlebar::after {
 }
 
 /*
- * Preview must read as focused: always-colored traffic + × − + glyphs
- * without titlebar hover (and ignore :disabled greying).
+ * Preview traffic: always active candy jewels. Do NOT use [disabled] —
+ * WebKit UA greying wins over author backgrounds. Buttons are non-interactive
+ * via pointer-events:none on #tm-oq-preview + tabindex=-1 + aria-hidden.
+ * Rules last + html[data-osx-era] #tm-oq-preview specificity + !important.
  */
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-traffic,
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-traffic:disabled {
+html[data-osx-era] #tm-oq-preview .osx-traffic,
+#tm-oq-preview .osx-traffic,
+html[data-osx-era] #tm-oq-preview.is-focused .osx-traffic,
+#tm-oq-preview.is-focused .osx-traffic {
   opacity: 1 !important;
   filter: none !important;
   -webkit-filter: none !important;
-  border: 1px solid rgba(0, 0, 0, 0.35);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  border: 1px solid rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset !important;
+  width: 10px !important;
+  height: 10px !important;
+  margin: 0 !important;
+  margin-right: 0 !important;
+  flex: 0 0 10px !important;
 }
 
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-close,
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-close:disabled {
+html[data-osx-era] #tm-oq-preview .osx-btn-close,
+#tm-oq-preview .osx-btn-close,
+html[data-osx-era] #tm-oq-preview.is-focused .osx-btn-close,
+#tm-oq-preview.is-focused .osx-btn-close {
   background: radial-gradient(circle at 35% 30%, #ffb4a8, #e2462e 55%, #a31d0d) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  margin-right: 0 !important;
 }
 
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-minimize,
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-minimize:disabled {
+html[data-osx-era] #tm-oq-preview .osx-btn-minimize,
+#tm-oq-preview .osx-btn-minimize,
+html[data-osx-era] #tm-oq-preview.is-focused .osx-btn-minimize,
+#tm-oq-preview.is-focused .osx-btn-minimize {
   background: radial-gradient(circle at 35% 30%, #ffe9a0, #f5c033 55%, #b8860b) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
 }
 
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-zoom,
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-zoom:disabled {
+html[data-osx-era] #tm-oq-preview .osx-btn-zoom,
+#tm-oq-preview .osx-btn-zoom,
+html[data-osx-era] #tm-oq-preview.is-focused .osx-btn-zoom,
+#tm-oq-preview.is-focused .osx-btn-zoom {
   background: radial-gradient(circle at 35% 30%, #b8f0a8, #62c23a 55%, #2f7a18) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
 }
 
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-traffic::before {
+/* Always show × − + (not hover-gated). */
+html[data-osx-era] #tm-oq-preview .osx-traffic::before,
+#tm-oq-preview .osx-traffic::before {
   position: absolute;
   inset: 0;
   display: flex;
@@ -1262,33 +1321,22 @@ html[data-osx-era] #tm-oq-preview .osx-titlebar::after {
   pointer-events: none;
 }
 
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-close::before {
+html[data-osx-era] #tm-oq-preview .osx-btn-close::before,
+#tm-oq-preview .osx-btn-close::before {
   content: "\00d7";
 }
 
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-minimize::before {
+html[data-osx-era] #tm-oq-preview .osx-btn-minimize::before,
+#tm-oq-preview .osx-btn-minimize::before {
   content: "\2212";
   font-size: 9px;
   margin-top: -1px;
 }
 
-#tm-oq-preview.tm-oq-preview:not(.inactive) .osx-btn-zoom::before {
+html[data-osx-era] #tm-oq-preview .osx-btn-zoom::before,
+#tm-oq-preview .osx-btn-zoom::before {
   content: "+";
   font-size: 9px;
-}
-
-#tm-oq-preview .osx-traffic,
-html[data-osx-era] #tm-oq-preview .osx-traffic {
-  width: 10px !important;
-  height: 10px !important;
-  margin: 0 !important;
-  margin-right: 0 !important;
-  flex: 0 0 10px !important;
-}
-
-#tm-oq-preview .osx-btn-close,
-html[data-osx-era] #tm-oq-preview .osx-btn-close {
-  margin-right: 0 !important;
 }
 
 #tm-oq-preview .osx-title,
@@ -1298,6 +1346,7 @@ html[data-osx-era] #tm-oq-preview .osx-title {
   line-height: 1.1 !important;
   color: #1a1a1a !important;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+  background: none !important;
 }
 
 #tm-oq-preview .tm-oq-preview-body.osx-body,

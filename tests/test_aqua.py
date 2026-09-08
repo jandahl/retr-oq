@@ -534,16 +534,29 @@ def test_time_machine_galaxy_and_oq_preview(page, base_url):
     assert search.get_attribute("placeholder") in ("Type to search…", "Type to search...")
     assert preview.locator(".tm-oq-preview-status").inner_text().strip() != ""
     assert preview.evaluate("el => el.classList.contains('osx-window')") is True
-    # Preview must stay focused-looking: never inactive; traffic jewels always colored.
+    # Preview must stay focused-looking: is-focused, never inactive; no disabled UA grey.
     assert preview.evaluate("el => el.classList.contains('inactive')") is False
+    assert preview.evaluate("el => el.classList.contains('is-focused')") is True
+    for sel in (".osx-btn-close", ".osx-btn-minimize", ".osx-btn-zoom"):
+        assert preview.locator(sel).get_attribute("disabled") is None
+        assert preview.locator(sel).get_attribute("tabindex") == "-1"
     close_bg = preview.locator(".osx-btn-close").evaluate("el => getComputedStyle(el).backgroundImage")
     assert "gradient" in close_bg
     assert "rgb(194, 194, 194)" not in close_bg and "rgb(200, 200, 200)" not in close_bg
+    close_op = preview.locator(".osx-btn-close").evaluate("el => getComputedStyle(el).opacity")
+    assert float(close_op) == 1.0
     # Glyphs visible without hover (× on close).
     close_glyph = preview.locator(".osx-btn-close").evaluate(
         "el => getComputedStyle(el, '::before').content"
     )
     assert close_glyph not in ("none", '""', "''", "")
+    # Title line: no translucent pill overlay on preview.
+    title_bg = preview.locator(".osx-title").evaluate("el => getComputedStyle(el).backgroundImage")
+    assert title_bg in ("none", "initial") or title_bg == "none"
+    tb_bf = preview.locator(".osx-titlebar").evaluate(
+        "el => getComputedStyle(el).backdropFilter || getComputedStyle(el).webkitBackdropFilter"
+    )
+    assert tb_bf in ("none", "")
 
     # Fixed geometry must not jump when scrubbing eras (critique: non-canonical size).
     def preview_box():
