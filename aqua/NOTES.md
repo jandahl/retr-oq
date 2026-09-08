@@ -311,3 +311,5 @@ Branch `polish/aqua-tm-galaxy-preview` (post-#176).
    clear fill (no titlebar `backdrop-filter` stack); preview titlebar drops
    frost and `::before`/`::after` sheens. Cache-bust `style.css?v=10`,
    `eras.css?v=5`, `app.js?v=11`, `timemachine.js?v=6`.
+
+- **TM preview traffic:** decorative lights are not `disabled` (WebKit greys `:disabled`); forced candy colors + glyphs; titlebar is a single opaque fill per era (no title-pill / stitch stack).

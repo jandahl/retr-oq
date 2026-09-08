@@ -434,6 +434,13 @@
     const previewEl = document.getElementById("tm-oq-preview");
     if (previewEl) previewEl.classList.remove("inactive");
     setSelected(indexOfEra(eraBeforeOpen), { preview: true });
+    {
+      const tmPreview = document.getElementById("tm-oq-preview");
+      if (tmPreview) {
+        tmPreview.classList.add("is-focused");
+        tmPreview.classList.remove("inactive");
+      }
+    }
     galaxy.start();
     // Focus selected card for keyboard.
     const sel = timeline.querySelector(".tm-era-card.is-selected");

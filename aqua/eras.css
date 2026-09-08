@@ -365,14 +365,8 @@ html[data-osx-era="leopard"] .osx-titlebar {
 html[data-osx-era="leopard"] .osx-title {
   color: #f2f4f8;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(60, 75, 100, 0.35) 18%,
-    rgba(60, 75, 100, 0.35) 82%,
-    transparent 100%
-  );
-}
+  background: none;
+  }
 
 html[data-osx-era="leopard"] .osx-body {
   background: #eceef2;
@@ -1657,4 +1651,97 @@ html.tm-transitioning .tm-overlay {
 /* Dock Time Machine glyph sits with other items; no data-open so launch is ignored */
 .osx-dock-item#dock-timemachine .dock-glyph {
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+}
+
+/* ===== PR178 fix: preview active jewels + single-layer title (WebKit-safe) ===== */
+#tm-oq-preview,
+#tm-oq-preview.is-focused {
+  pointer-events: none;
+}
+#tm-oq-preview .osx-traffic {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: none;
+}
+html[data-osx-era] #tm-oq-preview .osx-btn-close,
+#tm-oq-preview .osx-btn-close {
+  background: radial-gradient(circle at 35% 30%, #ffb4a8, #e2462e 55%, #a31d0d) !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-btn-minimize,
+#tm-oq-preview .osx-btn-minimize {
+  background: radial-gradient(circle at 35% 30%, #ffe9a0, #f5c033 55%, #b8860b) !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-btn-zoom,
+#tm-oq-preview .osx-btn-zoom {
+  background: radial-gradient(circle at 35% 30%, #b8f0a8, #62c23a 55%, #2f7a18) !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-traffic::before,
+#tm-oq-preview .osx-traffic::before {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  pointer-events: none !important;
+}
+#tm-oq-preview .osx-btn-close::before { content: "\00d7" !important; }
+#tm-oq-preview .osx-btn-minimize::before { content: "\2212" !important; font-size: 9px !important; }
+#tm-oq-preview .osx-btn-zoom::before { content: "+" !important; font-size: 9px !important; }
+
+/* Preview titlebar: ONE opaque fill; no frost, no stitch, no title pill */
+html[data-osx-era] #tm-oq-preview .osx-titlebar,
+#tm-oq-preview .osx-titlebar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  background-color: #8ba4d1 !important;
+  background: linear-gradient(180deg, #c8daf4 0%, #8ba4d1 100%) !important;
+}
+html[data-osx-era="tiger"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #c5d5e0 0%, #6a8a9a 100%) !important;
+}
+html[data-osx-era="leopard"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #7a8eae 0%, #3a4e70 100%) !important;
+}
+html[data-osx-era="lion"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e8dfd0 0%, #c4b49a 100%) !important;
+}
+html[data-osx-era="yosemite"] #tm-oq-preview .osx-titlebar,
+html[data-osx-era="bigsur"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #f4f5f7 0%, #e4e7ec 100%) !important;
+}
+html[data-osx-era="glass"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e8f0ff 0%, #c8d8f0 100%) !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-titlebar::before,
+html[data-osx-era] #tm-oq-preview .osx-titlebar::after,
+#tm-oq-preview .osx-titlebar::before,
+#tm-oq-preview .osx-titlebar::after {
+  content: none !important;
+  display: none !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-title,
+#tm-oq-preview .osx-title {
+  background: none !important;
+  background-image: none !important;
+}
+
+/* Live desktop: kill title-text translucent pills (look like double titlebar chrome) */
+html[data-osx-era] .osx-title {
+  background: none !important;
+  background-image: none !important;
+}
+html[data-osx-era="lion"] .osx-titlebar::after {
+  content: none !important;
+  display: none !important;
 }
