@@ -338,4 +338,19 @@ Period-accurate chrome for Aqua / Tiger / Leopard (prefer historical UI material
 
 Later eras (Lion → Glass) left alone unless clearly wrong — Lion warm linen/pewter, Yosemite/Big Sur flat light greys, Glass frost.
 
+## TM preview sample lexemes (follow-up)
 
+Preferred demo rows for the Time Machine mini OQ! window:
+
+- `kujannippoq`
+- `qulluk`
+- `usuk`
+- `aalajavoq`
+
+Today the preview fills from `OqDictSource.loadDictEntries()` (Chicago /
+Oqaasileriffik JSON only). `kujannippoq` and `qulluk` are **not** in that
+source; the full preferred set needs the **katersat** lexicon wired in.
+Katersat is GPL-3.0-or-later with no CC-BY-SA grant — `shared/dict-source.js`
+deliberately does not fetch it yet. Do **not** hard-code katersat-only
+lexemes here until that source is an intentional, documented product
+decision (attribution + license). Until then, keep sampling from Chicago.
