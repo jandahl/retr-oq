@@ -110,6 +110,26 @@
   const reopenBtn = document.getElementById("reopen");
   const windows = Array.from(document.querySelectorAll(".desktop-window"));
   let zTop = 10;
+  const winDecon = document.getElementById("win-decon");
+
+  function openWindow(win) {
+    win.classList.remove("closed");
+    focus(win);
+  }
+
+  function closeWindowEl(win) {
+    const titlebar = document.getElementById(`${win.id}-titlebar`);
+    const wasActive = titlebar && titlebar.classList.contains("title-bar");
+    win.classList.add("closed");
+    if (win !== winDecon) {
+      reopenBtn.classList.add("visible");
+      reopenBtn.dataset.target = win.id;
+    }
+    if (wasActive) {
+      const next = windows.find((w) => w !== win && !w.classList.contains("closed"));
+      if (next) focus(next);
+    }
+  }
 
   // Swaps .title-bar/.inactive-title-bar, which is what actually draws
   // (or doesn't) the active-window chrome -- this is the whole activation
@@ -144,14 +164,12 @@
 
     if (closeBtn) {
       closeBtn.addEventListener("click", () => {
-        const wasActive = titlebar.classList.contains("title-bar");
-        win.classList.add("closed");
-        reopenBtn.classList.add("visible");
-        reopenBtn.dataset.target = id;
-        if (wasActive) {
-          const next = windows.find((w) => w !== win && !w.classList.contains("closed"));
-          if (next) focus(next);
+        if (win === winDecon) {
+          // Routed window: close via URL (CLAUDE.md OqRouter rule).
+          window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
+          return;
         }
+        closeWindowEl(win);
       });
     }
   }
@@ -168,6 +186,19 @@
     win2.classList.remove("closed");
     focus(win2);
   });
+
+  for (const icon of document.querySelectorAll(".desktop-icon[data-open]")) {
+    icon.addEventListener("click", () => {
+      const target = document.getElementById(icon.dataset.open);
+      if (!target) return;
+      if (target === winDecon) {
+        const wordInput = document.getElementById("decon-word");
+        window.OqRouter.navigate({ screen: "decon", word: (wordInput && wordInput.value) || null });
+        return;
+      }
+      openWindow(target);
+    });
+  }
 
   // Menu bar: takes over open/closed state entirely in JS (see .menu-open
   // in style.css) instead of the framework's flicker-prone :focus CSS.
@@ -233,4 +264,107 @@
   const bootSequence = document.getElementById("boot-sequence");
   bootSequence.classList.add("visible");
   setTimeout(() => bootScreen.classList.add("hidden"), 1400);
+
+  // ---------- Word Parts (DECON via shared/decon-app.js) ----------
+  const { getStoredRootFirst, setStoredRootFirst, createController } = window.OqDecon;
+  const deconWord = document.getElementById("decon-word");
+  const deconRootFirst = document.getElementById("decon-root-first");
+  const deconStatus = document.getElementById("decon-status");
+  const deconResults = document.getElementById("decon-results");
+
+  function renderDeconResults({ matches, dictMatch }) {
+    deconResults.textContent = "";
+    for (const match of matches) {
+      const card = document.createElement("div");
+      card.className = "decon-card";
+
+      const header = document.createElement("div");
+      const tag = document.createElement("span");
+      tag.className = match.approximate ? "decon-tag decon-tag--approximate" : "decon-tag";
+      tag.textContent = match.approximate ? "~ approximate" : "exact rebuild";
+      const word = document.createElement("span");
+      word.className = "decon-word";
+      word.textContent = ` ${match.word}`;
+      header.append(tag, word);
+      card.appendChild(header);
+
+      if (match.meaning) {
+        const meaning = document.createElement("div");
+        meaning.className = "decon-meaning";
+        meaning.textContent = match.meaning;
+        card.appendChild(meaning);
+      }
+
+      const breakdown = document.createElement("div");
+      breakdown.className = "decon-breakdown";
+      const rows = deconRootFirst.checked ? match.breakdown : [...match.breakdown].reverse();
+      for (const { marker, text: rowText, changedRanges, gloss } of rows) {
+        const row = document.createElement("div");
+        let cursor = 0;
+        row.appendChild(document.createTextNode(marker));
+        for (const { start, end } of changedRanges) {
+          if (start > cursor) row.appendChild(document.createTextNode(rowText.slice(cursor, start)));
+          const changed = document.createElement("span");
+          changed.className = "decon-changed";
+          changed.textContent = rowText.slice(start, end);
+          row.appendChild(changed);
+          cursor = end;
+        }
+        if (cursor < rowText.length) row.appendChild(document.createTextNode(rowText.slice(cursor)));
+        row.appendChild(document.createTextNode(` - ${gloss}`));
+        breakdown.appendChild(row);
+      }
+      card.appendChild(breakdown);
+      deconResults.appendChild(card);
+    }
+
+    if (dictMatch) {
+      const dictNote = document.createElement("p");
+      dictNote.className = "decon-dict-match";
+      dictNote.textContent = `Found in the dictionary: ${dictMatch.expected} -- ${dictMatch.gloss_en}`;
+      deconResults.appendChild(dictNote);
+    }
+  }
+
+  deconRootFirst.checked = getStoredRootFirst();
+  const deconController = createController({
+    isRootFirst: () => deconRootFirst.checked,
+    onStatus: (text) => { deconStatus.textContent = text; },
+    onRender: (analysis) => renderDeconResults(analysis),
+    onClear: () => { deconResults.textContent = ""; },
+  });
+
+  deconRootFirst.addEventListener("change", () => {
+    setStoredRootFirst(deconRootFirst.checked);
+    deconController.reRenderLast();
+    window.OqRouter.navigate({ order: deconRootFirst.checked ? null : "final" }, { replace: true });
+  });
+
+  deconWord.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+    deconController.search(deconWord.value);
+  });
+
+  window.OqRouter.onChange((params) => {
+    const screen = params.get("screen");
+    if (screen === "decon") {
+      if (winDecon.classList.contains("closed")) openWindow(winDecon);
+      else focus(winDecon);
+      const orderParam = params.get("order");
+      const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
+      if (deconRootFirst.checked !== rootFirst) {
+        deconRootFirst.checked = rootFirst;
+        deconController.reRenderLast();
+      }
+      const word = params.get("word") || "";
+      if (deconWord.value !== word) {
+        deconWord.value = word;
+        deconController.search(word);
+      }
+    } else if (!winDecon.classList.contains("closed")) {
+      closeWindowEl(winDecon);
+    }
+  });
+
 })();

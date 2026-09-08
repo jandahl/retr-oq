@@ -13,3 +13,5 @@ the lineage's default "outline" style.
   custom context menu of its own here.
 - Shut Down → `../`, same reference pattern as `win98/`.
 - 3D Pipes remake (`vendor/screensavers/pipes/`, MIT) on idle (45s) and Start → 3D Pipes.
+
+- **DECON label:** user-visible name is **Word Deconstructor** (desktop icon, titlebar, Start menu; taskbar clones the titlebar text). Ids stay `win-decon` / `screen=decon`.

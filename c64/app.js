@@ -13,7 +13,7 @@
   const dictTbody = document.getElementById("dict-tbody");
   const loadingScreen = document.getElementById("c64-loading");
   const morphApp = document.getElementById("morph-app");
-
+  const deconApp = document.getElementById("decon-app");
 
   document.getElementById("dict-attribution").textContent = petsciiSafe(DICT_ATTRIBUTION);
 
@@ -92,6 +92,102 @@
     dictApp.hidden = true;
     dirScreen.hidden = false;
   }
+
+  // ---------- DECON.PRG (word deconstruction) ----------
+  // shared/decon-app.js owns search/abort/order persistence; rendering here
+  // is PETSCII-safe text-mode markup (same single-tasking takeover as DICT).
+  const { getStoredRootFirst, setStoredRootFirst, createController } = window.OqDecon;
+  const deconWord = document.getElementById("decon-word");
+  const deconRootFirst = document.getElementById("decon-root-first");
+  const deconStatus = document.getElementById("decon-status");
+  const deconResults = document.getElementById("decon-results");
+
+  function renderDeconResults({ matches, dictMatch }) {
+    deconResults.textContent = "";
+    for (const match of matches) {
+      const card = document.createElement("div");
+      card.className = "decon-card";
+
+      const header = document.createElement("div");
+      const tag = document.createElement("span");
+      tag.className = match.approximate ? "decon-tag decon-tag--approximate" : "decon-tag";
+      tag.textContent = match.approximate ? "[~ APPROXIMATE]" : "[EXACT REBUILD]";
+      const word = document.createElement("span");
+      word.className = "decon-word";
+      word.textContent = ` ${petsciiSafe(match.word)}`;
+      header.append(tag, word);
+      card.appendChild(header);
+
+      if (match.meaning) {
+        const meaning = document.createElement("div");
+        meaning.className = "decon-meaning";
+        meaning.textContent = petsciiSafe(match.meaning);
+        card.appendChild(meaning);
+      }
+
+      const breakdown = document.createElement("div");
+      breakdown.className = "decon-breakdown";
+      const rows = deconRootFirst.checked ? match.breakdown : [...match.breakdown].reverse();
+      for (const { marker, text: rowText, changedRanges, gloss, leftPad, rightPad } of rows) {
+        const row = document.createElement("div");
+        row.appendChild(document.createTextNode(`${".".repeat(leftPad || 0)}${marker}`));
+        let cursor = 0;
+        for (const { start, end } of changedRanges) {
+          if (start > cursor) row.appendChild(document.createTextNode(rowText.slice(cursor, start)));
+          const changed = document.createElement("span");
+          changed.className = "decon-changed";
+          changed.textContent = rowText.slice(start, end);
+          row.appendChild(changed);
+          cursor = end;
+        }
+        if (cursor < rowText.length) row.appendChild(document.createTextNode(rowText.slice(cursor)));
+        row.appendChild(document.createTextNode(`${".".repeat(rightPad || 0)} - ${petsciiSafe(gloss)}`));
+        breakdown.appendChild(row);
+      }
+      card.appendChild(breakdown);
+      deconResults.appendChild(card);
+    }
+
+    if (dictMatch) {
+      const dictNote = document.createElement("p");
+      dictNote.className = "decon-dict-match";
+      dictNote.textContent = petsciiSafe(
+        `Found in the dictionary: ${dictMatch.expected} -- ${dictMatch.gloss_en}`,
+      );
+      deconResults.appendChild(dictNote);
+    }
+  }
+
+  const deconController = createController({
+    isRootFirst: () => deconRootFirst.checked,
+    onStatus: (text) => { deconStatus.textContent = petsciiSafe(text); },
+    onRender: (analysis) => renderDeconResults(analysis),
+    onClear: () => { deconResults.textContent = ""; },
+  });
+
+  function launchDecon(initialWord = "", initialOrder = null) {
+    loadingScreen.hidden = true;
+    dirScreen.hidden = true;
+    deconApp.hidden = false;
+    deconRootFirst.checked = initialOrder ? initialOrder !== "final" : getStoredRootFirst();
+    deconController.reset();
+    deconWord.value = initialWord;
+    deconStatus.textContent = "TYPE A WORD, PRESS RETURN.";
+    deconWord.focus();
+    if (initialWord.trim()) deconController.search(initialWord);
+  }
+
+  function exitDecon() {
+    deconController.abort();
+    deconApp.hidden = true;
+    dirScreen.hidden = false;
+  }
+
+  deconRootFirst.addEventListener("change", () => {
+    setStoredRootFirst(deconRootFirst.checked);
+    deconController.reRenderLast();
+    window.OqRouter.navigate({ order: deconRootFirst.checked ? null : "final" }, { replace: true });
+  });
 
   // ---------- MORPH! (WarioWare-style morpheme minigame, text mode) ----------
   // shared/morph-game.js owns the state machine (puzzle sequencing, lives,
@@ -790,6 +886,7 @@
   window.OqRouter.onChange((params) => {
     const screen = params.get("screen");
     if (screen === "dict") {
+      if (!deconApp.hidden) exitDecon();
       if (!morphApp.hidden) exitMorph();
       if (!kalqApp.hidden) exitKalq();
       if (dictApp.hidden) {
@@ -798,16 +895,36 @@
         dictFilter.value = params.get("filter") || "";
         renderResults();
       }
+    } else if (screen === "decon") {
+      if (!dictApp.hidden) exitDict();
+      if (!morphApp.hidden) exitMorph();
+      if (!kalqApp.hidden) exitKalq();
+      const orderParam = params.get("order");
+      const rootFirst = orderParam ? orderParam !== "final" : getStoredRootFirst();
+      if (deconRootFirst.checked !== rootFirst) {
+        deconRootFirst.checked = rootFirst;
+        deconController.reRenderLast();
+      }
+      const word = params.get("word") || "";
+      if (deconApp.hidden) {
+        launchDecon(word, orderParam);
+      } else if (deconWord.value !== word) {
+        deconWord.value = word;
+        deconController.search(word);
+      }
     } else if (screen === "morph") {
       if (!dictApp.hidden) exitDict();
+      if (!deconApp.hidden) exitDecon();
       if (!kalqApp.hidden) exitKalq();
       if (morphApp.hidden) launchMorph();
     } else if (screen === "kalq") {
       if (!dictApp.hidden) exitDict();
+      if (!deconApp.hidden) exitDecon();
       if (!morphApp.hidden) exitMorph();
       if (kalqApp.hidden) launchKalq();
     } else {
       if (!dictApp.hidden) exitDict();
+      if (!deconApp.hidden) exitDecon();
       if (!morphApp.hidden) exitMorph();
       if (!kalqApp.hidden) exitKalq();
     }
@@ -815,6 +932,14 @@
 
   document.getElementById("dict-exit").addEventListener("click", () => {
     window.OqRouter.navigate({ screen: null, filter: null });
+  });
+  document.getElementById("decon-exit").addEventListener("click", () => {
+    window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
+  });
+  deconWord.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    window.OqRouter.navigate({ screen: "decon", word: deconWord.value || null });
+    deconController.search(deconWord.value);
   });
   dictFilter.addEventListener("input", () => {
     renderResults();
@@ -825,8 +950,8 @@
     // the closest a modern keyboard has, same substitution dos/app.js makes
     // for its own Esc=Exit footer.
     if (event.key === "Escape") {
-      if (!dictApp.hidden || !morphApp.hidden || !kalqApp.hidden) {
-        window.OqRouter.navigate({ screen: null, filter: null });
+      if (!dictApp.hidden || !deconApp.hidden || !morphApp.hidden || !kalqApp.hidden) {
+        window.OqRouter.navigate({ screen: null, filter: null, word: null, order: null });
       } else {
         window.location.href = "../";
       }
@@ -894,7 +1019,7 @@
   // below, same as the initial listing markup in index.html.
   function printDirListing() {
     printLine('0 "OQ DISK       " 09 2A');
-    for (const [name, label, suffixText] of [["DICT", '1   "DICT"', "PRG"], ["MORPH", '1   "MORPH"', "PRG"], ["KALQ", '1   "KALQ"', "PRG"], ["QUIT", '2   "QUIT"', "PRG"]]) {
+    for (const [name, label, suffixText] of [["DICT", '1   "DICT"', "PRG"], ["DECON", '1   "DECON"', "PRG"], ["MORPH", '1   "MORPH"', "PRG"], ["KALQ", '1   "KALQ"', "PRG"], ["QUIT", '2   "QUIT"', "PRG"]]) {
       // Inline, not a block-level <div> -- a <div> here forces its own line
       // box regardless of the "\n" text node already inserted before it,
       // which with two such lines back to back produced a spurious blank
@@ -963,6 +1088,9 @@
     if (name === "DICT") {
       printLine("RUN");
       flickerThenRun(() => window.OqRouter.navigate({ screen: "dict", filter: null }));
+    } else if (name === "DECON") {
+      printLine("RUN");
+      flickerThenRun(() => window.OqRouter.navigate({ screen: "decon", word: null }));
     } else if (name === "MORPH") {
       printLine("RUN");
       flickerThenRun(() => window.OqRouter.navigate({ screen: "morph", filter: null }));
@@ -999,7 +1127,7 @@
     if (loadMatch) {
       const name = loadMatch[1];
       printLine(`SEARCHING FOR ${name}`);
-      if (name === "DICT" || name === "MORPH" || name === "KALQ" || name === "BUILD") {
+      if (name === "DICT" || name === "DECON" || name === "MORPH" || name === "KALQ" || name === "BUILD") {
         loadedProgram = name;
         printLine("LOADING");
         printLine("READY.");

@@ -17,3 +17,5 @@ default }` set deliberately.
 - Kernel panic is an undocumented egg — don't reveal the trigger in
   comments or docs.
 - Font is TeX Gyre Heros, not real Helvetica (licensing).
+
+- **DECON label:** user-visible name is **Word Deconstructor** (menu, dock `title`, window title). Ids stay `win-decon` / `screen=decon`.

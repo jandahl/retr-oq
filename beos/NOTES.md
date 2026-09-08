@@ -38,3 +38,5 @@ zoom is a square-in-a-square on the right. Font is TeX Gyre Heros from
   `kernel` in Terminal). Overlay uses `.is-on`, not the `hidden`
   attribute — the UA `[hidden] { display: none !important }` would
   otherwise swallow it.
+
+- **DECON label:** user-visible name is **Word Deconstructor** (Deskbar menu, icon, titlebar, Tracker about list, Team Monitor `data-team`, Terminal `ls`). Ids stay `win-decon` / `screen=decon`; Terminal still accepts the `decon` command.

@@ -20,3 +20,5 @@ vendored `system.css`, own WM — don't share with `mac8/` or Redmond).
 - Windows (`.desktop-window`) use `.title-bar`/`.inactive-title-bar` class
   swapping as the entire activation mechanism — there's no separate
   "active window" state to keep in sync elsewhere.
+
+- **Word Parts** is the real DECON window behind the desktop icon (shared `decon-app.js` + `OqRouter` `?screen=decon`). Visible name is **Word Parts** (pairs with Word Builder; short for a 1-bit icon) — **not** “Deconstructor”, which is not a valid 1984 Mac app label. Ids stay `win-decon` / `screen=decon` / `#deconstructor-icon`.

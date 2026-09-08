@@ -19,3 +19,5 @@ against the real fixed Game Boy palette, not just family baseline).
   never over the brick/pad. Any `handleInput` / pad press dismisses. No
   Nintendo logo, no audio. Pauses when the tab is hidden.
   `prefers-reduced-motion` parks the fox in a corner.
+
+- **DECON label:** menu / heading / about copy use **WORD DECONSTRUCTOR** (all-caps chrome). Ids stay `menu-decon` / `screen=decon`.

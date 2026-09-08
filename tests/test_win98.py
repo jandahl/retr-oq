@@ -949,3 +949,14 @@ def test_hot_dog_stand_recolors_scheme_select_field_and_options(page, base_url):
         "el => getComputedStyle(el, '::picker(select)').backgroundColor", select
     )
     assert picker_bg == "rgb(255, 255, 0)"
+
+
+def test_decon_visible_name_is_word_deconstructor(page, base_url):
+    """Desktop icon + titlebar use the long DECON label."""
+    goto_win98(page, base_url)
+    labels = page.locator(".desktop-icon-label").all_inner_texts()
+    assert "Word Deconstructor" in labels
+    page.locator(".desktop-icon[data-open='win-decon']").dblclick()
+    page.wait_for_timeout(100)
+    assert page.locator("#win-decon .title-bar-text").inner_text() == "Word Deconstructor"
+

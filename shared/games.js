@@ -8,7 +8,7 @@
 window.OqGames = {
   games: [
     { id: "oq", name: "OQ! dictionary", kind: "core" },
-    { id: "decon", name: "DECON", kind: "core" },
+    { id: "decon", name: "Word Deconstructor", kind: "core" },
     { id: "morph", name: "MORPH!", kind: "game" },
     { id: "kal-q", name: "Super KAL-Q! (Klax)", kind: "game" },
     { id: "konami", name: "Konami Code", kind: "egg" },

@@ -142,6 +142,7 @@ def test_about_deeplink(page, base_url):
     goto_snes(page, base_url, "?screen=about")
     assert page.locator("#about-screen").is_visible()
     assert "Kalaallisut" in page.locator("#about-screen").inner_text()
+    assert "Super Word Deconstructor" in page.locator("#about-screen").inner_text()
 
 
 def test_search_input_is_at_least_16px(page, base_url):
@@ -173,6 +174,7 @@ def test_select_cycles_menu(page, base_url):
     assert "is-selected" in page.locator("#menu-oq").get_attribute("class")
     page.keyboard.press("Tab")
     page.wait_for_timeout(40)
+    assert "SUPER WORD DECONSTRUCTOR" in page.locator("#menu-decon").inner_text()
     assert "is-selected" in page.locator("#menu-decon").get_attribute("class")
     page.keyboard.press("Tab")
     page.wait_for_timeout(40)

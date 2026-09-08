@@ -17,3 +17,5 @@ DejaVu Sans from `vendor/kde/fonts/`. No KDE "K" logo anywhere (trademark).
   custom KDE context menu is built yet.
 - Compiz rain and the desktop cube are real, discoverable features (not
   eggs) — `#pager-cube` etc.
+
+- **DECON label:** user-visible name is **Word Deconstructor** (desktop icon, titlebar, K-menu, panel tooltip/aria). Ids stay `win-decon` / `screen=decon`; Konsole still accepts the `decon` command.
