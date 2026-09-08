@@ -951,17 +951,33 @@ def test_hot_dog_stand_recolors_scheme_select_field_and_options(page, base_url):
     assert picker_bg == "rgb(255, 255, 0)"
 
 
-def test_decon_visible_name_is_word_deconstructor(page, base_url):
-    """Desktop icon + in-shell tab use the long DECON label (tabbed OQ! shell)."""
+def test_single_oq_launch_affordance(page, base_url):
+    """One desktop icon + one Start row for OQ!; no separate Deconstructor launchers."""
     goto_win98(page, base_url)
     labels = page.locator(".desktop-icon-label").all_inner_texts()
-    assert "Word Deconstructor" in labels
-    page.locator(".desktop-icon[data-open='win-decon']").dblclick()
-    page.wait_for_timeout(100)
+    assert "OQ!" in labels
+    assert "Word Deconstructor" not in labels
+    assert page.query_selector(".desktop-icon[data-open='win-decon']") is None
+    assert page.query_selector(".start-menu-item[data-open='win-decon']") is None
+    assert page.query_selector(".start-menu-item[data-open='win-oq']") is not None
+
+
+def test_decon_visible_name_is_word_deconstructor(page, base_url):
+    """In-shell property-sheet tab uses the long DECON label; deep link focuses it."""
+    goto_win98(page, base_url)
+    page.goto(f"{base_url}/win98/index.html?screen=decon")
+    page.wait_for_timeout(300)
+    boot_screen = page.query_selector("#boot-screen")
+    if boot_screen and boot_screen.is_visible():
+        page.click("#boot-screen")
+        page.wait_for_timeout(50)
     assert page.locator("#win-oq").is_visible()
-    assert page.locator("#oq-tab-decon").inner_text() == "Word Deconstructor"
+    assert page.locator("#oq-tab-decon").inner_text().strip() == "Word Deconstructor"
     assert page.locator("#oq-tab-decon").get_attribute("aria-selected") == "true"
     assert page.locator("#oq-view-decon").is_visible()
+    # Vendor 98.css Tab control markup, not a custom flex strip.
+    assert page.locator("#win-oq menu[role='tablist']").count() == 1
+    assert page.locator("#win-oq .window[role='tabpanel']#oq-sheet").count() == 1
 
 
 def test_oq_decon_share_one_taskbar_button(page, base_url):

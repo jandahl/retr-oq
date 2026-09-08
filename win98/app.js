@@ -31,8 +31,9 @@
   // two top-level windows. My Computer/About/Recycle Bin/Settings stay
   // plain chrome with no router state.
   const winOq = document.getElementById("win-oq");
-  // Word Deconstructor lives inside #win-oq (tabbed shell); data-open=win-decon
-  // icons still work via resolveOpen → winOq + pendingOqScreen.
+  // Word Deconstructor lives inside #win-oq (property-sheet tabs). One desktop
+  // / Start affordance (OQ!); resolveOpen still maps a leftover win-decon id
+  // onto this shell + pendingOqScreen for deep links / router ids.
   let pendingOqScreen = null;
 
   const { openWindow, forceOpenWindow, closeWindow } = window.OqRedmond.initWindowManager({

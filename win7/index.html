@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>retr-oq — Windows 7 desktop prototype</title>
 <link rel="stylesheet" href="../vendor/win7/7.css" />
-<link rel="stylesheet" href="style.css?v=12" />
+<link rel="stylesheet" href="style.css?v=13" />
 </head>
 <body class="win7">
   <section class="boot-screen" id="boot-screen" aria-label="Windows 7 startup" aria-live="polite">
@@ -39,10 +39,6 @@
         <span class="desktop-icon-glyph icon-oq" aria-hidden="true"></span>
         <span class="desktop-icon-label">OQ!</span>
       </button>
-      <button type="button" class="desktop-icon" data-open="win-decon">
-        <span class="desktop-icon-glyph icon-decon" aria-hidden="true"></span>
-        <span class="desktop-icon-label">Word Deconstructor</span>
-      </button>
       <button type="button" class="desktop-icon" data-open="win-computer">
         <span class="desktop-icon-glyph icon-computer" aria-hidden="true"></span>
         <span class="desktop-icon-label">My Computer</span>
@@ -67,41 +63,42 @@
         </div>
       </div>
       <div class="window-body win7-window-body oq-shell-body">
-        <div class="oq-tabstrip" role="tablist" aria-label="OQ! views">
-          <button type="button" class="oq-tab is-active" role="tab" id="oq-tab-dict" data-oq-view="oq" aria-selected="true" aria-controls="oq-view-dict">Dictionary</button>
-          <button type="button" class="oq-tab" role="tab" id="oq-tab-decon" data-oq-view="decon" aria-selected="false" aria-controls="oq-view-decon">Word Deconstructor</button>
-        </div>
-        <div class="oq-view is-active" id="oq-view-dict" role="tabpanel" data-oq-view="oq" aria-labelledby="oq-tab-dict">
-          <div class="oq-body">
-
-        <div class="win7-field-row oq-filter-row">
-          <input type="text" id="oq-filter" placeholder="Type to search..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
-        </div>
-        <p class="oq-status" id="oq-status">Loading dictionary...</p>
-        <div class="oq-results-panel">
-          <table class="oq-table" id="oq-table">
-            <thead>
-              <tr><th>Lexeme</th><th>English</th></tr>
-            </thead>
-            <tbody id="oq-tbody"></tbody>
-          </table>
-        </div>
-        <p class="oq-attribution" id="oq-attribution"></p>
-                </div>
-        </div>
-        <div class="oq-view" id="oq-view-decon" role="tabpanel" data-oq-view="decon" aria-labelledby="oq-tab-decon" hidden>
-          <div class="decon-body">
-
-        <div class="win7-field-row decon-word-row">
-          <input type="text" id="decon-word" placeholder="Type a Kalaallisut word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
-        </div>
-        <div class="win7-field-row decon-order-row">
-          <input type="checkbox" id="decon-root-first" checked />
-          <label for="decon-root-first">Root first</label>
-        </div>
-        <p class="decon-status" id="decon-status">Type a word, press Enter.</p>
-        <div class="decon-results-panel" id="decon-results"></div>
-                </div>
+        <!-- 7.css Aero Tab control (menu[role=tablist] > button + [role=tabpanel]) -->
+        <menu role="tablist" class="oq-tabs" aria-label="OQ! views">
+          <button type="button" role="tab" class="oq-tab is-active" id="oq-tab-dict" data-oq-view="oq" aria-selected="true" aria-controls="oq-sheet">Dictionary</button>
+          <button type="button" role="tab" class="oq-tab" id="oq-tab-decon" data-oq-view="decon" aria-selected="false" aria-controls="oq-sheet">Word Deconstructor</button>
+        </menu>
+        <div class="oq-sheet" role="tabpanel" id="oq-sheet">
+          <div class="oq-view is-active" id="oq-view-dict" data-oq-view="oq" aria-labelledby="oq-tab-dict">
+            <div class="oq-body">
+              <div class="win7-field-row oq-filter-row">
+                <input type="text" id="oq-filter" placeholder="Type to search..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+              </div>
+              <p class="oq-status" id="oq-status">Loading dictionary...</p>
+              <div class="oq-results-panel">
+                <table class="oq-table" id="oq-table">
+                  <thead>
+                    <tr><th>Lexeme</th><th>English</th></tr>
+                  </thead>
+                  <tbody id="oq-tbody"></tbody>
+                </table>
+              </div>
+              <p class="oq-attribution" id="oq-attribution"></p>
+            </div>
+          </div>
+          <div class="oq-view" id="oq-view-decon" data-oq-view="decon" aria-labelledby="oq-tab-decon" hidden>
+            <div class="decon-body">
+              <div class="win7-field-row decon-word-row">
+                <input type="text" id="decon-word" placeholder="Type a Kalaallisut word..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+              </div>
+              <div class="win7-field-row decon-order-row">
+                <input type="checkbox" id="decon-root-first" checked />
+                <label for="decon-root-first">Root first</label>
+              </div>
+              <p class="decon-status" id="decon-status">Type a word, press Enter.</p>
+              <div class="decon-results-panel" id="decon-results"></div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="win7-resize-handle win7-resize-n" data-dir="n"></div>
@@ -244,9 +241,6 @@
     <li role="menu-item" class="start-menu-item" data-open="win-oq">
       <span class="start-menu-icon icon-oq" aria-hidden="true"></span> OQ!
     </li>
-    <li role="menu-item" class="start-menu-item" data-open="win-decon">
-      <span class="start-menu-icon icon-decon" aria-hidden="true"></span> Word Deconstructor
-    </li>
     <li role="menu-item" class="start-menu-item" data-open="win-computer">
       <span class="start-menu-icon icon-computer" aria-hidden="true"></span> My Computer
     </li>
@@ -287,7 +281,7 @@
   <script src="../shared/hyphenation.js"></script>
   <script src="../shared/router.js?v=16"></script>
   <script src="../shared/redmond/window-manager.js"></script>
-  <script src="../shared/redmond/oq-shell.js"></script>
+  <script src="../shared/redmond/oq-shell.js?v=2"></script>
   <!-- Real ES module, not a classic script -- see shared/oq-analysis.js's
        own header comment for why this one file is the exception. -->
   <script type="module" src="../shared/oq-analysis.js"></script>

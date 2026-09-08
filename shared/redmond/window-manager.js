@@ -699,10 +699,10 @@
   //
   // `iconSelector` should already scope to icons carrying data-open (the
   // id of the window to launch).
-  // `resolveOpen(icon)`: optional. When a desktop / Program Manager icon's
-  // data-open id is an alias (e.g. win-decon launching the shared OQ! shell
-  // with the Word Deconstructor tab), return the real window element to
-  // open. Returning null/undefined falls back to getElementById(data-open).
+  // `resolveOpen(icon)`: optional. Return the real window element when a
+  // data-open id should open a different shell (e.g. a leftover win-decon
+  // id mapping onto #win-oq). Returning null/undefined falls back to
+  // getElementById(data-open).
   function initDesktopIcons({ desktop, iconSelector, openWindow, resolveOpen }) {
     const opensOnSingleClick = window.matchMedia("(pointer: coarse)").matches;
     let selectedIcon = null;

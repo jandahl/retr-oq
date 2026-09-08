@@ -121,7 +121,16 @@
       return true;
     }
     if (key === "oq" || key === "oq!") return openApp("win-oq");
-    if (key === "decon") return openApp("win-decon");
+    // "decon" is the same OQ! shell focused on Word Deconstructor — not a
+    // second EXE / second Start target. Prefer the router so the tab + URL
+    // stay in sync; fall back to opening OQ! if the router is unavailable.
+    if (key === "decon" || key === "worddeconstructor") {
+      if (global.OqRouter && typeof global.OqRouter.navigate === "function") {
+        global.OqRouter.navigate({ screen: "decon", word: null, filter: null });
+        return true;
+      }
+      return openApp("win-oq");
+    }
     if (key === "help") return openApp("win-help") || (showWinver(theme), true);
     if (key === "find") return openApp("win-find") || false;
     if (key === "settings" || key === "control") return openApp("win-settings");

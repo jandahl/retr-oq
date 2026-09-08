@@ -120,6 +120,6 @@
     loadNextToRouter("redmond/screensaver.js?v=30");
   }
   if (/\/(win98|xp|win7)(\/|$)/.test(location.pathname)) {
-    loadNextToRouter("redmond/run.js?v=7");
+    loadNextToRouter("redmond/run.js?v=8");
   }
 })();
