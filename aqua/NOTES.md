@@ -34,7 +34,7 @@ still shared via `shared/osx/`. Font: TeX Gyre Heros from
 | WM: drag, growbox, focus, open/close/min/zoom | Jelly traffic lights, pinstripe, window chrome CSS |
 | Menu bar open/hover/close | Menu labels, Apple-menu substitute mark |
 | Dock launch + running/bounce classes | Dock glass art, icons, magnification CSS |
-| Menu clock | Placement in menubar |
+| Menu clock (HH:MM helper) | Weekday+time override in `app.js` |
 
 ## Follow-up polish (this branch)
 
@@ -62,6 +62,36 @@ still shared via `shared/osx/`. Font: TeX Gyre Heros from
   message (KDE-style substance, Aqua skin).
 - **Icons:** redesigned desktop + Dock SVGs — gloss, rounded forms,
   depth — still original (no Apple logo / Happy Mac face clones).
+
+
+## Period-correctness pass (`polish/aqua-more-correct`)
+
+Authenticity choices for early Aqua (~10.0–10.3 / 2001–2003), theme-local:
+
+- **3D Dock shelf vs Leopard flat glass.** Cheetah/Puma Dock was a
+  perspective trapezoid shelf with icons sitting *on* it and a soft
+  reflection hint — not the frosted rounded strip of later OS X. Magnify
+  + running dots kept; art remains original SVG.
+- **Double-click to open desktop icons.** Classic Mac/Aqua: single-click
+  selects (white label on blue), double-click opens. `(pointer: coarse)`
+  / touch keeps single-click open. Empty desktop click clears selection.
+- **Menu clock format.** Early menu clocks often showed weekday + time
+  (e.g. `Tue 7:14 PM`) via `toLocaleString` / browser locale. Shared
+  `OqOsx.initMenuClock` stays HH:MM for other skins; aqua overrides in
+  `app.js` only.
+- **Aqua jelly scrollbars.** WebKit `::-webkit-scrollbar*` styled in
+  blue/gray jelly language for `.osx-body`, `.aqua-panel`, Finder views.
+  Unsupported engines keep native scrollbars (graceful).
+- **Jelly controls.** Pill/oval primary blue + gloss; secondary gray
+  jelly; text fields with soft inset + glowing blue Aqua focus ring on
+  `:focus-visible`; slightly period checkboxes.
+- **Menubar pinstripes + menu chrome.** Fine horizontal stripe texture on
+  the translucent menubar; dropdowns get a light stripe wash / soft
+  shadow; blue selection kept. Visual ⌘ shortcut hints on a few items
+  (Close Window, Shut Down, …) — chrome only except existing handlers.
+- **Finder toolbar.** Macintosh HD gets Back (inert/disabled), icon/list
+  view toggles, and a location label. List view is a simple Name/Kind
+  alternate. Trash keeps empty-state with matching toolbar chrome.
 
 ## Gotchas
 
