@@ -24,6 +24,21 @@
   }
 }
 
+
+/* Graphite appearance — greys Aqua chrome (period System Preferences). */
+html[data-appearance="graphite"] {
+  --aqua-stripe-a: #e6e6e6;
+  --aqua-stripe-b: #d8d8d8;
+  --aqua-menubar: rgba(236, 236, 236, 0.82);
+  --aqua-menubar-border: rgba(0, 0, 0, 0.28);
+  --aqua-accent: #6e6e6e;
+  --aqua-window: #ececec;
+  --aqua-title-active-top: #d8d8d8;
+  --aqua-title-active-bot: #9a9a9a;
+  --aqua-title-inactive-top: #e8e8e8;
+  --aqua-title-inactive-bot: #b8b8b8;
+  --aqua-dock: rgba(220, 220, 220, 0.4);
+}
 :root {
   --aqua-stripe-a: #eceff3;
   --aqua-stripe-b: #e2e6ec;
@@ -345,6 +360,28 @@ select {
   outline: none;
 }
 
+/* Free-position desktop icons (drag-reposition); Clean Up clears these. */
+.desktop-icons.is-free {
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+.desktop-icons.is-free .desktop-icon {
+  position: absolute;
+  pointer-events: auto;
+}
+.desktop-icon.is-dragging {
+  z-index: 50;
+  opacity: 0.92;
+  /* keep receiving moves via setPointerCapture; click swallow handles open */
+}
+
+
 /* ---------- Windows ---------- */
 .osx-window {
   position: absolute;
@@ -509,6 +546,36 @@ select {
   -webkit-user-select: text;
   user-select: text;
   cursor: text;
+}
+
+
+/* Edge resize handles — paired with resizeMode: "both" + growbox. */
+.osx-resize {
+  position: absolute;
+  z-index: 5;
+  touch-action: none;
+}
+.osx-resize-n, .osx-resize-s { left: 8px; right: 8px; height: 5px; cursor: ns-resize; }
+.osx-resize-n { top: 0; }
+.osx-resize-s { bottom: 0; }
+.osx-resize-e, .osx-resize-w { top: 8px; bottom: 8px; width: 5px; cursor: ew-resize; }
+.osx-resize-e { right: 0; }
+.osx-resize-w { left: 0; }
+.osx-resize-ne, .osx-resize-nw, .osx-resize-se, .osx-resize-sw {
+  width: 10px; height: 10px; z-index: 6;
+}
+.osx-resize-ne { top: 0; right: 0; cursor: nesw-resize; }
+.osx-resize-nw { top: 0; left: 0; cursor: nwse-resize; }
+.osx-resize-se { bottom: 0; right: 0; cursor: nwse-resize; }
+.osx-resize-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+.osx-window.zoomed .osx-resize { display: none; }
+@media (pointer: coarse) {
+  .osx-resize-n, .osx-resize-ne, .osx-resize-nw { display: none; }
+  .osx-resize-s { height: 18px; left: 24px; right: 24px; }
+  .osx-resize-e { width: 18px; top: 28px; bottom: 18px; }
+  .osx-resize-w { width: 18px; top: 28px; bottom: 18px; }
+  .osx-resize-se { width: 28px; height: 28px; }
+  .osx-resize-sw { width: 28px; height: 28px; }
 }
 
 .osx-growbox {
@@ -1667,3 +1734,96 @@ select {
     height: 36px;
   }
 }
+
+/* Force Quit list */
+.forcequit-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  max-height: 10rem;
+  overflow: auto;
+  border: 1px solid #8a8a8a;
+  border-radius: 4px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) inset;
+}
+.forcequit-list li {
+  margin: 0;
+  padding: 6px 10px;
+  cursor: default;
+  border-bottom: 1px solid #ececec;
+}
+.forcequit-list li:last-child { border-bottom: 0; }
+.forcequit-list li.is-selected,
+.forcequit-list li[aria-selected="true"] {
+  background: var(--aqua-accent);
+  color: #fff;
+}
+
+/* Get Info sheet */
+.getinfo-body { font-size: 12px; }
+.getinfo-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.getinfo-glyph {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+}
+.getinfo-glyph svg { width: 48px; height: 48px; }
+.getinfo-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+.getinfo-kind {
+  margin: 2px 0 0;
+  color: #555;
+}
+.getinfo-dl {
+  margin: 0 0 10px;
+  display: grid;
+  gap: 4px;
+}
+.getinfo-dl > div {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 6px;
+}
+.getinfo-dl dt {
+  margin: 0;
+  color: #555;
+  font-weight: 700;
+}
+.getinfo-dl dd { margin: 0; }
+.getinfo-blurb {
+  margin: 0 0 4px;
+  color: #333;
+  line-height: 1.35;
+}
+
+/* System Preferences appearance */
+.sysprefs-section-label {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+.sysprefs-appearance {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.sysprefs-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+.sysprefs-hint {
+  margin: 0;
+  color: #555;
+  font-size: 11px;
+}
+

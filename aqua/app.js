@@ -265,7 +265,7 @@
     windows,
     minWidth: 240,
     minHeight: 140,
-    resizeMode: "growbox",
+    resizeMode: "both",
     routeOpen(win) {
       if (win === winOq) {
         window.OqRouter.navigate({ screen: "oq", filter: oqFilter.value || null });
@@ -562,7 +562,7 @@
   for (const link of document.querySelectorAll('#menu-bar [role="menu"] a, #desktop-context-menu a')) {
     if (
       link.closest(
-        "[data-open], #menu-shutdown, #menu-empty-trash, #menu-screen-effects, [data-saver], #desktop-ctx-cleanup, #desktop-ctx-toggle-icons, #desktop-ctx-effects",
+        "[data-open], #menu-shutdown, #menu-empty-trash, #menu-screen-effects, [data-saver], #desktop-ctx-cleanup, #desktop-ctx-toggle-icons, #desktop-ctx-effects, #desktop-ctx-info, #menu-force-quit, #menu-get-info, #menu-sys-prefs",
       )
     ) {
       continue;
@@ -577,6 +577,8 @@
 
   function closeDesktopContextMenu() {
     if (desktopContextMenu) desktopContextMenu.hidden = true;
+    const iconMenu = document.getElementById("icon-context-menu");
+    if (iconMenu) iconMenu.hidden = true;
   }
 
   function suppressBrowserMenu(event) {
@@ -589,8 +591,23 @@
   if (dockEl) dockEl.addEventListener("contextmenu", suppressBrowserMenu);
   if (menuBar) menuBar.addEventListener("contextmenu", suppressBrowserMenu);
 
+  const iconContextMenu = document.getElementById("icon-context-menu");
+  /** @type {HTMLElement | null} */
+  let iconContextTarget = null;
+
+  function placeContextMenu(menu, event, menuWidth, menuHeight) {
+    const zoomFactor = window.OqOsx.getZoomFactor ? window.OqOsx.getZoomFactor() : 1;
+    const deskRect = desktop.getBoundingClientRect();
+    const left =
+      Math.min(event.clientX, deskRect.right - menuWidth) / zoomFactor - deskRect.left / zoomFactor;
+    const top =
+      Math.min(event.clientY, deskRect.bottom - menuHeight) / zoomFactor - deskRect.top / zoomFactor;
+    menu.style.left = `${Math.max(0, left)}px`;
+    menu.style.top = `${Math.max(0, top)}px`;
+    menu.hidden = false;
+  }
+
   desktop.addEventListener("contextmenu", (event) => {
-    // Bare desktop only — icons still suppress the browser menu.
     const onIcon = event.target.closest(".desktop-icon");
     const onWindow = event.target.closest(".osx-window");
     const onDock = event.target.closest("#dock");
@@ -598,31 +615,28 @@
       event.preventDefault();
       return;
     }
-    if (onIcon || (event.target !== desktop && !event.target.classList.contains("desktop-icons"))) {
-      event.preventDefault();
+    event.preventDefault();
+    closeDesktopContextMenu();
+    if (onIcon) {
+      selectDesktopIcon(onIcon);
+      iconContextTarget = onIcon;
+      if (iconContextMenu) placeContextMenu(iconContextMenu, event, 160, 72);
       return;
     }
-    event.preventDefault();
+    if (event.target !== desktop && !event.target.classList.contains("desktop-icons")) {
+      return;
+    }
+    iconContextTarget = null;
     if (!desktopContextMenu) return;
-    const zoomFactor = window.OqOsx.getZoomFactor ? window.OqOsx.getZoomFactor() : 1;
-    const deskRect = desktop.getBoundingClientRect();
-    const menuWidth = 200;
-    const menuHeight = 120;
-    const left =
-      Math.min(event.clientX, deskRect.right - menuWidth) / zoomFactor - deskRect.left / zoomFactor;
-    const top =
-      Math.min(event.clientY, deskRect.bottom - menuHeight) / zoomFactor - deskRect.top / zoomFactor;
-    desktopContextMenu.style.left = `${Math.max(0, left)}px`;
-    desktopContextMenu.style.top = `${Math.max(0, top)}px`;
-    desktopContextMenu.hidden = false;
+    placeContextMenu(desktopContextMenu, event, 220, 160);
   });
 
   document.addEventListener("pointerdown", (event) => {
-    if (
-      desktopContextMenu &&
-      !desktopContextMenu.hidden &&
-      !desktopContextMenu.contains(event.target)
-    ) {
+    const iconMenu = document.getElementById("icon-context-menu");
+    const hitDesk = desktopContextMenu && !desktopContextMenu.hidden && desktopContextMenu.contains(event.target);
+    const hitIcon = iconMenu && !iconMenu.hidden && iconMenu.contains(event.target);
+    if ((desktopContextMenu && !desktopContextMenu.hidden && !hitDesk && !hitIcon) ||
+        (iconMenu && !iconMenu.hidden && !hitDesk && !hitIcon)) {
       closeDesktopContextMenu();
     }
   });
@@ -636,6 +650,7 @@
   const desktopCtxCleanup = document.getElementById("desktop-ctx-cleanup");
   const desktopCtxToggleIcons = document.getElementById("desktop-ctx-toggle-icons");
   const DESKTOP_ICONS_STORAGE_KEY = "retr-oq:aqua-desktop-icons";
+  const DESKTOP_ICON_POS_KEY = "retr-oq:aqua-desktop-icon-pos";
   const DESKTOP_ICON_ORDER = ["win-home", "win-oq", "win-decon", "win-about", "win-trash"];
 
   function getStoredIconsHidden() {
@@ -667,17 +682,27 @@
       icon.style.left = "";
       icon.style.right = "";
       icon.style.transform = "";
+      icon.classList.remove("is-dragging");
     }
     for (const id of DESKTOP_ICON_ORDER) {
       const icon = byOpen.get(id);
       if (icon) desktopIcons.appendChild(icon);
     }
     // Snap the column back to the tidy right-side layout.
+    desktopIcons.classList.remove("is-free");
     desktopIcons.style.top = "";
     desktopIcons.style.right = "";
     desktopIcons.style.left = "";
+    desktopIcons.style.bottom = "";
+    desktopIcons.style.width = "";
+    desktopIcons.style.height = "";
     desktopIcons.style.flexDirection = "";
     desktopIcons.style.alignItems = "";
+    try {
+      localStorage.removeItem(DESKTOP_ICON_POS_KEY);
+    } catch {
+      /* ignore */
+    }
   }
 
   applyIconsHidden(getStoredIconsHidden());
@@ -705,6 +730,437 @@
       link.addEventListener("click", () => closeDesktopContextMenu());
     }
   }
+
+
+  // ---------- Desktop icon drag-reposition (fine pointer only) ----------
+  function loadIconPositions() {
+    try {
+      const raw = localStorage.getItem(DESKTOP_ICON_POS_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveIconPositions(map) {
+    try {
+      localStorage.setItem(DESKTOP_ICON_POS_KEY, JSON.stringify(map));
+    } catch {
+      /* sandboxed */
+    }
+  }
+
+  function ensureFreeIconLayout() {
+    if (!desktopIcons || desktopIcons.classList.contains("is-free")) return;
+    const zoom = window.OqOsx.getZoomFactor ? window.OqOsx.getZoomFactor() : 1;
+    const deskRect = desktop.getBoundingClientRect();
+    const positions = {};
+    for (const icon of desktopIcons.querySelectorAll(".desktop-icon")) {
+      const r = icon.getBoundingClientRect();
+      const left = (r.left - deskRect.left) / zoom;
+      const top = (r.top - deskRect.top) / zoom;
+      positions[icon.dataset.open] = { left, top };
+    }
+    desktopIcons.classList.add("is-free");
+    desktopIcons.style.top = "0";
+    desktopIcons.style.right = "0";
+    desktopIcons.style.left = "0";
+    desktopIcons.style.bottom = "0";
+    desktopIcons.style.width = "100%";
+    desktopIcons.style.height = "100%";
+    for (const icon of desktopIcons.querySelectorAll(".desktop-icon")) {
+      const pos = positions[icon.dataset.open];
+      if (!pos) continue;
+      icon.style.position = "absolute";
+      icon.style.left = `${pos.left}px`;
+      icon.style.top = `${pos.top}px`;
+      icon.style.right = "auto";
+    }
+  }
+
+  function applyStoredIconPositions() {
+    const stored = loadIconPositions();
+    if (!stored || !desktopIcons) return;
+    const keys = Object.keys(stored);
+    if (!keys.length) return;
+    desktopIcons.classList.add("is-free");
+    desktopIcons.style.top = "0";
+    desktopIcons.style.right = "0";
+    desktopIcons.style.left = "0";
+    desktopIcons.style.bottom = "0";
+    desktopIcons.style.width = "100%";
+    desktopIcons.style.height = "100%";
+    for (const icon of desktopIcons.querySelectorAll(".desktop-icon")) {
+      const pos = stored[icon.dataset.open];
+      if (!pos || typeof pos.left !== "number" || typeof pos.top !== "number") continue;
+      icon.style.position = "absolute";
+      icon.style.left = `${pos.left}px`;
+      icon.style.top = `${pos.top}px`;
+      icon.style.right = "auto";
+    }
+  }
+
+  function persistCurrentIconPositions() {
+    if (!desktopIcons || !desktopIcons.classList.contains("is-free")) return;
+    const map = {};
+    for (const icon of desktopIcons.querySelectorAll(".desktop-icon")) {
+      const left = parseFloat(icon.style.left);
+      const top = parseFloat(icon.style.top);
+      if (Number.isFinite(left) && Number.isFinite(top)) {
+        map[icon.dataset.open] = { left, top };
+      }
+    }
+    saveIconPositions(map);
+  }
+
+  applyStoredIconPositions();
+
+  if (!opensOnSingleClick && desktopIcons) {
+    const DRAG_THRESHOLD = 5;
+    for (const icon of desktopIcons.querySelectorAll(".desktop-icon")) {
+      icon.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
+        if (event.target.closest("a")) return;
+        const zoom = window.OqOsx.getZoomFactor ? window.OqOsx.getZoomFactor() : 1;
+        const startX = event.clientX;
+        const startY = event.clientY;
+        let dragging = false;
+        let originLeft = 0;
+        let originTop = 0;
+        const pointerId = event.pointerId;
+
+        function onMove(ev) {
+          const dx = (ev.clientX - startX) / zoom;
+          const dy = (ev.clientY - startY) / zoom;
+          if (!dragging) {
+            if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+            dragging = true;
+            ensureFreeIconLayout();
+            originLeft = parseFloat(icon.style.left) || 0;
+            originTop = parseFloat(icon.style.top) || 0;
+            icon.classList.add("is-dragging");
+            try {
+              icon.setPointerCapture(pointerId);
+            } catch {
+              /* ignore */
+            }
+            selectDesktopIcon(icon);
+          }
+          const deskW = desktop.clientWidth;
+          const deskH = desktop.clientHeight;
+          const iconW = icon.offsetWidth;
+          const iconH = icon.offsetHeight;
+          let nextL = originLeft + dx;
+          let nextT = originTop + dy;
+          nextL = Math.max(0, Math.min(nextL, Math.max(0, deskW - iconW)));
+          nextT = Math.max(0, Math.min(nextT, Math.max(0, deskH - iconH)));
+          icon.style.left = `${nextL}px`;
+          icon.style.top = `${nextT}px`;
+        }
+
+        function onUp() {
+          window.removeEventListener("pointermove", onMove, true);
+          window.removeEventListener("pointerup", onUp, true);
+          window.removeEventListener("pointercancel", onUp, true);
+          if (dragging) {
+            icon.classList.remove("is-dragging");
+            persistCurrentIconPositions();
+            // Suppress the click that would fire after a drag.
+            const swallow = (ev) => {
+              ev.preventDefault();
+              ev.stopPropagation();
+              icon.removeEventListener("click", swallow, true);
+            };
+            icon.addEventListener("click", swallow, true);
+          }
+        }
+
+        window.addEventListener("pointermove", onMove, true);
+        window.addEventListener("pointerup", onUp, true);
+        window.addEventListener("pointercancel", onUp, true);
+      });
+    }
+  }
+
+  // ---------- Get Info sheet ----------
+  const getinfoOverlay = document.getElementById("getinfo-overlay");
+  const INFO_CATALOG = {
+    "win-home": {
+      name: "Macintosh HD",
+      kind: "Volume",
+      kindDetail: "Startup Disk",
+      version: "retr-oq Aqua · 2001",
+      where: "Desktop",
+      blurb: "The theme’s home volume — Finder chrome for launching apps and opening Trash.",
+    },
+    "win-oq": {
+      name: "OQ!",
+      kind: "Application",
+      kindDetail: "Dictionary browser",
+      version: "1.0 (retr-oq)",
+      where: "Macintosh HD → Applications",
+      blurb: "Browse the Kalaallisut dictionary with live filter. Shared data via OqDictSource.",
+    },
+    "win-decon": {
+      name: "Word Deconstructor",
+      kind: "Application",
+      kindDetail: "Morphology explorer",
+      version: "1.0 (retr-oq)",
+      where: "Macintosh HD → Applications",
+      blurb: "Break a Kalaallisut word into roots and affixes (OqDecon / oq-analysis).",
+    },
+    "win-trash": {
+      name: "Trash",
+      kind: "Folder",
+      kindDetail: "Trash",
+      version: "—",
+      where: "Desktop",
+      blurb: "Items you discard land here. Empty Trash clears them for good (in this skin: the crumpled note).",
+    },
+    "win-apps": {
+      name: "Applications",
+      kind: "Folder",
+      kindDetail: "Applications folder",
+      version: "—",
+      where: "Macintosh HD",
+      blurb: "OQ!, Word Deconstructor, and About — first-class Aqua Finder window.",
+    },
+    "win-about": {
+      name: "About This Computer",
+      kind: "Document",
+      kindDetail: "About box",
+      version: "Aqua · Cheetah / Puma era",
+      where: "Macintosh HD",
+      blurb: "Period Aqua description, shared/osx notes, and original-art disclaimer.",
+    },
+    desktop: {
+      name: "Desktop",
+      kind: "Folder",
+      kindDetail: "Desktop",
+      version: "—",
+      where: "Finder",
+      blurb: "Icons live here. Drag to reposition; Clean Up snaps them into a tidy column.",
+    },
+  };
+
+  function showGetInfo(key) {
+    const info = INFO_CATALOG[key] || INFO_CATALOG.desktop;
+    const title = document.getElementById("getinfo-title");
+    const nameEl = document.getElementById("getinfo-name");
+    const kindEl = document.getElementById("getinfo-kind");
+    const kindDetail = document.getElementById("getinfo-kind-detail");
+    const versionEl = document.getElementById("getinfo-version");
+    const whereEl = document.getElementById("getinfo-where");
+    const blurbEl = document.getElementById("getinfo-blurb");
+    const glyphEl = document.getElementById("getinfo-glyph");
+    if (title) title.textContent = `Info on “${info.name}”`;
+    if (nameEl) nameEl.textContent = info.name;
+    if (kindEl) kindEl.textContent = info.kind;
+    if (kindDetail) kindDetail.textContent = info.kindDetail;
+    if (versionEl) versionEl.textContent = info.version;
+    if (whereEl) whereEl.textContent = info.where;
+    if (blurbEl) blurbEl.textContent = info.blurb;
+    if (glyphEl) {
+      glyphEl.textContent = "";
+      const srcIcon =
+        (key && key !== "desktop" && document.querySelector(`.desktop-icon[data-open="${key}"] .desktop-icon-glyph`)) ||
+        (key === "win-apps" && document.querySelector('.osx-dock-item[data-open="win-apps"] .dock-glyph')) ||
+        null;
+      if (srcIcon) {
+        glyphEl.appendChild(srcIcon.cloneNode(true));
+      }
+    }
+    if (getinfoOverlay) getinfoOverlay.hidden = false;
+  }
+
+  function resolveGetInfoTarget() {
+    if (selectedIcon && selectedIcon.dataset.open) return selectedIcon.dataset.open;
+    if (iconContextTarget && iconContextTarget.dataset.open) return iconContextTarget.dataset.open;
+    return "desktop";
+  }
+
+  function wireGetInfoTrigger(el) {
+    if (!el) return;
+    const link = el.matches("a") ? el : el.querySelector("a");
+    if (!link) return;
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      closeDesktopContextMenu();
+      showGetInfo(resolveGetInfoTarget());
+    });
+  }
+  wireGetInfoTrigger(document.getElementById("menu-get-info"));
+  wireGetInfoTrigger(document.getElementById("desktop-ctx-info"));
+  wireGetInfoTrigger(document.getElementById("icon-ctx-info"));
+
+  const iconCtxOpen = document.getElementById("icon-ctx-open");
+  if (iconCtxOpen) {
+    iconCtxOpen.querySelector("a").addEventListener("click", (event) => {
+      event.preventDefault();
+      const target = iconContextTarget || selectedIcon;
+      closeDesktopContextMenu();
+      if (target && target.dataset.open) openFromChrome(target.dataset.open);
+    });
+  }
+
+  document.getElementById("getinfo-ok")?.addEventListener("click", () => {
+    if (getinfoOverlay) getinfoOverlay.hidden = true;
+  });
+
+  // ---------- Force Quit sheet (⌥⌘⎋) ----------
+  const forcequitOverlay = document.getElementById("forcequit-overlay");
+  const forcequitList = document.getElementById("forcequit-list");
+  /** @type {string | null} */
+  let forcequitSelectedId = null;
+
+  function forceQuitableWindows() {
+    // Open (incl. minimized) app/finder windows — not already closed.
+    return windows.filter((w) => !w.classList.contains("closed"));
+  }
+
+  function renderForceQuitList() {
+    if (!forcequitList) return;
+    forcequitList.textContent = "";
+    forcequitSelectedId = null;
+    const open = forceQuitableWindows();
+    if (!open.length) {
+      const empty = document.createElement("li");
+      empty.textContent = "No applications to force quit.";
+      empty.className = "is-empty";
+      forcequitList.appendChild(empty);
+      return;
+    }
+    open.forEach((win, index) => {
+      const li = document.createElement("li");
+      li.setAttribute("role", "option");
+      li.dataset.winId = win.id;
+      const title = windowTitle(win);
+      const min = win.classList.contains("minimized") ? " (minimized)" : "";
+      li.textContent = `${title}${min}`;
+      li.addEventListener("click", () => {
+        for (const row of forcequitList.querySelectorAll("li")) {
+          row.classList.remove("is-selected");
+          row.setAttribute("aria-selected", "false");
+        }
+        li.classList.add("is-selected");
+        li.setAttribute("aria-selected", "true");
+        forcequitSelectedId = win.id;
+      });
+      if (index === 0) {
+        li.classList.add("is-selected");
+        li.setAttribute("aria-selected", "true");
+        forcequitSelectedId = win.id;
+      }
+      forcequitList.appendChild(li);
+    });
+  }
+
+  function showForceQuit() {
+    renderForceQuitList();
+    if (forcequitOverlay) forcequitOverlay.hidden = false;
+  }
+
+  function hideForceQuit() {
+    if (forcequitOverlay) forcequitOverlay.hidden = true;
+  }
+
+  document.querySelector("#menu-force-quit a")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    showForceQuit();
+  });
+  document.getElementById("forcequit-cancel")?.addEventListener("click", () => hideForceQuit());
+  document.getElementById("forcequit-ok")?.addEventListener("click", () => {
+    if (!forcequitSelectedId) {
+      hideForceQuit();
+      return;
+    }
+    const win = document.getElementById(forcequitSelectedId);
+    hideForceQuit();
+    if (!win || win.classList.contains("closed")) return;
+    // Force close: bypass minimize; use WM close (routeClose for dict apps).
+    if (win.classList.contains("minimized")) {
+      // restore briefly so close path is consistent, then close
+      wm.restoreWindow(win);
+    }
+    const closeBtn = win.querySelector(".osx-btn-close");
+    if (closeBtn) closeBtn.click();
+    else wm.closeWindow(win);
+    syncDockRunning();
+  });
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+      // Period ⌥⌘⎋ — Alt+Meta+Escape (also Alt+Ctrl+Escape for non-Mac).
+      if (event.key !== "Escape") return;
+      if (!(event.altKey && (event.metaKey || event.ctrlKey))) return;
+      event.preventDefault();
+      showForceQuit();
+    },
+    true,
+  );
+
+  // ---------- Graphite appearance (System Preferences stub) ----------
+  const APPEARANCE_KEY = "retr-oq:aqua-appearance";
+  const sysprefsOverlay = document.getElementById("sysprefs-overlay");
+  const appearanceBlue = document.getElementById("appearance-blue");
+  const appearanceGraphite = document.getElementById("appearance-graphite");
+
+  function getStoredAppearance() {
+    try {
+      return localStorage.getItem(APPEARANCE_KEY) === "graphite" ? "graphite" : "blue";
+    } catch {
+      return "blue";
+    }
+  }
+
+  function applyAppearance(mode) {
+    const graphite = mode === "graphite";
+    document.documentElement.dataset.appearance = graphite ? "graphite" : "blue";
+    if (appearanceBlue) appearanceBlue.checked = !graphite;
+    if (appearanceGraphite) appearanceGraphite.checked = graphite;
+    try {
+      localStorage.setItem(APPEARANCE_KEY, graphite ? "graphite" : "blue");
+    } catch {
+      /* ignore */
+    }
+  }
+
+  applyAppearance(getStoredAppearance());
+
+  document.querySelector("#menu-sys-prefs a")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    applyAppearance(getStoredAppearance());
+    if (sysprefsOverlay) sysprefsOverlay.hidden = false;
+  });
+  appearanceBlue?.addEventListener("change", () => {
+    if (appearanceBlue.checked) applyAppearance("blue");
+  });
+  appearanceGraphite?.addEventListener("change", () => {
+    if (appearanceGraphite.checked) applyAppearance("graphite");
+  });
+  document.getElementById("sysprefs-ok")?.addEventListener("click", () => {
+    if (sysprefsOverlay) sysprefsOverlay.hidden = true;
+  });
+
+  // Esc dismisses chrome sheets (Force Quit / Get Info / Sys Prefs)
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (forcequitOverlay && !forcequitOverlay.hidden) {
+      hideForceQuit();
+      return;
+    }
+    if (getinfoOverlay && !getinfoOverlay.hidden) {
+      getinfoOverlay.hidden = true;
+      return;
+    }
+    if (sysprefsOverlay && !sysprefsOverlay.hidden) {
+      sysprefsOverlay.hidden = true;
+    }
+  });
+
 
   // ---------- Screen Effects (idle host from shared/redmond/screensaver.js) ----------
   const AQUA_SAVERS = ["flux", "fieldlines", "solarwinds"];

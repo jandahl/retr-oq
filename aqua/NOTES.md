@@ -181,7 +181,7 @@ Fixes vs Jan’s critique, on top of #168–#171:
 
 ## Aqua parity shell (`polish/aqua-parity-shell`)
 
-Four thin parity features (no Force Quit / Get Info chrome / Graphite / Exposé):
+Parity shell features (Screen Effects / ⌘-Tab / Clean Up, then chrome batch):
 
 1. **CI** — `tests/test_aqua.py` is covered by a `theme-tests.yml` `aqua:` path
    filter (`aqua/**`, `shared/osx/**`, test harness files). If the agent OAuth
@@ -202,5 +202,27 @@ Four thin parity features (no Force Quit / Get Info chrome / Graphite / Exposé)
    Icons** toggles visibility and persists with `localStorage` key
    `retr-oq:aqua-desktop-icons` (mac8 parity).
 
-Cache-bust: `style.css?v=7`, `app.js?v=8`, `router.js?v=17` (loads screensaver `?v=30`).
+Cache-bust: `style.css?v=8`, `app.js?v=9`, `router.js?v=17` (loads screensaver `?v=30`).
+
+## Aqua parity chrome (same branch)
+
+Continues on `polish/aqua-parity-shell` (PR #176) — no Exposé / Spotlight / Stacks / Spaces.
+
+1. **Desktop icon drag-reposition** — fine pointer: drag icons; positions persist in
+   `localStorage` `retr-oq:aqua-desktop-icon-pos`. **Clean Up Desktop** clears free
+   layout + storage and snaps the tidy right-side column (existing hide-icons toggle
+   unchanged). Coarse pointer keeps tap-to-open (no drag).
+2. **Force Quit** — System menu **Force Quit…** + ⌥⌘⎋ (Alt+Meta+Escape; Alt+Ctrl+Escape
+   too). Sheet lists open windows; Force Quit closes the selection; Cancel dismisses.
+3. **Get Info** — File menu, desktop/icon context menus open a real sheet (name / kind /
+   version blurb) for Macintosh HD, OQ!, Word Deconstructor, Trash, Applications, About,
+   or Desktop — not the About stub.
+4. **Applications** — first-class `win-apps` Finder window (OQ! + Word Deconstructor +
+   About), openable from Macintosh HD, Dock, and Go menu.
+5. **Graphite appearance** — System Preferences sheet toggles Blue / Graphite CSS
+   variables on `html[data-appearance]`; persists `retr-oq:aqua-appearance`.
+6. **Edge resize** — `resizeMode: "both"`; `.osx-resize` edge handles on aqua windows
+   alongside the growbox.
+7. **CI** — do not push workflow files from this agent. Paste the `aqua:` path filter
+   into `.github/workflows/theme-tests.yml` (see PR #176 description / former #177).
 
