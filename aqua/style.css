@@ -294,6 +294,11 @@ select {
   z-index: 1;
 }
 
+.desktop-icons.icons-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .desktop-icon {
   width: 92px;
   display: flex;
@@ -927,6 +932,98 @@ select {
 .desktop-context-menu .is-disabled a {
   color: #999;
   pointer-events: none;
+}
+
+.desktop-context-check {
+  display: inline-block;
+  width: 1em;
+  margin-left: -1.1em;
+  margin-right: 0.2em;
+  visibility: hidden;
+  text-align: center;
+}
+
+#desktop-ctx-toggle-icons.checked .desktop-context-check {
+  visibility: visible;
+}
+
+/* ---------- Cmd-Tab application switcher ---------- */
+.app-switcher {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.app-switcher[hidden] {
+  display: none !important;
+}
+
+.app-switcher-panel {
+  pointer-events: none;
+  min-width: 16rem;
+  max-width: min(92vw, 36rem);
+  padding: 14px 18px 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(210, 220, 235, 0.78));
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.app-switcher-track {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 2px 8px;
+}
+
+.app-switcher-item {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  background: transparent;
+}
+
+.app-switcher-item.is-focused {
+  border-color: rgba(77, 118, 197, 0.95);
+  background: rgba(77, 118, 197, 0.22);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55) inset;
+}
+
+.app-switcher-item .dock-glyph,
+.app-switcher-item svg {
+  width: 48px;
+  height: 48px;
+  display: block;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.28));
+}
+
+.app-switcher-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a2433;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
+  min-height: 1.2em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-switcher-panel {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 /* ---------- Finder / Trash chrome ---------- */

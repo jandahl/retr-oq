@@ -178,3 +178,29 @@ Fixes vs Jan’s critique, on top of #168–#171:
 9. **Boot splash.** Removed the ~1.2s overlay entirely — desktop appears
    immediately (optional startup chime still unlocks on first input).
 
+
+## Aqua parity shell (`polish/aqua-parity-shell`)
+
+Four thin parity features (no Force Quit / Get Info chrome / Graphite / Exposé):
+
+1. **CI** — `tests/test_aqua.py` is covered by a `theme-tests.yml` `aqua:` path
+   filter (`aqua/**`, `shared/osx/**`, test harness files). If the agent OAuth
+   token lacks `workflow` scope, the YAML may need to be pasted manually (see PR).
+2. **Screen Effects** — idle host via `shared/redmond/screensaver.js` (loaded by
+   `shared/router.js` for `/aqua/`). Abstract GL savers from `vendor/screensavers/`:
+   **Flux**, **Field Lines**, **Solar Winds** (no Apple Flurry clones). Idle ~75s;
+   `prefers-reduced-motion: reduce` disables idle (menu preview still works).
+   System menu + desktop context **Screen Effects…**; thin Preview items for each
+   saver. Dismiss on pointer/key via the shared overlay host. Test hook:
+   `window.__aquaScreenEffects.setIdleMs(ms)`.
+3. **⌘-Tab app switcher** — hold Meta+Tab (Ctrl+Tab on non-Mac) to cycle
+   open/non-closed windows (else Dock-worthy apps). Center HUD strip of icons;
+   release modifier to activate; Esc cancels. `preventDefault` while handling /
+   switcher active so the theme owns the chord.
+4. **Desktop Clean Up / Hide Icons** — context menu **Clean Up Desktop** snaps
+   icons back into the tidy right-side column (canonical order); **Show Desktop
+   Icons** toggles visibility and persists with `localStorage` key
+   `retr-oq:aqua-desktop-icons` (mac8 parity).
+
+Cache-bust: `style.css?v=7`, `app.js?v=8`, `router.js?v=17` (loads screensaver `?v=30`).
+

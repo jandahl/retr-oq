@@ -168,3 +168,95 @@ def test_dock_captions_present(page, base_url):
     labels = captions.all_inner_texts()
     assert "OQ!" in labels
     assert "Trash" in labels
+
+
+def test_context_menu_clean_up_and_hide_icons(page, base_url):
+    goto_aqua(page, base_url)
+    # Open desktop context menu via JS (Playwright right-click coords vary with zoom).
+    page.evaluate(
+        """() => {
+          const desk = document.getElementById('desktop');
+          desk.dispatchEvent(new MouseEvent('contextmenu', {
+            bubbles: true, cancelable: true, clientX: 40, clientY: 80
+          }));
+        }"""
+    )
+    page.wait_for_timeout(50)
+    menu = page.locator("#desktop-context-menu")
+    assert menu.is_visible()
+    assert page.locator("#desktop-ctx-cleanup").count() == 1
+    assert "Clean Up Desktop" in page.locator("#desktop-ctx-cleanup").inner_text()
+    assert page.locator("#desktop-ctx-toggle-icons").count() == 1
+
+    # Hide icons → persists class + localStorage
+    page.locator("#desktop-ctx-toggle-icons a").click()
+    page.wait_for_timeout(50)
+    assert page.locator(".desktop-icons").evaluate("el => el.classList.contains('icons-hidden')")
+    stored = page.evaluate("() => localStorage.getItem('retr-oq:aqua-desktop-icons')")
+    assert stored == "hidden"
+
+    # Re-open menu and show again
+    page.evaluate(
+        """() => {
+          const desk = document.getElementById('desktop');
+          desk.dispatchEvent(new MouseEvent('contextmenu', {
+            bubbles: true, cancelable: true, clientX: 40, clientY: 80
+          }));
+        }"""
+    )
+    page.wait_for_timeout(50)
+    page.locator("#desktop-ctx-toggle-icons a").click()
+    page.wait_for_timeout(50)
+    assert not page.locator(".desktop-icons").evaluate("el => el.classList.contains('icons-hidden')")
+
+    # Clean Up exists and runs without error (snaps column / clears selection)
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_timeout(80)
+    page.evaluate(
+        """() => {
+          const desk = document.getElementById('desktop');
+          desk.dispatchEvent(new MouseEvent('contextmenu', {
+            bubbles: true, cancelable: true, clientX: 40, clientY: 80
+          }));
+        }"""
+    )
+    page.wait_for_timeout(50)
+    page.locator("#desktop-ctx-cleanup a").click()
+    page.wait_for_timeout(50)
+    assert page.locator(".desktop-icon.selected").count() == 0
+    # Icons still in the tidy right-side column container
+    assert page.locator(".desktop-icons .desktop-icon").count() >= 4
+
+
+def test_app_switcher_hud_present_and_opens(page, base_url):
+    goto_aqua(page, base_url)
+    hud = page.locator("#app-switcher")
+    assert hud.count() == 1
+    assert hud.is_hidden()
+
+    # Open a window so the switcher has a running app, then Meta+Tab
+    page.dblclick(".desktop-icon[data-open='win-oq']")
+    page.wait_for_timeout(80)
+    page.keyboard.down("Meta")
+    page.keyboard.press("Tab")
+    page.wait_for_timeout(80)
+    assert hud.is_visible()
+    assert page.locator("#app-switcher-track .app-switcher-item").count() >= 1
+    page.keyboard.press("Escape")
+    page.wait_for_timeout(50)
+    assert hud.is_hidden()
+
+
+def test_screen_effects_menu_and_host_hook(page, base_url):
+    goto_aqua(page, base_url)
+    # DOM presence — System menu item + context item
+    assert page.locator("#menu-screen-effects").count() == 1
+    assert page.locator("#desktop-ctx-effects").count() == 1
+    # Host should attach (router loads screensaver.js for aqua/)
+    page.wait_for_timeout(150)
+    has_host = page.evaluate(
+        """() => !!(window.OqScreensaver && (window.OqScreensaver.aqua || window.OqScreensaver.host))"""
+    )
+    assert has_host
+    # Idle hook present for tests; do not wait on real idle in CI
+    assert page.evaluate("() => typeof window.__aquaScreenEffects?.setIdleMs === 'function'")

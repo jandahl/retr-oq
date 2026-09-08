@@ -558,9 +558,15 @@
     });
   }
 
-  // Placeholder menu links (stubs)
+  // Placeholder menu links (stubs) — skip items with real handlers below.
   for (const link of document.querySelectorAll('#menu-bar [role="menu"] a, #desktop-context-menu a')) {
-    if (link.closest("[data-open], #menu-shutdown, #menu-empty-trash")) continue;
+    if (
+      link.closest(
+        "[data-open], #menu-shutdown, #menu-empty-trash, #menu-screen-effects, [data-saver], #desktop-ctx-cleanup, #desktop-ctx-toggle-icons, #desktop-ctx-effects",
+      )
+    ) {
+      continue;
+    }
     link.addEventListener("click", (event) => {
       event.preventDefault();
     });
@@ -625,11 +631,271 @@
       closeDesktopContextMenu();
     }
   });
+  // ---------- Desktop Clean Up / Show·Hide Icons ----------
+  const desktopIcons = document.querySelector(".desktop-icons");
+  const desktopCtxCleanup = document.getElementById("desktop-ctx-cleanup");
+  const desktopCtxToggleIcons = document.getElementById("desktop-ctx-toggle-icons");
+  const DESKTOP_ICONS_STORAGE_KEY = "retr-oq:aqua-desktop-icons";
+  const DESKTOP_ICON_ORDER = ["win-home", "win-oq", "win-decon", "win-about", "win-trash"];
+
+  function getStoredIconsHidden() {
+    try {
+      return localStorage.getItem(DESKTOP_ICONS_STORAGE_KEY) === "hidden";
+    } catch {
+      return false;
+    }
+  }
+
+  function applyIconsHidden(hidden) {
+    if (desktopIcons) desktopIcons.classList.toggle("icons-hidden", hidden);
+    if (desktopCtxToggleIcons) desktopCtxToggleIcons.classList.toggle("checked", !hidden);
+    try {
+      localStorage.setItem(DESKTOP_ICONS_STORAGE_KEY, hidden ? "hidden" : "shown");
+    } catch {
+      /* sandboxed — applies for this visit only */
+    }
+  }
+
+  function cleanUpDesktop() {
+    clearDesktopSelection();
+    if (!desktopIcons) return;
+    const byOpen = new Map();
+    for (const icon of desktopIcons.querySelectorAll(".desktop-icon")) {
+      byOpen.set(icon.dataset.open, icon);
+      icon.style.position = "";
+      icon.style.top = "";
+      icon.style.left = "";
+      icon.style.right = "";
+      icon.style.transform = "";
+    }
+    for (const id of DESKTOP_ICON_ORDER) {
+      const icon = byOpen.get(id);
+      if (icon) desktopIcons.appendChild(icon);
+    }
+    // Snap the column back to the tidy right-side layout.
+    desktopIcons.style.top = "";
+    desktopIcons.style.right = "";
+    desktopIcons.style.left = "";
+    desktopIcons.style.flexDirection = "";
+    desktopIcons.style.alignItems = "";
+  }
+
+  applyIconsHidden(getStoredIconsHidden());
+
+  if (desktopCtxCleanup) {
+    desktopCtxCleanup.querySelector("a").addEventListener("click", (event) => {
+      event.preventDefault();
+      closeDesktopContextMenu();
+      cleanUpDesktop();
+    });
+  }
+  if (desktopCtxToggleIcons) {
+    desktopCtxToggleIcons.querySelector("a").addEventListener("click", (event) => {
+      event.preventDefault();
+      closeDesktopContextMenu();
+      applyIconsHidden(!desktopIcons.classList.contains("icons-hidden"));
+    });
+  }
+
   if (desktopContextMenu) {
     for (const link of desktopContextMenu.querySelectorAll("a")) {
+      if (link.closest("#desktop-ctx-cleanup, #desktop-ctx-toggle-icons, #desktop-ctx-effects, [data-open]")) {
+        continue;
+      }
       link.addEventListener("click", () => closeDesktopContextMenu());
     }
   }
+
+  // ---------- Screen Effects (idle host from shared/redmond/screensaver.js) ----------
+  const AQUA_SAVERS = ["flux", "fieldlines", "solarwinds"];
+
+  function aquaSaverHost() {
+    return window.OqScreensaver && (window.OqScreensaver.aqua || window.OqScreensaver.host);
+  }
+
+  function saverVendorSrc(id) {
+    return "../vendor/screensavers/" + id + "/index.html?v=ss4";
+  }
+
+  function startScreenEffect(id) {
+    const host = aquaSaverHost();
+    if (!host) return false;
+    if (id) host.setSrc(saverVendorSrc(id));
+    else if (typeof host.setSrc === "function") {
+      const pick = AQUA_SAVERS[Math.floor(Math.random() * AQUA_SAVERS.length)];
+      host.setSrc(saverVendorSrc(pick));
+    }
+    host.start();
+    return true;
+  }
+
+  function wireScreenEffectsMenu() {
+    const startBtn = document.getElementById("menu-screen-effects");
+    if (startBtn) {
+      startBtn.querySelector("a").addEventListener("click", (event) => {
+        event.preventDefault();
+        startScreenEffect(null);
+      });
+    }
+    const ctxEffects = document.getElementById("desktop-ctx-effects");
+    if (ctxEffects) {
+      ctxEffects.querySelector("a").addEventListener("click", (event) => {
+        event.preventDefault();
+        closeDesktopContextMenu();
+        startScreenEffect(null);
+      });
+    }
+    for (const item of document.querySelectorAll("#menu-bar [data-saver]")) {
+      const link = item.querySelector("a");
+      if (!link) continue;
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        startScreenEffect(item.dataset.saver);
+      });
+    }
+  }
+  wireScreenEffectsMenu();
+
+  // Test/debug hook: shorten idle without waiting ~75s in CI.
+  window.__aquaScreenEffects = {
+    start: startScreenEffect,
+    setIdleMs(ms) {
+      const host = aquaSaverHost();
+      if (host && host.setIdleMs) host.setIdleMs(ms);
+    },
+    host: aquaSaverHost,
+  };
+
+  // ---------- Cmd-Tab / Ctrl-Tab application switcher ----------
+  const appSwitcher = document.getElementById("app-switcher");
+  const appSwitcherTrack = document.getElementById("app-switcher-track");
+  const appSwitcherLabel = document.getElementById("app-switcher-label");
+  let switcherActive = false;
+  let switcherIndex = 0;
+  /** @type {{ id: string, label: string, glyph: Node }[]} */
+  let switcherItems = [];
+  let switcherMod = null; // "meta" | "control"
+
+  function switcherCandidates() {
+    const order = DESKTOP_ICON_ORDER.slice();
+    const open = [];
+    for (const id of order) {
+      const win = document.getElementById(id);
+      if (win && !win.classList.contains("closed")) open.push(win);
+    }
+    // Prefer open/non-closed windows; if none, fall back to Dock-worthy apps.
+    const list = open.length > 0 ? open : order.map((id) => document.getElementById(id)).filter(Boolean);
+    return list.map((win) => {
+      const dock = dockEl && dockEl.querySelector(`.osx-dock-item[data-open="${win.id}"]`);
+      const label =
+        (dock && (dock.getAttribute("data-dock-label") || dock.getAttribute("aria-label"))) ||
+        windowTitle(win);
+      const glyphSrc = dock && dock.querySelector(".dock-glyph");
+      const glyph = glyphSrc ? glyphSrc.cloneNode(true) : document.createElement("span");
+      return { id: win.id, label, glyph };
+    });
+  }
+
+  function renderSwitcher() {
+    if (!appSwitcherTrack || !appSwitcherLabel) return;
+    appSwitcherTrack.textContent = "";
+    switcherItems.forEach((item, i) => {
+      const el = document.createElement("div");
+      el.className = "app-switcher-item" + (i === switcherIndex ? " is-focused" : "");
+      el.setAttribute("role", "option");
+      el.setAttribute("aria-selected", i === switcherIndex ? "true" : "false");
+      el.appendChild(item.glyph);
+      appSwitcherTrack.appendChild(el);
+    });
+    const cur = switcherItems[switcherIndex];
+    appSwitcherLabel.textContent = cur ? cur.label : "";
+  }
+
+  function openSwitcher(reverse) {
+    switcherItems = switcherCandidates();
+    if (switcherItems.length === 0) return;
+    switcherActive = true;
+    // Start on the next app (or previous if Shift), like early OS X.
+    switcherIndex = reverse
+      ? (switcherItems.length - 1) % switcherItems.length
+      : switcherItems.length > 1
+        ? 1 % switcherItems.length
+        : 0;
+    if (appSwitcher) appSwitcher.hidden = false;
+    renderSwitcher();
+  }
+
+  function cycleSwitcher(reverse) {
+    if (!switcherActive || switcherItems.length === 0) return;
+    const n = switcherItems.length;
+    switcherIndex = reverse ? (switcherIndex - 1 + n) % n : (switcherIndex + 1) % n;
+    renderSwitcher();
+  }
+
+  function cancelSwitcher() {
+    switcherActive = false;
+    switcherMod = null;
+    switcherItems = [];
+    if (appSwitcher) appSwitcher.hidden = true;
+    if (appSwitcherTrack) appSwitcherTrack.textContent = "";
+    if (appSwitcherLabel) appSwitcherLabel.textContent = "";
+  }
+
+  function activateSwitcher() {
+    if (!switcherActive) return;
+    const cur = switcherItems[switcherIndex];
+    cancelSwitcher();
+    if (cur) openFromChrome(cur.id);
+  }
+
+  window.addEventListener(
+    "keydown",
+    (event) => {
+      const isTab = event.key === "Tab";
+      if (event.key === "Escape" && switcherActive) {
+        event.preventDefault();
+        cancelSwitcher();
+        return;
+      }
+      if (!isTab) return;
+      const meta = event.metaKey;
+      const ctrl = event.ctrlKey && !event.metaKey;
+      if (!meta && !ctrl) return;
+
+      // Meta+Tab always owns the theme switcher. Ctrl+Tab opens/cycles too
+      // (non-Mac keyboards) but we only preventDefault while we handle it —
+      // once the switcher is up, both stay captured.
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (!switcherActive) {
+        switcherMod = meta ? "meta" : "control";
+        openSwitcher(event.shiftKey);
+      } else {
+        cycleSwitcher(event.shiftKey);
+      }
+    },
+    true,
+  );
+
+  window.addEventListener(
+    "keyup",
+    (event) => {
+      if (!switcherActive) return;
+      if (event.key === "Meta" || event.key === "OS") {
+        if (switcherMod === "meta" || switcherMod == null) activateSwitcher();
+        return;
+      }
+      if (event.key === "Control") {
+        if (switcherMod === "control" || switcherMod == null) activateSwitcher();
+      }
+    },
+    true,
+  );
+
+  window.addEventListener("blur", () => {
+    if (switcherActive) cancelSwitcher();
+  });
 
   // Shut Down
   const shutdownOverlay = document.getElementById("shutdown-overlay");

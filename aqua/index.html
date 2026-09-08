@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta name="description" content="retr-oq — early OS X Aqua desktop (2001)" />
 <title>retr-oq — OS X Aqua</title>
-<link rel="stylesheet" href="style.css?v=6" />
+<link rel="stylesheet" href="style.css?v=7" />
 </head>
 <body>
   <div id="shell">
@@ -21,7 +21,11 @@
         <ul role="menu">
           <li role="menu-item" data-open="win-about"><a href="#">About This Computer…</a></li>
           <li role="menu-item" class="divider"><a href="#">System Preferences…</a></li>
-          <li role="menu-item" id="menu-shutdown"><a href="#">Shut Down…<span class="menu-shortcut">⌘Q</span></a></li>
+          <li role="menu-item" id="menu-screen-effects"><a href="#">Screen Effects…</a></li>
+          <li role="menu-item" id="menu-screen-effects-flux" data-saver="flux"><a href="#">Preview Flux</a></li>
+          <li role="menu-item" id="menu-screen-effects-fieldlines" data-saver="fieldlines"><a href="#">Preview Field Lines</a></li>
+          <li role="menu-item" id="menu-screen-effects-solarwinds" data-saver="solarwinds"><a href="#">Preview Solar Winds</a></li>
+          <li role="menu-item" class="divider" id="menu-shutdown"><a href="#">Shut Down…<span class="menu-shortcut">⌘Q</span></a></li>
         </ul>
       </li>
       <li role="menu-item" tabindex="0" aria-haspopup="true" id="app-menu-item">
@@ -175,8 +179,11 @@
       <ul role="menu" class="desktop-context-menu" id="desktop-context-menu" hidden>
         <li role="menu-item" id="desktop-ctx-new" data-open="win-home"><a href="#">New Finder Window</a></li>
         <li role="menu-item" id="desktop-ctx-info" data-open="win-about"><a href="#">Get Info</a></li>
-        <li role="menu-item" class="divider" id="desktop-ctx-bg"><a href="#">Change Desktop Background…</a></li>
-        <li role="menu-item" id="desktop-ctx-view"><a href="#">Show View Options</a></li>
+        <li role="menu-item" class="divider" id="desktop-ctx-cleanup"><a href="#">Clean Up Desktop</a></li>
+        <li role="menu-item" id="desktop-ctx-toggle-icons">
+          <a href="#"><span class="desktop-context-check" aria-hidden="true">✓</span>Show Desktop Icons</a>
+        </li>
+        <li role="menu-item" class="divider" id="desktop-ctx-effects"><a href="#">Screen Effects…</a></li>
       </ul>
 
       <section class="osx-window closed" id="win-oq" style="top: 2.5rem; left: 4rem; width: 28rem; height: 22rem;">
@@ -483,6 +490,14 @@
     </div>
   </div>
 
+
+  <div id="app-switcher" class="app-switcher" hidden role="listbox" aria-label="Application Switcher">
+    <div class="app-switcher-panel">
+      <div class="app-switcher-track" id="app-switcher-track"></div>
+      <div class="app-switcher-label" id="app-switcher-label"></div>
+    </div>
+  </div>
+
   <div class="osx-overlay" id="shutdown-overlay" hidden>
     <section class="osx-window osx-dialog osx-sheet" role="dialog" aria-labelledby="shutdown-title">
       <header class="osx-titlebar">
@@ -532,12 +547,12 @@ returns desk is across town. maybe next week."</p>
   <!-- Load order: shared data/router → shared/osx shell → theme app.js -->
   <script src="../shared/dict-source.js"></script>
   <script src="../shared/hyphenation.js"></script>
-  <script src="../shared/router.js?v=16"></script>
+  <script src="../shared/router.js?v=17"></script>
   <script type="module" src="../shared/oq-analysis.js"></script>
   <script src="../shared/decon-app.js"></script>
   <script src="../shared/osx/window-manager.js?v=4"></script>
   <script src="../shared/osx/menubar.js?v=2"></script>
   <script src="../shared/osx/dock.js?v=2"></script>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
