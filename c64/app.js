@@ -1018,30 +1018,36 @@
   // reprint stays clickable -- see the delegated #c64-output click listener
   // below, same as the initial listing markup in index.html.
   function printDirListing() {
+    // One inline element per entry (full padded 40-col line), same markup as
+    // index.html — never display:grid/block wrappers, or white-space:pre on
+    // #c64-output doubles line spacing with the "\n" between rows.
     printLine('0 "OQ DISK       " 09 2A');
-    for (const [name, label, suffixText] of [["DICT", '1   "DICT"', "PRG"], ["DECON", '1   "DECON"', "PRG"], ["MORPH", '1   "MORPH"', "PRG"], ["KALQ", '1   "KALQ"', "PRG"], ["QUIT", '2   "QUIT"', "PRG"]]) {
-      // Inline, not a block-level <div> -- a <div> here forces its own line
-      // box regardless of the "\n" text node already inserted before it,
-      // which with two such lines back to back produced a spurious blank
-      // row between them. The initial listing markup in index.html already
-      // gets this right (a plain inline <button> in the same text flow);
-      // matched here instead of reinventing it.
+    const entries = [
+      ["load", "DICT", '1   "DICT"                 PRG'],
+      ["load", "DECON", '1   "DECON"                PRG'],
+      ["load", "MORPH", '1   "MORPH"                PRG'],
+      ["load", "KALQ", '1   "KALQ"                 PRG'],
+      ["dim", null, '1   "DICT DAT"             SEQ'],
+      ["dim", null, '1   "BUILD"                PRG'],
+      ["quit", null, '2   "QUIT"                 PRG'],
+    ];
+    for (const [kind, name, label] of entries) {
       c64Output.appendChild(document.createTextNode("\n"));
-      const row = document.createElement("span");
-      row.className = "c64-program-row";
-      const link = document.createElement("button");
-      link.type = "button";
-      link.className = "c64-link";
-      if (name === "QUIT") link.dataset.action = "quit";
-      else link.dataset.load = name;
-      link.textContent = label;
-      const suffix = document.createElement("span");
-      suffix.textContent = suffixText;
-      row.append(link, suffix);
-      c64Output.appendChild(row);
+      if (kind === "dim") {
+        const span = document.createElement("span");
+        span.className = "c64-dim";
+        span.textContent = label;
+        c64Output.appendChild(span);
+      } else {
+        const link = document.createElement("button");
+        link.type = "button";
+        link.className = "c64-link";
+        if (kind === "quit") link.dataset.action = "quit";
+        else link.dataset.load = name;
+        link.textContent = label;
+        c64Output.appendChild(link);
+      }
     }
-    printLine('1   "DICT DAT"             SEQ');
-    printLine('1   "BUILD"                PRG');
     printLine("661 BLOCKS FREE.");
   }
 

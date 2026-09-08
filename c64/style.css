@@ -183,12 +183,10 @@ html, body {
   outline: none;
 }
 
-.c64-program-row {
-  display: grid;
-  grid-template-columns: 24ch 16ch;
-  width: 40ch;
-  white-space: pre;
-}
+/* Directory entries are plain inline <button>/<span> text in #c64-output's
+   white-space:pre flow (full 40-col line per element: blocks + "NAME" + type).
+   Do NOT make them display:grid/block — that plus the preserved newlines
+   between rows doubles the line spacing (blank line between every entry). */
 
 .c64-prompt-line {
   display: flex;
