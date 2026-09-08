@@ -210,15 +210,10 @@ html, body {
 }
 
 .c64-program-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 27ch 13ch;
   width: 40ch;
   white-space: pre;
-}
-.c64-program-row > :first-child {
-  flex: 0 0 21ch;
-}
-.c64-program-row > :last-child {
-  flex: 0 0 10ch;
 }
 
 .c64-prompt-line {
@@ -571,6 +566,6 @@ html, body {
 
 @media (min-width: 900px) {
   :root {
-    --c64-font-size: clamp(18px, 2vw, 27px);
+    --c64-font-size: clamp(14px, 1.5vw, 22px);
   }
 }

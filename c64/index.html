@@ -6,7 +6,7 @@
 <title>retr-oq — C64 desktop prototype</title>
 <!-- ?v= cache-busting, same convention as dos/index.html and mac1984/index.html
      -- bump the number for style.css/app.js whenever either actually changes. -->
-<link rel="stylesheet" href="style.css?v=20" />
+<link rel="stylesheet" href="style.css?v=21" />
 </head>
 <body>
   <!-- No separate boot screen: the real C64 has no startup delay or splash
@@ -33,12 +33,12 @@ READY.
 LIST
 
 0 "OQ DISK       " 09 2A
-<span class="c64-program-row"><button type="button" class="c64-link" data-load="DICT">1   "DICT"</button><span>            PRG</span></span>
-<span class="c64-program-row"><button type="button" class="c64-link" data-load="MORPH">1   "MORPH"</button><span>           PRG</span></span>
-<span class="c64-program-row"><button type="button" class="c64-link" data-load="KALQ">1   "KALQ"</button><span>            PRG</span></span>
-<span class="c64-program-row c64-dim"><span>1   "DICT DAT"</span><span>             SEQ</span></span>
-<span class="c64-program-row c64-dim"><span>1   "BUILD"</span><span>                PRG</span></span>
-<span class="c64-program-row"><button type="button" class="c64-link" data-action="quit">2   "QUIT"</button><span>            PRG</span></span>
+<span class="c64-program-row"><button type="button" class="c64-link" data-load="DICT">1   "DICT"</button><span>PRG</span></span>
+<span class="c64-program-row"><button type="button" class="c64-link" data-load="MORPH">1   "MORPH"</button><span>PRG</span></span>
+<span class="c64-program-row"><button type="button" class="c64-link" data-load="KALQ">1   "KALQ"</button><span>PRG</span></span>
+<span class="c64-program-row c64-dim"><span>1   "DICT DAT"</span><span>SEQ</span></span>
+<span class="c64-program-row c64-dim"><span>1   "BUILD"</span><span>PRG</span></span>
+<span class="c64-program-row"><button type="button" class="c64-link" data-action="quit">2   "QUIT"</button><span>PRG</span></span>
 661 BLOCKS FREE.
 </div>
     <!-- A real command line, same role as dos/'s #dos-cmd -- LOAD"NAME",8,1
@@ -136,6 +136,6 @@ LIST
 <script src="../shared/morph-puzzles.js?v=4"></script>
 <script src="../shared/morph-game.js?v=2"></script>
 <script src="../shared/klax-game.js?v=10"></script>
-<script src="app.js?v=19"></script>
+<script src="app.js?v=20"></script>
 </body>
 </html>
