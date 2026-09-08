@@ -506,3 +506,42 @@ def test_time_machine_scrubber_reaches_lion_and_yosemite(page, base_url):
     page.wait_for_timeout(20)
     assert page.evaluate("() => window.__aquaTimeMachine.selected") == "yosemite"
     page.click("#tm-cancel")
+
+def test_time_machine_galaxy_and_oq_preview(page, base_url):
+    """TM overlay includes galaxy canvas + live OQ! chrome preview that tracks era."""
+    goto_aqua(page, base_url)
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(80)
+    overlay = page.locator("#tm-overlay")
+    assert overlay.is_visible()
+
+    galaxy = page.locator("#tm-galaxy")
+    assert galaxy.count() == 1
+    assert page.locator(".tm-starfield #tm-galaxy").count() == 1
+    # Canvas is present inside the starfield container (may be 0x0 until layout paints).
+    tag = page.evaluate("() => document.getElementById('tm-galaxy') && document.getElementById('tm-galaxy').tagName")
+    assert tag == "CANVAS"
+
+    preview = page.locator("#tm-oq-preview")
+    assert preview.count() == 1
+    assert preview.locator(".osx-titlebar").count() == 1
+    assert preview.locator(".osx-traffic").count() == 3
+    assert preview.locator(".osx-title").inner_text() == "OQ!"
+    assert preview.locator(".oq-table").count() == 1
+    assert preview.evaluate("el => el.classList.contains('osx-window')") is True
+
+    page.click('.tm-era-card[data-era="tiger"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "tiger"
+    # Preview stays in the overlay and still exposes era-skinned chrome classes.
+    assert page.locator("#tm-overlay #tm-oq-preview.osx-window").count() == 1
+    assert page.locator("#tm-overlay #tm-oq-preview .osx-btn-close").count() == 1
+
+    page.click('.tm-era-card[data-era="yosemite"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "yosemite"
+
+    page.click("#tm-cancel")
+    page.wait_for_timeout(40)
+    assert page.locator("#tm-overlay").is_hidden()
+

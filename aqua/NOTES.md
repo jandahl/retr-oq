@@ -202,7 +202,7 @@ Parity shell features (Screen Effects / ⌘-Tab / Clean Up, then chrome batch):
    Icons** toggles visibility and persists with `localStorage` key
    `retr-oq:aqua-desktop-icons` (mac8 parity).
 
-Cache-bust: `style.css?v=9`, `eras.css?v=2`, `app.js?v=10`, `timemachine.js?v=2`, `router.js?v=17` (loads screensaver `?v=30`).
+Cache-bust: `style.css?v=9`, `eras.css?v=3`, `app.js?v=10`, `timemachine.js?v=3`, `router.js?v=17` (loads screensaver `?v=30`).
 
 ## Aqua parity chrome (same branch)
 
@@ -246,11 +246,17 @@ homage). Prefer strong milestones over every point release (no Snow Leopard brid
 
 **Entry:** System menu **Time Machine…**, Dock orb, shortcut **⌥⌘T** (Alt+Meta/Ctrl+T).
 
-**UX:** Full-screen abstract starfield + shelf (original art — no Apple logos /
-trademarked TM galaxy). Seven era cards (per-era TM accent colors) + scrubber /
-arrows; live skin preview while browsing; **Restore** / Enter applies; Esc
-cancels. Apply transition: starfield dissolve + shell scale/blur (~700ms).
-`prefers-reduced-motion: reduce` → instant class swap (no animation).
+**UX:** Full-screen original **galaxy** canvas (layered nebula dust + depth
+starfield tunnel that slowly comes closer / subtle rotation — not Apple’s TM
+galaxy rip or trademarks) + shelf. Seven era cards (per-era TM accent colors) +
+scrubber / arrows; live skin preview while browsing. Compact **OQ! window
+chrome preview** (`#tm-oq-preview`, `.osx-window` + traffic lights + fake
+toolbar/list) reskins with the selected era via `html[data-osx-era]` /
+era CSS variables so theme changes are obvious before Restore. **Restore** /
+Enter applies; Esc cancels. Apply transition: galaxy dissolve + shell
+scale/blur (~700ms). `prefers-reduced-motion: reduce` → instant Restore class
+swap; galaxy loop pauses when overlay is hidden and runs nearly static under
+reduced motion.
 
 **Persist:** `localStorage` `retr-oq:aqua-osx-era`. Inline boot script in
 `index.html` accepts all seven ids and sets `data-osx-era` before paint.
@@ -266,7 +272,21 @@ it just does not visually dominate. Documented here so Sys Prefs is not “broke
 `backdrop-filter` blur on Yosemite / Big Sur / Glassholism.
 
 **Files:** `aqua/eras.css`, `aqua/timemachine.js`, overlay markup in
-`aqua/index.html`. Hook: `window.__aquaTimeMachine`.
+`aqua/index.html` (`#tm-galaxy` canvas, `#tm-oq-preview`). Hook:
+`window.__aquaTimeMachine`.
 
 **Out of scope (still):** real Exposé / Spotlight / Spaces / Stacks apps;
 Apple logos / trademarked TM galaxy / copied Big Sur wallpapers.
+
+## Time Machine galaxy + OQ! preview
+
+Branch `polish/aqua-tm-galaxy-preview` (post-#176).
+
+1. **Galaxy** — `#tm-galaxy` canvas inside `.tm-starfield`: original abstract
+   star-tunnel + nebula dust with radial zoom toward the viewer and optional
+   slow rotation. Animation starts when TM opens and stops when the overlay
+   hides. Reduced motion keeps a near-static / tiny-drift paint.
+2. **OQ! preview** — `#tm-oq-preview` miniature `.osx-window` with traffic
+   lights, title, search field, and fake list rows. Scrubbing eras calls
+   `applyEra` → `html[data-osx-era]`, so the preview inherits the same era
+   chrome tokens as the real desktop before Restore.
