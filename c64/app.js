@@ -915,8 +915,8 @@
       row.append(link, suffix);
       c64Output.appendChild(row);
     }
-    printLine('1   "DICT DAT"                         SEQ');
-    printLine('1   "BUILD"                            PRG');
+    printLine('1   "DICT DAT"             SEQ');
+    printLine('1   "BUILD"                PRG');
     printLine("661 BLOCKS FREE.");
   }
 
