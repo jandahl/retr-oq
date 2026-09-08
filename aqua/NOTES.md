@@ -202,7 +202,7 @@ Parity shell features (Screen Effects / ⌘-Tab / Clean Up, then chrome batch):
    Icons** toggles visibility and persists with `localStorage` key
    `retr-oq:aqua-desktop-icons` (mac8 parity).
 
-Cache-bust: `style.css?v=9`, `eras.css?v=2`, `app.js?v=10`, `timemachine.js?v=2`, `router.js?v=17` (loads screensaver `?v=30`).
+Cache-bust: `style.css?v=12`, `eras.css?v=7`, `app.js?v=11`, `timemachine.js?v=7`, `router.js?v=17` (loads screensaver `?v=30`).
 
 ## Aqua parity chrome (same branch)
 
@@ -236,9 +236,9 @@ homage). Prefer strong milestones over every point release (no Snow Leopard brid
 
 | Era id | Year | Look |
 | --- | --- | --- |
-| `aqua` (default) | 2001 | Cheetah–Puma jelly / 3D shelf Dock |
-| `tiger` | 2005 | Greener/blue wash, metal-ish titlebars, flatter mid-2000s Dock |
-| `leopard` | 2007 | Darker menubar, reflective Dock shelf, stack-ish Dock hint (CSS only) |
+| `aqua` (default) | 2001 | Classic jelly stripes, candy/gel traffic, soft pinstripe titlebar, roundish window, 3D shelf Dock |
+| `tiger` | 2005 | Subtle Aurora desktop nod, **unified muted blue-grey metal** titlebars (no jelly / no green chrome), flatter traffic, mid-2000s Dock |
+| `leopard` | 2007 | Translucent grey menubar, **cool grey / graphite** titlebars + grey-glass traffic, tighter radius, reflective Dock / stack-ish hint |
 | `lion` | 2011 | Peak **skeuomorphism**: linen weave desktop, padded/stitched title cues, leather-ish Dock, chunkier glossy scrollers — original patterns, not Apple art |
 | `yosemite` | 2014 | Post-skeuomorph **translucent flat**: vibrancy-ish blur menubar, flatter windows, thinner titlebars, frosted strip Dock (no perspective shelf) |
 | `bigsur` | 2020 | Modern macOS: larger radius, denser blur, traffic spacing tweaks, fuller frosted Dock, soft abstract sky wash (not Big Sur wallpaper assets) |
@@ -246,11 +246,18 @@ homage). Prefer strong milestones over every point release (no Snow Leopard brid
 
 **Entry:** System menu **Time Machine…**, Dock orb, shortcut **⌥⌘T** (Alt+Meta/Ctrl+T).
 
-**UX:** Full-screen abstract starfield + shelf (original art — no Apple logos /
-trademarked TM galaxy). Seven era cards (per-era TM accent colors) + scrubber /
-arrows; live skin preview while browsing; **Restore** / Enter applies; Esc
-cancels. Apply transition: starfield dissolve + shell scale/blur (~700ms).
-`prefers-reduced-motion: reduce` → instant class swap (no animation).
+**UX:** Full-screen original **galaxy** canvas (colorful nebula pinks /
+purples / teals / gold + soft bloom; lazy depth drift over many seconds /
+subtle rotation — not Apple’s TM galaxy rip or trademarks) + shelf. Seven era
+cards (per-era TM accent colors) + scrubber / arrows; live skin preview while
+browsing. Compact **OQ! window chrome preview** (`#tm-oq-preview`, fixed size,
+readable labels + traffic lights + fake toolbar/list) reskins *materials* with
+the selected era via `html[data-osx-era]` / era CSS variables so theme changes
+are obvious before Restore without resizing the mini window. **Restore** /
+Enter applies; Esc cancels. Apply transition: galaxy dissolve + shell
+scale/blur (~700ms). `prefers-reduced-motion: reduce` → instant Restore class
+swap; galaxy loop pauses when overlay is hidden and runs nearly static under
+reduced motion.
 
 **Persist:** `localStorage` `retr-oq:aqua-osx-era`. Inline boot script in
 `index.html` accepts all seven ids and sets `data-osx-era` before paint.
@@ -266,7 +273,84 @@ it just does not visually dominate. Documented here so Sys Prefs is not “broke
 `backdrop-filter` blur on Yosemite / Big Sur / Glassholism.
 
 **Files:** `aqua/eras.css`, `aqua/timemachine.js`, overlay markup in
-`aqua/index.html`. Hook: `window.__aquaTimeMachine`.
+`aqua/index.html` (`#tm-galaxy` canvas, `#tm-oq-preview`). Hook:
+`window.__aquaTimeMachine`.
 
 **Out of scope (still):** real Exposé / Spotlight / Spaces / Stacks apps;
 Apple logos / trademarked TM galaxy / copied Big Sur wallpapers.
+
+## Time Machine galaxy + OQ! preview
+
+Branch `polish/aqua-tm-galaxy-preview` (post-#176).
+
+1. **Galaxy** — `#tm-galaxy` canvas inside `.tm-starfield`: original abstract
+   colorful nebula (pinks / purples / teals / gold dust + soft bloom) with a
+   **calm** star-tunnel crawl (no rotation; radial speed ≈0.0012; dust slower;
+   no streaks). Animation starts when TM opens and stops when the overlay
+   hides. `prefers-reduced-motion` is fully static.
+2. **OQ! preview** — `#tm-oq-preview` miniature `.osx-window` with traffic
+   lights, readable title **OQ!**, search placeholder “Type to search…”,
+   dictionary-backed Kalaallisut lexeme/gloss sample rows, and a status line. Scrubbing eras
+   calls `applyEra` → `html[data-osx-era]`, so the preview inherits era
+   *materials* (colors / textures / radius / titlebar wash) as the desktop
+   before Restore.
+3. **Fixed preview metrics (critique fix)** — `#tm-oq-preview` locks
+   width/height, titlebar height, traffic-light size, and body font sizes with
+   selectors that beat `html[data-osx-era="…"] .osx-*` layout tweaks. Eras must
+   not change overall mini-window dimensions or font-size blowouts in TM;
+   glass specular `::before` is suppressed on the preview.
+4. **Calm crawl (dizzy fix)** — `rotSpeed=0`, star speed ≈0.0012 / reduced-motion 0, dust slower, streaks removed.
+5. **Early-era chrome delta (critique fix)** — Aqua / Tiger / Leopard titlebars,
+   borders, traffic, and light body chrome now diverge for real (jelly stripes +
+   candy gels vs brushed metal vs dark glossy + grey-glass). Preview geometry
+   stays locked.
+6. **Active preview traffic** — `#tm-oq-preview` carries `is-focused`, is
+   excluded from the WM (no `.inactive`, cleared on TM open). Preview traffic
+   buttons have **no `disabled` attribute** (WebKit UA greying won over author
+   CSS); non-interactive via `pointer-events: none` + `tabindex="-1"` +
+   `aria-hidden`. End-of-file `html[data-osx-era] #tm-oq-preview` jewel rules
+   use `!important` + `appearance: none` and always paint × − + on `::before`.
+7. **Titlebar single layer** — Live `.osx-title` pills removed (base + Leopard).
+   Yosemite / Big Sur / Glass titlebars stay one fill with no titlebar
+   `backdrop-filter`; glass window `::before` starts below the titlebar.
+   Preview titlebar uses one opaque era-specific `background` only, kills
+   `::before`/`::after`, and `#tm-oq-preview .osx-title { background: none }`.
+   Cache-bust `style.css?v=12`, `eras.css?v=7`, `app.js?v=11`,
+   `timemachine.js?v=8`.
+8. **OQ! preview lexemes from real dict** — on first TM open, `timemachine.js`
+   calls `window.OqDictSource.loadDictEntries()` and fills `#tm-oq-preview`
+   tbody with 4 short (3–14 char) `{lexeme,gloss_en}` rows via `textContent`
+   (no fake oqaatsit/sila/nuna/imiq placeholders). Status shows `4 of {N} ·
+   dictionary sample`; load failure clears rows and shows a one-line error.
+
+## Era palette sources
+
+Period-accurate chrome for Aqua / Tiger / Leopard (prefer historical UI materials over
+“make eras obviously different”). No Apple assets — public approximations only.
+
+| Era | Intent | Widely cited / community hex family | Our stops |
+| --- | --- | --- | --- |
+| **Aqua** (~10.0–10.3) | Horizontal candy **pinstripe** titlebar in light→mid **aqua blue** (not green). Window body light grey-blue. Desktop soft aqua swirl wash. | Common recreations cluster around `#E3EEFA` / `#AFC8E8` / `#7FA4D4` for active striped bars; body `#E8EEF5`–`#F0F0F0`. See Wikipedia [Aqua (user interface)](https://en.wikipedia.org/wiki/Aqua_(user_interface)) (blue/white/gray principal colors; early pin-striped chrome) and open CSS kits that approximate the same band without shipping Apple art. | Title `#e3eefa → #afc8e8 → #7fa4d4 → #5f8cc4`; body `#eef2f7`; desktop remains soft aqua blue (`style.css` `#shell`). |
+| **Tiger** (~10.4) | Move off candy stripes to **unified muted blue-grey metal** (brushed, flatter). Spotlight **green is accent only**, not titlebar wash. Desktop may nod Aurora (blue-green sky) subtly. | Wikipedia notes Tiger’s unified titlebar scheme and removal of menubar pinstripes in favor of a glossy white look; brushed-metal windows were still metal/grey, not green. Community metal greys often sit near `#d0d0d0`–`#6e6e6e` with a cool cast. | Title `#e0e6ea → #c4ccd4 → #8a949e → #6a747e`; accent `#3d8f6a`; desktop `#5a98a8 → #1e4870` with soft cyan wisps (not jungle teal titlebars). |
+| **Leopard** (~10.5) | **Grey** translucent menubar; window titlebars **cool grey / graphite-adjacent** with soft top highlight — much less aqua blue. Light title text on darker grey bars. No purple/random hues. | Wikipedia: Aqua + brushed-metal windows converge on the same metal-like **gray** look; menubar becomes grey/semi-transparent; Dock reflective glass. Contemporary write-ups (e.g. AppleInsider on Leopard’s unified grey gradient replacing metal holdouts) match cool greys, not blue candy. | Title `#c4c8cc → #90969c → #5a6066 → #3a4046`; menubar dark cool grey; desktop cool night blues only (purple swirl removed). |
+
+`#tm-oq-preview` per-era titlebar fills at the bottom of `eras.css` use one opaque gradient each matching these stops (geometry locks / candy preview traffic unchanged).
+
+Later eras (Lion → Glass) left alone unless clearly wrong — Lion warm linen/pewter, Yosemite/Big Sur flat light greys, Glass frost.
+
+## TM preview sample lexemes (follow-up)
+
+Preferred demo rows for the Time Machine mini OQ! window:
+
+- `kujannippoq`
+- `qulluk`
+- `usuk`
+- `aalajavoq`
+
+Today the preview fills from `OqDictSource.loadDictEntries()` (Chicago /
+Oqaasileriffik JSON only). `kujannippoq` and `qulluk` are **not** in that
+source; the full preferred set needs the **katersat** lexicon wired in.
+Katersat is GPL-3.0-or-later with no CC-BY-SA grant — `shared/dict-source.js`
+deliberately does not fetch it yet. Do **not** hard-code katersat-only
+lexemes here until that source is an intentional, documented product
+decision (attribution + license). Until then, keep sampling from Chicago.

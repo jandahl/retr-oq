@@ -25,6 +25,28 @@ def goto_aqua(page, base_url):
     return errors, console_errors, unexpected_404s
 
 
+# Small dict fixture for TM OQ! preview (same shape as shared/dict-source.js /
+# win98 OQ tests). Avoids the real ~5.75MB fetch in CI.
+TM_OQ_FIXTURE_ENTRIES = [
+    {"lexeme": "illu", "gloss_en": "house"},
+    {"lexeme": "nuna", "gloss_en": "land"},
+    {"lexeme": "qajaq", "gloss_en": "kayak"},
+    {"lexeme": "imiq", "gloss_en": "fresh water"},
+    {"lexeme": "a", "gloss_en": "too short"},  # skipped by 3–14 char rule
+    {"lexeme": "verylonglexemehere", "gloss_en": "too long"},  # skipped
+    {"lexeme": "sila", "gloss_en": ""},  # empty gloss skipped by dict-source filter too
+]
+
+
+def mock_tm_dict_source(page):
+    page.route(
+        "**/Oqaasileriffik-dicts/all_entries.json",
+        lambda route: route.fulfill(
+            json={"dictionary_entries": TM_OQ_FIXTURE_ENTRIES}
+        ),
+    )
+
+
 def test_loads_clean_without_power_button_boot(page, base_url):
     errors, console_errors, unexpected_404s = goto_aqua(page, base_url)
     assert errors == []
@@ -506,3 +528,130 @@ def test_time_machine_scrubber_reaches_lion_and_yosemite(page, base_url):
     page.wait_for_timeout(20)
     assert page.evaluate("() => window.__aquaTimeMachine.selected") == "yosemite"
     page.click("#tm-cancel")
+
+def test_time_machine_galaxy_and_oq_preview(page, base_url):
+    """TM overlay includes galaxy canvas + live OQ! chrome preview that tracks era."""
+    mock_tm_dict_source(page)
+    goto_aqua(page, base_url)
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(80)
+    overlay = page.locator("#tm-overlay")
+    assert overlay.is_visible()
+
+    galaxy = page.locator("#tm-galaxy")
+    assert galaxy.count() == 1
+    assert page.locator(".tm-starfield #tm-galaxy").count() == 1
+    # Canvas is present inside the starfield container (may be 0x0 until layout paints).
+    tag = page.evaluate("() => document.getElementById('tm-galaxy') && document.getElementById('tm-galaxy').tagName")
+    assert tag == "CANVAS"
+
+    preview = page.locator("#tm-oq-preview")
+    assert preview.count() == 1
+    assert preview.locator(".osx-titlebar").count() == 1
+    assert preview.locator(".osx-traffic").count() == 3
+    assert preview.locator(".osx-title").inner_text() == "OQ!"
+    assert preview.locator(".oq-table").count() == 1
+    # Wait for dict-backed sample rows (mocked JSON; no fake oqaatsit placeholders).
+    page.wait_for_function(
+        """() => {
+          const cells = document.querySelectorAll('#tm-oq-preview .oq-table tbody td');
+          return [...cells].some(td => td.textContent === 'illu');
+        }""",
+        timeout=5000,
+    )
+    row_text = preview.locator(".oq-table tbody").inner_text()
+    assert "illu" in row_text and "house" in row_text
+    assert "nuna" in row_text and "qajaq" in row_text and "imiq" in row_text
+    assert "oqaatsit" not in row_text
+    assert preview.locator(".oq-table tbody tr").count() == 4
+    assert preview.locator(".oq-table td").count() >= 8
+    search = preview.locator('.aqua-field-row input[type="text"]')
+    assert search.count() == 1
+    assert search.get_attribute("placeholder") in ("Type to search…", "Type to search...")
+    status = preview.locator(".tm-oq-preview-status").inner_text().strip()
+    assert status != ""
+    assert "4 of" in status or "dictionary" in status.lower()
+    assert "Could not load" not in status
+    assert preview.evaluate("el => el.classList.contains('osx-window')") is True
+    # Preview must stay focused-looking: is-focused, never inactive; no disabled UA grey.
+    assert preview.evaluate("el => el.classList.contains('inactive')") is False
+    assert preview.evaluate("el => el.classList.contains('is-focused')") is True
+    for sel in (".osx-btn-close", ".osx-btn-minimize", ".osx-btn-zoom"):
+        assert preview.locator(sel).get_attribute("disabled") is None
+        assert preview.locator(sel).get_attribute("tabindex") == "-1"
+    close_bg = preview.locator(".osx-btn-close").evaluate("el => getComputedStyle(el).backgroundImage")
+    assert "gradient" in close_bg
+    assert "rgb(194, 194, 194)" not in close_bg and "rgb(200, 200, 200)" not in close_bg
+    close_op = preview.locator(".osx-btn-close").evaluate("el => getComputedStyle(el).opacity")
+    assert float(close_op) == 1.0
+    # Glyphs visible without hover (× on close).
+    close_glyph = preview.locator(".osx-btn-close").evaluate(
+        "el => getComputedStyle(el, '::before').content"
+    )
+    assert close_glyph not in ("none", '""', "''", "")
+    # Title line: no translucent pill overlay on preview.
+    title_bg = preview.locator(".osx-title").evaluate("el => getComputedStyle(el).backgroundImage")
+    assert title_bg in ("none", "initial") or title_bg == "none"
+    tb_bf = preview.locator(".osx-titlebar").evaluate(
+        "el => getComputedStyle(el).backdropFilter || getComputedStyle(el).webkitBackdropFilter"
+    )
+    assert tb_bf in ("none", "")
+
+    # Fixed geometry must not jump when scrubbing eras (critique: non-canonical size).
+    def preview_box():
+        # Use offset* (layout CSS px) — getBoundingClientRect scales with html zoom.
+        return preview.evaluate(
+            "el => ({ w: el.offsetWidth,"
+            " h: el.offsetHeight,"
+            " th: el.querySelector('.osx-titlebar').offsetHeight,"
+            " tw: el.querySelector('.osx-traffic').offsetWidth })"
+        )
+
+    box0 = preview_box()
+    assert box0["w"] == 300 and box0["h"] == 196
+    assert box0["th"] == 22
+    assert box0["tw"] == 10
+
+    page.click('.tm-era-card[data-era="tiger"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "tiger"
+    # Preview stays in the overlay and still exposes era-skinned chrome classes.
+    assert page.locator("#tm-overlay #tm-oq-preview.osx-window").count() == 1
+    assert page.locator("#tm-overlay #tm-oq-preview .osx-btn-close").count() == 1
+    assert preview.evaluate("el => el.classList.contains('inactive')") is False
+    assert preview_box() == box0
+
+    def titlebar_bg():
+        return preview.locator(".osx-titlebar").evaluate("el => getComputedStyle(el).backgroundImage")
+
+    tiger_bg = titlebar_bg()
+    page.click('.tm-era-card[data-era="aqua"]')
+    page.wait_for_timeout(40)
+    aqua_bg = titlebar_bg()
+    page.click('.tm-era-card[data-era="leopard"]')
+    page.wait_for_timeout(40)
+    leopard_bg = titlebar_bg()
+    # Early eras must not share identical titlebar materials.
+    assert aqua_bg != tiger_bg
+    assert tiger_bg != leopard_bg
+    assert aqua_bg != leopard_bg
+    assert preview.evaluate("el => el.classList.contains('inactive')") is False
+    assert preview_box() == box0
+
+    page.click('.tm-era-card[data-era="yosemite"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "yosemite"
+    assert preview_box() == box0
+
+    page.click('.tm-era-card[data-era="glass"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "glass"
+    assert preview_box() == box0
+    # Readable title color stays dark in the mini preview.
+    title_color = preview.locator(".osx-title").evaluate("el => getComputedStyle(el).color")
+    assert "26, 26, 26" in title_color or title_color.startswith("rgb(26")
+
+    page.click("#tm-cancel")
+    page.wait_for_timeout(40)
+    assert page.locator("#tm-overlay").is_hidden()
+

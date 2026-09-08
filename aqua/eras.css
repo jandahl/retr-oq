@@ -2,7 +2,63 @@
    Applied via html[data-osx-era]. Aqua = default :root.
    Eras: aqua · tiger · leopard · lion · yosemite · bigsur · glass. */
 
-/* ---------- Tiger (2005) — unified toolbar energy, metal-ish, greener/blue ---------- */
+/* ---------- Aqua (2001) — classic jelly chrome (explicit era cues) ---------- */
+html[data-osx-era="aqua"] .osx-window {
+  border-radius: 9px 9px 6px 6px;
+  border-color: rgba(40, 55, 90, 0.55);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 10px 28px rgba(0, 0, 0, 0.3);
+}
+
+/* Soft pinstripe jelly titlebar — candy ridges over aqua wash */
+html[data-osx-era="aqua"] .osx-titlebar {
+  border-radius: 8px 8px 0 0;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.42) 0 1px,
+      rgba(255, 255, 255, 0.08) 1px 2px,
+      rgba(0, 0, 0, 0.1) 2px 3px
+    ),
+    linear-gradient(
+      180deg,
+      #e3eefa 0%,
+      #afc8e8 42%,
+      #7fa4d4 55%,
+      #5f8cc4 100%
+    );
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
+}
+
+html[data-osx-era="aqua"] .osx-body {
+  background: #eef2f7;
+  border-top: 1px solid rgba(255, 255, 255, 0.85);
+}
+
+/* Candy / gel traffic lights — glossy highlight + deep jewel rim */
+html[data-osx-era="aqua"] .osx-traffic {
+  width: 12px;
+  height: 12px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 2px 3px rgba(0, 0, 0, 0.28);
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+html[data-osx-era="aqua"] .osx-btn-close {
+  background: radial-gradient(circle at 32% 28%, #ffd8d0 0%, #ff7a62 38%, #e2462e 68%, #8a1208 100%);
+}
+
+html[data-osx-era="aqua"] .osx-btn-minimize {
+  background: radial-gradient(circle at 32% 28%, #fff3c8 0%, #ffd24a 38%, #f0a820 68%, #9a6808 100%);
+}
+
+html[data-osx-era="aqua"] .osx-btn-zoom {
+  background: radial-gradient(circle at 32% 28%, #d8ffc8 0%, #7ee050 38%, #4aa828 68%, #1e6810 100%);
+}
+
+/* ---------- Tiger (2005) — unified muted blue-grey metal; Aurora desktop nod ---------- */
 html[data-osx-era="tiger"] {
   --aqua-stripe-a: #e8eef2;
   --aqua-stripe-b: #dce6ec;
@@ -10,53 +66,88 @@ html[data-osx-era="tiger"] {
   --aqua-menubar-border: rgba(20, 40, 60, 0.28);
   --aqua-accent: #3d8f6a;
   --aqua-window: #e8ecef;
-  --aqua-title-active-top: #c8d8e4;
-  --aqua-title-active-bot: #6a8aaa;
+  --aqua-title-active-top: #e0e6ea;
+  --aqua-title-active-bot: #6a747e;
   --aqua-title-inactive-top: #e4e4e4;
   --aqua-title-inactive-bot: #b4b4b4;
   --aqua-dock: rgba(210, 220, 230, 0.42);
 }
 
 html[data-osx-era="tiger"] #shell {
-  background-color: #2f7a68;
+  /* Subtle Aurora nod: cool blue sky with soft teal wash — not green jungle chrome. */
+  background-color: #3a6a80;
   background-image:
     repeating-linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.14) 0 1px,
+      rgba(255, 255, 255, 0.12) 0 1px,
       rgba(255, 255, 255, 0.03) 1px 2px,
-      rgba(20, 70, 55, 0.16) 2px 3px,
-      rgba(40, 110, 90, 0.06) 3px 5px
+      rgba(20, 50, 70, 0.14) 2px 3px,
+      rgba(40, 90, 120, 0.06) 3px 5px
     ),
-    radial-gradient(ellipse 85% 65% at 20% 18%, rgba(160, 230, 200, 0.4) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 55% at 88% 12%, rgba(100, 180, 220, 0.32) 0%, transparent 50%),
-    radial-gradient(ellipse 75% 50% at 65% 82%, rgba(30, 90, 110, 0.45) 0%, transparent 55%),
-    linear-gradient(168deg, #5aa890 0%, #3a8a78 38%, #2a6a88 72%, #1e5070 100%);
+    radial-gradient(ellipse 85% 65% at 20% 18%, rgba(140, 210, 230, 0.35) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 55% at 88% 12%, rgba(100, 180, 210, 0.28) 0%, transparent 50%),
+    radial-gradient(ellipse 75% 50% at 65% 82%, rgba(30, 80, 110, 0.4) 0%, transparent 55%),
+    linear-gradient(168deg, #5a98a8 0%, #3a7890 38%, #2a6088 72%, #1e4870 100%);
 }
 
-/* Metal-ish unified title strip — flatter ridges, brushed wash */
+/* Unified brushed-metal title — muted blue-grey, no candy jelly / no green wash */
 html[data-osx-era="tiger"] .osx-titlebar {
+  border-radius: 5px 5px 0 0;
   background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.22) 48%,
+      rgba(255, 255, 255, 0) 100%
+    ),
     repeating-linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.18) 0 1px,
-      rgba(0, 0, 0, 0.06) 1px 2px
+      90deg,
+      rgba(255, 255, 255, 0.1) 0 1px,
+      rgba(0, 0, 0, 0.05) 1px 2px,
+      transparent 2px 4px
     ),
     linear-gradient(
       180deg,
-      var(--aqua-title-active-top) 0%,
-      #9eb4c8 45%,
-      var(--aqua-title-active-bot) 55%,
-      #5a7898 100%
+      #e0e6ea 0%,
+      #c4ccd4 38%,
+      #8a949e 52%,
+      #6a747e 100%
     );
-  border-radius: 6px 6px 0 0;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+  border-bottom: 1px solid rgba(30, 50, 65, 0.35);
 }
 
 html[data-osx-era="tiger"] .osx-window {
-  border-radius: 6px 6px 4px 4px;
-  border-color: rgba(30, 40, 55, 0.5);
+  border-radius: 6px 6px 3px 3px;
+  border-color: rgba(30, 45, 60, 0.55);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.5) inset,
-    0 8px 22px rgba(0, 0, 0, 0.32);
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 8px 22px rgba(0, 0, 0, 0.34);
+}
+
+html[data-osx-era="tiger"] .osx-body {
+  background: #eef2f5;
+  border-top: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+/* Flatter mid-2000s traffic — less candy gel, cooler metal rim */
+html[data-osx-era="tiger"] .osx-traffic {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    0 1px 1px rgba(0, 0, 0, 0.22);
+  border-color: rgba(20, 40, 50, 0.45);
+}
+
+html[data-osx-era="tiger"] .osx-btn-close {
+  background: radial-gradient(circle at 35% 30%, #f0a098, #d04030 55%, #8a2018);
+}
+
+html[data-osx-era="tiger"] .osx-btn-minimize {
+  background: radial-gradient(circle at 35% 30%, #f0d878, #d0a020 55%, #8a6808);
+}
+
+html[data-osx-era="tiger"] .osx-btn-zoom {
+  background: radial-gradient(circle at 35% 30%, #a8d890, #48a038 55%, #286818);
 }
 
 /* Mid-2000s Dock: slightly flatter shelf, less extreme perspective */
@@ -122,7 +213,7 @@ html[data-osx-era="tiger"][data-appearance="graphite"] #shell {
     linear-gradient(168deg, #7a8488 0%, #5a6568 45%, #3a4448 100%);
 }
 
-/* ---------- Leopard (2007) — darker menubar, reflective Dock, stack-ish CSS ---------- */
+/* ---------- Leopard (2007) — grey menubar, cool grey titlebars, reflective Dock ---------- */
 html[data-osx-era="leopard"] {
   --aqua-stripe-a: #e4e8ec;
   --aqua-stripe-b: #d6dce4;
@@ -130,20 +221,21 @@ html[data-osx-era="leopard"] {
   --aqua-menubar-border: rgba(0, 0, 0, 0.55);
   --aqua-accent: #4a7ec8;
   --aqua-window: #eceef2;
-  --aqua-title-active-top: #c8d4e8;
-  --aqua-title-active-bot: #6a82b0;
-  --aqua-title-inactive-top: #e0e0e0;
-  --aqua-title-inactive-bot: #b0b0b0;
+  --aqua-title-active-top: #c4c8cc;
+  --aqua-title-active-bot: #3a4046;
+  --aqua-title-inactive-top: #c8c8cc;
+  --aqua-title-inactive-bot: #888890;
   --aqua-dock: rgba(30, 35, 45, 0.55);
   --aqua-text: #1a1a1a;
 }
 
 html[data-osx-era="leopard"] #shell {
+  /* Cool night sky — blue greys only; no invented purple. */
   background-color: #1a2840;
   background-image:
     radial-gradient(ellipse 100% 80% at 50% 0%, rgba(80, 120, 180, 0.35) 0%, transparent 55%),
     radial-gradient(ellipse 60% 50% at 10% 90%, rgba(40, 80, 120, 0.4) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 40% at 90% 70%, rgba(60, 40, 90, 0.3) 0%, transparent 45%),
+    radial-gradient(ellipse 50% 40% at 90% 70%, rgba(50, 70, 100, 0.28) 0%, transparent 45%),
     linear-gradient(180deg, #2a4060 0%, #1a2840 40%, #0e1828 100%);
 }
 
@@ -242,26 +334,72 @@ html[data-osx-era="leopard"] .osx-dock-item.is-running::after {
 }
 
 html[data-osx-era="leopard"] .osx-window {
-  border-radius: 7px 7px 5px 5px;
+  border-radius: 5px 5px 3px 3px;
+  border-color: rgba(20, 25, 40, 0.55);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.55) inset,
-    0 12px 32px rgba(0, 0, 0, 0.4);
+    0 1px 0 rgba(255, 255, 255, 0.4) inset,
+    0 14px 36px rgba(0, 0, 0, 0.48);
 }
 
+/* Cool grey / graphite-adjacent Leopard title — soft top highlight, no aqua blue */
 html[data-osx-era="leopard"] .osx-titlebar {
+  border-radius: 4px 4px 0 0;
   background:
-    repeating-linear-gradient(
+    linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.22) 0 1px,
-      rgba(0, 0, 0, 0.07) 1px 2px
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0.1) 28%,
+      transparent 48%
     ),
     linear-gradient(
       180deg,
-      var(--aqua-title-active-top) 0%,
-      #a8b8d4 48%,
-      var(--aqua-title-active-bot) 52%,
-      #5a7298 100%
+      #c4c8cc 0%,
+      #90969c 40%,
+      #5a6066 55%,
+      #3a4046 100%
     );
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+html[data-osx-era="leopard"] .osx-title {
+  color: #f2f4f8;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+  background: none;
+}
+
+html[data-osx-era="leopard"] .osx-body {
+  background: #eceef2;
+  border-top: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+/* Grey-glass traffic lights — glassy rim, muted colored cores (not Tiger candy) */
+html[data-osx-era="leopard"] .osx-traffic {
+  border-color: rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.55) inset,
+    0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+html[data-osx-era="leopard"] .osx-btn-close {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 42%),
+    radial-gradient(circle at 35% 35%, #e8a098, #b03828 60%, #601808);
+}
+
+html[data-osx-era="leopard"] .osx-btn-minimize {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 42%),
+    radial-gradient(circle at 35% 35%, #e8d090, #b08818 60%, #685008);
+}
+
+html[data-osx-era="leopard"] .osx-btn-zoom {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, transparent 42%),
+    radial-gradient(circle at 35% 35%, #b0d0a0, #489028 60%, #204818);
 }
 
 /* Leopard + Graphite — greys accents; menubar stays dark (era base) */
@@ -523,6 +661,8 @@ html[data-osx-era="yosemite"] .osx-window {
 html[data-osx-era="yosemite"] .osx-titlebar {
   flex-basis: 20px;
   background: linear-gradient(180deg, #f4f5f7 0%, #e4e7ec 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: none;
 }
@@ -641,9 +781,10 @@ html[data-osx-era="bigsur"] .osx-titlebar {
   flex-basis: 28px;
   gap: 8px;
   padding: 0 12px;
-  background: rgba(248, 248, 250, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  /* Single flat material — window already carries translucency; no titlebar blur stack. */
+  background: #f4f4f6;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   box-shadow: none;
 }
@@ -816,11 +957,14 @@ html[data-osx-era="glass"] .osx-titlebar {
   flex-basis: 32px;
   gap: 10px;
   padding: 0 14px;
+  /* One titlebar wash — window-level blur/sheen owns glass depth. */
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(200, 220, 255, 0.2) 100%
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(200, 220, 255, 0.22) 100%
   );
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
 }
@@ -841,18 +985,18 @@ html[data-osx-era="glass"] .osx-title {
   color: #0a1628;
 }
 
-/* Specular highlight strip across glass panels */
+/* Specular strip starts below titlebar so chrome isn't double-frosted. */
 html[data-osx-era="glass"] .osx-window::before {
   content: "";
   position: absolute;
-  top: 0;
+  top: 32px;
   left: 8%;
   right: 25%;
-  height: 40%;
-  border-radius: 16px 16px 40% 40%;
+  height: calc(40% - 32px);
+  border-radius: 0 0 40% 40%;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0.28) 0%,
     transparent 100%
   );
   pointer-events: none;
@@ -943,8 +1087,7 @@ html[data-osx-era="glass"][data-appearance="graphite"] {
     -webkit-backdrop-filter: blur(8px);
   }
   html[data-osx-era="bigsur"] .osx-menubar,
-  html[data-osx-era="bigsur"] .osx-dock,
-  html[data-osx-era="bigsur"] .osx-titlebar {
+  html[data-osx-era="bigsur"] .osx-dock {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
@@ -968,7 +1111,7 @@ html[data-osx-era="glass"][data-appearance="graphite"] {
 }
 
 
-/* ---------- Time Machine overlay (era browser — original abstract starfield) ---------- */
+/* ---------- Time Machine overlay (era browser — original canvas galaxy) ---------- */
 .tm-overlay {
   position: fixed;
   inset: 0;
@@ -992,51 +1135,23 @@ html[data-osx-era="glass"][data-appearance="graphite"] {
   inset: 0;
   overflow: hidden;
   pointer-events: none;
+  /* Colorful nebula fallback (canvas paints over this when JS runs). */
   background:
-    radial-gradient(ellipse 120% 80% at 50% 110%, #1a2848 0%, transparent 55%),
-    radial-gradient(circle at 20% 30%, rgba(80, 120, 200, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 80% 20%, rgba(120, 80, 180, 0.12) 0%, transparent 35%),
-    linear-gradient(180deg, #050814 0%, #0a1228 45%, #121e38 100%);
+    radial-gradient(ellipse 110% 70% at 50% 115%, rgba(255, 120, 180, 0.28) 0%, transparent 55%),
+    radial-gradient(circle at 18% 28%, rgba(255, 90, 160, 0.28) 0%, transparent 42%),
+    radial-gradient(circle at 82% 18%, rgba(160, 90, 255, 0.3) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(40, 200, 190, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 30% 75%, rgba(255, 190, 80, 0.16) 0%, transparent 40%),
+    linear-gradient(180deg, #12061c 0%, #1a0a2e 40%, #061828 100%);
 }
 
-/* Abstract star dots — invented, not Apple's galaxy rip */
-.tm-starfield::before,
-.tm-starfield::after {
-  content: "";
+/* Canvas star-tunnel / nebula — painted by timemachine.js; CSS fallback shows if JS off. */
+.tm-galaxy {
+  display: block;
+  width: 100%;
+  height: 100%;
   position: absolute;
   inset: 0;
-  background-image:
-    radial-gradient(1.5px 1.5px at 8% 12%, #fff 40%, transparent 50%),
-    radial-gradient(1px 1px at 22% 48%, rgba(200, 220, 255, 0.9) 40%, transparent 50%),
-    radial-gradient(1.5px 1.5px at 35% 18%, #fff 40%, transparent 50%),
-    radial-gradient(1px 1px at 48% 62%, rgba(180, 200, 255, 0.8) 40%, transparent 50%),
-    radial-gradient(2px 2px at 62% 28%, #fff 40%, transparent 50%),
-    radial-gradient(1px 1px at 75% 55%, rgba(220, 230, 255, 0.85) 40%, transparent 50%),
-    radial-gradient(1.5px 1.5px at 88% 15%, #fff 40%, transparent 50%),
-    radial-gradient(1px 1px at 12% 78%, rgba(160, 190, 255, 0.7) 40%, transparent 50%),
-    radial-gradient(1px 1px at 55% 8%, #fff 40%, transparent 50%),
-    radial-gradient(1.5px 1.5px at 92% 72%, rgba(200, 210, 255, 0.8) 40%, transparent 50%),
-    radial-gradient(1px 1px at 40% 88%, #fff 40%, transparent 50%),
-    radial-gradient(1px 1px at 68% 82%, rgba(180, 200, 255, 0.75) 40%, transparent 50%);
-  opacity: 0.85;
-  animation: tm-drift 48s linear infinite;
-}
-
-.tm-starfield::after {
-  background-image:
-    radial-gradient(1px 1px at 15% 35%, rgba(255, 255, 255, 0.7) 40%, transparent 50%),
-    radial-gradient(1.5px 1.5px at 30% 70%, #cde 40%, transparent 50%),
-    radial-gradient(1px 1px at 58% 42%, #fff 40%, transparent 50%),
-    radial-gradient(1px 1px at 78% 88%, rgba(200, 220, 255, 0.8) 40%, transparent 50%),
-    radial-gradient(2px 2px at 95% 40%, #fff 40%, transparent 50%);
-  opacity: 0.55;
-  animation-duration: 72s;
-  animation-direction: reverse;
-}
-
-@keyframes tm-drift {
-  from { transform: translateY(0); }
-  to { transform: translateY(-40px); }
 }
 
 .tm-shelf {
@@ -1046,7 +1161,263 @@ html[data-osx-era="glass"][data-appearance="graphite"] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.85rem;
+}
+
+/*
+ * Live OQ! chrome preview — inherits era *materials* (colors / textures /
+ * radius / titlebar wash) via html[data-osx-era], but layout metrics are
+ * locked so scrubbing eras does not resize the mini window, traffic lights,
+ * or blow out fonts. Specificity beats html[data-osx-era="…"] .osx-* rules.
+ */
+#tm-oq-preview.tm-oq-preview.osx-window,
+html[data-osx-era] #tm-oq-preview.tm-oq-preview.osx-window {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: 300px !important;
+  height: 196px !important;
+  min-width: 300px !important;
+  min-height: 196px !important;
+  max-width: 300px !important;
+  max-height: 196px !important;
+  z-index: 2;
+  flex: 0 0 auto;
+  pointer-events: none;
+  transform: none;
+  /* Opaque enough to stay readable over the galaxy (glass eras stay translucent on real windows). */
+  background: var(--aqua-window, #ececec);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 12px 32px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* Suppress glass specular strip inside the fixed mini preview. */
+html[data-osx-era="glass"] #tm-oq-preview.tm-oq-preview.osx-window::before {
+  display: none;
+}
+
+#tm-oq-preview .osx-titlebar,
+html[data-osx-era] #tm-oq-preview .osx-titlebar {
+  flex: 0 0 22px !important;
+  flex-basis: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  gap: 5px !important;
+  padding: 0 8px !important;
+  /* Tiny preview: one opaque titlebar fill only — no frost / stitch / specular stack. */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: linear-gradient(180deg, #e3eefa 0%, #afc8e8 48%, #7fa4d4 100%) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset !important;
+}
+
+/* Era-specific opaque single-layer preview titlebars (materials only; metrics locked). */
+html[data-osx-era="aqua"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e3eefa 0%, #afc8e8 42%, #7fa4d4 55%, #5f8cc4 100%) !important;
+}
+html[data-osx-era="tiger"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e0e6ea 0%, #c4ccd4 38%, #8a949e 52%, #6a747e 100%) !important;
+}
+html[data-osx-era="leopard"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #c4c8cc 0%, #90969c 40%, #5a6066 55%, #3a4046 100%) !important;
+}
+html[data-osx-era="lion"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #ebe6dc 0%, #d0b898 42%, #c0b8a8 58%, #8a6848 100%) !important;
+}
+html[data-osx-era="yosemite"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #f4f5f7 0%, #e4e7ec 100%) !important;
+}
+html[data-osx-era="bigsur"] #tm-oq-preview .osx-titlebar {
+  background: #f4f4f6 !important;
+}
+html[data-osx-era="glass"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e8f0ff 0%, #c8d8f0 100%) !important;
+}
+
+#tm-oq-preview .osx-titlebar::before,
+#tm-oq-preview .osx-titlebar::after,
+html[data-osx-era] #tm-oq-preview .osx-titlebar::before,
+html[data-osx-era] #tm-oq-preview .osx-titlebar::after {
+  content: none !important;
+  display: none !important;
+}
+
+/*
+ * Preview traffic: always active candy jewels. Do NOT use [disabled] —
+ * WebKit UA greying wins over author backgrounds. Buttons are non-interactive
+ * via pointer-events:none on #tm-oq-preview + tabindex=-1 + aria-hidden.
+ * Rules last + html[data-osx-era] #tm-oq-preview specificity + !important.
+ */
+html[data-osx-era] #tm-oq-preview .osx-traffic,
+#tm-oq-preview .osx-traffic,
+html[data-osx-era] #tm-oq-preview.is-focused .osx-traffic,
+#tm-oq-preview.is-focused .osx-traffic {
+  opacity: 1 !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  border: 1px solid rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset !important;
+  width: 10px !important;
+  height: 10px !important;
+  margin: 0 !important;
+  margin-right: 0 !important;
+  flex: 0 0 10px !important;
+}
+
+html[data-osx-era] #tm-oq-preview .osx-btn-close,
+#tm-oq-preview .osx-btn-close,
+html[data-osx-era] #tm-oq-preview.is-focused .osx-btn-close,
+#tm-oq-preview.is-focused .osx-btn-close {
+  background: radial-gradient(circle at 35% 30%, #ffb4a8, #e2462e 55%, #a31d0d) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  margin-right: 0 !important;
+}
+
+html[data-osx-era] #tm-oq-preview .osx-btn-minimize,
+#tm-oq-preview .osx-btn-minimize,
+html[data-osx-era] #tm-oq-preview.is-focused .osx-btn-minimize,
+#tm-oq-preview.is-focused .osx-btn-minimize {
+  background: radial-gradient(circle at 35% 30%, #ffe9a0, #f5c033 55%, #b8860b) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+html[data-osx-era] #tm-oq-preview .osx-btn-zoom,
+#tm-oq-preview .osx-btn-zoom,
+html[data-osx-era] #tm-oq-preview.is-focused .osx-btn-zoom,
+#tm-oq-preview.is-focused .osx-btn-zoom {
+  background: radial-gradient(circle at 35% 30%, #b8f0a8, #62c23a 55%, #2f7a18) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Always show × − + (not hover-gated). */
+html[data-osx-era] #tm-oq-preview .osx-traffic::before,
+#tm-oq-preview .osx-traffic::before {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.55);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+html[data-osx-era] #tm-oq-preview .osx-btn-close::before,
+#tm-oq-preview .osx-btn-close::before {
+  content: "\00d7";
+}
+
+html[data-osx-era] #tm-oq-preview .osx-btn-minimize::before,
+#tm-oq-preview .osx-btn-minimize::before {
+  content: "\2212";
+  font-size: 9px;
+  margin-top: -1px;
+}
+
+html[data-osx-era] #tm-oq-preview .osx-btn-zoom::before,
+#tm-oq-preview .osx-btn-zoom::before {
+  content: "+";
+  font-size: 9px;
+}
+
+#tm-oq-preview .osx-title,
+html[data-osx-era] #tm-oq-preview .osx-title {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  color: #1a1a1a !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+  background: none !important;
+}
+
+#tm-oq-preview .tm-oq-preview-body.osx-body,
+html[data-osx-era] #tm-oq-preview .tm-oq-preview-body.osx-body {
+  padding: 8px 10px 6px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.7);
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#tm-oq-preview .aqua-field-row,
+html[data-osx-era] #tm-oq-preview .aqua-field-row {
+  margin-bottom: 6px !important;
+}
+
+#tm-oq-preview .aqua-field-row input[type="text"],
+html[data-osx-era] #tm-oq-preview .aqua-field-row input[type="text"] {
+  height: 24px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  padding: 2px 8px !important;
+  color: #1a1a1a !important;
+  pointer-events: none;
+}
+
+#tm-oq-preview .aqua-field-row input[type="text"]::placeholder {
+  color: #555 !important;
+  opacity: 1;
+}
+
+#tm-oq-preview .aqua-panel,
+html[data-osx-era] #tm-oq-preview .aqua-panel {
+  max-height: 108px !important;
+  overflow: hidden !important;
+  background: #fff !important;
+}
+
+#tm-oq-preview .oq-table,
+html[data-osx-era] #tm-oq-preview .oq-table {
+  font-size: 12px !important;
+  color: #1a1a1a !important;
+}
+
+#tm-oq-preview .oq-table th,
+#tm-oq-preview .oq-table td,
+html[data-osx-era] #tm-oq-preview .oq-table th,
+html[data-osx-era] #tm-oq-preview .oq-table td {
+  padding: 3px 6px !important;
+  color: #1a1a1a !important;
+  font-size: 12px !important;
+}
+
+#tm-oq-preview .oq-table th,
+html[data-osx-era] #tm-oq-preview .oq-table th {
+  color: #222 !important;
+  background: linear-gradient(180deg, #f6f6f6, #e8e8e8) !important;
+}
+
+#tm-oq-preview .tm-oq-preview-status,
+html[data-osx-era] #tm-oq-preview .tm-oq-preview-status {
+  margin: 6px 0 0 !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  color: #333 !important;
+  font-weight: 600;
 }
 
 .tm-title {
@@ -1294,7 +1665,7 @@ html[data-osx-era="glass"][data-appearance="graphite"] {
   filter: brightness(1.08);
 }
 
-/* Restore transition: starfield dissolve → live desktop */
+/* Restore transition: galaxy dissolve → live desktop */
 html.tm-transitioning #shell {
   animation: tm-shell-reveal 700ms ease-out both;
 }
@@ -1315,10 +1686,7 @@ html.tm-transitioning .tm-overlay {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tm-starfield::before,
-  .tm-starfield::after {
-    animation: none;
-  }
+  /* Galaxy animation speed is dialed in JS; no CSS star drift left. */
   .tm-era-card,
   .tm-scrubber-thumb {
     transition: none;
@@ -1332,4 +1700,97 @@ html.tm-transitioning .tm-overlay {
 /* Dock Time Machine glyph sits with other items; no data-open so launch is ignored */
 .osx-dock-item#dock-timemachine .dock-glyph {
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35));
+}
+
+/* ===== PR178 fix: preview active jewels + single-layer title (WebKit-safe) ===== */
+#tm-oq-preview,
+#tm-oq-preview.is-focused {
+  pointer-events: none;
+}
+#tm-oq-preview .osx-traffic {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  pointer-events: none;
+}
+html[data-osx-era] #tm-oq-preview .osx-btn-close,
+#tm-oq-preview .osx-btn-close {
+  background: radial-gradient(circle at 35% 30%, #ffb4a8, #e2462e 55%, #a31d0d) !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-btn-minimize,
+#tm-oq-preview .osx-btn-minimize {
+  background: radial-gradient(circle at 35% 30%, #ffe9a0, #f5c033 55%, #b8860b) !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-btn-zoom,
+#tm-oq-preview .osx-btn-zoom {
+  background: radial-gradient(circle at 35% 30%, #b8f0a8, #62c23a 55%, #2f7a18) !important;
+  border-color: rgba(0, 0, 0, 0.4) !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-traffic::before,
+#tm-oq-preview .osx-traffic::before {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+  pointer-events: none !important;
+}
+#tm-oq-preview .osx-btn-close::before { content: "\00d7" !important; }
+#tm-oq-preview .osx-btn-minimize::before { content: "\2212" !important; font-size: 9px !important; }
+#tm-oq-preview .osx-btn-zoom::before { content: "+" !important; font-size: 9px !important; }
+
+/* Preview titlebar: ONE opaque fill; no frost, no stitch, no title pill */
+html[data-osx-era] #tm-oq-preview .osx-titlebar,
+#tm-oq-preview .osx-titlebar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  background-color: #8ba4d1 !important;
+  background: linear-gradient(180deg, #c8daf4 0%, #8ba4d1 100%) !important;
+}
+html[data-osx-era="tiger"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #c5d5e0 0%, #6a8a9a 100%) !important;
+}
+html[data-osx-era="leopard"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #7a8eae 0%, #3a4e70 100%) !important;
+}
+html[data-osx-era="lion"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e8dfd0 0%, #c4b49a 100%) !important;
+}
+html[data-osx-era="yosemite"] #tm-oq-preview .osx-titlebar,
+html[data-osx-era="bigsur"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #f4f5f7 0%, #e4e7ec 100%) !important;
+}
+html[data-osx-era="glass"] #tm-oq-preview .osx-titlebar {
+  background: linear-gradient(180deg, #e8f0ff 0%, #c8d8f0 100%) !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-titlebar::before,
+html[data-osx-era] #tm-oq-preview .osx-titlebar::after,
+#tm-oq-preview .osx-titlebar::before,
+#tm-oq-preview .osx-titlebar::after {
+  content: none !important;
+  display: none !important;
+}
+html[data-osx-era] #tm-oq-preview .osx-title,
+#tm-oq-preview .osx-title {
+  background: none !important;
+  background-image: none !important;
+}
+
+/* Live desktop: kill title-text translucent pills (look like double titlebar chrome) */
+html[data-osx-era] .osx-title {
+  background: none !important;
+  background-image: none !important;
+}
+html[data-osx-era="lion"] .osx-titlebar::after {
+  content: none !important;
+  display: none !important;
 }

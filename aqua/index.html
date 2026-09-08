@@ -19,8 +19,8 @@
   }
 })();
 </script>
-<link rel="stylesheet" href="style.css?v=9" />
-<link rel="stylesheet" href="eras.css?v=2" />
+<link rel="stylesheet" href="style.css?v=12" />
+<link rel="stylesheet" href="eras.css?v=7" />
 </head>
 <body>
   <div id="shell">
@@ -782,12 +782,39 @@ returns desk is across town. maybe next week."</p>
     </section>
   </div>
 
-  <!-- Time Machine–inspired era browser (original abstract starfield; not Apple TM art). -->
+  <!-- Time Machine–inspired era browser (original abstract galaxy; not Apple TM art). -->
   <div id="tm-overlay" class="tm-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="tm-title" aria-hidden="true">
-    <div class="tm-starfield" aria-hidden="true"></div>
+    <div class="tm-starfield" aria-hidden="true">
+      <canvas id="tm-galaxy" class="tm-galaxy" width="1280" height="720"></canvas>
+    </div>
     <div class="tm-shelf">
       <h2 class="tm-title" id="tm-title">Travel through OS X eras</h2>
       <p class="tm-hint">Arrow keys scrub · Enter restores · Esc cancels</p>
+      <!-- Live OQ! chrome preview: inherits html[data-osx-era] tokens as the scrubber moves. -->
+      <div id="tm-oq-preview" class="tm-oq-preview osx-window is-focused" aria-hidden="true">
+        <header class="osx-titlebar">
+          <button type="button" class="osx-traffic osx-btn-close" tabindex="-1" aria-hidden="true"></button>
+          <button type="button" class="osx-traffic osx-btn-minimize" tabindex="-1" aria-hidden="true"></button>
+          <button type="button" class="osx-traffic osx-btn-zoom" tabindex="-1" aria-hidden="true"></button>
+          <h1 class="osx-title">OQ!</h1>
+        </header>
+        <div class="osx-body oq-body tm-oq-preview-body">
+          <div class="aqua-field-row">
+            <input type="text" value="" placeholder="Type to search…" readonly tabindex="-1" aria-hidden="true" />
+          </div>
+          <div class="aqua-panel">
+            <table class="oq-table">
+              <thead>
+                <tr><th>Lexeme</th><th>Gloss</th></tr>
+              </thead>
+              <tbody id="tm-oq-preview-tbody">
+                <tr><td colspan="2">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="aqua-status tm-oq-preview-status">Loading dictionary…</p>
+        </div>
+      </div>
       <div class="tm-timeline" id="tm-timeline" role="listbox" aria-label="OS X eras"></div>
       <p class="tm-hint" id="tm-era-label"></p>
       <div class="tm-scrubber">
@@ -811,7 +838,7 @@ returns desk is across town. maybe next week."</p>
   <script src="../shared/osx/window-manager.js?v=4"></script>
   <script src="../shared/osx/menubar.js?v=2"></script>
   <script src="../shared/osx/dock.js?v=2"></script>
-  <script src="app.js?v=10"></script>
-  <script src="timemachine.js?v=2"></script>
+  <script src="app.js?v=11"></script>
+  <script src="timemachine.js?v=8"></script>
 </body>
 </html>

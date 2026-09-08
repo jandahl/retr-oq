@@ -46,9 +46,9 @@ html[data-appearance="graphite"] {
   --aqua-menubar-border: rgba(0, 0, 0, 0.22);
   --aqua-text: #1a1a1a;
   --aqua-accent: #4d76c5;
-  --aqua-window: #f0f0f0;
-  --aqua-title-active-top: #d6e1f4;
-  --aqua-title-active-bot: #8ba4d1;
+  --aqua-window: #eef2f7;
+  --aqua-title-active-top: #e3eefa;
+  --aqua-title-active-bot: #7fa4d4;
   --aqua-title-inactive-top: #e8e8e8;
   --aqua-title-inactive-bot: #c0c0c0;
   --aqua-dock: rgba(255, 255, 255, 0.35);
@@ -420,9 +420,9 @@ select {
     linear-gradient(
       180deg,
       var(--aqua-title-active-top) 0%,
-      #b7c8e6 48%,
+      #afc8e8 48%,
       var(--aqua-title-active-bot) 52%,
-      #7f98c8 100%
+      #5f8cc4 100%
     );
   border-bottom: 1px solid rgba(0, 0, 0, 0.28);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.45) inset;
@@ -514,26 +514,14 @@ select {
   text-overflow: ellipsis;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
   pointer-events: none;
-  /* Slight wash so ridges do not fight the centered label. */
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(180, 200, 230, 0.55) 18%,
-    rgba(180, 200, 230, 0.55) 82%,
-    transparent 100%
-  );
+  /* No translucent title pill — titlebar wash alone (avoids multi-layer chrome). */
+  background: none;
 }
 
 .osx-window.inactive .osx-title {
   color: #555;
   text-shadow: none;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(210, 210, 210, 0.45) 18%,
-    rgba(210, 210, 210, 0.45) 82%,
-    transparent 100%
-  );
+  background: none;
 }
 
 .osx-body {
