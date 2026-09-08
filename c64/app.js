@@ -894,7 +894,7 @@
   // below, same as the initial listing markup in index.html.
   function printDirListing() {
     printLine('0 "OQ DISK       " 09 2A');
-    for (const [name, label, padding] of [["DICT", '1   "DICT"', "            PRG"], ["MORPH", '1   "MORPH"', "           PRG"], ["KALQ", '1   "KALQ"', "            PRG"], ["QUIT", '2   "QUIT"', "            PRG"]]) {
+    for (const [name, label, suffixText] of [["DICT", '1   "DICT"', "PRG"], ["MORPH", '1   "MORPH"', "PRG"], ["KALQ", '1   "KALQ"', "PRG"], ["QUIT", '2   "QUIT"', "PRG"]]) {
       // Inline, not a block-level <div> -- a <div> here forces its own line
       // box regardless of the "\n" text node already inserted before it,
       // which with two such lines back to back produced a spurious blank
@@ -911,13 +911,12 @@
       else link.dataset.load = name;
       link.textContent = label;
       const suffix = document.createElement("span");
-      suffix.textContent = padding;
+      suffix.textContent = suffixText;
       row.append(link, suffix);
       c64Output.appendChild(row);
     }
-    printLine('1   "DICT DAT"             SEQ');
-    printLine('1   "BUILD"                PRG');
-    printLine('2   "QUIT"                 PRG');
+    printLine('1   "DICT DAT"                         SEQ');
+    printLine('1   "BUILD"                            PRG');
     printLine("661 BLOCKS FREE.");
   }
 
