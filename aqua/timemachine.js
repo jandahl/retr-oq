@@ -24,7 +24,33 @@
       name: "Leopard",
       blurb: "Dark menubar · reflective Dock",
     },
+    {
+      id: "lion",
+      year: "2011",
+      name: "Lion",
+      blurb: "Peak skeuomorphism · linen & leather",
+    },
+    {
+      id: "yosemite",
+      year: "2014",
+      name: "Yosemite",
+      blurb: "Translucent flat · vibrancy blur",
+    },
+    {
+      id: "bigsur",
+      year: "2020",
+      name: "Big Sur",
+      blurb: "Rounder chrome · dense translucency",
+    },
+    {
+      id: "glass",
+      year: "2026",
+      name: "Glassholism",
+      blurb: "Maximal liquid glass · frost & bloom",
+    },
   ];
+
+  const ERA_IDS = new Set(ERAS.map((e) => e.id));
 
   function prefersReducedMotion() {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -33,7 +59,7 @@
   function readStoredEra() {
     try {
       const v = localStorage.getItem(ERA_KEY);
-      if (v === "tiger" || v === "leopard" || v === "aqua") return v;
+      if (ERA_IDS.has(v)) return v;
     } catch {
       /* ignore */
     }
@@ -49,7 +75,7 @@
   }
 
   function applyEra(id, { persist = false } = {}) {
-    const era = ERAS.some((e) => e.id === id) ? id : "aqua";
+    const era = ERA_IDS.has(id) ? id : "aqua";
     document.documentElement.dataset.osxEra = era;
     if (persist) writeStoredEra(era);
     return era;
@@ -57,7 +83,7 @@
 
   function currentEra() {
     const d = document.documentElement.dataset.osxEra;
-    return ERAS.some((e) => e.id === d) ? d : "aqua";
+    return ERA_IDS.has(d) ? d : "aqua";
   }
 
   // Ensure attribute exists even if boot script missed (tests / odd loads).

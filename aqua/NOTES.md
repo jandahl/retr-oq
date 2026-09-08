@@ -202,7 +202,7 @@ Parity shell features (Screen Effects / ⌘-Tab / Clean Up, then chrome batch):
    Icons** toggles visibility and persists with `localStorage` key
    `retr-oq:aqua-desktop-icons` (mac8 parity).
 
-Cache-bust: `style.css?v=9`, `eras.css?v=1`, `app.js?v=10`, `timemachine.js?v=1`, `router.js?v=17` (loads screensaver `?v=30`).
+Cache-bust: `style.css?v=9`, `eras.css?v=2`, `app.js?v=10`, `timemachine.js?v=2`, `router.js?v=17` (loads screensaver `?v=30`).
 
 ## Aqua parity chrome (same branch)
 
@@ -231,28 +231,42 @@ Continues on `polish/aqua-parity-shell` (PR #176) — no Exposé / Spotlight / S
 Browse **OS X eras** (visual skins), not file versions. Same DOM + `shared/osx/`
 shell; eras override CSS variables + chrome via `html[data-osx-era]`.
 
+Arc runs skeuomorphism → flat translucency → **Glassholism** (original liquid-glass
+homage). Prefer strong milestones over every point release (no Snow Leopard bridge).
+
 | Era id | Year | Look |
 | --- | --- | --- |
-| `aqua` (default) | 2001 | Cheetah–Puma jelly / 3D shelf Dock (current) |
+| `aqua` (default) | 2001 | Cheetah–Puma jelly / 3D shelf Dock |
 | `tiger` | 2005 | Greener/blue wash, metal-ish titlebars, flatter mid-2000s Dock |
 | `leopard` | 2007 | Darker menubar, reflective Dock shelf, stack-ish Dock hint (CSS only) |
+| `lion` | 2011 | Peak **skeuomorphism**: linen weave desktop, padded/stitched title cues, leather-ish Dock, chunkier glossy scrollers — original patterns, not Apple art |
+| `yosemite` | 2014 | Post-skeuomorph **translucent flat**: vibrancy-ish blur menubar, flatter windows, thinner titlebars, frosted strip Dock (no perspective shelf) |
+| `bigsur` | 2020 | Modern macOS: larger radius, denser blur, traffic spacing tweaks, fuller frosted Dock, soft abstract sky wash (not Big Sur wallpaper assets) |
+| `glass` | 2026 | **Glassholism**: maximal glassmorphism — heavy backdrop-filter, specular panel sheen, ultra-frost menubar/Dock/windows, luminous cyan accents, dreamy bloom desktop |
 
 **Entry:** System menu **Time Machine…**, Dock orb, shortcut **⌥⌘T** (Alt+Meta/Ctrl+T).
 
 **UX:** Full-screen abstract starfield + shelf (original art — no Apple logos /
-trademarked TM galaxy). Era cards + scrubber / arrows; live skin preview while
-browsing; **Restore** / Enter applies; Esc cancels. Apply transition:
-starfield dissolve + shell scale/blur (~700ms). `prefers-reduced-motion: reduce`
-→ instant class swap (no animation).
+trademarked TM galaxy). Seven era cards (per-era TM accent colors) + scrubber /
+arrows; live skin preview while browsing; **Restore** / Enter applies; Esc
+cancels. Apply transition: starfield dissolve + shell scale/blur (~700ms).
+`prefers-reduced-motion: reduce` → instant class swap (no animation).
 
 **Persist:** `localStorage` `retr-oq:aqua-osx-era`. Inline boot script in
-`index.html` sets `data-osx-era` on `<html>` before paint (avoids flash).
+`index.html` accepts all seven ids and sets `data-osx-era` before paint.
 
-**Graphite:** Composes with eras (`html[data-osx-era][data-appearance="graphite"]`
-overrides in `eras.css`). Graphite stays available on all three eras — greys
-accents; Leopard keeps its dark menubar as the era base. Not hidden.
+**Graphite:** Composes fully on **Aqua / Tiger / Leopard / Lion**
+(`html[data-osx-era][data-appearance="graphite"]` in `eras.css` / `style.css`).
+On **Yosemite / Big Sur / Glassholism**, Graphite is effectively a **no-op**
+(or tiny accent nudge only) — those skins are already muted greys / light glass,
+and a full graphite wash fights the flat/glass language. Toggle still persists;
+it just does not visually dominate. Documented here so Sys Prefs is not “broken.”
+
+**Performance:** `@media (pointer: coarse), (max-width: 700px)` dials back
+`backdrop-filter` blur on Yosemite / Big Sur / Glassholism.
 
 **Files:** `aqua/eras.css`, `aqua/timemachine.js`, overlay markup in
 `aqua/index.html`. Hook: `window.__aquaTimeMachine`.
 
-**Out of scope (still):** real Exposé / Spotlight / Spaces / Stacks apps.
+**Out of scope (still):** real Exposé / Spotlight / Spaces / Stacks apps;
+Apple logos / trademarked TM galaxy / copied Big Sur wallpapers.

@@ -377,6 +377,10 @@ def test_time_machine_overlay_opens_and_sets_era(page, base_url):
         "aqua",
         "tiger",
         "leopard",
+        "lion",
+        "yosemite",
+        "bigsur",
+        "glass",
         None,
         "",
     )
@@ -445,3 +449,60 @@ def test_time_machine_reduced_motion_instant_restore(page, base_url):
     assert page.locator("#tm-overlay").is_hidden()
     assert page.evaluate("() => document.documentElement.dataset.osxEra") == "leopard"
     assert page.evaluate("() => localStorage.getItem('retr-oq:aqua-osx-era')") == "leopard"
+
+
+def test_time_machine_eras_include_future_milestones(page, base_url):
+    """Timeline lists aqua→glass milestones in chronological order."""
+    goto_aqua(page, base_url)
+    ids = page.evaluate(
+        """() => (window.__aquaTimeMachine && window.__aquaTimeMachine.eras || [])
+          .map((e) => e.id)"""
+    )
+    assert ids == [
+        "aqua",
+        "tiger",
+        "leopard",
+        "lion",
+        "yosemite",
+        "bigsur",
+        "glass",
+    ]
+    years = page.evaluate(
+        """() => (window.__aquaTimeMachine.eras || []).map((e) => e.year)"""
+    )
+    assert years == ["2001", "2005", "2007", "2011", "2014", "2020", "2026"]
+
+
+def test_time_machine_glass_era_persists(page, base_url):
+    """Scrub to Glassholism, Restore, and boot script accept the new id."""
+    goto_aqua(page, base_url)
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(60)
+    page.click('.tm-era-card[data-era="glass"]')
+    page.wait_for_timeout(40)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "glass"
+    page.click("#tm-restore")
+    page.wait_for_timeout(800)
+    assert page.locator("#tm-overlay").is_hidden()
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "glass"
+    assert page.evaluate("() => localStorage.getItem('retr-oq:aqua-osx-era')") == "glass"
+    page.reload()
+    page.wait_for_timeout(200)
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "glass"
+
+
+def test_time_machine_scrubber_reaches_lion_and_yosemite(page, base_url):
+    """Scrubber next/prev can reach mid and late eras."""
+    goto_aqua(page, base_url)
+    page.evaluate("() => window.__aquaTimeMachine.open()")
+    page.wait_for_timeout(40)
+    # From aqua, next a few times → lion
+    for _ in range(3):
+        page.click("#tm-next")
+        page.wait_for_timeout(20)
+    assert page.evaluate("() => window.__aquaTimeMachine.selected") == "lion"
+    assert page.evaluate("() => document.documentElement.dataset.osxEra") == "lion"
+    page.click("#tm-next")
+    page.wait_for_timeout(20)
+    assert page.evaluate("() => window.__aquaTimeMachine.selected") == "yosemite"
+    page.click("#tm-cancel")
