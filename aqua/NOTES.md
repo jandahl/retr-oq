@@ -285,9 +285,9 @@ Branch `polish/aqua-tm-galaxy-preview` (post-#176).
 
 1. **Galaxy** — `#tm-galaxy` canvas inside `.tm-starfield`: original abstract
    colorful nebula (pinks / purples / teals / gold dust + soft bloom) with a
-   **lazy** star-tunnel drift (many seconds across depth — not warp-speed) and
-   tiny rotation. Animation starts when TM opens and stops when the overlay
-   hides. `prefers-reduced-motion` keeps a near-static / tiny-drift paint.
+   **calm** star-tunnel crawl (no rotation; radial speed ≈0.0012; dust slower;
+   no streaks). Animation starts when TM opens and stops when the overlay
+   hides. `prefers-reduced-motion` is fully static.
 2. **OQ! preview** — `#tm-oq-preview` miniature `.osx-window` with traffic
    lights, readable title **OQ!**, search placeholder “Type to search…”,
    sample Kalaallisut lexeme/gloss rows, and a status line. Scrubbing eras
@@ -299,4 +299,5 @@ Branch `polish/aqua-tm-galaxy-preview` (post-#176).
    selectors that beat `html[data-osx-era="…"] .osx-*` layout tweaks. Eras must
    not change overall mini-window dimensions or font-size blowouts in TM;
    glass specular `::before` is suppressed on the preview. Cache-bust
-   `eras.css?v=4`, `timemachine.js?v=4`.
+   `eras.css?v=4`, `timemachine.js?v=5`.
+4. **Calm crawl (dizzy fix)** — `rotSpeed=0`, star speed ≈0.0012 / reduced-motion 0, dust slower, streaks removed; `timemachine.js?v=5`.

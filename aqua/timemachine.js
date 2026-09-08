@@ -249,15 +249,15 @@
         ctx.fillRect(px - rad, py - rad, rad * 2, rad * 2);
       }
 
-      // Lazy drift over many seconds (not warp-speed). Reduced motion ≈ static.
-      const speed = animate ? (prefersReducedMotion() ? 0.0012 : 0.0085) : 0;
-      const rotSpeed = animate ? (prefersReducedMotion() ? 0.00005 : 0.00045) : 0;
+      // Calm galactic crawl — no spin. Reduced motion = fully static.
+      const speed = animate ? (prefersReducedMotion() ? 0 : 0.0012) : 0;
+      const rotSpeed = 0; // kill rotation (was dizzying); blotches stay fixed
       if (animate) rot += rotSpeed * dt;
 
-      // Nebula dust slabs (depth-sorted via z approach) — richer bloom.
+      // Nebula dust slabs — drift even slower than stars; soft colorful blobs.
       for (const d of dust) {
         if (animate) {
-          d.z -= speed * 0.4 * dt * 0.016;
+          d.z -= speed * 0.25 * dt * 0.016;
           if (d.z <= 0.04) resetDust(d, false);
         }
         const z = Math.max(0.04, d.z);
@@ -278,7 +278,7 @@
         ctx.fill();
       }
 
-      // Stars — gentle radial drift toward the viewer (no long warp streaks).
+      // Stars — very slow radial crawl toward the viewer (no streaks).
       for (const s of stars) {
         if (animate) {
           s.z -= speed * dt * 0.016;
@@ -303,22 +303,8 @@
           ctx.arc(px, py, size * 3.2, 0, Math.PI * 2);
           ctx.fill();
         }
-        // Tiny soft streak only when very close — keep calm, not screensaver-warp.
-        const streak =
-          animate && !prefersReducedMotion() && z < 0.22
-            ? Math.min(4.5, size * (0.8 + speed * 12))
-            : size;
+        // Points only — no motion-blur streaks (dizzying).
         ctx.fillStyle = `rgba(${s.r},${s.g},${s.b},${alpha})`;
-        if (streak > size * 1.35) {
-          const dx = (px - cx) * 0.025;
-          const dy = (py - cy) * 0.025;
-          ctx.beginPath();
-          ctx.moveTo(px - dx, py - dy);
-          ctx.lineTo(px + dx * streak * 0.35, py + dy * streak * 0.35);
-          ctx.lineWidth = Math.max(0.5, size * 0.55);
-          ctx.strokeStyle = `rgba(${s.r},${s.g},${s.b},${alpha * 0.55})`;
-          ctx.stroke();
-        }
         ctx.beginPath();
         ctx.arc(px, py, size, 0, Math.PI * 2);
         ctx.fill();
