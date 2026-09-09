@@ -215,14 +215,36 @@ a:active {
   flex: 0 0 auto;
 }
 
-/* Caption min/max keep the gray beveled push-button face. */
+/* Caption min/max keep the gray beveled push-button face.
+   Top-level SM_CXSIZE×SM_CYSIZE ≈ 16×14 in the 18px caption. */
 .win-minimize,
-.mdi-minimize,
-.win-maximize,
-.mdi-maximize {
-  /* SM_CXSIZE×SM_CYSIZE ≈ 16×14; sits in the 18px caption with 2px pad */
+.win-maximize {
   width: 16px;
   height: 14px;
+  padding: 0;
+  margin: 0;
+  background: var(--face);
+  border: none;
+  box-shadow: var(--bevel-out);
+  color: var(--text);
+  flex: 0 0 auto;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* MDI child captions are shorter than top-level SM_CYCAPTION; scale chrome. */
+.mdi-child .title-bar,
+.mdi-title-bar {
+  height: 15px;
+  padding: 1px 2px;
+}
+
+.mdi-child .mdi-minimize,
+.mdi-child .mdi-maximize,
+.mdi-minimize,
+.mdi-maximize {
+  width: 12px;
+  height: 11px;
   padding: 0;
   margin: 0;
   background: var(--face);
@@ -243,8 +265,7 @@ a:active {
 
 /* Control-menu ("-"): flat white fill + 1px black outline — no 3D bevel.
    Larger on top-level captions; smaller on MDI child title bars. */
-.win-sysmenu,
-.mdi-sysmenu {
+.win-sysmenu {
   width: 16px;
   height: 14px;
   padding: 0;
@@ -258,10 +279,21 @@ a:active {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Higher specificity so MDI Control-menu cannot inherit top-level 16×14. */
+.mdi-child .mdi-sysmenu,
 .mdi-sysmenu,
 .mdi-child .win-sysmenu {
   width: 10px;
   height: 10px;
+  padding: 0;
+  margin: 0;
+  background: var(--white);
+  border: 1px solid var(--dk);
+  box-shadow: none;
+  color: var(--text);
+  flex: 0 0 auto;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Pressed indicator only — stays flat (no bevel-in). */
@@ -271,8 +303,7 @@ a:active {
   box-shadow: none;
 }
 
-.win-sysmenu::before,
-.mdi-sysmenu::before {
+.win-sysmenu::before {
   content: "";
   position: absolute;
   left: 2px;
@@ -283,14 +314,20 @@ a:active {
   background: var(--dk);
 }
 
+.mdi-child .mdi-sysmenu::before,
 .mdi-sysmenu::before,
 .mdi-child .win-sysmenu::before {
+  content: "";
+  position: absolute;
   left: 1px;
   right: 1px;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--dk);
 }
 
-.win-minimize::before,
-.mdi-minimize::before {
+.win-minimize::before {
   /* Win 3.1 minimize = small down-triangle, centred in the bevelled face */
   content: "";
   position: absolute;
@@ -301,8 +338,18 @@ a:active {
   border-top: 4px solid var(--dk);
 }
 
-.win-maximize::before,
-.mdi-maximize::before {
+.mdi-child .mdi-minimize::before,
+.mdi-minimize::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 4px;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 3px solid var(--dk);
+}
+
+.win-maximize::before {
   /* Win 3.1 maximize = small up-triangle */
   content: "";
   position: absolute;
@@ -311,6 +358,17 @@ a:active {
   border-left: 3px solid transparent;
   border-right: 3px solid transparent;
   border-bottom: 4px solid var(--dk);
+}
+
+.mdi-child .mdi-maximize::before,
+.mdi-maximize::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 2px;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-bottom: 3px solid var(--dk);
 }
 
 .win31-window.maximized .win-maximize::before {
@@ -909,27 +967,40 @@ a:active {
 
 @media (pointer: coarse) {
   .win-minimize,
-  .mdi-minimize,
-  .win-maximize,
-  .mdi-maximize {
+  .win-maximize {
     width: 28px;
     height: 24px;
+  }
+  .mdi-child .mdi-minimize,
+  .mdi-child .mdi-maximize,
+  .mdi-minimize,
+  .mdi-maximize {
+    width: 20px;
+    height: 18px;
   }
   .win-sysmenu {
     width: 28px;
     height: 24px;
   }
+  .mdi-child .mdi-sysmenu,
   .mdi-sysmenu,
   .mdi-child .win-sysmenu {
     width: 18px;
     height: 18px;
   }
   .title-bar { height: 28px; }
+  .mdi-child .title-bar,
+  .mdi-title-bar { height: 22px; padding: 2px; }
   .win-sysmenu::before { height: 3px; margin-top: -1.5px; }
+  .mdi-child .mdi-sysmenu::before,
   .mdi-sysmenu::before,
   .mdi-child .win-sysmenu::before { height: 2px; margin-top: -1px; }
-  .win-minimize::before, .mdi-minimize::before { left: 8px; top: 10px; }
-  .win-maximize::before, .mdi-maximize::before { left: 8px; top: 7px; }
+  .win-minimize::before { left: 8px; top: 10px; }
+  .mdi-child .mdi-minimize::before,
+  .mdi-minimize::before { left: 6px; top: 7px; }
+  .win-maximize::before { left: 8px; top: 7px; }
+  .mdi-child .mdi-maximize::before,
+  .mdi-maximize::before { left: 6px; top: 5px; }
   .menu-root > button,
   .menu-drop button,
   .sysmenu button {
