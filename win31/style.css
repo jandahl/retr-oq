@@ -215,8 +215,7 @@ a:active {
   flex: 0 0 auto;
 }
 
-.win-sysmenu,
-.mdi-sysmenu,
+/* Caption min/max keep the gray beveled push-button face. */
 .win-minimize,
 .mdi-minimize,
 .win-maximize,
@@ -235,8 +234,6 @@ a:active {
   -webkit-tap-highlight-color: transparent;
 }
 
-.win-sysmenu:active,
-.mdi-sysmenu:active,
 .win-minimize:active,
 .mdi-minimize:active,
 .win-maximize:active,
@@ -244,8 +241,30 @@ a:active {
   box-shadow: var(--bevel-in);
 }
 
-/* The Control-menu button is a pressed indicator, not a push button: the
-   original 3.1 box stays flat and only darkens while it is held. */
+/* Control-menu ("-"): flat white fill + 1px black outline — no 3D bevel.
+   Larger on top-level captions; smaller on MDI child title bars. */
+.win-sysmenu,
+.mdi-sysmenu {
+  width: 16px;
+  height: 14px;
+  padding: 0;
+  margin: 0;
+  background: var(--white);
+  border: 1px solid var(--dk);
+  box-shadow: none;
+  color: var(--text);
+  flex: 0 0 auto;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mdi-sysmenu,
+.mdi-child .win-sysmenu {
+  width: 10px;
+  height: 10px;
+}
+
+/* Pressed indicator only — stays flat (no bevel-in). */
 .win-sysmenu:active,
 .mdi-sysmenu:active {
   background: var(--sh);
@@ -256,11 +275,18 @@ a:active {
 .mdi-sysmenu::before {
   content: "";
   position: absolute;
-  left: 3px;
-  right: 3px;
-  top: 5px;
+  left: 2px;
+  right: 2px;
+  top: 50%;
   height: 2px;
+  margin-top: -1px;
   background: var(--dk);
+}
+
+.mdi-sysmenu::before,
+.mdi-child .win-sysmenu::before {
+  left: 1px;
+  right: 1px;
 }
 
 .win-minimize::before,
@@ -882,8 +908,6 @@ a:active {
 .win31-window.maximized .win31-resize-handle { display: none; }
 
 @media (pointer: coarse) {
-  .win-sysmenu,
-  .mdi-sysmenu,
   .win-minimize,
   .mdi-minimize,
   .win-maximize,
@@ -891,8 +915,19 @@ a:active {
     width: 28px;
     height: 24px;
   }
+  .win-sysmenu {
+    width: 28px;
+    height: 24px;
+  }
+  .mdi-sysmenu,
+  .mdi-child .win-sysmenu {
+    width: 18px;
+    height: 18px;
+  }
   .title-bar { height: 28px; }
-  .win-sysmenu::before, .mdi-sysmenu::before { top: 11px; height: 3px; }
+  .win-sysmenu::before { height: 3px; margin-top: -1.5px; }
+  .mdi-sysmenu::before,
+  .mdi-child .win-sysmenu::before { height: 2px; margin-top: -1px; }
   .win-minimize::before, .mdi-minimize::before { left: 8px; top: 10px; }
   .win-maximize::before, .mdi-maximize::before { left: 8px; top: 7px; }
   .menu-root > button,

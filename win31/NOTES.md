@@ -22,3 +22,5 @@ teal desktop, close lives only in the Control-menu (double-click the box).
 - **DECON label:** user-visible name is **Word Deconstructor** (MDI child title + Window menu; not a second ProgMan icon). Ids stay `win-decon` / `screen=decon`. Also the guest iframe target for OQ!2’s Word Deconstructor.
 
 - **Chrome metrics (fine pointer):** `SM_CYCAPTION` / `SM_CYMENU` ≈ **18px**. Caption buttons are 16×14 with ~2px vertical inset in the title bar. Menu-bar labels use `box-sizing: border-box` + fixed `height: 18px` (not only `min-height`) so padding + font line-box cannot grow the strip past the caption; `.menubar` has no bottom margin — the menu sits flush under the caption. Touch enlargements stay behind `@media (pointer: coarse)` only.
+
+- **Control-menu box:** flat **white** fill + **1px black** outline (no `box-shadow` bevel — min/max keep `--bevel-out`). Centered black horizontal dash. **Larger** on top-level `.win-sysmenu` (16×14 with the 18px caption); **smaller** on MDI child captions (`.mdi-sysmenu` / `.mdi-child .win-sysmenu`, 10×10).
