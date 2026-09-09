@@ -263,14 +263,15 @@ a:active {
   box-shadow: var(--bevel-in);
 }
 
-/* Control-menu ("-"): flat white fill + 1px black outline — no 3D bevel.
+/* Control-menu ("-"): gray face field + 1px black outline — no 3D bevel.
+   White dash with black outline centered on the gray field.
    Larger on top-level captions; smaller on MDI child title bars. */
 .win-sysmenu {
   width: 16px;
   height: 14px;
   padding: 0;
   margin: 0;
-  background: var(--white);
+  background: var(--face);
   border: 1px solid var(--dk);
   box-shadow: none;
   color: var(--text);
@@ -287,7 +288,7 @@ a:active {
   height: 10px;
   padding: 0;
   margin: 0;
-  background: var(--white);
+  background: var(--face);
   border: 1px solid var(--dk);
   box-shadow: none;
   color: var(--text);
@@ -309,9 +310,11 @@ a:active {
   left: 2px;
   right: 2px;
   top: 50%;
-  height: 2px;
-  margin-top: -1px;
-  background: var(--dk);
+  height: 3px; /* includes 1px border top+bottom so inner white ~1px */
+  margin-top: -1.5px;
+  background: var(--white);
+  border: 1px solid var(--dk);
+  box-sizing: border-box;
 }
 
 .mdi-child .mdi-sysmenu::before,
@@ -322,9 +325,11 @@ a:active {
   left: 1px;
   right: 1px;
   top: 50%;
-  height: 2px;
-  margin-top: -1px;
-  background: var(--dk);
+  height: 3px;
+  margin-top: -1.5px;
+  background: var(--white);
+  border: 1px solid var(--dk);
+  box-sizing: border-box;
 }
 
 .win-minimize::before {
@@ -991,10 +996,22 @@ a:active {
   .title-bar { height: 28px; }
   .mdi-child .title-bar,
   .mdi-title-bar { height: 22px; padding: 2px; }
-  .win-sysmenu::before { height: 3px; margin-top: -1.5px; }
+  .win-sysmenu::before {
+    height: 3px;
+    margin-top: -1.5px;
+    background: var(--white);
+    border: 1px solid var(--dk);
+    box-sizing: border-box;
+  }
   .mdi-child .mdi-sysmenu::before,
   .mdi-sysmenu::before,
-  .mdi-child .win-sysmenu::before { height: 2px; margin-top: -1px; }
+  .mdi-child .win-sysmenu::before {
+    height: 3px;
+    margin-top: -1.5px;
+    background: var(--white);
+    border: 1px solid var(--dk);
+    box-sizing: border-box;
+  }
   .win-minimize::before { left: 8px; top: 10px; }
   .mdi-child .mdi-minimize::before,
   .mdi-minimize::before { left: 6px; top: 7px; }
