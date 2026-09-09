@@ -271,8 +271,11 @@ a:active {
   height: 14px;
   padding: 0;
   margin: 0;
-  background: var(--face);
-  border: 1px solid var(--dk);
+  appearance: none;
+  -webkit-appearance: none;
+  background: #c0c0c0;
+  background-color: #c0c0c0;
+  border: 1px solid #000000;
   box-shadow: none;
   color: var(--text);
   flex: 0 0 auto;
@@ -288,8 +291,11 @@ a:active {
   height: 10px;
   padding: 0;
   margin: 0;
-  background: var(--face);
-  border: 1px solid var(--dk);
+  appearance: none;
+  -webkit-appearance: none;
+  background: #c0c0c0;
+  background-color: #c0c0c0;
+  border: 1px solid #000000;
   box-shadow: none;
   color: var(--text);
   flex: 0 0 auto;
@@ -300,7 +306,8 @@ a:active {
 /* Pressed indicator only — stays flat (no bevel-in). */
 .win-sysmenu:active,
 .mdi-sysmenu:active {
-  background: var(--sh);
+  background: #808080;
+  background-color: #808080;
   box-shadow: none;
 }
 
@@ -312,8 +319,8 @@ a:active {
   top: 50%;
   height: 3px; /* includes 1px border top+bottom so inner white ~1px */
   margin-top: -1.5px;
-  background: var(--white);
-  border: 1px solid var(--dk);
+  background: #ffffff;
+  border: 1px solid #000000;
   box-sizing: border-box;
 }
 
@@ -327,8 +334,8 @@ a:active {
   top: 50%;
   height: 3px;
   margin-top: -1.5px;
-  background: var(--white);
-  border: 1px solid var(--dk);
+  background: #ffffff;
+  border: 1px solid #000000;
   box-sizing: border-box;
 }
 
@@ -999,8 +1006,8 @@ a:active {
   .win-sysmenu::before {
     height: 3px;
     margin-top: -1.5px;
-    background: var(--white);
-    border: 1px solid var(--dk);
+    background: #ffffff;
+    border: 1px solid #000000;
     box-sizing: border-box;
   }
   .mdi-child .mdi-sysmenu::before,
@@ -1008,8 +1015,8 @@ a:active {
   .mdi-child .win-sysmenu::before {
     height: 3px;
     margin-top: -1.5px;
-    background: var(--white);
-    border: 1px solid var(--dk);
+    background: #ffffff;
+    border: 1px solid #000000;
     box-sizing: border-box;
   }
   .win-minimize::before { left: 8px; top: 10px; }
