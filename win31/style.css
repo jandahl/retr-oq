@@ -179,8 +179,10 @@ a:active {
   display: flex;
   align-items: center;
   gap: 3px;
+  /* SM_CYCAPTION ≈ 18px on VGA Win 3.1 */
   height: 18px;
-  padding: 1px 2px;
+  /* 2px vertical pad + 14px caption buttons = flush 1–2px inset band */
+  padding: 2px 2px;
   background: var(--navy);
   color: var(--white);
   cursor: var(--cursor-arrow);
@@ -213,12 +215,10 @@ a:active {
   flex: 0 0 auto;
 }
 
-.win-sysmenu,
-.mdi-sysmenu,
+/* Caption min/max keep the gray beveled push-button face.
+   Top-level SM_CXSIZE×SM_CYSIZE ≈ 16×14 in the 18px caption. */
 .win-minimize,
-.mdi-minimize,
-.win-maximize,
-.mdi-maximize {
+.win-maximize {
   width: 16px;
   height: 14px;
   padding: 0;
@@ -232,8 +232,30 @@ a:active {
   -webkit-tap-highlight-color: transparent;
 }
 
-.win-sysmenu:active,
-.mdi-sysmenu:active,
+/* MDI child captions are shorter than top-level SM_CYCAPTION; scale chrome. */
+.mdi-child .title-bar,
+.mdi-title-bar {
+  height: 15px;
+  padding: 1px 2px;
+}
+
+.mdi-child .mdi-minimize,
+.mdi-child .mdi-maximize,
+.mdi-minimize,
+.mdi-maximize {
+  width: 12px;
+  height: 11px;
+  padding: 0;
+  margin: 0;
+  background: var(--face);
+  border: none;
+  box-shadow: var(--bevel-out);
+  color: var(--text);
+  flex: 0 0 auto;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .win-minimize:active,
 .mdi-minimize:active,
 .win-maximize:active,
@@ -241,58 +263,137 @@ a:active {
   box-shadow: var(--bevel-in);
 }
 
-/* The Control-menu button is a pressed indicator, not a push button: the
-   original 3.1 box stays flat and only darkens while it is held. */
+/* Control-menu ("-"): gray face field + 1px black outline — no 3D bevel.
+   White dash with black outline centered on the gray field.
+   Larger on top-level captions; smaller on MDI child title bars. */
+.win-sysmenu {
+  width: 16px;
+  height: 14px;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #c0c0c0;
+  background-color: #c0c0c0;
+  border: 1px solid #000000;
+  box-shadow: none;
+  color: var(--text);
+  flex: 0 0 auto;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Higher specificity so MDI Control-menu cannot inherit top-level 16×14. */
+.mdi-child .mdi-sysmenu,
+.mdi-sysmenu,
+.mdi-child .win-sysmenu {
+  width: 10px;
+  height: 10px;
+  padding: 0;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #c0c0c0;
+  background-color: #c0c0c0;
+  border: 1px solid #000000;
+  box-shadow: none;
+  color: var(--text);
+  flex: 0 0 auto;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Pressed indicator only — stays flat (no bevel-in). */
 .win-sysmenu:active,
 .mdi-sysmenu:active {
-  background: var(--sh);
+  background: #808080;
+  background-color: #808080;
   box-shadow: none;
 }
 
-.win-sysmenu::before,
-.mdi-sysmenu::before {
+.win-sysmenu::before {
   content: "";
   position: absolute;
-  left: 3px;
-  right: 3px;
-  top: 6px;
-  height: 2px;
-  background: var(--dk);
+  left: 2px;
+  right: 2px;
+  top: 50%;
+  height: 3px; /* includes 1px border top+bottom so inner white ~1px */
+  margin-top: -1.5px;
+  background: #ffffff;
+  border: 1px solid #000000;
+  box-sizing: border-box;
 }
 
-.win-minimize::before,
+.mdi-child .mdi-sysmenu::before,
+.mdi-sysmenu::before,
+.mdi-child .win-sysmenu::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  top: 50%;
+  height: 3px;
+  margin-top: -1.5px;
+  background: #ffffff;
+  border: 1px solid #000000;
+  box-sizing: border-box;
+}
+
+.win-minimize::before {
+  /* Win 3.1 minimize = small down-triangle, centred in the bevelled face */
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 4px solid var(--dk);
+}
+
+.mdi-child .mdi-minimize::before,
 .mdi-minimize::before {
   content: "";
   position: absolute;
-  left: 4px;
-  top: 6px;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 5px solid var(--dk);
+  left: 3px;
+  top: 4px;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-top: 3px solid var(--dk);
 }
 
-.win-maximize::before,
+.win-maximize::before {
+  /* Win 3.1 maximize = small up-triangle */
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 3px;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-bottom: 4px solid var(--dk);
+}
+
+.mdi-child .mdi-maximize::before,
 .mdi-maximize::before {
   content: "";
   position: absolute;
-  left: 4px;
-  top: 3px;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-bottom: 5px solid var(--dk);
+  left: 3px;
+  top: 2px;
+  border-left: 3px solid transparent;
+  border-right: 3px solid transparent;
+  border-bottom: 3px solid var(--dk);
 }
 
 .win31-window.maximized .win-maximize::before {
   border: none;
-  width: 6px;
-  height: 6px;
-  left: 4px;
+  width: 5px;
+  height: 5px;
+  left: 5px;
   top: 3px;
   background:
-    linear-gradient(var(--dk), var(--dk)) 0 0 / 6px 2px no-repeat,
-    linear-gradient(var(--dk), var(--dk)) 0 0 / 2px 6px no-repeat,
-    linear-gradient(var(--dk), var(--dk)) 4px 0 / 2px 4px no-repeat,
-    linear-gradient(var(--dk), var(--dk)) 2px 4px / 4px 2px no-repeat;
+    linear-gradient(var(--dk), var(--dk)) 0 0 / 5px 2px no-repeat,
+    linear-gradient(var(--dk), var(--dk)) 0 0 / 2px 5px no-repeat,
+    linear-gradient(var(--dk), var(--dk)) 3px 0 / 2px 3px no-repeat,
+    linear-gradient(var(--dk), var(--dk)) 2px 3px / 3px 2px no-repeat;
 }
 
 .window-body {
@@ -307,12 +408,15 @@ a:active {
 
 .menubar {
   display: flex;
+  align-items: stretch;
   gap: 0;
-  margin: 0 0 6px;
+  /* Flush under caption — Win 3.1 has no gap between SM_CYCAPTION and SM_CYMENU */
+  margin: 0;
   padding: 0;
   list-style: none;
   background: var(--face);
   flex: 0 0 auto;
+  height: 18px;
 }
 
 .menu-root {
@@ -323,14 +427,18 @@ a:active {
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: 2px 8px;
+  /* Explicit border-box + fixed height: padding + line-box must not
+     push the strip past SM_CYMENU (18px). Global * { box-sizing } helps,
+     but height (not only min-height) caps growth from font metrics. */
+  box-sizing: border-box;
+  height: 18px;
+  min-height: 18px;
+  padding: 0 8px;
+  line-height: 18px;
   font-family: inherit;
   font-size: 11px;
   color: var(--text);
-  /* Same height as .title-bar (18px) -- the menu strip is not a
-     taller, separate control, it's the same chrome band as the
-     title bar directly below it. */
-  min-height: 18px;
+  white-space: nowrap;
 }
 
 .menu-root.open > button,
@@ -365,13 +473,15 @@ a:active {
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: 2px 18px;
+  box-sizing: border-box;
+  height: 18px;
+  min-height: 18px;
+  padding: 0 18px;
+  line-height: 18px;
   font-family: inherit;
   font-size: 11px;
   color: var(--text);
-  /* Same 18px band as .title-bar / .menu-root > button, not a taller
-     dropdown-specific row height. */
-  min-height: 18px;
+  white-space: nowrap;
 }
 
 .menu-drop button:hover:not(:disabled),
@@ -868,22 +978,64 @@ a:active {
 .win31-window.maximized .win31-resize-handle { display: none; }
 
 @media (pointer: coarse) {
-  .win-sysmenu,
-  .mdi-sysmenu,
   .win-minimize,
-  .mdi-minimize,
-  .win-maximize,
-  .mdi-maximize {
+  .win-maximize {
     width: 28px;
     height: 24px;
   }
+  .mdi-child .mdi-minimize,
+  .mdi-child .mdi-maximize,
+  .mdi-minimize,
+  .mdi-maximize {
+    width: 20px;
+    height: 18px;
+  }
+  .win-sysmenu {
+    width: 28px;
+    height: 24px;
+  }
+  .mdi-child .mdi-sysmenu,
+  .mdi-sysmenu,
+  .mdi-child .win-sysmenu {
+    width: 18px;
+    height: 18px;
+  }
   .title-bar { height: 28px; }
-  .win-sysmenu::before, .mdi-sysmenu::before { top: 11px; height: 3px; }
-  .win-minimize::before, .mdi-minimize::before { left: 8px; top: 10px; }
-  .win-maximize::before, .mdi-maximize::before { left: 8px; top: 7px; }
+  .mdi-child .title-bar,
+  .mdi-title-bar { height: 22px; padding: 2px; }
+  .win-sysmenu::before {
+    height: 3px;
+    margin-top: -1.5px;
+    background: #ffffff;
+    border: 1px solid #000000;
+    box-sizing: border-box;
+  }
+  .mdi-child .mdi-sysmenu::before,
+  .mdi-sysmenu::before,
+  .mdi-child .win-sysmenu::before {
+    height: 3px;
+    margin-top: -1.5px;
+    background: #ffffff;
+    border: 1px solid #000000;
+    box-sizing: border-box;
+  }
+  .win-minimize::before { left: 8px; top: 10px; }
+  .mdi-child .mdi-minimize::before,
+  .mdi-minimize::before { left: 6px; top: 7px; }
+  .win-maximize::before { left: 8px; top: 7px; }
+  .mdi-child .mdi-maximize::before,
+  .mdi-maximize::before { left: 6px; top: 5px; }
   .menu-root > button,
   .menu-drop button,
   .sysmenu button {
+    height: auto;
+    min-height: 44px;
+    line-height: normal;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .menubar {
+    height: auto;
     min-height: 44px;
   }
   .win31-resize-n, .win31-resize-s {
