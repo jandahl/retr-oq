@@ -241,6 +241,57 @@
   .timeline-nav--prev { left: 12px; }
   .timeline-nav--next { right: 12px; }
 
+  /* Inventory ring: a knowingly fake 1996 renderer. Chunky quads, flat
+     gradients, a discrete 72-degree carousel snap, and a red/gold pause
+     overlay keep the joke faithful to its low-poly inspiration. */
+  .inventory-ring {
+    --ring-gold: #e0bd70;
+    --ring-red: #3a0908;
+    min-height: min(620px, 72vh);
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    position: relative;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    isolation: isolate;
+    background: radial-gradient(circle at 50% 48%, rgba(180, 88, 34, .38), transparent 42%), repeating-linear-gradient(135deg, rgba(190, 124, 38, .13) 0 2px, transparent 2px 28px), repeating-linear-gradient(45deg, rgba(110, 20, 10, .3) 0 2px, transparent 2px 28px), var(--ring-red);
+    border-block: 1px solid rgba(224, 189, 112, .35);
+  }
+  .inventory-ring[hidden] { display: none; }
+  .inventory-ring:focus-visible { outline: none; }
+  body.inventory-mode { overflow: hidden; }
+  body.inventory-mode > #hub-main > header { visibility: hidden; }
+  body.inventory-mode > #hub-main > .inventory-ring:not([hidden]) { position: fixed; inset: 0; z-index: 10; width: auto; min-height: 100dvh; margin: 0; }
+  .inventory-ring::before, .inventory-ring::after { content: ""; position: absolute; inset: 8%; border: 1px solid rgba(224, 189, 112, .18); border-radius: 50%; box-shadow: 0 0 0 32px rgba(30, 3, 3, .16), 0 0 0 33px rgba(224, 189, 112, .1); pointer-events: none; }
+  .inventory-ring::after { inset: 19%; border-style: dashed; opacity: .5; }
+  .inventory-ring__heading, .inventory-ring__footer { position: absolute; z-index: 4; color: var(--ring-gold); text-transform: uppercase; letter-spacing: .23em; text-shadow: 2px 2px #1c0504; }
+  .inventory-ring__heading { top: 26px; font: italic 700 clamp(1.4rem, 4vw, 2.4rem) Georgia, serif; }
+  .inventory-ring__footer { bottom: 22px; font: italic 700 1rem Georgia, serif; }
+  .inventory-ring__count { position: absolute; right: 20px; bottom: 20px; color: rgba(224,189,112,.65); font: .65rem ui-monospace, monospace; letter-spacing: .12em; }
+  .inventory-ring__selection { position: absolute; bottom: 48px; color: #fff4d2; font: italic 700 1.15rem Georgia, serif; text-shadow: 2px 2px #1c0504; }
+  .inventory-ring__items { width: 1px; height: 1px; position: relative; transform-style: preserve-3d; perspective: 1200px; transform: rotateX(32deg) scaleY(1.28) rotateY(var(--ring-turn, 0deg)); transition: transform 420ms cubic-bezier(.2,.9,.25,1); }
+  .inventory-item { position: absolute; left: 0; top: 0; width: 130px; margin: -65px; display: flex; flex-direction: column; align-items: center; gap: 7px; color: #eed9a0; text-decoration: none; transform-style: preserve-3d; backface-visibility: visible; transform: rotateY(calc(var(--slot) * 72deg)) translateZ(clamp(220px, 31vw, 380px)) rotateY(calc((var(--slot) * -72deg) - var(--ring-turn, 0deg))); transition: filter 260ms, opacity 260ms, scale 260ms; }
+  .inventory-item--exit { appearance: none; padding: 0; border: 0; background: transparent; font: inherit; cursor: pointer; }
+  .inventory-item:not(.is-selected) { opacity: .9; filter: none; }
+  .inventory-item.is-selected { z-index: 3; scale: 1.12; color: #fff8dc; }
+  .inventory-item.is-selected::before { content: ""; position: absolute; inset: -14px -22px 28px; border: 2px solid var(--ring-gold); border-radius: 50%; opacity: .9; transform: rotateX(70deg); box-shadow: 0 0 16px rgba(224,189,112,.7), inset 0 0 16px rgba(224,189,112,.25); pointer-events: none; }
+  .inventory-item__model { width: 126px; height: 98px; display: grid; place-items: center; transform-style: preserve-3d; background: transparent; border: 0; box-shadow: none; transform: translateZ(12px) perspective(460px) rotateX(8deg) rotateY(-12deg); }
+  .inventory-item__model::after { display: none; }
+  .inventory-item__icon { display: grid; place-items: center; width: 116px; height: 92px; transform: translateZ(15px) rotateY(-8deg); }
+  .inventory-item__icon svg { width: 110px; height: 88px; image-rendering: pixelated; shape-rendering: crispEdges; filter: drop-shadow(5px 7px 0 rgba(0,0,0,.55)); }
+  .inventory-model-canvas { width: 116px; height: 92px; display: block; }
+  .inventory-item__label { font: italic 700 1.05rem Georgia, serif; text-shadow: 2px 2px #1c0504; }
+  .inventory-item__year { font: .65rem ui-monospace, monospace; letter-spacing: .12em; color: #c8a66a; }
+  .inventory-item:focus-visible { outline: none; }
+  .inventory-item.is-selected .inventory-item__model { animation: inventory-card-spin 8s ease-in-out infinite; }
+  .inventory-item.is-selected .inventory-item__icon { animation: inventory-idle 4.5s ease-in-out infinite; }
+  .inventory-item--exit .inventory-item__model { background: transparent; }
+  @keyframes inventory-idle { 0%, 100% { transform: rotateY(-10deg) rotateX(2deg); } 50% { transform: rotateY(10deg) rotateX(-2deg); } }
+  @keyframes inventory-card-spin { 0%, 100% { rotate: y -8deg; } 50% { rotate: y 8deg; } }
+  @media (max-width: 640px) { .inventory-ring { min-height: 72vh; } .inventory-ring__items { transform: rotateX(32deg) scaleY(1.2) rotateY(var(--ring-turn, 0deg)); } .inventory-item { transform: rotateY(calc(var(--slot) * 72deg)) translateZ(190px) rotateY(calc((var(--slot) * -72deg) - var(--ring-turn, 0deg))); } .inventory-item.is-selected { scale: 1.05; } }
+  @media (prefers-reduced-motion: reduce) { .inventory-ring__items { transition: none; } .inventory-item__icon { animation: none; } }
+
   .timeline .entry {
     flex: 0 0 auto;
     height: 100%;
@@ -577,6 +628,13 @@
       <button class="timeline-nav timeline-nav--next" type="button" hidden aria-label="Scroll timeline right">&gt;</button>
     </div>
 
+    <section class="inventory-ring" aria-label="Console inventory ring" hidden>
+      <div class="inventory-ring__heading">Inventory</div>
+      <div class="inventory-ring__items" role="listbox" aria-label="Choose a console"></div>
+      <div class="inventory-ring__selection" aria-live="polite"></div>
+      <div class="inventory-ring__count"></div>
+    </section>
+
     <footer>
       Fifteen skins for the same dictionary. See the
       <a href="https://github.com/jandahl/retr-oq">README</a>
@@ -586,7 +644,8 @@
   </main>
 
   <script>document.body.classList.remove("no-js");</script>
-  <script src="hub-data.js?v=3"></script>
-  <script src="hub.js?v=5"></script>
+  <script type="module" src="hub-3d.js?v=2"></script>
+  <script src="hub-data.js?v=4"></script>
+  <script src="hub.js?v=7"></script>
 </body>
 </html>
