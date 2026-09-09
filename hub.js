@@ -60,7 +60,135 @@
 
   function matchesFilter(machine, filter) {
     return filter === "all" ||
-      (filter === "games" ? machine.hasGames : machine.category === filter);
+      (filter === "games" ? machine.hasGames : machine.category === filter ||
+        (machine.tags || []).indexOf(filter) !== -1);
+  }
+
+  var RING_HREFS = ["nes/", "snes/", "c64/", "amiga/"];
+
+  function machineIcon(machine) {
+    var icons = {
+      "nes/": '<path d="m4 16 5-5h15l4 4-3 10-18 1z" fill="#bfc3c2" stroke="#25282a" stroke-width="1"/><path d="m9 11 3-5h12l4 5z" fill="#d9ddda" stroke="#25282a"/><path d="m7 17 21-1-2 6-18 1z" fill="#747b7d"/><path d="m13 12 9-1 2 3-11 1z" fill="#22262a"/><path d="m10 20 4-1v3h-4z" fill="#c92b30"/>',
+      "snes/": '<path d="m3 18 5-7h18l5 6-4 9-20 1z" fill="#c4c8cc" stroke="#25282a"/><path d="m8 11 4-5h12l5 5z" fill="#e4e6e5" stroke="#25282a"/><path d="m7 18 24-1-2 6-22 1z" fill="#777d82"/><path d="m12 15h13v3H12z" fill="#353a40"/><path d="m21 21h2v2h-2zm3 0h2v2h-2zm-1 3h2v2h-2z" fill="#d03440"/>',
+      "c64/": '<path d="m3 17 5-8 21 2 3 9-7 5-18-2z" fill="#9c8b70" stroke="#251b16"/><path d="m8 9 4-5h17l-1 7z" fill="#c9b99d" stroke="#251b16"/><path d="m11 6h15l-1 4-15-1z" fill="#3d3b91"/><path d="m8 17 22 1-6 5-17-2z" fill="#6e5d49"/><path d="m12 18h14" stroke="#d6c8af" stroke-width="1"/><circle cx="27" cy="13" r="1" fill="#a7e0e3"/>',
+      "amiga/": '<path d="m3 16 5-7 21 2 2 9-7 6-18-3z" fill="#d7d3c4" stroke="#292721"/><path d="m8 9 4-5h18l-1 7z" fill="#ece9da" stroke="#292721"/><path d="m12 6h15l-1 4-15-1z" fill="#1762a0"/><path d="m9 17 21 1-6 5-17-3z" fill="#a19d91"/><path d="m13 18h14" stroke="#ffffff"/><path d="m25 21 4-3v4l-4 3z" fill="#d3543e"/>',
+    };
+    return '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">' +
+      '<defs><linearGradient id="ring-light" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>' +
+      (icons[machine.href] || icons["nes/"]) + '<path d="m5 15 23-2" stroke="url(#ring-light)" stroke-width="1" opacity=".8"/></svg>';
+  }
+
+  function exitIcon() {
+    return '<svg viewBox="0 0 32 32" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">' +
+      '<path d="M5 4h14v5h-3V7H8v18h8v-2h3v5H5z" fill="#5b3121"/>' +
+      '<path d="M17 14h7l-3-3 2-2 7 7-7 7-2-2 3-3h-7z" fill="#d5b36b"/>' +
+      '<path d="M6 5h12v2H8v18h10v2H6z" fill="#d6c18a" opacity=".75"/></svg>';
+  }
+
+  function renderInventoryRing() {
+    var root = document.querySelector(".inventory-ring");
+    var items = root.querySelector(".inventory-ring__items");
+    var machines = RING_HREFS.map(function (href) {
+      return (window.OqHubMachines || []).find(function (machine) {
+        return machine.href === href;
+      });
+    }).filter(Boolean);
+    items.replaceChildren();
+    machines.forEach(function (machine, index) {
+      var item = document.createElement("a");
+      item.className = "inventory-item";
+      item.href = machine.href;
+      item.dataset.index = index;
+      item.setAttribute("role", "option");
+      item.style.setProperty("--slot", index);
+      item.innerHTML = '<span class="inventory-item__model"><span class="inventory-item__icon">' +
+        machineIcon(machine) + '</span></span><span class="inventory-item__label">' +
+        machine.name + '</span><span class="inventory-item__year">' + machine.year + "</span>";
+      items.appendChild(item);
+    });
+    var exit = document.createElement("button");
+    exit.className = "inventory-item inventory-item--exit";
+    exit.type = "button";
+    exit.dataset.index = machines.length;
+    exit.setAttribute("role", "option");
+    exit.style.setProperty("--slot", machines.length);
+    exit.innerHTML = '<span class="inventory-item__model"><span class="inventory-item__icon">' +
+      exitIcon() + '</span></span><span class="inventory-item__label">Exit</span>' +
+      '<span class="inventory-item__year">Return to hub</span>';
+    items.appendChild(exit);
+    root.querySelector(".inventory-ring__count").textContent = (machines.length + 1) + " items / ring 01";
+  }
+
+  function enableInventoryRing() {
+    var root = document.querySelector(".inventory-ring");
+    var track = root.querySelector(".inventory-ring__items");
+    var selected = 0;
+    var ringTurn = 0;
+    root.tabIndex = 0;
+    function allItems() { return root.querySelectorAll(".inventory-item"); }
+    function select(next, focus) {
+      var all = allItems();
+      var target = (next + all.length) % all.length;
+      var delta = target - selected;
+      if (delta > all.length / 2) delta -= all.length;
+      if (delta < -all.length / 2) delta += all.length;
+      selected = target;
+      ringTurn -= delta * 72;
+      track.style.setProperty("--ring-turn", ringTurn + "deg");
+      all.forEach(function (item, index) {
+        item.classList.toggle("is-selected", index === selected);
+        item.setAttribute("aria-selected", String(index === selected));
+      });
+      root.querySelector(".inventory-ring__selection").textContent =
+        all[selected].querySelector(".inventory-item__label").textContent;
+      if (focus) all[selected].focus();
+    }
+    root.onkeydown = function (event) {
+      if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+        event.preventDefault(); select(selected - 1, true);
+      } else if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+        event.preventDefault(); select(selected + 1, true);
+      } else if (event.key === "Escape") {
+        event.preventDefault(); window.location.hash = "all";
+      }
+    };
+    root.onclick = function (event) {
+      var item = event.target.closest(".inventory-item");
+      if (!item) return;
+      var index = Number(item.dataset.index);
+      if (index !== selected) {
+        event.preventDefault(); select(index, false);
+      } else if (item.classList.contains("inventory-item--exit")) {
+        event.preventDefault(); window.location.hash = "all";
+      }
+    };
+    select(0, false);
+    root.focus({ preventScroll: true });
+  }
+
+  function route(filter) {
+    var validFilters = ["all", "games", "console", "handheld", "home-computer", "redmond", "cupertino", "workstation"];
+    if (validFilters.indexOf(filter) === -1) filter = "all";
+    var isRing = filter === "console";
+    document.body.classList.toggle("inventory-mode", isRing);
+    document.querySelector(".timeline-viewport").hidden = isRing;
+    document.querySelector(".inventory-ring").hidden = !isRing;
+    document.querySelector("footer").hidden = isRing;
+    if (isRing) {
+      renderInventoryRing();
+      enableInventoryRing();
+    } else {
+      renderHub(filter || "all");
+      updateNavigation(document.querySelector(".timeline"));
+    }
+    document.querySelectorAll("[data-filter]").forEach(function (button) {
+      button.setAttribute("aria-pressed", String(button.dataset.filter === (filter || "all")));
+    });
+    var machines = window.OqHubMachines || [];
+    var visibleCount = isRing ? RING_HREFS.length : machines.filter(function (machine) {
+      return matchesFilter(machine, filter || "all");
+    }).length;
+    document.querySelector(".result-count").textContent = visibleCount + " of " + machines.length + " machines";
   }
 
   function renderHub(filter) {
@@ -85,18 +213,10 @@
 
   function enableFilters() {
     var buttons = document.querySelectorAll("[data-filter]");
-    var count = document.querySelector(".result-count");
-    var machines = window.OqHubMachines || [];
 
     buttons.forEach(function (button) {
       button.addEventListener("click", function () {
-        var filter = button.getAttribute("data-filter");
-        buttons.forEach(function (other) {
-          other.setAttribute("aria-pressed", String(other === button));
-        });
-        var visibleCount = renderHub(filter);
-        count.textContent = visibleCount + " of " + machines.length + " machines";
-        updateNavigation(document.querySelector(".timeline"));
+        window.location.hash = button.getAttribute("data-filter");
       });
     });
   }
@@ -237,9 +357,11 @@
     window.setTimeout(completeBoot, delay);
   }
 
-  var initialCount = renderHub("all");
-  document.querySelector(".result-count").textContent =
-    initialCount + " of " + (window.OqHubMachines || []).length + " machines";
+  document.querySelector(".inventory-ring").hidden = true;
+  window.addEventListener("hashchange", function () {
+    route(window.location.hash.slice(1) || "all");
+  });
+  route(window.location.hash.slice(1) || "all");
   enableFilters();
   enableWheelPan(document.querySelector(".timeline"));
   enableNavigation(document.querySelector(".timeline"));

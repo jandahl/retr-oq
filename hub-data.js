@@ -17,6 +17,8 @@
 // `hasGames` mirrors shared/games.js's matrix: true only where the theme
 // carries a real minigame (kind: "game", e.g. MORPH! or KAL-Q), not a demo
 // or an easter egg -- keep the two in sync when shared/games.js changes.
+// `tags` carries secondary filter memberships, so a home computer can also
+// appear in the Console ring without losing its historical label.
 window.OqHubMachines = [
   {
     href: "dos/",
@@ -44,6 +46,7 @@ window.OqHubMachines = [
     name: "Commodore 64",
     year: "1982",
     category: "home-computer",
+    tags: ["console"],
     hasGames: true,
     meta: "READY.",
     iconNote: "Breadbin chassis, light-blue-on-blue READY.",
@@ -116,6 +119,7 @@ window.OqHubMachines = [
     name: "Amiga",
     year: "1988",
     category: "home-computer",
+    tags: ["console"],
     hasGames: false,
     meta: "Workbench 1.3",
     iconNote: "Workbench 1.3: blue screen, orange window, boing, copper",
