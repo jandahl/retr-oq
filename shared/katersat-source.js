@@ -27,6 +27,32 @@
     "Oqaasileriffik / Greenland Language Secretariat — katersat lexicon (GPL-3.0-or-later)";
 
   /**
+   * The exporter has used both string arrays and arrays of translation
+   * records over time. Keep the loader tolerant of either shape (and of a
+   * keyed translation object) so a schema-only upstream change cannot turn
+   * every Kater gloss into an empty string.
+   * @param {any} value
+   * @returns {string[]}
+   */
+  function translationStrings(value) {
+    if (typeof value === "string") return value.trim() ? [value.trim()] : [];
+    if (Array.isArray(value)) return value.flatMap(translationStrings);
+    if (!value || typeof value !== "object") return [];
+
+    for (const key of ["text", "value", "translation", "gloss", "meaning"]) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        const strings = translationStrings(value[key]);
+        if (strings.length) return strings;
+      }
+    }
+    return Object.values(value).flatMap(translationStrings);
+  }
+
+  function uniqueTranslationStrings(value) {
+    return [...new Set(translationStrings(value))];
+  }
+
+  /**
    * Join non-empty English senses with "; " (same choice as jandahl/oq's
    * entryToPreset). Empty english[] → gloss_en "" (e.g. aalajavoq). We do
    * **not** fall back to danish for gloss_en — danish stays optional on
@@ -37,23 +63,9 @@
   function normalizeKatersatLexeme(lex) {
     const lexeme = String(lex?.kalaallisut ?? "").trim();
     if (!lexeme) return null;
-    const englishRaw = Array.isArray(lex?.english) ? lex.english : [];
-    const english = [
-      ...new Set(
-        englishRaw
-          .filter((v) => typeof v === "string" && v.trim())
-          .map((v) => v.trim()),
-      ),
-    ];
+    const english = uniqueTranslationStrings(lex?.english);
     const gloss_en = english.join("; ");
-    const danishRaw = Array.isArray(lex?.danish) ? lex.danish : [];
-    const danish = [
-      ...new Set(
-        danishRaw
-          .filter((v) => typeof v === "string" && v.trim())
-          .map((v) => v.trim()),
-      ),
-    ];
+    const danish = uniqueTranslationStrings(lex?.danish);
     const gloss_da = danish.join("; ");
     const out = {
       id: lex?.id != null ? String(lex.id) : lexeme,
@@ -189,6 +201,7 @@
     KATERSAT_LEXICON_JSON,
     loadKatersatLexemes,
     normalizeKatersatLexeme,
+    translationStrings,
     resetKatersatState,
   };
 })();
