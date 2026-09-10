@@ -108,6 +108,21 @@ def test_loads_clean_without_power_button_boot(page, base_url):
     assert page.locator("#dock").is_visible()
 
 
+def test_katersat_structured_translations_are_normalized(page, base_url):
+    """Published Kater records may wrap translations in objects."""
+    goto_aqua(page, base_url)
+    result = page.evaluate(
+        """() => window.OqKatersatSource.normalizeKatersatLexeme({
+          id: 'structured',
+          kalaallisut: 'uanga',
+          english: [{ text: 'I, me, mine' }, { value: 'myself' }],
+          danish: [{ translation: 'jeg' }]
+        })"""
+    )
+    assert result["gloss_en"] == "I, me, mine; myself"
+    assert result["gloss_da"] == "jeg"
+
+
 def test_windows_start_closed(page, base_url):
     goto_aqua(page, base_url)
     for win_id in ("win-oq", "win-decon", "win-home", "win-apps", "win-about", "win-trash"):
@@ -740,4 +755,3 @@ def test_oq_window_shows_both_attributions_when_merged(page, base_url):
     assert "GPL" in attr
     status = page.locator("#oq-status").inner_text()
     assert "katersat" in status.lower() or "entries loaded" in status.lower()
-

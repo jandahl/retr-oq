@@ -15,6 +15,8 @@ name: theme tests
 # The `changes` job computes which themes' paths actually changed so an
 # unrelated PR (say, kde/ or docs) doesn't spin up five browser jobs for
 # nothing; the `test` job's matrix then only runs for themes that changed.
+# Shared top-level scripts and workflow edits exercise every suite so common
+# dependency changes and CI changes cannot silently skip browser coverage.
 on:
   push:
     branches: [master]
@@ -42,6 +44,23 @@ jobs:
         id: filter
         with:
           filters: |
+            aqua:
+              - "aqua/**"
+              - "shared/osx/**"
+              - "vendor/**"
+              - "tests/test_aqua.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
+            c64:
+              - "c64/**"
+              - "vendor/c64/**"
+              - "tests/test_c64.py"
+              - "tests/conftest.py"
+              - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
             gb:
               - "gb/**"
               - "vendor/nes/fonts/**"
@@ -50,18 +69,24 @@ jobs:
               - "tests/test_gb.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
             gg:
               - "gg/**"
               - "vendor/nes/fonts/**"
               - "tests/test_gg.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
             nes:
               - "nes/**"
               - "vendor/nes/**"
               - "tests/test_nes.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
             snes:
               - "snes/**"
               - "vendor/nes/fonts/**"
@@ -70,6 +95,8 @@ jobs:
               - "tests/test_snes.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
             win98:
               - "win98/**"
               - "vendor/win98/**"
@@ -78,6 +105,8 @@ jobs:
               - "tests/test_win98.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
             redmond_run:
               - "shared/redmond/**"
               - "shared/router.js"
@@ -87,6 +116,8 @@ jobs:
               - "tests/test_redmond_run.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
             screensavers:
               - "vendor/screensavers/**"
               - "shared/redmond/**"
@@ -99,6 +130,8 @@ jobs:
               - "tests/test_screensavers.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
             os2:
               - "os2/**"
               - "win31/**"
@@ -107,11 +140,13 @@ jobs:
               - "tests/test_os2.py"
               - "tests/conftest.py"
               - "tests/requirements.txt"
+              - "shared/*.js"
+              - ".github/workflows/theme-tests.yml"
 
   shared-node-tests:
     # shared/morph-puzzles.js, shared/morph-game.js and shared/klax-game.js
     # (the MORPH!/KLAX minigame engine + data, loaded classic-script-style
-    # by gb/, snes/, and c64/ -- c64/ has no Playwright suite of its own yet)
+    # by gb/, snes/, and c64/)
     # are pure logic with no DOM, so they get their own fast Node-only job
     # instead of waiting on the `changes`/Playwright matrix above. Runs on
     # every push/PR rather than being paths-filtered like the theme matrix:
@@ -141,7 +176,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install test dependencies
-        run: pip install -r tests/requirements.txt
+        run: pip install --require-hashes -r tests/requirements.txt
 
       # The hosted Ubuntu runner already has Chromium's system libraries.
       # Avoid --with-deps here: it runs apt-get against third-party runner

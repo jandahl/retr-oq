@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "retr-oq-tests"
+version = "0.0.0"
+description = "Test dependencies for retr-oq"
+requires-python = ">=3.11"
+
+[project.optional-dependencies]
+test = [
+  "pytest==9.1.1",
+  "playwright==1.62.0",
+]
+dev = [
+  "pytest==9.1.1",
+  "playwright==1.62.0",
+  "greenlet==3.5.5",
+  "iniconfig==2.3.0",
+  "packaging==26.3",
+  "pluggy==1.6.0",
+  "pyee==13.0.1",
+  "pygments==2.21.0",
+  "tinycss2==1.5.1",
+  "typing-extensions==4.16.0",
+  "webencodings==0.6.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

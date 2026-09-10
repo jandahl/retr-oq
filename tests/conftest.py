@@ -24,10 +24,16 @@ REPO_ROOT = __import__("pathlib").Path(__file__).resolve().parent.parent
 _SANDBOX_CHROMIUM = "/opt/pw-browsers/chromium"
 
 
+class TestHTTPServer(http.server.ThreadingHTTPServer):
+    # Chromium opens parallel connections for each page's scripts and fonts.
+    # Keep those bursts from overflowing the default five-connection queue.
+    request_queue_size = 128
+
+
 @pytest.fixture(scope="session")
 def base_url():
     handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(REPO_ROOT))
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    server = TestHTTPServer(("127.0.0.1", 0), handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     port = server.server_address[1]

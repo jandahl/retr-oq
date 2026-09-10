@@ -29,7 +29,11 @@ def goto_win98(page, base_url):
     )
     console_errors = []
     page.on("console", lambda m: console_errors.append(m.text) if m.type == "error" else None)
+    failed_requests = []
+    page.on("requestfailed", lambda r: failed_requests.append(f"{r.url}: {r.failure}"))
     page.goto(f"{base_url}/win98/index.html")
+    assert not failed_requests, failed_requests
+    assert not errors, errors
     page.wait_for_timeout(300)
     # The boot screen (added after this suite) sits above the desktop and
     # eats the first tap/click meant for it -- real mouse clicks survive
