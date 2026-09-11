@@ -88,7 +88,7 @@
         '<div class="title-bar"><div class="title-bar-text">About ' + label + '</div></div>' +
         '<div class="' + c.body + '">' +
         "<p><strong>" + label + "</strong> — retr-oq desktop prototype</p>" +
-        "<p>oq-api: " + apiPath + "<br>https://jandahl.github.io/oq-api/api/" + apiPath + "/public-api.js</p>" +
+        "<p>oq-api: " + apiPath + "<br>https://jandahl.github.io/api.oq.gl/api/" + apiPath + "/public-api.js</p>" +
         "<p>theme: " + theme + "<br>viewport: " + window.innerWidth + "×" + window.innerHeight +
         "<br>user agent:<br><small>" + String(navigator.userAgent).replace(/</g, "") + "</small></p>" +
         '<div class="win98-dialog-actions" style="margin-top:1rem;display:flex;justify-content:flex-end">' +
