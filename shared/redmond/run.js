@@ -153,7 +153,7 @@
       '<p id="run-error" hidden style="color:#c00000"></p>' +
       '<div class="field-row" style="display:flex;gap:0.5rem;align-items:center">' +
       '<label for="run-input">Open:</label>' +
-      '<input type="text" id="run-input" autocomplete="off" style="flex:1" />' +
+      '<input type="text" id="run-input" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" style="flex:1" />' +
       "</div>" +
       '<div class="win98-dialog-actions" style="margin-top:1rem;display:flex;justify-content:flex-end;gap:6px">' +
       '<button type="button" id="run-ok">OK</button>' +
