@@ -307,6 +307,7 @@
       deskApps.appendChild(btn);
     }
     paintWorkspaceMinis();
+    syncDesktopChromePad();
   }
 
   function closeAppMenu() { appMenu.hidden = true; }
@@ -491,13 +492,41 @@
     return window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640;
   }
 
+  /**
+   * Top-strip Deskbar: sits at the top of the viewport and spans ~≥90% width
+   * (mobile stacked chrome, or any layout that forces a full-width top bar).
+   * Side Deskbar is a tall right strip — do NOT treat its rect.bottom as top chrome.
+   */
+  function isTopStripDeskbar(bar) {
+    if (!bar || bar.classList.contains("is-bottom")) return false;
+    const rect = bar.getBoundingClientRect();
+    const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    if (!(vw > 0) || !(rect.width > 0)) return false;
+    const atTop = rect.top <= 1;
+    const fullWidth = rect.width >= vw * 0.9;
+    return atTop && fullWidth;
+  }
+
+  /** Full occupied top chrome (yellow Be + status + apps), or 0 if side/bottom Deskbar. */
+  function topChromeOccupiedPx() {
+    const bar = document.getElementById("deskbar") || document.querySelector(".be-deskbar");
+    if (!isTopStripDeskbar(bar)) return 0;
+    const bottom = bar.getBoundingClientRect().bottom;
+    if (Number.isFinite(bottom) && bottom > 0) return Math.ceil(bottom);
+    return 52; // Be (~25) + status (~27) fallback
+  }
+
+  /** Single source of truth: CSS --be-top-chrome pads .be-desktop below a top-strip Deskbar. */
+  function syncDesktopChromePad() {
+    const occupied = topChromeOccupiedPx();
+    const pad = occupied > 0 ? occupied + 4 : 0;
+    document.documentElement.style.setProperty("--be-top-chrome", `${pad}px`);
+    return pad;
+  }
+
   function iconColumnTop() {
-    if (!isNarrowViewport()) return 16;
-    const deskbar = document.getElementById("deskbar") || document.querySelector(".be-deskbar");
-    if (deskbar?.classList.contains("is-bottom")) return 16;
-    const h = deskbar?.getBoundingClientRect?.().height;
-    if (Number.isFinite(h) && h > 0) return Math.ceil(h) + 4;
-    return 32;
+    // Canvas already cleared via --be-top-chrome when top-strip; just an inner gutter.
+    return 16;
   }
 
   function layoutIcons() {
@@ -516,12 +545,20 @@
     const left = iconClear;
     const width = Math.max(200, window.innerWidth - left - 8);
     const top = iconColumnTop();
+    const deskH = desktop.getBoundingClientRect().height;
+    const height = Math.min(Math.max(deskH - top - 16, 140), 420);
     for (const win of windows) {
       win.style.left = `${left}px`;
       win.style.top = `${top}px`;
       win.style.width = `${width}px`;
-      win.style.height = `${Math.min(window.innerHeight - top - 16, 420)}px`;
+      win.style.height = `${height}px`;
     }
+  }
+
+  function relayoutDesktop() {
+    syncDesktopChromePad();
+    layoutIcons();
+    placeWindowsForViewport();
   }
 
   for (const icon of document.querySelectorAll(".desktop-icon[data-open]")) {
@@ -981,12 +1018,14 @@
       pid = null;
       if (Math.abs(dy) < 12) {
         deskbar.classList.toggle("is-compact");
+        syncDesktopChromePad();
         return;
       }
       if (event.clientY > window.innerHeight * 0.7) deskbar.classList.add("is-bottom");
       else deskbar.classList.remove("is-bottom");
       if (dy < -24) deskbar.classList.add("is-compact");
       if (dy > 24 && !deskbar.classList.contains("is-bottom")) deskbar.classList.remove("is-compact");
+      syncDesktopChromePad();
     });
   })();
 
@@ -1175,12 +1214,11 @@
   document.addEventListener("click", () => { if (audioCtx?.state === "suspended") audioCtx.resume(); }, { once: true });
 
   // Tracker is the shell — a BeBox always has a Home window running.
-  // On narrow viewports, position clear of the left icon column.
-  placeWindowsForViewport();
-  layoutIcons();
+  // Open first so the Deskbar apps row is in the measured top chrome, then pad the canvas.
   openWindow(document.getElementById("win-tracker"));
   applyWorkspace();
+  relayoutDesktop();
 
-  window.addEventListener("resize", () => { layoutIcons(); });
-  window.addEventListener("orientationchange", () => { layoutIcons(); });
+  window.addEventListener("resize", () => { relayoutDesktop(); });
+  window.addEventListener("orientationchange", () => { relayoutDesktop(); });
 })();
