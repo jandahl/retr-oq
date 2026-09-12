@@ -27,7 +27,7 @@ zoom is a square-in-a-square on the right. Font is TeX Gyre Heros from
   miniaturize. Closing OQ!/DECON still goes through `OqRouter`.
 - Desktop icons: click selects, double-click opens. Coarse pointers
   (touch) open on a single tap. Icons drag; Clean Up snaps to a column.
-- Mobile (≤640px): keep `.be-desktop { inset: 0 }` as the icon containing block (avoid `top: auto`); Deskbar is full-width at top — `layoutIcons()` clears its height and Tracker opens at `left ≥ 96px` so the icon column stays usable. Chrome uses the BeOS arrow cursor + `user-select: none`; I-beam / text selection only on `input`/`textarea`/`select`/`[contenteditable]`.
+- Mobile (≤640px): `.be-desktop` uses `--be-top-chrome` (JS sets from Deskbar `getBoundingClientRect().bottom` + 4px gap — yellow Be + status + apps, not a 28px guess) so icons/windows clear the full top chrome; `relayoutDesktop()` on resize/orientationchange and after Deskbar dock/compact. Tracker opens at `left ≥ 96px`. Hide-icons preference unchanged. Chrome uses the BeOS arrow cursor + `user-select: none`; I-beam / text selection only on `input`/`textarea`/`select`/`[contenteditable]`.
 - Tracker is a list view (Name / Size / Kind) with File / Window menus.
 - `html, body { position: fixed }` — iOS will otherwise scroll the
   document to a focused field. Inputs are ≥ 16px.

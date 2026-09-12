@@ -49,8 +49,8 @@
   --be-deskbar-w: 158px;
   --be-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
   --cursor-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='16' viewBox='0 0 14 16'%3E%3Cpath d='M1 1 L1 14 L4 11 L6 15.5 L8 14.5 L6 10 L10 10 Z' fill='%23fff' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E") 1 1, default;
-  /* Mobile: clear full-width top Deskbar so absolutely positioned icons stay visible. */
-  --be-icon-deskbar-pad: 0px;
+  /* Mobile: .be-desktop top inset clears full-width Deskbar (JS sets measured px). */
+  --be-top-chrome: 0px;
 }
 
 html, body {
@@ -466,8 +466,6 @@ body:has(.be-deskbar.is-bottom) .be-desktop {
   inset: 0;
   z-index: 5;
   pointer-events: none;
-  padding-top: var(--be-icon-deskbar-pad);
-  box-sizing: border-box;
 }
 .desktop-icons.is-hidden { display: none; }
 .desktop-icon {
@@ -1000,8 +998,8 @@ button.be-bar-item[aria-expanded="true"] {
 @media (max-width: 640px) {
   :root {
     --be-deskbar-w: 0px;
-    /* Full-width top Deskbar (~28–36px); icons need a containing-block offset. */
-    --be-icon-deskbar-pad: 28px;
+    /* Fallback before JS: yellow Be (~25) + status (~27) + gap. JS replaces with live height. */
+    --be-top-chrome: 56px;
   }
   .be-deskbar {
     left: 0;
@@ -1020,17 +1018,18 @@ button.be-bar-item[aria-expanded="true"] {
     width: auto;
     min-width: 7rem;
   }
-  /* Keep a fixed full-bleed containing block (top:auto collapsed abspos icons). */
+  /* Canvas starts below Deskbar; abspos icons/windows are relative to this box. */
   .be-desktop {
-    inset: 0;
+    top: var(--be-top-chrome);
     right: 0;
+    bottom: 0;
+    left: 0;
   }
   body:has(.be-deskbar.is-bottom) {
-    --be-icon-deskbar-pad: 0px;
+    --be-top-chrome: 0px;
   }
-  body:has(.be-deskbar.is-bottom) .desktop-icons {
-    padding-top: 0;
-    padding-bottom: 28px;
+  body:has(.be-deskbar.is-bottom) .be-desktop {
+    bottom: 28px;
   }
   .be-window {
     max-width: calc(100vw - 12px);
