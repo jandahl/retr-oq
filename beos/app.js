@@ -464,15 +464,6 @@
     }
   }
 
-  if (window.innerWidth < 640) {
-    for (const win of windows) {
-      win.style.left = "8px";
-      win.style.top = "96px";
-      win.style.width = `${Math.max(240, window.innerWidth - 16)}px`;
-      win.style.height = `${Math.min(window.innerHeight - 120, 420)}px`;
-    }
-  }
-
   function openFromTarget(id) {
     const target = document.getElementById(id);
     if (!target) return;
@@ -496,12 +487,41 @@
     selectedIcon = icon;
   }
 
+  function isNarrowViewport() {
+    return window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640;
+  }
+
+  function iconColumnTop() {
+    if (!isNarrowViewport()) return 16;
+    const deskbar = document.getElementById("deskbar") || document.querySelector(".be-deskbar");
+    if (deskbar?.classList.contains("is-bottom")) return 16;
+    const h = deskbar?.getBoundingClientRect?.().height;
+    if (Number.isFinite(h) && h > 0) return Math.ceil(h) + 4;
+    return 32;
+  }
+
   function layoutIcons() {
     const icons = Array.from(document.querySelectorAll(".desktop-icon"));
+    const top0 = iconColumnTop();
     icons.forEach((icon, i) => {
       icon.style.left = "16px";
-      icon.style.top = `${16 + i * 80}px`;
+      icon.style.top = `${top0 + i * 80}px`;
     });
+  }
+
+  function placeWindowsForViewport() {
+    if (!isNarrowViewport()) return;
+    // Clear the left icon column (~76px + gutter) so Tracker/Home does not cover icons.
+    const iconClear = 96;
+    const left = iconClear;
+    const width = Math.max(200, window.innerWidth - left - 8);
+    const top = iconColumnTop();
+    for (const win of windows) {
+      win.style.left = `${left}px`;
+      win.style.top = `${top}px`;
+      win.style.width = `${width}px`;
+      win.style.height = `${Math.min(window.innerHeight - top - 16, 420)}px`;
+    }
   }
 
   for (const icon of document.querySelectorAll(".desktop-icon[data-open]")) {
@@ -1155,6 +1175,12 @@
   document.addEventListener("click", () => { if (audioCtx?.state === "suspended") audioCtx.resume(); }, { once: true });
 
   // Tracker is the shell — a BeBox always has a Home window running.
+  // On narrow viewports, position clear of the left icon column.
+  placeWindowsForViewport();
+  layoutIcons();
   openWindow(document.getElementById("win-tracker"));
   applyWorkspace();
+
+  window.addEventListener("resize", () => { layoutIcons(); });
+  window.addEventListener("orientationchange", () => { layoutIcons(); });
 })();
