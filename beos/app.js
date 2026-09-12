@@ -492,17 +492,31 @@
     return window.matchMedia?.("(max-width: 640px)")?.matches || window.innerWidth <= 640;
   }
 
-  /** Full occupied top chrome (yellow Be + status + apps), or 0 if Deskbar is bottom/wide. */
+  /**
+   * Top-strip Deskbar: sits at the top of the viewport and spans ~≥90% width
+   * (mobile stacked chrome, or any layout that forces a full-width top bar).
+   * Side Deskbar is a tall right strip — do NOT treat its rect.bottom as top chrome.
+   */
+  function isTopStripDeskbar(bar) {
+    if (!bar || bar.classList.contains("is-bottom")) return false;
+    const rect = bar.getBoundingClientRect();
+    const vw = window.innerWidth || document.documentElement.clientWidth || 0;
+    if (!(vw > 0) || !(rect.width > 0)) return false;
+    const atTop = rect.top <= 1;
+    const fullWidth = rect.width >= vw * 0.9;
+    return atTop && fullWidth;
+  }
+
+  /** Full occupied top chrome (yellow Be + status + apps), or 0 if side/bottom Deskbar. */
   function topChromeOccupiedPx() {
-    if (!isNarrowViewport()) return 0;
     const bar = document.getElementById("deskbar") || document.querySelector(".be-deskbar");
-    if (!bar || bar.classList.contains("is-bottom")) return 0;
+    if (!isTopStripDeskbar(bar)) return 0;
     const bottom = bar.getBoundingClientRect().bottom;
     if (Number.isFinite(bottom) && bottom > 0) return Math.ceil(bottom);
     return 52; // Be (~25) + status (~27) fallback
   }
 
-  /** Single source of truth: CSS --be-top-chrome pads .be-desktop below the Deskbar. */
+  /** Single source of truth: CSS --be-top-chrome pads .be-desktop below a top-strip Deskbar. */
   function syncDesktopChromePad() {
     const occupied = topChromeOccupiedPx();
     const pad = occupied > 0 ? occupied + 4 : 0;
@@ -511,7 +525,7 @@
   }
 
   function iconColumnTop() {
-    // Narrow: canvas already cleared via --be-top-chrome; just an inner gutter.
+    // Canvas already cleared via --be-top-chrome when top-strip; just an inner gutter.
     return 16;
   }
 

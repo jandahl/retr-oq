@@ -49,7 +49,7 @@
   --be-deskbar-w: 158px;
   --be-shadow: 2px 2px 0 rgba(0, 0, 0, 0.45);
   --cursor-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='16' viewBox='0 0 14 16'%3E%3Cpath d='M1 1 L1 14 L4 11 L6 15.5 L8 14.5 L6 10 L10 10 Z' fill='%23fff' stroke='%23000' stroke-width='1'/%3E%3C/svg%3E") 1 1, default;
-  /* Mobile: .be-desktop top inset clears full-width Deskbar (JS sets measured px). */
+  /* Top-strip Deskbar: .be-desktop top inset (JS sets measured px; 0 for side/bottom). */
   --be-top-chrome: 0px;
 }
 
@@ -454,12 +454,16 @@ html.show-replicants .be-status-view { padding-left: 14px; }
 .be-desktop {
   position: fixed;
   inset: 0;
+  top: var(--be-top-chrome);
   right: var(--be-deskbar-w);
 }
 .be-deskbar.is-bottom ~ .be-desktop,
 body:has(.be-deskbar.is-bottom) .be-desktop {
   right: 0;
   bottom: 28px;
+}
+body:has(.be-deskbar.is-bottom) {
+  --be-top-chrome: 0px;
 }
 .desktop-icons {
   position: absolute;
@@ -1018,15 +1022,11 @@ button.be-bar-item[aria-expanded="true"] {
     width: auto;
     min-width: 7rem;
   }
-  /* Canvas starts below Deskbar; abspos icons/windows are relative to this box. */
+  /* Canvas right clears when --be-deskbar-w is 0; top pad via --be-top-chrome (all widths). */
   .be-desktop {
-    top: var(--be-top-chrome);
     right: 0;
     bottom: 0;
     left: 0;
-  }
-  body:has(.be-deskbar.is-bottom) {
-    --be-top-chrome: 0px;
   }
   body:has(.be-deskbar.is-bottom) .be-desktop {
     bottom: 28px;
